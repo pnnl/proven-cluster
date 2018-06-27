@@ -1,0 +1,22 @@
+include "disclosure-service"
+include "member-service"
+include "member-lib"
+include "exchange-lib"
+include "exchange-service"
+include "hybrid-service"
+include "stream-service"
+include "stream-lib"
+include "utils-lib"
+include "proven-embedded"
+
+
+rootProject.name = 'proven-member'
+rootProject.children.each {project ->
+	String fileBaseName = project.name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }
+	//String projectDirName = "subprojects/$fileBaseName"
+	String projectDirName = "$fileBaseName"
+	project.projectDir = new File(settingsDir, projectDirName)
+	project.buildFileName = "${fileBaseName}.gradle"
+	assert project.projectDir.isDirectory()
+	assert project.buildFile.isFile()
+}

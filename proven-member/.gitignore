@@ -1,0 +1,9 @@
+build
+bin
+.classpath
+.project
+.gradle
+.settings
+repos
+payara-micro-resources
+*.war

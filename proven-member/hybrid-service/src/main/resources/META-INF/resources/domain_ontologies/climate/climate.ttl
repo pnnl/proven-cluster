@@ -1,0 +1,107 @@
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix proven: <http://cssef.pnnl.gov/ns/proven#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://wxmlns.com/foaf/0.1/> .
+@prefix climate: <http://cssef.pnnl.gov/ns/climate#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix cf: <http://iridl.ldeo.columbia.edu/ontologies/cf-att.owl#> .
+
+@base <http://cssef.pnnl.gov/ns/climate#>  .
+
+#
+# Class Declarations
+#
+
+#
+# PROVEN Origin Product and Product Elements
+#
+climate:climate_plot_origin_report_element_001 rdfs:subClassOf proven:ProductElement .
+climate:climate_plot_origin_report rdfs:subClassOf  proven:Product .
+
+
+#
+# PROVEN Harvesters, Provenance Components and Representation Components
+#
+climate:harvest_netcdf_metadata rdfs:subClassOf proven:Harvester .
+climate:extract_netcdf_metadata rdf:type proven:ProvenanceComponent .
+climate:write_netcdf_metadata rdfs:subClassOf proven:Representation .
+climate:harvest_plot_origin rdfs:subClassOf proven:Harvester .
+climate:harvest_plot_citation rdfs:subClassOf proven:Harvester .
+climate:extract_plot_metadata rdfs:subClassOf proven:ProvenanceComponent .
+climate:write_plot_metadata rdfs:subClassOf proven:Representation .
+
+
+#
+# Atmosphere Diagnostics Plotting Package Agents ( from cssef-diagnostics.ttl )
+#
+climate:researcher rdf:type owl:Class ;
+                   rdf:type prov:Agent ;
+                   rdf:type foaf:Agent .
+                   
+climate:atmosphere_scientist rdfs:subClassOf climate:researcher .
+
+
+#
+# Script execution to automate scientific data processing and plotting
+#
+climate:run_script rdf:type owl:Class ;
+                   rdf:type prov:Activity  .
+            
+
+#
+# Atmosphere Diagnostic Datasets ( from cssef-diagnostics.ttl )
+#
+climate:describedBy rdf:type owl:ObjectPropertyOf .
+
+
+climate:Dataset  rdf:type owl:Class ;
+                 rdf:type prov:Entity ;
+                 climate:describedBy climate:Dataset_Variable .
+ 
+climate:Observational_Dataset rdfs:subClassOf climate:Dataset .
+ 
+climate:Case_Cam_Model_Dataset rdfs:subClassOf climate:Dataset ;
+                   climate:describedBy   climate:CAM_Model_Output_Variable .
+
+climate:Plot_Dataset rdfs:subClassOf climate:Dataset ;
+              climate:describedBy climate:Plot_Variable .
+
+climate:Plot_Image rdf:type prov:Entity ;
+            climate:describedBy climate:CAM_Model_Output_Variable .
+
+#
+# Climate Dataset Variables
+#
+climate:Dataset_Variable rdf:type owl:Class ;
+               rdf:type prov:Entity .
+               
+#
+# Community Atmosphere Model Variables
+#
+climate:CAM_Model_Variable rdfs:subClassOf climate:Dataset_Variable .
+climate:CAM_Model_Output_Variable rdfs:subClassOf climate:CAM_Model_Variable .
+climate:CAM_Model_Input_Variable rdfs:subClassOf climate:CAM_Model_Variable .
+
+
+#
+# Observational Dataset Variable
+# 
+climate:Obs_Variable rdfs:subClassOf climate:Dataset_Variable  .
+
+
+#
+# Dataset variables used in Plotting 
+#
+climate:Plot_Variable rdfs:subClassOf climate:Dataset_Variable .
+
+#
+# CF Standard Variable
+#
+climate:CF_Standard_Variable rdf:type cf:Standard_Name; 
+                 rdfs:subClassOf climate:Dataset_Variable .
+ 
+

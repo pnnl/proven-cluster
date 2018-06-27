@@ -1,0 +1,18 @@
+
+dependencies {
+	compileOnly 'javax:javaee-web-api:7.0'
+//	compileOnly 'fish.payara.extras:payara-micro:4.1.1.171'
+//	compileOnly 'com.hazelcast:hazelcast:3.7.1'
+}
+
+test {
+    systemProperties 'property': 'value'
+}
+
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs 'repos'
+       }
+    }
+}

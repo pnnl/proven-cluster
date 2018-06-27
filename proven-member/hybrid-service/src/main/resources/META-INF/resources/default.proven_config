@@ -1,0 +1,22 @@
+####
+# Proven configuration settings [default]
+####
+# psPort - Proven service port [28080]
+# useIdb - Use InfluxDB to save provenance metrics (true | false) [false]
+# idbUrl - InfluxDB URL [http://localhost:8086]
+# idbDB - InfluxDB Database [proven]
+# idbRP - InfluxDB retention policy [autogen]
+# idbUsername - InfluxDb username [root]
+# idbPassword - InfluxDb password [root]
+# t3Dir - directory location of triple store [user_home_directory]
+####
+export psPort=28080
+export useIdb=false
+export idbUrl=http://localhost:8086
+export idbDB=proven
+export idbRP=autogen
+export idbUsername=root
+export idbPassword=root
+export t3Dir=$HOME
+####
+

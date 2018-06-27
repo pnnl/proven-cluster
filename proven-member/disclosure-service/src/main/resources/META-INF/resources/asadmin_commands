@@ -1,0 +1,68 @@
++ ASADMIN MANAGEMENT COMMANDS:
+
+  Assumes portbase 8000, change port numbers if necessary
+
+    - Version:
+       > asadmin --user admin --passwordfile .gfpass --port 9048 version --local
+
+    - Get/set commands:
+       > asadmin --user admin --passwordfile .gfpass --port 9048 get server.*
+       > asadmin --user admin --passwordfile .gfpass --port 9048 get configs.*
+       > asadmin --user admin --passwordfile .gfpass --port 9048 get configs.config.server-config.*
+       > asadmin --user admin --passwordfile .gfpass --port 9048 get configs.config.server-config.network-config.*
+       > asadmin --user admin --passwordfile .gfpass --port 9048 get configs.config.server-config.ejb-container.*
+
+    - Create domains:
+       >  asadmin --user admin --passwordfile .gfpass create-domain --usemasterpassword=true --portbase 9000 proven    
+
+    - Delete domain
+      > asadmin --user admin --port 9048 delete-domain proven
+      
+      asadmin --user admin --port 9048 delete-domain proven
+      
+
+    - Start domains:
+       > asadmin --user admin --passwordfile .gfpass --port 9048 start-domain proven    
+
+    - Stop domains:
+       > asadmin --user admin --passwordfile .gfpass --port 9048 stop-domain proven
+
+    - Restart domain
+       > asadmin --user admin --passwordfile .gfpass --port 9048 restart-domain proven    
+
+    - Add common libraries (just postgres right now, others?):
+       > asadmin --user admin --passwordfile .gfpass --port 9048 add-library --type=common ./postgresql-9.3-1102.jdbc41.jar
+                
+    - Create jdbc connection pool:
+       > asadmin --user admin --passwordfile .gfpass --port 9048 create-jdbc-connection-pool --datasourceclassname=org.postgresql.ds.PGConnectionPoolDataSource --restype=javax.sql.ConnectionPoolDataSource --property User=app_cond:DatabaseName=conditions_dev:Password=belle2:ServerName=localhost:Ssl=false:TcpKeepAlive=false:UnknownLength=2147483647:PrepareThreshold=5 proven_cp
+       > asadmin --user admin --passwordfile .gfpass --port 9048 create-jdbc-connection-pool --datasourceclassname=org.postgresql.ds.PGConnectionPoolDataSource --restype=javax.sql.ConnectionPoolDataSource --property User=adm_cond:DatabaseName=conditions_dev:Password=belle2:ServerName=localhost:Ssl=false:TcpKeepAlive=false:UnknownLength=2147483647:PrepareThreshold=5 provenAdm_cp           
+
+   - Delete jdbc connection pool
+       > asadmin --user admin --passwordfile .gfpass --port 9048 delete-jdbc-connection-pool  proven_cp   
+       > asadmin --user admin --passwordfile .gfpass --port 9048 delete-jdbc-connection-pool  provenAdm_cp       
+
+   - Create jdbc resource    
+       > asadmin --user admin --passwordfile .gfpass --port 9048 create-jdbc-resource --connectionpoolid=proven_cp jdbc/proven   
+       > asadmin --user admin --passwordfile .gfpass --port 9048 create-jdbc-resource --connectionpoolid=provenAdm_cp jdbc/provenAdm
+
+   - Delete jdbc resource
+       > asadmin --user admin --passwordfile .gfpass --port 9048 delete-jdbc-resource jdbc/proven
+       > asadmin --user admin --passwordfile .gfpass --port 9048 delete-jdbc-resource jdbc/provenAdm       
+
+    - To list current JVM options:
+      > asadmin --user admin --passwordfile .gfpass --port 9048 list-jvm-options    
+
+    - Deploy 
+      > asadmin --user admin --passwordfile .gfpass --port 9048 deploy ./proven.war    
+
+    - Uneploy 
+      > asadmin --user admin --passwordfile .gfpass --port 9048 undeploy proven    
+
+    - List timers
+      > asadmin --user admin --passwordfile .gfpass --port 9048 list-timers    
+
+    - List threadpools
+      > asadmin --user admin --passwordfile .gfpass --port 9048 list-threadpools server    
+
+    - Get threadpool info
+      > asadmin --user admin --passwordfile .gfpass --port 9048 get server.thread-pools.thread-pool.* 

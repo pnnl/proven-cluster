@@ -1,0 +1,54 @@
+{
+  "xsd": "http://www.w3.org/2001/XMLSchema#",
+  "proven": "http://proven.pnnl.gov#",
+  "wfpp": "http://wfpp.pnnl.gov#",
+  "aim": "http://aim.pnnl.gov#",
+  "hasProvenance": {
+    "@id": "proven:hasProvenance",
+    "@type": "@id"
+  },
+  "hasApplication": {
+    "@id": "proven:hasApplication",
+    "@type": "@id"
+  },
+  "hasName": {
+    "@id": "wfpp:hasName",
+    "@type": "xsd:String"
+  },
+  "hasVersion": {
+    "@id": "wfpp:hasVersion",
+    "@type": "xsd:String"
+  },
+  "hasHost": {
+    "@id": "wfpp:hasHost",
+    "@type": "xsd:String"
+  },
+  "hasProcess": {
+    "@id": "wfpp:hasProcess",
+    "@type": "xsd:int"
+  },
+  "hasStartTime": {
+    "@id": "wfpp:hasStartTime",
+    "@type": "xsd:long"
+  },
+  "hasStopTime": {
+    "@id": "wfpp:hasStopTime",
+    "@type": "xsd:long"
+  },
+  "hasMessageNumber": {
+    "@id": "aim:hasMessageNumber",
+    "@type": "xsd:long"
+  },
+  "hasTopicName": {
+    "@id": "aim:hasTopicName",
+    "@type": "xsd:string"
+  },
+  "hasMessageTreatmentResult": {
+    "@id": "aim:hasMessageTreatmentResult",
+    "@type": "xsd:string"
+  },
+  "hasPayloadSchema": {
+    "@id": "aim:hasPayloadSchema",
+    "@type": "xsd:string"
+  }
+}
