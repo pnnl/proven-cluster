@@ -943,11 +943,13 @@ public class RepositoryResource {
 			// Add proven message to stream
 			// TODO Implement MapStore
 			String key = pm.getMessageKey();
-			pm.getMessageProperties().setDisclosre(new Date().getTime());
+			pm.getMessageProperties().setDisclosure(new Date().getTime());
 			String stream = pm.getMessageContent().getStream(); 
-			IMap<String, ProvenMessage> pms = hzMemberInstance.getMap(stream);
-			pms.set(key, pm);
-			
+			if (null != hzMemberInstance) {
+				log.warn("HZ cluster instance could not be found");
+				IMap<String, ProvenMessage> pms = hzMemberInstance.getMap(stream);
+				pms.set(key, pm);
+			}		
 
 			// Add statements to T3 store
 			Resource[] contexts = {};
