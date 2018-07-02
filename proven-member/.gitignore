@@ -7,3 +7,4 @@ bin
 repos
 payara-micro-resources
 *.war
+.DS_Store
