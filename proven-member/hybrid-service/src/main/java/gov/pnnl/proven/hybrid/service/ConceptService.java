@@ -85,6 +85,7 @@ import static gov.pnnl.proven.hybrid.concept.ProvenConceptSchema.*;
 import static gov.pnnl.proven.hybrid.util.Consts.*;
 import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.*;
 import static gov.pnnl.proven.hybrid.util.Utils.*;
+import static gov.pnnl.proven.message.ProvenMetric.MetricFragmentIdentifier.*;
 
 import gov.pnnl.proven.message.*;
 
@@ -168,6 +169,7 @@ import gov.pnnl.proven.message.ProvenMeasurement;
 import gov.pnnl.proven.message.ProvenMessage;
 import gov.pnnl.proven.message.ProvenMessageResponse;
 import gov.pnnl.proven.message.ProvenMetric;
+import gov.pnnl.proven.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
 import gov.pnnl.proven.message.ProvenQueryFilter;
 import gov.pnnl.proven.message.ProvenQueryTimeSeries;
 import gov.pnnl.proven.message.MessageUtils;
@@ -850,7 +852,7 @@ public class ConceptService {
 
 					if (pm.isMetadata()) {
 
-						builder.tag(pm.getName(), pm.getValue());
+						builder.tag(pm.getLabel(), pm.getValue());
 
 						// System.out.println("TAG");
 						// System.out.println("------------------------------");
@@ -860,7 +862,27 @@ public class ConceptService {
 
 					} else {
 
-						builder.field(pm.getName(), pm.getValue());
+						try {
+							if (pm.getValueType().equals(MetricValueType.Integer)) {
+								builder.addField(pm.getLabel(), Integer.valueOf(pm.getValue()));
+
+							} else if (pm.getValueType().equals(MetricValueType.Long)) {
+								builder.addField(pm.getLabel(), Long.valueOf(pm.getValue()));
+
+							} else if (pm.getValueType().equals(MetricValueType.Float)) {
+								builder.addField(pm.getLabel(), Float.valueOf(pm.getValue()));
+
+							} else if (pm.getValueType().equals(MetricValueType.Double)) {
+								builder.addField(pm.getLabel(), Double.valueOf(pm.getValue()));
+
+							} else if (pm.getValueType().equals(MetricValueType.Boolean)) {
+								builder.addField(pm.getLabel(), Boolean.valueOf(pm.getValue()));
+							} else {
+								builder.addField(pm.getLabel(), pm.getValue());
+							}
+						} catch (NumberFormatException e) {
+							builder.addField(pm.getLabel(), pm.getValue());
+						}
 
 						// System.out.println("FIELD");
 						// System.out.println("------------------------------");
