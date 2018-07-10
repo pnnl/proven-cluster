@@ -140,7 +140,15 @@ public class ProvenConfig {
 		PROVEN_IDB_RP("proven.idbRP", false, "autogen"),
 		PROVEN_IDB_USERNAME("proven.idbUsername", false, "root"),
 		PROVEN_IDB_PASSWORD("proven.idbPassword", false, "root"),
-		PROVEN_T3DIR("proven.t3Dir", true, "/tmp");
+		PROVEN_T3DIR("proven.t3Dir", true, "/tmp"),
+		PROVEN_T3_URL("proven.t3Url", false, "http://localhost:8089"),	
+		PROVEN_T3_DB("proven.t3DB", false, "proven");
+		//
+		// Fill out for triple store
+		//
+		
+		
+		
 		
 		private String envVarKey;
 		private String sysPropKey;
