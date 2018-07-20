@@ -13,7 +13,6 @@ include "proven-embedded"
 rootProject.name = 'proven-member'
 rootProject.children.each {project ->
 	String fileBaseName = project.name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }
-	//String projectDirName = "subprojects/$fileBaseName"
 	String projectDirName = "$fileBaseName"
 	project.projectDir = new File(settingsDir, projectDirName)
 	project.buildFileName = "${fileBaseName}.gradle"

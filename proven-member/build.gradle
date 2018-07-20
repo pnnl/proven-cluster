@@ -1,15 +1,10 @@
 
-task wrapper(type: Wrapper) { gradleVersion = '3.5' }
-
-ext {
-	pmrDirName="payara-micro-resources"
-}
+ext { pmrDirName="payara-micro-resources" }
 
 
 allprojects {
 
-	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion"
-		} }
+	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
 }
 
 
@@ -29,7 +24,7 @@ subprojects {
 		testCompile 'junit:junit:4.8.2'
 		compile 'org.slf4j:slf4j-log4j12:1.7.23'
 	}
-	
+
 	task payaraMicroResourceWar (dependsOn: build) {
 		doLast {
 			println rootProject.getPath() + "hello" + pmrDirName
@@ -49,9 +44,7 @@ subprojects {
 //
 
 project(':member-lib') {
-	dependencies {
-		compile project(':utils-lib')
-	}
+	dependencies { compile project(':utils-lib') }
 }
 
 
@@ -63,11 +56,10 @@ project(':stream-lib') {
 }
 
 project(':disclosure-service') {
-	//dependencies {
-		//compile project(':member-lib')
-		//compile project(':exchange-lib')
-		//compile project(':utils-lib')
-	//}
+	dependencies {
+		compile project(':member-lib')
+		compile project(':utils-lib')
+	}
 }
 
 project(':exchange-lib') {
