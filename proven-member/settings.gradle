@@ -1,6 +1,7 @@
 include "disclosure-service"
 include "member-service"
 include "member-lib"
+include "module-lib"
 include "exchange-lib"
 include "exchange-service"
 include "hybrid-service"

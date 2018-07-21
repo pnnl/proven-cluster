@@ -43,13 +43,23 @@ subprojects {
 // Project dependencies
 //
 
+
 project(':member-lib') {
 	dependencies { compile project(':utils-lib') }
 }
 
 
+project(':module-lib') {
+	dependencies {
+		compile project(':member-lib')
+		compile project(':utils-lib')
+	}
+}
+
+
 project(':stream-lib') {
 	dependencies {
+		compile project(':module-lib')
 		compile project(':member-lib')
 		compile project(':utils-lib')
 	}
@@ -57,6 +67,7 @@ project(':stream-lib') {
 
 project(':disclosure-service') {
 	dependencies {
+		compile project(':module-lib')
 		compile project(':member-lib')
 		compile project(':utils-lib')
 	}
@@ -64,6 +75,7 @@ project(':disclosure-service') {
 
 project(':exchange-lib') {
 	dependencies {
+		compile project(':module-lib')
 		compile project(':member-lib')
 		compile project(':utils-lib')
 	}
@@ -71,6 +83,7 @@ project(':exchange-lib') {
 
 project(':exchange-service') {
 	dependencies {
+		compile project(':module-lib')
 		compile project(':member-lib')
 		compile project(':exchange-lib')
 		compile project(':utils-lib')
@@ -80,6 +93,7 @@ project(':exchange-service') {
 
 project(':member-service') {
 	dependencies {
+		compile project(':module-lib')
 		compile project(':member-lib')
 		compile project(':utils-lib')
 	}
@@ -88,6 +102,7 @@ project(':member-service') {
 
 project(':stream-service') {
 	dependencies {
+		compile project(':module-lib')
 		compile project(':member-lib')
 		compile project(':stream-lib')
 		compile project(':utils-lib')
