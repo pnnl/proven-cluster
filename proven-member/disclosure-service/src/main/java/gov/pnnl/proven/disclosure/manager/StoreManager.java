@@ -83,6 +83,7 @@ package gov.pnnl.proven.disclosure.manager;
 import static gov.pnnl.proven.disclosure.concept.ConceptUtil.*;
 import static gov.pnnl.proven.disclosure.util.Consts.*;
 
+import gov.pnnl.proven.cluster.member.util.ProvenMemberDeprecated;
 import gov.pnnl.proven.disclosure.service.ModelService;
 import gov.pnnl.proven.disclosure.util.ProvenConfig;
 import gov.pnnl.proven.disclosure.util.Utils;
@@ -106,6 +107,7 @@ import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.inject.Inject;
 import javax.print.DocFlavor.READER;
 
 import org.openrdf.OpenRDFException;
@@ -158,6 +160,8 @@ public class StoreManager {
 
 	@EJB
 	private ModelService ms;
+
+	
 
 	private File baseDir;
 	private LocalRepositoryManager repoManager;

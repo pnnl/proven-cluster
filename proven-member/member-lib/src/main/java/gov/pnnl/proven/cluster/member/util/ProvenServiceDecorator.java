@@ -100,7 +100,7 @@ public class ProvenServiceDecorator implements ProvenServiceTesting {
 	private final Logger log = LoggerFactory.getLogger(ProvenServiceDecorator.class);
 	
 	@Inject
-	ProvenMember pm;
+	ProvenMemberDeprecated pm;
 	
 	@Inject
 	@Delegate

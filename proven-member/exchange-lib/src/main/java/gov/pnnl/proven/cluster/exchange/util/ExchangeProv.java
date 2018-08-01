@@ -89,7 +89,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.member.util.ProvenMember;
+import gov.pnnl.proven.cluster.member.util.ProvenMemberDeprecated;
 
 @ApplicationScoped
 public class ExchangeProv {
@@ -97,7 +97,7 @@ public class ExchangeProv {
 	private final Logger log = LoggerFactory.getLogger(ExchangeProv.class);
 	
 	
-	@Inject ProvenMember pm;
+	@Inject ProvenMemberDeprecated pm;
 	
 	@PostConstruct
 	public void initialize() {

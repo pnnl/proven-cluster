@@ -1,14 +1,13 @@
-include "disclosure-service"
-include "member-service"
-include "member-lib"
-include "module-lib"
-include "exchange-lib"
-include "exchange-service"
-include "hybrid-service"
-include "stream-service"
-include "stream-lib"
 include "utils-lib"
-include "proven-embedded"
+include "member-lib"
+include "exchange-lib"
+include "module-lib"
+include "message-lib"
+include "stream-lib"
+include "disclosure-service"
+include "stream-service"
+include "hybrid-service"
+include "member-service"
 
 
 rootProject.name = 'proven-member'

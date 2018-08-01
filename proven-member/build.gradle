@@ -1,7 +1,3 @@
-
-ext { pmrDirName="payara-micro-resources" }
-
-
 allprojects {
 
 	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
@@ -25,17 +21,6 @@ subprojects {
 		compile 'org.slf4j:slf4j-log4j12:1.7.23'
 	}
 
-	task payaraMicroResourceWar (dependsOn: build) {
-		doLast {
-			println rootProject.getPath() + "hello" + pmrDirName
-			println rootProject.getName() + "hello" + pmrDirName
-			copy {
-				from "build/libs"
-				into rootDir.toString() + "/" + pmrDirName
-				include "*.war"
-			}
-		}
-	}
 }
 
 
@@ -43,11 +28,22 @@ subprojects {
 // Project dependencies
 //
 
+project(':utils-lib') {
+	// No project dependencies
+}
+
 
 project(':member-lib') {
 	dependencies { compile project(':utils-lib') }
 }
 
+project(':exchange-lib') {
+	dependencies {
+		compile project(':member-lib')
+		compile project(':message-lib')
+		compile project(':utils-lib')
+	}
+}
 
 project(':module-lib') {
 	dependencies {
@@ -56,11 +52,16 @@ project(':module-lib') {
 	}
 }
 
+project(':message-lib') {
+	dependencies {
+		compile project(':utils-lib')
+	}
+}
 
 project(':stream-lib') {
 	dependencies {
-		compile project(':module-lib')
 		compile project(':member-lib')
+		compile project(':message-lib')
 		compile project(':utils-lib')
 	}
 }
@@ -69,48 +70,36 @@ project(':disclosure-service') {
 	dependencies {
 		compile project(':module-lib')
 		compile project(':member-lib')
+		compile project(':message-lib')
 		compile project(':utils-lib')
 	}
-}
-
-project(':exchange-lib') {
-	dependencies {
-		compile project(':module-lib')
-		compile project(':member-lib')
-		compile project(':utils-lib')
-	}
-}
-
-project(':exchange-service') {
-	dependencies {
-		compile project(':module-lib')
-		compile project(':member-lib')
-		compile project(':exchange-lib')
-		compile project(':utils-lib')
-	}
-}
-
-
-project(':member-service') {
-	dependencies {
-		compile project(':module-lib')
-		compile project(':member-lib')
-		compile project(':utils-lib')
-	}
-
 }
 
 project(':stream-service') {
 	dependencies {
 		compile project(':module-lib')
-		compile project(':member-lib')
 		compile project(':stream-lib')
+		compile project(':message-lib')
+		compile project(':member-lib')
 		compile project(':utils-lib')
 	}
 }
 
-project(':proven-embedded') {
-	dependencies { compile project(':utils-lib') }
+project(':hybrid-service') {
+	dependencies {
+		compile project(':module-lib')
+		compile project(':message-lib')
+		compile project(':member-lib')
+		compile project(':utils-lib')
+	}
 }
 
+project(':member-service') {
+	dependencies {
+		compile project(':module-lib')
+		compile project(':message-lib')
+		compile project(':member-lib')
+		compile project(':utils-lib')
+	}
+}
 

@@ -78,73 +78,157 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.embedded;
+package gov.pnnl.proven.cluster.member.util;
 
-import fish.payara.micro.PayaraMicro;
-import static gov.pnnl.proven.utils.Consts.*;
-import static gov.pnnl.proven.utils.Utils.*;
+import java.io.Serializable;
+import java.lang.annotation.Retention;
+import java.util.Set;
 
-import java.io.IOException;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
+import javax.swing.text.Utilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Contains configuration settings for a ProvEn member. Factory method provided
- * to get default settings which can be overridden via direct method calls or by
- * system properties provided during startup. All configuration settings must be
- * defined prior to bootstrap process taking place in {@link ProvenLaunch}.
- * 
- * Default settings are for up {@value #DEFAULT_HTTP_AUTO_BIND_RANGE} ProvEn
- * node members running on a single host.
- *
- */
-public class ProvenLaunchConfig {
+
+
+import com.hazelcast.core.ExecutionCallback;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ICompletableFuture;
+import com.hazelcast.core.IQueue;
+import com.hazelcast.core.Member;
+import com.hazelcast.monitor.impl.MemberStateImpl;
+import com.hazelcast.ringbuffer.OverflowPolicy;
+import com.hazelcast.ringbuffer.Ringbuffer;
+
+import static gov.pnnl.proven.utils.Utils.*;
+import static gov.pnnl.proven.utils.Consts.*;
+
+
+import fish.payara.micro.PayaraMicro;
+import fish.payara.micro.PayaraMicroRuntime;
+import gov.pnnl.proven.utils.Utils;
+
+
+@ApplicationScoped
+public abstract class ProvenMemberDeprecated implements Serializable {
+
+	private final Logger log = LoggerFactory.getLogger(ProvenMemberDeprecated.class);
 	
-	private final Logger log = LoggerFactory.getLogger(ProvenLaunch.class);
+	@Inject
+	HazelcastInstance hazelcast;
+	
+	@Inject
+	PayaraMicroRuntime pmrt;
+	
+	@Resource(lookup="java:module/ModuleName")
+	private String moduleName;
+	
+	@Resource(lookup="java:app/AppName")
+	private String appName;
+	
+	
+	public ProvenMemberDeprecated() {
+		log.debug("MemberStartup constructor...");
+	}
 
-	private static final int DEFAULT_HTTP_AUTO_BIND_RANGE = 10;
-
-	private static ProvenLaunchConfig instance;
-
-	public static ProvenLaunchConfig intializeDefaultConfiguration() throws IOException {
-
-		if (instance == null) {
-			instance = new ProvenLaunchConfig();
+	@PostConstruct
+	void initializeMember() {
+		
+		log.debug("MemberStartup PostConstruct...");
+		log.debug("MEMBER: " + hazelcast.getCluster().getLocalMember().getAddress().toString());
+		IQueue<String> testq = hazelcast.getQueue("TEST_QUEUE");
+		
+		HazelcastInstance hzInstance = ((HazelcastInstance)Utils.lookupJndi("payara/HazelcastData"));
+		
+		//hazelcast = PayaraMicro.getInstance().getRuntime().get
+		
+		try {
+			testq.put("HELLO");
+			testq.put("WORLD");
+			log.debug("PARTITION KEY: " + testq.getPartitionKey());
+			log.debug("CLUSTER STATE : " + hazelcast.getCluster().getClusterState().name());
+			log.debug("MODULE NAME : " + moduleName);
+			log.debug("APP NAME : " + appName);
+			hazelcast.getRingbuffer("test").addAsync("hello", OverflowPolicy.OVERWRITE);
+			
+			
+			
+			//log.debug("MEMBER STATE : " + msi.toJson());
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return instance;
+	}
+	
+	public abstract String getAbstractState();
+	
+	public String getStateMember() {
+		log.debug("Inside getState of proven member...");
+		return "Proven member is OFFLINE";
 	}
 
-	/*
-	 * Loads default payara and hazelcast packaged configuration files.
-	 */
-	private ProvenLaunchConfig() throws IOException {
+    public void addRequest(ProvenRequest request) {
+    	IQueue<ProvenRequest> testRequests = hazelcast.getQueue("TEST_REQUESTS");    	
+    	testRequests.add(request);
+    	
+    	ProvenRequest requestFromQueue = request;
+    	try {
+			requestFromQueue = testRequests.take();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	PayaraMicro pmi = PayaraMicro.getInstance();
+    	
+    	PayaraMicroRuntime pmrt = pmi.getRuntime();
+    	log.debug(pmrt.toString());
+    	
+    	requestFromQueue.getServiceProvider().get().submit();
+    	request.getServiceProvider().get().submit();
+    	
+    	
+    	PayaraMicro.getInstance().getRuntime().run(request);
+    	
+    	//hazelcast.getExecutorService("DEFAULT").submit(request);
+    	
+    	HazelcastInstance hi1 = Hazelcast.newHazelcastInstance(hazelcast.getConfig());
+    	
+    	hi1.getExecutorService("DEFAULT").submit(request, request);
+    	hi1.getExecutorService("DEFAULT").submit(requestFromQueue);
+    	
+    	
+    	Set<Member> members1 = hazelcast.getCluster().getMembers();
+    	Set<Member> members2 = hi1.getCluster().getMembers();
+    	
+    	log.debug("MEMBERS1");
+    	log.debug("-----------");
+    	for (Member m : members1) {
+    		log.debug(m.toString());
+    	}
+    	
+    	log.debug("MEMBERS2");
+    	log.debug("-----------");
+    	for (Member m : members2) {
+    		log.debug(m.toString());
+    	}
 
-		PayaraMicro pm = PayaraMicro.getInstance();
-
-		//
-		// Payara
-		pm.setRootDir(getCpResource(BOOTSTRAP_PY_PATH, this.getClass()));
-		pm.setDeploymentDir(getCpResource(BOOTSTRAP_SERVICES_PATH, this.getClass()));
-		pm.setAlternateDomainXML(getCpResource(DEFAULT_PY_DOMAIN_FILE_PATH, this.getClass()));
-		log.debug(pm.getAlternateDomainXML().getAbsolutePath());
-		log.debug(pm.getRootDir().getAbsolutePath());
-		
-		// Add system property to define new hz configuration
-		System.setProperty("payaramicro.hzConfigFile", "proven_hz_config.xml");
-		System.setProperty("payaramicro.port", "28080");
-		
-		
-		// TODO - remove hardcoding and add to property file
-		pm.setHttpAutoBind(true);
-		pm.setAutoBindRange(DEFAULT_HTTP_AUTO_BIND_RANGE);
-
-		//
-		// Hazelcast
-		// default data cluster (i.e. payara provided hz instance) is identified
-		// in alternate domain.xml
-		// Other settings TODO
-		
-	}
-
+    	
+    	
+    	
+    }
+	
+	
 }
