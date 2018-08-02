@@ -47,7 +47,6 @@ project(':exchange-lib') {
 
 project(':module-lib') {
 	dependencies {
-		compile project(':member-lib')
 		compile project(':utils-lib')
 	}
 }
@@ -87,12 +86,13 @@ project(':stream-service') {
 
 project(':hybrid-service') {
 	dependencies {
-		compile project(':module-lib')
-		compile project(':message-lib')
-		compile project(':member-lib')
-		compile project(':utils-lib')
+		//compile project(':module-lib')
+		//compile project(':message-lib')
+		//compile project(':member-lib')
+		//compile project(':utils-lib')
 	}
 }
+
 
 project(':member-service') {
 	dependencies {
