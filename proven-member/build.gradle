@@ -37,6 +37,15 @@ project(':member-lib') {
 	dependencies { compile project(':utils-lib') }
 }
 
+
+project(':request-lib') {
+	dependencies {
+		compile project(':utils-lib')
+		compile project(':member-lib')
+		compile project(':module-lib')
+	}
+}
+
 project(':exchange-lib') {
 	dependencies {
 		compile project(':member-lib')
@@ -48,6 +57,8 @@ project(':exchange-lib') {
 project(':module-lib') {
 	dependencies {
 		compile project(':utils-lib')
+		compile project(':member-lib')
+		compile project(':request-lib')
 	}
 }
 

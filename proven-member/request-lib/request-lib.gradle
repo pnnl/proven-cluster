@@ -1,7 +1,7 @@
 
 dependencies {
 	//compileOnly 'fish.payara.extras:payara-micro:4.1.1.171'
-	compileOnly 'fish.payara.api:payara-api:5.181'
+	compileOnly 'fish.payara.extras:payara-micro:5.181'
 	compileOnly 'javax:javaee-web-api:8.0'
 	compileOnly 'com.hazelcast:hazelcast:3.9.3'
 }
@@ -10,6 +10,5 @@ dependencies {
 test { systemProperties 'property': 'value'   }
 
 uploadArchives {
-	repositories { flatDir { dirs 'repos'
-		} }
+	repositories { flatDir { dirs 'repos' } }
 }
