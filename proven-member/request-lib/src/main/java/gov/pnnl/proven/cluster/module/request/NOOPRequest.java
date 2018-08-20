@@ -1,16 +1,18 @@
 package gov.pnnl.proven.cluster.module.request;
 
-public class NOOPRequest extends ModuleRequest<String> {
+import java.sql.Date;
 
-	String message;
+
+public class NOOPRequest extends ModuleRequest<Date> {
 	
-	public NOOPRequest() {
-		this.message = "NOOPRequest"; 
+	public NOOPRequest(Date date) {
+		super(date);
 	}
 
 	@Override
-	public ModuleService getServiceProvider() {
-		return super.getServiceProvider();
+	public ModuleService<ModuleRequest<Date>> getServiceProvider() {
+		ModuleService<ModuleRequest<Date>> ret = NOOPService.create(t);
+		return ret;
 	}
-		
+
 }

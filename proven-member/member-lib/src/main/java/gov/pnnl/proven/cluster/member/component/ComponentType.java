@@ -12,5 +12,5 @@ public enum ComponentType {
 	ServiceBuffer,
 	DisclosureBuffer,
 	StreamManager;
-
+	
 }

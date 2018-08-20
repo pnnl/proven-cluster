@@ -3,12 +3,8 @@
  */
 package gov.pnnl.proven.cluster.module.request;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
-import gov.pnnl.proven.cluster.member.component.ComponentType;
-import gov.pnnl.proven.cluster.member.registry.RequestRegistry;
 import gov.pnnl.proven.cluster.module.ProvenModule;
+import gov.pnnl.proven.cluster.module.request.exception.UnsupportedRequestException;
 
 /**
  * Represents a request that may be serviced by a {@link ProvenModule}
@@ -19,14 +15,18 @@ import gov.pnnl.proven.cluster.module.ProvenModule;
 public abstract class ModuleRequest<T> {
 
 	T t;
-	
+
 	private int retries;
 	private int ttl;
 	private RequestPriority priority;
 	private RequestScope scope;
 
-	public ModuleService getServiceProvider() {
-		return null;
+	public ModuleRequest(T t) {
+		this.t = t;
+	}
+
+	public ModuleService<ModuleRequest<T>> getServiceProvider() throws UnsupportedRequestException {
+		throw new UnsupportedRequestException();
 	}
 
 	public int getRetries() {
