@@ -78,10 +78,55 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.member.util;
+package gov.pnnl.proven.cluster.module.service;
 
-public interface ProvenService {
+import javax.annotation.Priority;
+import javax.decorator.Decorator;
+import javax.decorator.Delegate;
+import javax.enterprise.inject.Any;
+import javax.inject.Inject;
+import javax.interceptor.Interceptor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.hazelcast.core.IExecutorService;
+
+import gov.pnnl.proven.cluster.module.member.ProvenMember;
+
+
+@Decorator
+@Priority(value=3000)
+public class ProvenServiceDecorator implements ProvenServiceTesting {
+
+	private final Logger log = LoggerFactory.getLogger(ProvenServiceDecorator.class);
 	
-	public ServiceResponse submit();
+	@Inject
+	ProvenMember pm;
+	
+	@Inject
+	@Delegate
+	@Any
+	ProvenServiceTesting ps;
+		
+	
+	public void getState() {
+		ps.getState();
+	}
+	
+	public void run() {
+		log.debug("INSIDE DECORATOR RUN...");
+		ps.getState();
+		//IExecutorService executor = pm.hazelcast.getExecutorService("test");
+		String desc = ps.getDescription();
+		log.debug("DESCRIPTION: " + desc);
+		//executor.execute(ps);
+		
+	}
+	
+	public String getDescription() {
+		return ps.getDescription();
+	}
+
 	
 }

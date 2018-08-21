@@ -1,4 +1,4 @@
-package gov.pnnl.proven.cluster.module.request.exception;
+package gov.pnnl.proven.cluster.module.exception;
 
 
 public class UnsupportedRequestException extends Exception {

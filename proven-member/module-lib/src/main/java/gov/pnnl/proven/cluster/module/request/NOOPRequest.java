@@ -2,6 +2,8 @@ package gov.pnnl.proven.cluster.module.request;
 
 import java.sql.Date;
 
+import gov.pnnl.proven.cluster.module.service.ModuleService;
+
 
 public class NOOPRequest extends ModuleRequest<Date> {
 	

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package gov.pnnl.proven.cluster.member.component;
+package gov.pnnl.proven.cluster.module.component;
 
 /**
  * Common interface for all Proven components. A component, in this context,

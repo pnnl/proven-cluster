@@ -83,7 +83,7 @@ package gov.pnnl.proven.disclosure.manager;
 import static gov.pnnl.proven.disclosure.concept.ConceptUtil.*;
 import static gov.pnnl.proven.disclosure.util.Consts.*;
 
-import gov.pnnl.proven.cluster.member.util.ProvenMemberDeprecated;
+import gov.pnnl.proven.cluster.module.member.ProvenMember;
 import gov.pnnl.proven.disclosure.service.ModelService;
 import gov.pnnl.proven.disclosure.util.ProvenConfig;
 import gov.pnnl.proven.disclosure.util.Utils;

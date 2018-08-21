@@ -78,7 +78,7 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.member.util;
+package gov.pnnl.proven.cluster.module.member;
 
 import java.io.Serializable;
 import java.lang.annotation.Retention;
@@ -118,13 +118,14 @@ import static gov.pnnl.proven.utils.Consts.*;
 
 import fish.payara.micro.PayaraMicro;
 import fish.payara.micro.PayaraMicroRuntime;
+import gov.pnnl.proven.cluster.member.util.ProvenRequest;
 import gov.pnnl.proven.utils.Utils;
 
 
 @ApplicationScoped
-public abstract class ProvenMemberDeprecated implements Serializable {
+public abstract class ProvenMember implements Serializable {
 
-	private final Logger log = LoggerFactory.getLogger(ProvenMemberDeprecated.class);
+	private final Logger log = LoggerFactory.getLogger(ProvenMember.class);
 	
 	@Inject
 	HazelcastInstance hazelcast;
@@ -139,7 +140,7 @@ public abstract class ProvenMemberDeprecated implements Serializable {
 	private String appName;
 	
 	
-	public ProvenMemberDeprecated() {
+	public ProvenMember() {
 		log.debug("MemberStartup constructor...");
 	}
 

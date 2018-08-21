@@ -4,10 +4,9 @@ import java.sql.Date;
 
 import com.hazelcast.core.HazelcastInstance;
 
-import gov.pnnl.proven.cluster.member.component.ComponentState;
-import gov.pnnl.proven.cluster.member.component.ComponentType;
 import gov.pnnl.proven.cluster.module.NOOPRequest;
-import gov.pnnl.proven.cluster.module.request.ModuleService;
+import gov.pnnl.proven.cluster.module.component.ComponentState;
+import gov.pnnl.proven.cluster.module.component.ComponentType;
 
 public class ModuleStartupService extends ModuleService<NOOPRequest<Date>> {
 

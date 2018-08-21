@@ -1,11 +1,9 @@
-package gov.pnnl.proven.cluster.member.component;
+package gov.pnnl.proven.cluster.module.component;
 
 public enum ComponentState {
-
 	Starting,
 	Ready,
 	Partial,
 	Stopping,
 	Offline;
-
 }

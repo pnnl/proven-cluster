@@ -1,4 +1,4 @@
-package gov.pnnl.proven.cluster.module.request;
+package gov.pnnl.proven.cluster.module.service;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
@@ -8,6 +8,7 @@ import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.core.IExecutorService;
 
 import gov.pnnl.proven.cluster.member.component.ProvenComponent;
+import gov.pnnl.proven.cluster.module.request.ModuleRequest;
 
 /**
  * A module service is responsible for servicing module requests.
