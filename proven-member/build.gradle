@@ -1,5 +1,4 @@
 allprojects {
-
 	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
 }
 
@@ -33,32 +32,9 @@ project(':utils-lib') {
 }
 
 
-project(':member-lib') {
-	dependencies { compile project(':utils-lib') }
-}
-
-
-project(':request-lib') {
-	dependencies {
-		compile project(':utils-lib')
-		compile project(':member-lib')
-		compile project(':module-lib')
-	}
-}
-
-project(':exchange-lib') {
-	dependencies {
-		compile project(':member-lib')
-		compile project(':message-lib')
-		compile project(':utils-lib')
-	}
-}
-
 project(':module-lib') {
 	dependencies {
 		compile project(':utils-lib')
-		compile project(':member-lib')
-		compile project(':request-lib')
 	}
 }
 
@@ -70,7 +46,6 @@ project(':message-lib') {
 
 project(':stream-lib') {
 	dependencies {
-		compile project(':member-lib')
 		compile project(':message-lib')
 		compile project(':utils-lib')
 	}
@@ -79,7 +54,6 @@ project(':stream-lib') {
 project(':disclosure-service') {
 	dependencies {
 		compile project(':module-lib')
-		compile project(':member-lib')
 		compile project(':message-lib')
 		compile project(':utils-lib')
 	}
@@ -90,7 +64,6 @@ project(':stream-service') {
 		compile project(':module-lib')
 		compile project(':stream-lib')
 		compile project(':message-lib')
-		compile project(':member-lib')
 		compile project(':utils-lib')
 	}
 }
@@ -109,7 +82,6 @@ project(':member-service') {
 	dependencies {
 		compile project(':module-lib')
 		compile project(':message-lib')
-		compile project(':member-lib')
 		compile project(':utils-lib')
 	}
 }
