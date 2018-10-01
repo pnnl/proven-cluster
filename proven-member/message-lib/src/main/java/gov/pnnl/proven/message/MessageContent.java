@@ -112,8 +112,8 @@ public enum MessageContent {
 	Error(MessageContentStream.ERROR_STREAM),
 
 	/**
-	 * Response request content. Represents request content for completed
-	 * content.
+	 * Request response content. Represents response content for a completed
+	 * request.
 	 */
 	Response(MessageContentStream.RESPONSE_STREAM);
 
