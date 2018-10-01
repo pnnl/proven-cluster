@@ -78,162 +78,97 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-import static gov.pnnl.proven.hybrid.resource.ResourceConsts.R_REPOSITORY_STATE_DISABLED;
-import static gov.pnnl.proven.hybrid.resource.ResourceConsts.R_REPOSITORY_STATE_ENABLED;
+package gov.pnnl.proven.cluster.lib.module.member;
 
-import java.io.Console;
-import java.lang.management.ManagementFactory;
+import java.io.Serializable;
+import java.lang.annotation.Retention;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.DependsOn;
-import javax.ejb.EJB;
-import javax.ejb.LocalBean;
+import javax.annotation.Resource;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
+import javax.swing.text.Utilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.hybrid.concept.Schedule;
-import gov.pnnl.proven.hybrid.manager.DisclosureModule;
-import gov.pnnl.proven.hybrid.manager.PropertiesManager;
-import gov.pnnl.proven.hybrid.manager.ScheduleManager;
-import gov.pnnl.proven.hybrid.manager.StoreManager;
-import gov.pnnl.proven.hybrid.service.ModelService;
-import gov.pnnl.proven.hybrid.util.Consts;
+import com.hazelcast.core.ExecutionCallback;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ICompletableFuture;
+import com.hazelcast.core.IQueue;
+import com.hazelcast.core.Member;
+import com.hazelcast.monitor.impl.MemberStateImpl;
+import com.hazelcast.ringbuffer.OverflowPolicy;
+import com.hazelcast.ringbuffer.Ringbuffer;
 
-/**
- * Startup bean. Initializes JMX interface, exposing a set methods for management of ProvEn
- * application.
- */
+
+import fish.payara.micro.PayaraMicro;
+import fish.payara.micro.PayaraMicroRuntime;
+
+
 @Singleton
 @ApplicationScoped
-@LocalBean
-@Startup
-@DependsOn(value = { "PropertiesManager" })
-public class ProvEn implements ProvEnMXBean {
-	
-	private final Logger log = LoggerFactory.getLogger(ProvEn.class);
+public abstract class ProvenMember implements Serializable {
 
-	private MBeanServer platformMBeanServer;
-	private ObjectName objectName = null;
+	private final Logger log = LoggerFactory.getLogger(ProvenMember.class);
 
-	@EJB
-	private ScheduleManager sm;
-
-	@EJB
-	private PropertiesManager pm;
-
-	@EJB
-	private StoreManager stm;
-
-	@EJB
-	private ModelService ms;
-	
 	@Inject
-	DisclosureModule dmm;
+	HazelcastInstance hazelcast;
+
+	@Inject
+	PayaraMicroRuntime pmrt;
+
+	@Resource(lookup = "java:module/ModuleName")
+	private String moduleName;
+
+	@Resource(lookup = "java:app/AppName")
+	private String appName;
+
+	public ProvenMember() {
+		log.debug("MemberStartup constructor...");
+	}
 
 	@PostConstruct
-	public void iniitialize() {
+	void initializeMember() {
+
+		log.debug("MemberStartup PostConstruct...");
+		log.debug("MEMBER: " + hazelcast.getCluster().getLocalMember().getAddress().toString());
+		IQueue<String> testq = hazelcast.getQueue("TEST_QUEUE");
+
+		//HazelcastInstance hzInstance = ((HazelcastInstance) Utils.lookupJndi("payara/HazelcastData"));
+
+		// hazelcast = PayaraMicro.getInstance().getRuntime().get
 
 		try {
+			testq.put("HELLO");
+			testq.put("WORLD");
+			log.debug("PARTITION KEY: " + testq.getPartitionKey());
+			log.debug("CLUSTER STATE : " + hazelcast.getCluster().getClusterState().name());
+			log.debug("MODULE NAME : " + moduleName);
+			log.debug("APP NAME : " + appName);
+			hazelcast.getRingbuffer("test").addAsync("hello", OverflowPolicy.OVERWRITE);
 
-			dmm.writeDMMessage("THIS IS THE DM MESSAGE");
-			dmm.writePMMessage("THIS IS THE PM MESSAGE");
-			
-			// Register mbean server
-			objectName = new ObjectName("ProvEn:type=" + this.getClass().getName());
-			platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
-			platformMBeanServer.registerMBean(this, objectName);
-
-			// Initialize repositories
-			stm.start();
-
-			// Add foundation and domain models
-			// Model service will only add models not previously added
-			// TODO May want to support a "force" option where all models will be updated
-			ms.addModels();
-
-		} catch (Exception e) {
-			throw new IllegalStateException(
-					"Problem during ProvEn initialization, see server log for details." + e);
-		}
-
-		log.debug("#######################################");
-		log.debug("Initialized ProvEn MBeanServer...");
-		log.debug("#######################################");
-
-	}
-
-	@PreDestroy
-	public void destroy() {
-		try {
-			platformMBeanServer.unregisterMBean(this.objectName);
-			stm.stop();
-		} catch (Exception e) {
-			throw new IllegalStateException(
-					"Problem during ProvEn shutdown, see server log for details." + e);
-		}
-	}
-
-	public String repositoryState() {
-
-		String ret;
-
-		if (stm.isReady()) {
-			ret = R_REPOSITORY_STATE_ENABLED;
-		} else {
-			ret = R_REPOSITORY_STATE_DISABLED;
-		}
-
-		return ret;
-	}
-
-	public void enableRepository() {
-		try {
-			stm.start();
-		} catch (Exception e) {
+			// log.debug("MEMBER STATE : " + msi.toJson());
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	public void disableRepository() {
-		stm.stop();
-	}
+	public abstract String getAbstractState();
 
-	public String showSchedules() {
-
-		String ret = "";
-
-		for (Schedule schedule : sm.getSchedules()) {
-			ret += schedule.getName() + " :: " + schedule.getTimerSchedule() + Consts.NL;
-		}
-
-		return ret;
-	}
-
-	public String showActiveSchedules() {
-
-		String ret = "";
-
-		for (String schedule : sm.getActiveSchedules()) {
-			ret += schedule + Consts.NL;
-		}
-
-		return ret;
-	}
-
-	public void startAllSchedules() {
-		sm.start();
-	}
-
-	public void stopAllSchedules() {
-		sm.stop();
+	public String getStateMember() {
+		log.debug("Inside getState of proven member...");
+		return "Proven member is OFFLINE";
 	}
 
 }

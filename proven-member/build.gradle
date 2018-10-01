@@ -35,12 +35,16 @@ project(':utils-lib') {
 project(':module-lib') {
 	dependencies {
 		compile project(':utils-lib')
+		compileOnly 'fish.payara.extras:payara-micro:5.181'
+		compileOnly 'fish.payara.api:payara-api:5.181'
+		compileOnly 'javax:javaee-web-api:8.0'
+		compileOnly 'com.hazelcast:hazelcast:3.9.3'
 	}
 }
 
 project(':message-lib') {
 	dependencies {
-		compile project(':utils-lib')
+		//compile project(':utils-lib')
 	}
 }
 
@@ -51,7 +55,7 @@ project(':stream-lib') {
 	}
 }
 
-project(':disclosure-service') {
+project(':disclosure-module') {
 	dependencies {
 		compile project(':module-lib')
 		compile project(':message-lib')
@@ -70,10 +74,9 @@ project(':stream-service') {
 
 project(':hybrid-service') {
 	dependencies {
-		//compile project(':module-lib')
-		//compile project(':message-lib')
-		//compile project(':member-lib')
-		//compile project(':utils-lib')
+		compile project(':module-lib')
+		compile project(':message-lib')
+		compile project(':utils-lib')
 	}
 }
 

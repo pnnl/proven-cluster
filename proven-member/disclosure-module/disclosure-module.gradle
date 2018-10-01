@@ -15,7 +15,7 @@ eclipse {
 }
 
 war {
-  archiveName = 'hybrid.war'
+  archiveName = 'disclosure.war'
   webXml = null
 
 }
@@ -47,8 +47,5 @@ dependencies {
 
 
 test { systemProperties 'property': 'value' }
-
-
-
 
 

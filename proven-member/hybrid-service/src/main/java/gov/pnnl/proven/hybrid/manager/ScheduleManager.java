@@ -102,7 +102,6 @@ import javax.ejb.TimerService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import gov.pnnl.proven.hybrid.concept.BatchSchedule;
 import gov.pnnl.proven.hybrid.concept.MaintenanceSchedule;
 import gov.pnnl.proven.hybrid.concept.NativeSourceSchedule;
 import gov.pnnl.proven.hybrid.concept.ProductSchedule;
@@ -758,9 +757,9 @@ public class ScheduleManager {
 
 		Boolean ret = false;
 		switch (scheduleType) {
-		case BATCH:
-			ret = (schedule instanceof BatchSchedule);
-			break;
+//		case BATCH:
+//			ret = (schedule instanceof BatchSchedule);
+//			break;
 		case MAINTENANCE:
 			ret = (schedule instanceof MaintenanceSchedule);
 			break;

@@ -55,7 +55,7 @@ task allInOneJar(type: Jar) {
             from components.java
             artifact sourcesJar
             artifact allInOneJar
-            artifact javadocJar
+            //artifact javadocJar
         }
 	}
 }	
