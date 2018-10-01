@@ -160,9 +160,11 @@ public class DisclosureData extends MessageConsumer implements MessageListener {
 	}
 
 	ProvenMessageResponse processMessage(ProvenMessage pm) {
-		ProvenMessageResponse pmr = new ProvenMessageResponse();
-		pmr = cs.influxWriteMeasurements(pm.getMeasurements());
-
+       ProvenMessageResponse pmr = null;
+		//		ProvenMessageResponse pmr = new ProvenMessageResponse();
+        //		pmr = cs.influxWriteMeasurements(pm.getMeasurements());
+        //
+        System.out.println("DisclosureData.processMessage() called, returning null");
 		return pmr;
 	}
 
