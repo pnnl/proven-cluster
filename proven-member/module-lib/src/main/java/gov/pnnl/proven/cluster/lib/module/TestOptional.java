@@ -30,6 +30,8 @@ public class TestOptional<T,S> implements Serializable {
 		
 		System.out.println(testO.inputClass.isPresent());
 		
+		System.out.println(testO.inputClass.isPresent());
+		
 		System.out.println(testO.inputClass.get().equals(String.class) );
 		
 	}
