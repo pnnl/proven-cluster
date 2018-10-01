@@ -74,6 +74,8 @@ task allInOneJar(type: Jar) {
 	 compile group: 'org.influxdb', name: 'influxdb-java', version: '2.8'
 	 compile group: 'org.topbraid', name: 'shacl', version: '1.1.0'
 	 compile group: 'com.hazelcast', name: 'hazelcast', version: '3.9.3'
+     compile group: 'gov.pnnl.proven', name: 'proven-message', version: '0.1'
+
 	 testCompile group: 'junit', name: 'junit', version: '4.+'
  }
  
