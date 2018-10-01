@@ -960,8 +960,20 @@ public class RepositoryResource {
 			// Query or Add measurements to TS store
 			
 			// Query
+
 			if (stream.equals(MessageContent.Explicit.getStream())) {
-				pmr = cs.influxWriteMeasurements(pm.getMeasurements());
+			    // Now using MapStore to write messages 8/29/2018
+                // pmr = cs.influxWriteMeasurements(pm.getMeasurements());
+				pmr = new ProvenMessageResponse();
+				
+				pmr.setReason("Success");
+				pmr.setStatus(Status.OK);
+				pmr.setCode(Status.OK.getStatusCode());
+				pmr.setResponse("Measurement queued in IMDG.");
+				
+				
+
+				
 			}
 
 			// Explicit
