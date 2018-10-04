@@ -78,94 +78,228 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.hybrid.message;
+package gov.pnnl.proven.hybrid.util;
 
-import gov.pnnl.proven.hybrid.service.ConceptService;
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.ProvenMessageResponse;
-import static gov.pnnl.proven.message.MessageTopic.TopicConfig.*;
-import static gov.pnnl.proven.hybrid.util.Consts.*;
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.MessageDriven;
-import javax.inject.Inject;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.ObjectMessage;
-import javax.resource.AdministeredObjectDefinition;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
-//@formatter:off
-//@AdministeredObjectDefinition(
-//		resourceAdapter = JMS_MQ_ADAPTER, 
-//		interfaceName = "javax.jms.Topic", 
-//		className = "org.apache.activemq.command.ActiveMQTopic", 
-//		name = JNDI_DISCLOSURE, 
-//		properties = {"PhysicalName=" + MQ_DISCLOSURE})
-//
-//@MessageDriven(
-//		name = "disclosureMdb", 
-//		activationConfig = {
-//		@ActivationConfigProperty(
-//				propertyName = "destinationType", 
-//				propertyValue = "javax.jms.Topic"),
-//		@ActivationConfigProperty(
-//				propertyName = "destination", 
-//				propertyValue = MQ_DISCLOSURE),
-//		@ActivationConfigProperty(
-//				propertyName = "resourceAdapter", 
-//				propertyValue = JMS_MQ_ADAPTER),
-//		@ActivationConfigProperty(
-//				propertyName = "noLocal", 
-//				propertyValue = "true"),
-//		@ActivationConfigProperty(
-//				propertyName = "connectionFactoryLookup", 
-//				propertyValue = JNDI_CONNECTION)
-//		})
-//@formatter:on
-public class DisclosureData extends MessageConsumer implements MessageListener {
-	@Inject
-	private ConceptService cs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public DisclosureData() {
+
+/**
+ * Manages B2S configuration properties. All property settings are read from
+ * environment variable and/or system properties and is performed at application
+ * startup. If a required property is missing the application will fail to
+ * start. Default values are provided when possible.
+ */
+public class ProvenConfig {
+
+	// Logger
+	private final Logger log = LoggerFactory.getLogger(ProvenConfig.class);
+
+	private static ProvenConfig instance;
+		
+	private ProvenConfig() {
+		log.debug("Loading B2S configuration settings...");
+		loadEnvProperties();
 	}
 
-	@Override
-	public void onMessage(Message message) {
-
-		System.out.println("DISCLOSURE MESSAGE LISTENER ...");
-
+	static {
 		try {
+			instance = new ProvenConfig();
+		} catch (ProvenConfigurationException ex) {
+			throw ex;
+		}
+	}
 
-			ProvenMessage pm;
+	private Map<String, String> props = new HashMap<String, String>();
 
-			if (message instanceof ObjectMessage) {
+	private class ProvenConfigurationException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
 
-				System.out.println("OBJECT MESAGE...");
+		public ProvenConfigurationException(String message) {
+			super(message);
+		}
+	}
 
-				ObjectMessage objectMessage = (ObjectMessage) message;
-				pm = (ProvenMessage) objectMessage.getObject();
-				testOutput(pm);
+	public static ProvenConfig getB2SConfig() {
+		return instance;
+	}
+	
+	public enum ProvenEnvProp {
 
-				// Received disclosure message, request load into hybrid store
-				ProvenMessageResponse pr = processMessage(pm);
+		PROVEN_SERVICES_PORT("proven.psPort", true, "8080"),
+		PROVEN_SWAGGER_HOST_PORT("proven.swaggerHostPort", true, "localhost:28080"),
+		PROVEN_USE_IDB("proven.useIdb", false, "true"),
+		PROVEN_IDB_URL("proven.idbUrl", false, "http://localhost:8086"),
+		PROVEN_IDB_DB("proven.idbDB", false, "proven"),
+		PROVEN_IDB_RP("proven.idbRP", false, "autogen"),
+		PROVEN_IDB_USERNAME("proven.idbUsername", false, "root"),
+		PROVEN_IDB_PASSWORD("proven.idbPassword", false, "root"),
+		PROVEN_T3DIR("proven.t3Dir", true, "/tmp"),
+		PROVEN_T3_URL("proven.t3Url", false, "http://localhost:8089"),	
+		PROVEN_T3_DB("proven.t3DB", false, "proven");
+		
+		private String envVarKey;
+		private String sysPropKey;
+		private boolean required;
+		private String defaultValue;
 
-				// SEND RESPONSE
-				sendResponse(pr, message);
+		private ProvenEnvProp(String key, boolean required, String defaultValue) {
+			setEnvVarKey(this.toString());
+			setSysPropKey(key);
+			setRequired(required);
+			setDefaultValue(defaultValue);
+		}
 
-			}
+		public String getEnvVarKey() {
+			return envVarKey;
+		}
 
-		} catch (Exception ex) {
-			System.out.println("FAILED TO GET PM");
+		public void setEnvVarKey(String envVarKey) {
+			this.envVarKey = envVarKey;
+		}
+
+		public String getSysPropKey() {
+			return sysPropKey;
+		}
+
+		public void setSysPropKey(String sysPropKey) {
+			this.sysPropKey = sysPropKey;
+		}
+
+		public boolean isRequired() {
+			return required;
+		}
+
+		public void setRequired(boolean required) {
+			this.required = required;
+		}
+
+		public String getDefaultValue() {
+			return defaultValue;
+		}
+
+		public void setDefaultValue(String defaultValue) {
+			this.defaultValue = defaultValue;
 		}
 
 	}
 
-	ProvenMessageResponse processMessage(ProvenMessage pm) {
-       ProvenMessageResponse pmr = null;
-		//		ProvenMessageResponse pmr = new ProvenMessageResponse();
-        //		pmr = cs.influxWriteMeasurements(pm.getMeasurements());
-        //
-        System.out.println("DisclosureData.processMessage() called, returning null");
-		return pmr;
+	private void loadEnvProperties() {
+
+		Map<String, String> env = System.getenv();
+		Properties sysProps = System.getProperties();
+
+		for (ProvenEnvProp prop : ProvenEnvProp.values()) {
+
+			// First check environment variables
+			String key = prop.getEnvVarKey();
+			String value = env.get(key);
+
+			// If no value from environment, try java system property
+			if (null == value) {
+				key = prop.getSysPropKey();
+				value = sysProps.getProperty(key);
+			}
+
+			// If no value, use default if provided
+			if (null == value) {
+				value = prop.getDefaultValue();
+			}
+
+			if ((null == value) && (prop.isRequired())) {
+				throw new ProvenConfigurationException(key);
+			} else {
+				props.put(prop.toString(), value);
+			}
+		}
+				
 	}
 
-}
+	public String getPropValue(ProvenEnvProp prop) {
+		return props.get(prop.toString());    
+	}
+		
+}		
+		
+		
+//		
+//		
+//		
+//		
+//		
+//		
+//		
+//		
+//		
+//		
+//		
+//		
+//		
+//		
+//		private String key;
+//		private boolean required;
+//		private String defaultValue;
+//
+//		private ProvenEnvProp(String key, boolean required, String defaultValue) {
+//			setKey(key);
+//			setRequired(required);
+//			setDefaultValue(defaultValue);
+//		}
+//
+//		public String getKey() {
+//			return key;
+//		}
+//
+//		public void setKey(String key) {
+//			this.key = key;
+//		}
+//
+//		public boolean isRequired() {
+//			return required;
+//		}
+//
+//		public void setRequired(boolean required) {
+//			this.required = required;
+//		}
+//
+//		public String getDefaultValue() {
+//			return defaultValue;
+//		}
+//
+//		public void setDefaultValue(String defaultValue) {
+//			this.defaultValue = defaultValue;
+//		}
+//
+//	}
+//
+//	private void loadEnvProperties() {
+//
+//		Map<String, String> env = System.getenv();
+//
+//		for (ProvenEnvProp prop : ProvenEnvProp.values()) {
+//
+//			// First check environment variables
+//			String key = prop.getKey();
+//			String value = env.get(key);
+//
+//			// If no value, use default if provided
+//			if (null == value) {
+//				value = prop.getDefaultValue();
+//			}
+//
+//			if ((null == value) && (prop.isRequired())) {
+//				throw new ProvenConfigurationException("Missing configuration setting: " + key);
+//			} else {
+//				props.put(key, value);
+//			}
+//		}
+//	}
+//
+//	public String getPropValue(ProvenEnvProp prop) {
+//		return props.get(prop.getKey());
+//	}
+//}

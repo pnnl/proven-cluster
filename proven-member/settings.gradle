@@ -2,7 +2,12 @@ include "utils-lib"
 include "module-lib"
 include "message-lib"
 include "stream-lib"
+<<<<<<< HEAD
 include "disclosure-module"
+=======
+include "hybrid-lib"
+include "disclosure-service"
+>>>>>>> refs/heads/development
 include "stream-service"
 include "hybrid-service"
 include "member-service"

@@ -27,11 +27,29 @@ subprojects {
 // Project dependencies
 //
 
+
 project(':utils-lib') {
 	// No project dependencies
 }
 
 
+
+<<<<<<< HEAD
+=======
+project(':member-lib') {
+	dependencies { compile project(':utils-lib') }
+}
+
+
+project(':exchange-lib') {
+	dependencies {
+		compile project(':member-lib')
+//		compile project(':message-lib')
+		compile project(':utils-lib')
+	}
+}
+
+>>>>>>> refs/heads/development
 project(':module-lib') {
 	dependencies {
 		compile project(':utils-lib')
@@ -42,15 +60,24 @@ project(':module-lib') {
 	}
 }
 
-project(':message-lib') {
+project(':hybrid-lib') {
 	dependencies {
+<<<<<<< HEAD
 		//compile project(':utils-lib')
+=======
+//		compile project(':message-lib')
+>>>>>>> refs/heads/development
 	}
 }
 
 project(':stream-lib') {
 	dependencies {
+<<<<<<< HEAD
 		compile project(':message-lib')
+=======
+		compile project(':member-lib')
+//		compile project(':message-lib')
+>>>>>>> refs/heads/development
 		compile project(':utils-lib')
 	}
 }
@@ -58,7 +85,12 @@ project(':stream-lib') {
 project(':disclosure-module') {
 	dependencies {
 		compile project(':module-lib')
+<<<<<<< HEAD
 		compile project(':message-lib')
+=======
+		compile project(':member-lib')
+//		compile project(':message-lib')
+>>>>>>> refs/heads/development
 		compile project(':utils-lib')
 	}
 }
@@ -67,16 +99,28 @@ project(':stream-service') {
 	dependencies {
 		compile project(':module-lib')
 		compile project(':stream-lib')
+<<<<<<< HEAD
 		compile project(':message-lib')
+=======
+//		compile project(':message-lib')
+		compile project(':member-lib')
+>>>>>>> refs/heads/development
 		compile project(':utils-lib')
 	}
 }
 
 project(':hybrid-service') {
 	dependencies {
+<<<<<<< HEAD
 		compile project(':module-lib')
 		compile project(':message-lib')
 		compile project(':utils-lib')
+=======
+		compile project(':hybrid-lib')
+		//compile project(':message-lib')
+		//compile project(':member-lib')
+		//compile project(':utils-lib')
+>>>>>>> refs/heads/development
 	}
 }
 
@@ -84,8 +128,18 @@ project(':hybrid-service') {
 project(':member-service') {
 	dependencies {
 		compile project(':module-lib')
+<<<<<<< HEAD
 		compile project(':message-lib')
+=======
+//		compile project(':message-lib')
+		compile project(':member-lib')
+>>>>>>> refs/heads/development
 		compile project(':utils-lib')
 	}
 }
 
+project(':message-lib') {
+        dependencies {
+                compile project(':utils-lib')
+        }
+}
