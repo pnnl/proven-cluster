@@ -78,34 +78,157 @@
 // * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
 // ******************************************************************************/
 //
-//package gov.pnnl.proven.cluster.exchange.util;
+//package gov.pnnl.proven.module.disclosure.old;
+//
+//import java.io.Serializable;
+//import java.lang.annotation.Retention;
+//import java.util.Set;
 //
 //import javax.annotation.PostConstruct;
+//import javax.annotation.Resource;
+//import javax.ejb.ConcurrencyManagement;
+//import javax.ejb.ConcurrencyManagementType;
+//import javax.ejb.Lock;
+//import javax.ejb.LockType;
+//import javax.ejb.Singleton;
+//import javax.ejb.Startup;
 //import javax.enterprise.context.ApplicationScoped;
 //import javax.enterprise.context.Dependent;
 //import javax.inject.Inject;
-//import javax.inject.Singleton;
+//import javax.swing.text.Utilities;
 //
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //
-//import gov.pnnl.proven.module.disclosure.old.ProvenMemberDeprecated;
+//
+//
+//import com.hazelcast.core.ExecutionCallback;
+//import com.hazelcast.core.Hazelcast;
+//import com.hazelcast.core.HazelcastInstance;
+//import com.hazelcast.core.ICompletableFuture;
+//import com.hazelcast.core.IQueue;
+//import com.hazelcast.core.Member;
+//import com.hazelcast.monitor.impl.MemberStateImpl;
+//import com.hazelcast.ringbuffer.OverflowPolicy;
+//import com.hazelcast.ringbuffer.Ringbuffer;
+//
+//import static gov.pnnl.proven.utils.Utils.*;
+//import static gov.pnnl.proven.utils.Consts.*;
+//
+//
+//import fish.payara.micro.PayaraMicro;
+//import fish.payara.micro.PayaraMicroRuntime;
+//import gov.pnnl.proven.utils.Utils;
+//
 //
 //@ApplicationScoped
-//public class ExchangeProv {
+//public abstract class ProvenMemberDeprecated implements Serializable {
 //
-//	private final Logger log = LoggerFactory.getLogger(ExchangeProv.class);
+//	private final Logger log = LoggerFactory.getLogger(ProvenMemberDeprecated.class);
+//	
+//	@Inject
+//	HazelcastInstance hazelcast;
+//	
+//	@Inject
+//	PayaraMicroRuntime pmrt;
+//	
+//	@Resource(lookup="java:module/ModuleName")
+//	private String moduleName;
+//	
+//	@Resource(lookup="java:app/AppName")
+//	private String appName;
 //	
 //	
-//	@Inject ProvenMemberDeprecated pm;
-//	
+//	public ProvenMemberDeprecated() {
+//		log.debug("MemberStartup constructor...");
+//	}
+//
 //	@PostConstruct
-//	public void initialize() {
-//		log.debug("ExchangeProv Post Construct..." + pm.getClass().toString());
+//	void initializeMember() {
+//		
+//		log.debug("MemberStartup PostConstruct...");
+//		log.debug("MEMBER: " + hazelcast.getCluster().getLocalMember().getAddress().toString());
+//		IQueue<String> testq = hazelcast.getQueue("TEST_QUEUE");
+//		
+//		HazelcastInstance hzInstance = ((HazelcastInstance)Utils.lookupJndi("payara/HazelcastData"));
+//		
+//		//hazelcast = PayaraMicro.getInstance().getRuntime().get
+//		
+//		try {
+//			testq.put("HELLO");
+//			testq.put("WORLD");
+//			log.debug("PARTITION KEY: " + testq.getPartitionKey());
+//			log.debug("CLUSTER STATE : " + hazelcast.getCluster().getClusterState().name());
+//			log.debug("MODULE NAME : " + moduleName);
+//			log.debug("APP NAME : " + appName);
+//			hazelcast.getRingbuffer("test").addAsync("hello", OverflowPolicy.OVERWRITE);
+//			
+//			
+//			
+//			//log.debug("MEMBER STATE : " + msi.toJson());
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 //	}
 //	
-//	public String testService() {
-//		return "ExchangeProve testService message...";
+//	public abstract String getAbstractState();
+//	
+//	public String getStateMember() {
+//		log.debug("Inside getState of proven member...");
+//		return "Proven member is OFFLINE";
 //	}
+//
+//    public void addRequest(ProvenRequest request) {
+//    	IQueue<ProvenRequest> testRequests = hazelcast.getQueue("TEST_REQUESTS");    	
+//    	testRequests.add(request);
+//    	
+//    	ProvenRequest requestFromQueue = request;
+//    	try {
+//			requestFromQueue = testRequests.take();
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//    	
+//    	PayaraMicro pmi = PayaraMicro.getInstance();
+//    	
+//    	PayaraMicroRuntime pmrt = pmi.getRuntime();
+//    	log.debug(pmrt.toString());
+//    	
+//    	requestFromQueue.getServiceProvider().get().submit();
+//    	request.getServiceProvider().get().submit();
+//    	
+//    	
+//    	PayaraMicro.getInstance().getRuntime().run(request);
+//    	
+//    	//hazelcast.getExecutorService("DEFAULT").submit(request);
+//    	
+//    	HazelcastInstance hi1 = Hazelcast.newHazelcastInstance(hazelcast.getConfig());
+//    	
+//    	hi1.getExecutorService("DEFAULT").submit(request, request);
+//    	hi1.getExecutorService("DEFAULT").submit(requestFromQueue);
+//    	
+//    	
+//    	Set<Member> members1 = hazelcast.getCluster().getMembers();
+//    	Set<Member> members2 = hi1.getCluster().getMembers();
+//    	
+//    	log.debug("MEMBERS1");
+//    	log.debug("-----------");
+//    	for (Member m : members1) {
+//    		log.debug(m.toString());
+//    	}
+//    	
+//    	log.debug("MEMBERS2");
+//    	log.debug("-----------");
+//    	for (Member m : members2) {
+//    		log.debug(m.toString());
+//    	}
+//
+//    	
+//    	
+//    	
+//    }
+//	
 //	
 //}

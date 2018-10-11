@@ -1,26 +1,33 @@
 package gov.pnnl.proven.module.disclosure;
 
-import java.util.Set;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.CDI;
-import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+
+
 
 @ApplicationScoped
 public class DisclosureModule extends ProvenModule {
 
-	@Inject 
-	private BeanManager beanManager;
+	private static Logger logger = LoggerFactory.getLogger("TESTING");
+
 	
 	@PostConstruct
-	public void initialize() {
-		//TODO Use Logger
-		System.out.println("Enter PostConstruct for " + this.getClass().getSimpleName());
+	public void init() {
+		
+		System.out.println("Hello there from disclosure module!!!!!!!!!!!!!!!!!!");;
+		logger.info("Hello there from disclosure module!!!!!!!!!!!!!!!!!!");
+		writeDMMessage("Hello again...");
+	}
+	
+	public void writeDMMessage(String message) {
+		logger.info("Inside write!!!!!!!!!!!!!!!!!!");
+		System.out.println(message);
 	}
 
+	
 }

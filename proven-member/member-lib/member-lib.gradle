@@ -1,9 +1,47 @@
+ apply plugin: 'java'
+ apply plugin: 'eclipse'
+ apply plugin: 'maven-publish'
+ 
+  
+ sourceCompatibility = 1.8
+ version = '0.1'
+  
+ 
+ task javadocJar(type: Jar) {
+   from javadoc
+   classifier 'javadoc'
+ }
+ 
+task sourcesJar(type: Jar) {
+   from sourceSets.main.allJava
+   classifier 'sources'
+}
 
+task allInOneJar(type: Jar) {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+    classifier 'all-in-one'
+}
+    
+ publishing {
+    publications {
+        mavenJava(MavenPublication) {
+        	groupId 'gov.pnnl.proven'
+        	artifactId 'proven-message'
+            from components.java
+            artifact sourcesJar
+            artifact allInOneJar
+//            artifact javadocJar
+        }
+	}
+}	
+
+ repositories {
+	 mavenCentral()
+	 mavenLocal()
+ }
+ 
 dependencies {
-	//compileOnly 'fish.payara.extras:payara-micro:4.1.1.171'
-	compileOnly 'fish.payara.extras:payara-micro:5.181'
-	compileOnly 'javax:javaee-web-api:8.0'
-	compileOnly 'com.hazelcast:hazelcast:3.9.3'
 }
 
 
@@ -13,3 +51,15 @@ uploadArchives {
 	repositories { flatDir { dirs 'repos'
 		} }
 }
+ 
+
+
+
+
+
+
+
+
+
+
+

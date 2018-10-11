@@ -78,34 +78,40 @@
 // * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
 // ******************************************************************************/
 //
-//package gov.pnnl.proven.cluster.exchange.util;
+//package gov.pnnl.proven.module.disclosure.old;
 //
-//import javax.annotation.PostConstruct;
-//import javax.enterprise.context.ApplicationScoped;
-//import javax.enterprise.context.Dependent;
+//import javax.annotation.Priority;
+//import javax.decorator.Decorator;
+//import javax.decorator.Delegate;
+//import javax.enterprise.inject.Any;
 //import javax.inject.Inject;
-//import javax.inject.Singleton;
+//import javax.interceptor.Interceptor;
 //
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //
-//import gov.pnnl.proven.module.disclosure.old.ProvenMemberDeprecated;
+//import com.hazelcast.core.IExecutorService;
 //
-//@ApplicationScoped
-//public class ExchangeProv {
 //
-//	private final Logger log = LoggerFactory.getLogger(ExchangeProv.class);
+//@Decorator
+//@Priority(value=3001)
+//public class ProvenServiceDecoratorRest implements ProvenServiceRest {
+//
+//	private final Logger log = LoggerFactory.getLogger(ProvenServiceDecoratorRest.class);
 //	
+//	@Inject
+//	ProvenMemberDeprecated pm;
 //	
-//	@Inject ProvenMemberDeprecated pm;
+//	@Inject
+//	@Delegate
+//	@Any
+//	ProvenServiceRest ps;
+//		
 //	
-//	@PostConstruct
-//	public void initialize() {
-//		log.debug("ExchangeProv Post Construct..." + pm.getClass().toString());
+//
+//	public String getStateRest() {
+//		return "HELLO !!! " + ps.getStateRest();
 //	}
-//	
-//	public String testService() {
-//		return "ExchangeProve testService message...";
-//	}
+//
 //	
 //}

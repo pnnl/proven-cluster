@@ -78,34 +78,65 @@
 // * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
 // ******************************************************************************/
 //
-//package gov.pnnl.proven.cluster.exchange.util;
+//package gov.pnnl.proven.module.disclosure.old;
+//
+//import java.io.Serializable;
+//import java.lang.annotation.Retention;
+//import java.util.Set;
 //
 //import javax.annotation.PostConstruct;
+//import javax.annotation.Resource;
+//import javax.ejb.ConcurrencyManagement;
+//import javax.ejb.ConcurrencyManagementType;
+//import javax.ejb.Lock;
+//import javax.ejb.LockType;
+//import javax.ejb.Singleton;
+//import javax.ejb.Startup;
 //import javax.enterprise.context.ApplicationScoped;
 //import javax.enterprise.context.Dependent;
 //import javax.inject.Inject;
-//import javax.inject.Singleton;
+//import javax.swing.text.Utilities;
 //
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //
-//import gov.pnnl.proven.module.disclosure.old.ProvenMemberDeprecated;
 //
-//@ApplicationScoped
-//public class ExchangeProv {
 //
-//	private final Logger log = LoggerFactory.getLogger(ExchangeProv.class);
+//import com.hazelcast.core.ExecutionCallback;
+//import com.hazelcast.core.Hazelcast;
+//import com.hazelcast.core.HazelcastInstance;
+//import com.hazelcast.core.ICompletableFuture;
+//import com.hazelcast.core.IQueue;
+//import com.hazelcast.core.Member;
+//import com.hazelcast.monitor.impl.MemberStateImpl;
+//import com.hazelcast.ringbuffer.OverflowPolicy;
+//import com.hazelcast.ringbuffer.Ringbuffer;
+//
+//import static gov.pnnl.proven.utils.Utils.*;
+//import static gov.pnnl.proven.utils.Consts.*;
+//
+//
+//import fish.payara.micro.PayaraMicro;
+//import fish.payara.micro.PayaraMicroRuntime;
+//import gov.pnnl.proven.utils.Utils;
+//
+//
+//public class ProvenMemberDeprecated2 extends ProvenMemberDeprecated implements Serializable {
+//
+//	private final Logger log = LoggerFactory.getLogger(ProvenMemberDeprecated2.class);
 //	
-//	
-//	@Inject ProvenMemberDeprecated pm;
-//	
+//	public ProvenMemberDeprecated2() {
+//		log.debug("MemberStartup constructor...");
+//	}
+//
 //	@PostConstruct
-//	public void initialize() {
-//		log.debug("ExchangeProv Post Construct..." + pm.getClass().toString());
+//	void initializeMember() {		
+//		log.debug("MemberStartup2 PostConstruct...");
 //	}
 //	
-//	public String testService() {
-//		return "ExchangeProve testService message...";
-//	}
+//	@Override
+//	public String getAbstractState() {
+//		return "HELLO";
+//	};
 //	
 //}
