@@ -701,6 +701,15 @@ public class ConceptService {
 		return ret;
 
 	}
+	
+	//
+	// Utility used to pad an epoch number string with zeros  
+	//
+	public static String padRightZeros(String s, int n) {
+		String.format("%1$-" + n + "s", s);  
+		s = s.replace(' ', '0');
+	     return s;
+	}
 
 	private String timeFilterStatement(String key, String val) {
 		String statement = "";
@@ -709,10 +718,19 @@ public class ConceptService {
 		try {
 			// TODO remove hard coded nanosecond - should provide a converter
 			// source format -> ts format
-			statement = val + "000000";
-			// statement = Long.toString(sdf.parse(val).getTime()) + "000000";
-			// statement = Long.toString(MessageUtils.convertDateTimeStr(val));
-			// statement = Long.toString(sdf.parse(val).getTime()) ;
+			//statement = val + "000000";
+			//
+			//Replaced hardcoded buffer with right pad
+			//Assumption will be to use nanosecond precision
+			//Nanoseconds - 16 digits
+			//
+			// Microseconds - 10 digits
+            //
+			// Seconds - 7 digits
+            
+			//16 digit nanosecond padding
+			statement = padRightZeros(val,16);
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
