@@ -110,7 +110,6 @@ import io.swagger.annotations.ApiResponse;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -147,11 +146,9 @@ import com.github.jsonldjava.utils.JsonUtils;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
-import gov.pnnl.proven.cluster.lib.module.ProvenModuleSave;
 import gov.pnnl.proven.hybrid.concept.ConceptUtil;
 import gov.pnnl.proven.hybrid.concept.DomainModel;
 import gov.pnnl.proven.hybrid.concept.dto.ProvenState;
-import gov.pnnl.proven.hybrid.manager.DisclosureModule;
 import gov.pnnl.proven.hybrid.manager.StoreManager;
 import gov.pnnl.proven.hybrid.service.ConceptService;
 import gov.pnnl.proven.hybrid.util.Consts;
@@ -171,7 +168,7 @@ import gov.pnnl.proven.message.ProvenMessageResponse;
 public class RepositoryResource {
 
 	private final Logger log = LoggerFactory.getLogger(RepositoryResource.class);
-	
+
 	public class ProvenanceMetric {
 
 		URI metricName;
@@ -941,7 +938,7 @@ public class RepositoryResource {
 
 		try {
 
-			cs.begin();			
+			cs.begin();
 		
 			// Add proven message to stream
 			// TODO Implement MapStore

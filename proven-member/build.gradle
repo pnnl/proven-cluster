@@ -1,5 +1,6 @@
 allprojects {
-	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
+	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion"
+		} }
 }
 
 
@@ -17,9 +18,11 @@ subprojects {
 
 	dependencies {
 		testCompile 'junit:junit:4.8.2'
-		compile 'org.slf4j:slf4j-log4j12:1.7.23'
+		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
 	}
-
 }
 
 
@@ -32,95 +35,52 @@ project(':utils-lib') {
 	// No project dependencies
 }
 
+project(':message-lib') {
+	dependencies {
+			compile project(':utils-lib')
+	}
 
 
-<<<<<<< HEAD
-=======
 project(':member-lib') {
 	dependencies { compile project(':utils-lib') }
 }
 
 
 project(':exchange-lib') {
-	dependencies {
-		compile project(':member-lib')
-//		compile project(':message-lib')
-		compile project(':utils-lib')
-	}
+	dependencies { compile project(':member-lib') }
 }
 
->>>>>>> refs/heads/development
 project(':module-lib') {
-	dependencies {
-		compile project(':utils-lib')
-		compileOnly 'fish.payara.extras:payara-micro:5.181'
-		compileOnly 'fish.payara.api:payara-api:5.181'
-		compileOnly 'javax:javaee-web-api:8.0'
-		compileOnly 'com.hazelcast:hazelcast:3.9.3'
-	}
+	dependencies { compile project(':member-lib') }
 }
 
-project(':hybrid-lib') {
-	dependencies {
-<<<<<<< HEAD
-		//compile project(':utils-lib')
-=======
-//		compile project(':message-lib')
->>>>>>> refs/heads/development
-	}
-}
+project(':hybrid-lib') { dependencies { //		compile project(':message-lib')
+	} }
 
 project(':stream-lib') {
 	dependencies {
-<<<<<<< HEAD
-		compile project(':message-lib')
-=======
-		compile project(':member-lib')
-//		compile project(':message-lib')
->>>>>>> refs/heads/development
-		compile project(':utils-lib')
+		compile project(':module-lib')
 	}
 }
+
 
 project(':disclosure-module') {
 	dependencies {
 		compile project(':module-lib')
-<<<<<<< HEAD
-		compile project(':message-lib')
-=======
-		compile project(':member-lib')
-//		compile project(':message-lib')
->>>>>>> refs/heads/development
-		compile project(':utils-lib')
 	}
 }
+
 
 project(':stream-service') {
 	dependencies {
 		compile project(':module-lib')
-		compile project(':stream-lib')
-<<<<<<< HEAD
-		compile project(':message-lib')
-=======
-//		compile project(':message-lib')
-		compile project(':member-lib')
->>>>>>> refs/heads/development
-		compile project(':utils-lib')
 	}
 }
 
 project(':hybrid-service') {
 	dependencies {
-<<<<<<< HEAD
 		compile project(':module-lib')
-		compile project(':message-lib')
-		compile project(':utils-lib')
-=======
 		compile project(':hybrid-lib')
-		//compile project(':message-lib')
-		//compile project(':member-lib')
-		//compile project(':utils-lib')
->>>>>>> refs/heads/development
 	}
 }
 
@@ -128,18 +88,7 @@ project(':hybrid-service') {
 project(':member-service') {
 	dependencies {
 		compile project(':module-lib')
-<<<<<<< HEAD
-		compile project(':message-lib')
-=======
-//		compile project(':message-lib')
-		compile project(':member-lib')
->>>>>>> refs/heads/development
-		compile project(':utils-lib')
 	}
 }
 
-project(':message-lib') {
-        dependencies {
-                compile project(':utils-lib')
-        }
 }

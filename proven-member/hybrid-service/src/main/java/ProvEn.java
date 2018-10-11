@@ -91,8 +91,6 @@ import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
@@ -100,7 +98,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.hybrid.concept.Schedule;
-import gov.pnnl.proven.hybrid.manager.DisclosureModule;
 import gov.pnnl.proven.hybrid.manager.PropertiesManager;
 import gov.pnnl.proven.hybrid.manager.ScheduleManager;
 import gov.pnnl.proven.hybrid.manager.StoreManager;
@@ -112,7 +109,6 @@ import gov.pnnl.proven.hybrid.util.Consts;
  * application.
  */
 @Singleton
-@ApplicationScoped
 @LocalBean
 @Startup
 @DependsOn(value = { "PropertiesManager" })
@@ -134,18 +130,12 @@ public class ProvEn implements ProvEnMXBean {
 
 	@EJB
 	private ModelService ms;
-	
-	@Inject
-	DisclosureModule dmm;
 
 	@PostConstruct
 	public void iniitialize() {
 
 		try {
 
-			dmm.writeDMMessage("THIS IS THE DM MESSAGE");
-			dmm.writePMMessage("THIS IS THE PM MESSAGE");
-			
 			// Register mbean server
 			objectName = new ObjectName("ProvEn:type=" + this.getClass().getName());
 			platformMBeanServer = ManagementFactory.getPlatformMBeanServer();

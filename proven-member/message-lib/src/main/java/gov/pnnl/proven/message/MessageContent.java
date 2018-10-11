@@ -44,6 +44,7 @@ import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * Represents the different content types for a {@code ProvenMessage}.
  * 
@@ -104,18 +105,7 @@ public enum MessageContent {
 	 * Cluster administrative message content. Contains directives to configure
 	 * and manage cluster members.
 	 */
-	Administrative(MessageContentStream.ADMINISTRATIVE_STREAM),
-
-	/**
-	 * Error request content. Represents requests that could not be completed.
-	 */
-	Error(MessageContentStream.ERROR_STREAM),
-
-	/**
-	 * Request response content. Represents response content for a completed
-	 * request.
-	 */
-	Response(MessageContentStream.RESPONSE_STREAM);
+	Administrative(MessageContentStream.ADMINISTRATIVE_STREAM);
 
 	public class MessageContentStream {
 		public static final String BASE_STREAM = "gov.pnnl.proven.message.";
@@ -126,9 +116,6 @@ public enum MessageContent {
 		public static final String QUERY_STREAM = BASE_STREAM + "query";
 		public static final String CONTINUOUS_QUERY_STREAM = BASE_STREAM + "continuous";
 		public static final String ADMINISTRATIVE_STREAM = BASE_STREAM + "administrative";
-		public static final String ERROR_STREAM = BASE_STREAM + "error";
-		public static final String RESPONSE_STREAM = BASE_STREAM + "response";
-
 	}
 
 	private static Logger log = LoggerFactory.getLogger(MessageContent.class);
@@ -140,7 +127,7 @@ public enum MessageContent {
 	 */
 	MessageContent() {
 	}
-
+	
 	/**
 	 * Creates message content type with associated stream name.
 	 * 
@@ -158,5 +145,7 @@ public enum MessageContent {
 	public String getStream() {
 		return stream;
 	}
+	
+	
 
 }

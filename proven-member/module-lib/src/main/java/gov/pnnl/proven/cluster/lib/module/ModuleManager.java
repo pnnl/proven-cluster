@@ -11,6 +11,9 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.ObserverMethod;
 import javax.inject.Inject;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.hazelcast.console.SimulateLoadTask;
 import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.ringbuffer.impl.Ringbuffer;
@@ -18,6 +21,9 @@ import com.hazelcast.ringbuffer.impl.Ringbuffer;
 import gov.pnnl.proven.cluster.lib.module.component.DisclosureBuffer;
 import gov.pnnl.proven.cluster.lib.module.component.manager.RequestManager;
 import gov.pnnl.proven.cluster.lib.module.event.ModuleStartup;
+import gov.pnnl.proven.cluster.lib.module.exception.ModuleStartupException;
+import gov.pnnl.proven.cluster.lib.module.exception.MultipleModuleImplementationException;
+import gov.pnnl.proven.cluster.lib.module.exception.NoModuleImplementationException;
 import gov.pnnl.proven.cluster.lib.module.request.NoopRequest;
 
 /**
@@ -33,40 +39,34 @@ import gov.pnnl.proven.cluster.lib.module.request.NoopRequest;
 @Singleton
 @Startup
 public class ModuleManager {
+	
+	private static Logger logger = LogManager.getLogger(ModuleManager.class);
 
 	@Inject
 	BeanManager beanManager;
 	
-	@Inject RequestManager rm;
-
-	HazelcastInstanceAware ha;
-	SimulateLoadTask slt;
-
 	@Inject
 	Event<ModuleStartup> mse;
 
 	@PostConstruct
-	public void initialize() {
-		// TODO Use Logger
-		System.out.println("Enter PostConstruct for " + this.getClass().getSimpleName());
+	public void initialize() throws ModuleStartupException {
 		
-		Date date = new Date(new java.util.Date().getDate());
-		NoopRequest<Date> nor = new NoopRequest<Date>(date);
+		logger.debug("Enter PostConstruct for " + this.getClass().getSimpleName());
+		sendStartupMessage();		
+		logger.debug("Leave PostConstruct for " + this.getClass().getSimpleName());
 		
-		rm.registerRequest(NoopRequest.class);
-		
-		sendStartupMessage();
 	}
 
-	public void sendStartupMessage() {
+	public void sendStartupMessage() throws ModuleStartupException {
 		
-		// TODO Use logger
 		ModuleStartup ms = new ModuleStartup();
 		Set<ObserverMethod<? super ModuleStartup>> observers = beanManager.resolveObserverMethods(ms);
 		if (observers.isEmpty()) {
-			System.out.println("MUST PROVIDE A MODULE IMPLEMENTATION");
+			logger.info("Module implementation was not provided");
+			throw new NoModuleImplementationException();
 		} else if (observers.size() > 1) {
-			System.out.println("ONLY SINGLE MODULE IMPLEMENTATIONS ARE SUPPORTED AT THIS TIME");
+			logger.info("Multiple module implementations provided");
+			throw new MultipleModuleImplementationException();
 		} else {
 			mse.fire(ms);
 		}
