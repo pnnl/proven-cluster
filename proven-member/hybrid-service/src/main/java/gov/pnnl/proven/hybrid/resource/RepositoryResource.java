@@ -155,6 +155,8 @@ import gov.pnnl.proven.hybrid.util.Consts;
 import gov.pnnl.proven.message.MessageContent;
 import gov.pnnl.proven.message.ProvenMessage;
 import gov.pnnl.proven.message.ProvenMessageResponse;
+import gov.pnnl.proven.message.ProvenQueryFilter;
+import gov.pnnl.proven.message.ProvenQueryTimeSeries;
 
 /**
  * Session Bean implementation class RepositoryResource
@@ -966,6 +968,7 @@ public class RepositoryResource {
 
 			// Explicit
 			if (stream.equals(MessageContent.Query.getStream())) {
+
 				pmr = cs.influxQuery(pm);
 			}
 
