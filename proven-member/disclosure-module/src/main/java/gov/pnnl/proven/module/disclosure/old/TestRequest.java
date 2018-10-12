@@ -78,34 +78,24 @@
 // * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
 // ******************************************************************************/
 //
-//package gov.pnnl.proven.cluster.exchange.util;
+//package gov.pnnl.proven.module.disclosure.old;
 //
-//import javax.annotation.PostConstruct;
-//import javax.enterprise.context.ApplicationScoped;
-//import javax.enterprise.context.Dependent;
-//import javax.inject.Inject;
-//import javax.inject.Singleton;
+//import java.io.Serializable;
+//import java.util.function.Supplier;
 //
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
+//import com.hazelcast.nio.serialization.DataSerializable;
 //
-//import gov.pnnl.proven.module.disclosure.old.ProvenMemberDeprecated;
+//public class TestRequest extends ProvenRequest implements Serializable {
 //
-//@ApplicationScoped
-//public class ExchangeProv {
+//	private static final long serialVersionUID = -4514921845653969173L;
 //
-//	private final Logger log = LoggerFactory.getLogger(ExchangeProv.class);
-//	
-//	
-//	@Inject ProvenMemberDeprecated pm;
-//	
-//	@PostConstruct
-//	public void initialize() {
-//		log.debug("ExchangeProv Post Construct..." + pm.getClass().toString());
+//	public TestRequest() {
+//		super("TEST");
 //	}
 //	
-//	public String testService() {
-//		return "ExchangeProve testService message...";
+//	@Override
+//	public Supplier<ProvenService> getServiceProvider() {
+//		return () -> new TestService(this);
 //	}
 //	
 //}

@@ -1,6 +1,7 @@
-allprojects {
 
-	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
+allprojects {
+	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion"
+		} }
 }
 
 
@@ -16,11 +17,13 @@ subprojects {
 		mavenLocal()
 	}
 
-	dependencies {
+	dependencies {	
 		testCompile 'junit:junit:4.8.2'
-		compile 'org.slf4j:slf4j-log4j12:1.7.23'
+		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'		
 	}
-
 }
 
 
@@ -30,84 +33,61 @@ subprojects {
 
 
 project(':utils-lib') {
-	// No project dependencies
+	// No dependencies
 }
 
-
-
-project(':member-lib') {
-	dependencies { compile project(':utils-lib') }
+project(':message-lib') {
+	// No dependencies
 }
-
 
 project(':exchange-lib') {
-	dependencies {
-		compile project(':member-lib')
-//		compile project(':message-lib')
-		compile project(':utils-lib')
-	}
+	// No dependencies
 }
 
 project(':module-lib') {
-	dependencies {
-		compile project(':utils-lib')
-	}
+	// No dependenies
 }
 
 project(':hybrid-lib') {
-	dependencies {
-//		compile project(':message-lib')
-	}
+	dependencies { 
+		compile project(':message-lib')
+    } 
 }
 
 project(':stream-lib') {
-	dependencies {
-		compile project(':member-lib')
-//		compile project(':message-lib')
-		compile project(':utils-lib')
-	}
+	// No dependenies
 }
 
-project(':disclosure-service') {
+project(':member-lib') {
+	dependencies { 
+		compile project(':hybrid-lib')
+    }
+}
+
+project(':disclosure-module') {
 	dependencies {
 		compile project(':module-lib')
-		compile project(':member-lib')
-//		compile project(':message-lib')
-		compile project(':utils-lib')
 	}
 }
 
 project(':stream-service') {
 	dependencies {
 		compile project(':module-lib')
-		compile project(':stream-lib')
-//		compile project(':message-lib')
-		compile project(':member-lib')
-		compile project(':utils-lib')
 	}
 }
 
 project(':hybrid-service') {
 	dependencies {
-		compile project(':hybrid-lib')
-		//compile project(':message-lib')
-		//compile project(':member-lib')
-		//compile project(':utils-lib')
+		compile project(':utils-lib')
+		compileOnly project(':hybrid-lib')
+		compile project(':module-lib')
 	}
 }
-
 
 project(':member-service') {
 	dependencies {
 		compile project(':module-lib')
-//		compile project(':message-lib')
-		compile project(':member-lib')
-		compile project(':utils-lib')
 	}
 }
 
-project(':message-lib') {
-        dependencies {
-                compile project(':utils-lib')
-        }
-}
+

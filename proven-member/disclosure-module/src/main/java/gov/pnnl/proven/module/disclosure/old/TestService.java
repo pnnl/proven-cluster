@@ -78,34 +78,36 @@
 // * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
 // ******************************************************************************/
 //
-//package gov.pnnl.proven.cluster.exchange.util;
+//package gov.pnnl.proven.module.disclosure.old;
 //
-//import javax.annotation.PostConstruct;
-//import javax.enterprise.context.ApplicationScoped;
-//import javax.enterprise.context.Dependent;
 //import javax.inject.Inject;
-//import javax.inject.Singleton;
 //
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
+//public class TestService implements ProvenService {
 //
-//import gov.pnnl.proven.module.disclosure.old.ProvenMemberDeprecated;
+//	ProvenRequest request;
 //
-//@ApplicationScoped
-//public class ExchangeProv {
-//
-//	private final Logger log = LoggerFactory.getLogger(ExchangeProv.class);
-//	
-//	
-//	@Inject ProvenMemberDeprecated pm;
-//	
-//	@PostConstruct
-//	public void initialize() {
-//		log.debug("ExchangeProv Post Construct..." + pm.getClass().toString());
+//	public TestService(ProvenRequest request) {
+//		this.request = request;
 //	}
-//	
-//	public String testService() {
-//		return "ExchangeProve testService message...";
+//
+//	public ServiceResponse submit() {
+//		
+//		System.out.println("SERVICE SUBMIITED :: " + request.getName());
+//		
+//		return new ServiceResponse();
+//
 //	}
+//
+//	public ProvenRequest getRequest() {
+//		return request;
+//	}
+//
+//	public void setRequest(ProvenRequest request) {
+//		this.request = request;
+//	}
+//
+//	
 //	
 //}
+//
+//

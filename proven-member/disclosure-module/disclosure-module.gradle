@@ -1,0 +1,34 @@
+apply plugin: 'war'
+apply plugin: 'eclipse-wtp'
+
+
+project.version = '0.1'
+jar.enabled = false
+
+eclipse {
+	wtp {
+		facet {
+			facet name: 'jst.web', version: '3.1'
+			facet name: 'jst.java', version: '1.8'
+		}
+	}
+}
+
+war {
+  archiveName = 'disclosure.war'
+  webXml = null
+
+}
+
+
+dependencies {
+
+	   providedCompile group: 'javax', name: 'javaee-web-api', version: '8.0'
+	   providedCompile group: 'javax', name: 'javaee-api', version: '8.0'    
+
+}
+
+
+test { systemProperties 'property': 'value' }
+
+

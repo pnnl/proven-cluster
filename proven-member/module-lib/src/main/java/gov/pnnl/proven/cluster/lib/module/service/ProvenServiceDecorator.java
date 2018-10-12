@@ -1,3 +1,4 @@
+package gov.pnnl.proven.cluster.lib.module.service;
 ///*******************************************************************************
 // * Copyright (c) 2017, Battelle Memorial Institute All rights reserved.
 // * Battelle Memorial Institute (hereinafter Battelle) hereby grants permission to any person or entity 
@@ -78,34 +79,55 @@
 // * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
 // ******************************************************************************/
 //
-//package gov.pnnl.proven.cluster.exchange.util;
+//package gov.pnnl.proven.cluster.lib.module.service;
 //
-//import javax.annotation.PostConstruct;
-//import javax.enterprise.context.ApplicationScoped;
-//import javax.enterprise.context.Dependent;
+//import javax.annotation.Priority;
+//import javax.decorator.Decorator;
+//import javax.decorator.Delegate;
+//import javax.enterprise.inject.Any;
 //import javax.inject.Inject;
-//import javax.inject.Singleton;
+//import javax.interceptor.Interceptor;
 //
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //
-//import gov.pnnl.proven.module.disclosure.old.ProvenMemberDeprecated;
+//import com.hazelcast.core.IExecutorService;
 //
-//@ApplicationScoped
-//public class ExchangeProv {
+//import gov.pnnl.proven.cluster.lib.module.member.ProvenMember;
 //
-//	private final Logger log = LoggerFactory.getLogger(ExchangeProv.class);
+//
+//@Decorator
+//@Priority(value=3000)
+//public class ProvenServiceDecorator implements ProvenServiceTesting {
+//
+//	private final Logger log = LoggerFactory.getLogger(ProvenServiceDecorator.class);
 //	
+//	@Inject
+//	ProvenMember pm;
 //	
-//	@Inject ProvenMemberDeprecated pm;
+//	@Inject
+//	@Delegate
+////	@Any
+//	ProvenServiceTesting ps;
+//		
 //	
-//	@PostConstruct
-//	public void initialize() {
-//		log.debug("ExchangeProv Post Construct..." + pm.getClass().toString());
+//	public void getState() {
+//		ps.getState();
 //	}
 //	
-//	public String testService() {
-//		return "ExchangeProve testService message...";
+//	public void run() {
+//		log.debug("INSIDE DECORATOR RUN...");
+//		ps.getState();
+//		//IExecutorService executor = pm.hazelcast.getExecutorService("test");
+//		String desc = ps.getDescription();
+//		log.debug("DESCRIPTION: " + desc);
+//		//executor.execute(ps);
+//		
 //	}
+//	
+//	public String getDescription() {
+//		return ps.getDescription();
+//	}
+//
 //	
 //}

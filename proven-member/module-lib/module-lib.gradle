@@ -1,9 +1,11 @@
 
 dependencies {
-	//compileOnly 'fish.payara.extras:payara-micro:4.1.1.171'
-	compileOnly 'fish.payara.extras:payara-micro:5.181'
-	compileOnly 'javax:javaee-web-api:8.0'
-	compileOnly 'com.hazelcast:hazelcast:3.9.3'
+
+    compileOnly group: 'javax', name: 'javaee-web-api', version: '8.0'
+    compileOnly group: 'javax', name: 'javaee-api', version: '8.0'	    
+    compileOnly group: 'com.hazelcast', name: 'hazelcast', version: '3.10.2'
+    compileOnly group: 'fish.payara.api', name: 'payara-api', version: '5.183'
+    compileOnly group: 'fish.payara.extras', name: 'payara-micro', version: '5.183'   
 }
 
 

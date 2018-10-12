@@ -78,34 +78,68 @@
 // * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
 // ******************************************************************************/
 //
-//package gov.pnnl.proven.cluster.exchange.util;
+//package gov.pnnl.proven.module.disclosure.old;
 //
-//import javax.annotation.PostConstruct;
-//import javax.enterprise.context.ApplicationScoped;
-//import javax.enterprise.context.Dependent;
-//import javax.inject.Inject;
-//import javax.inject.Singleton;
+//import java.io.Serializable;
+//import java.util.concurrent.Callable;
+//import java.util.function.Supplier;
 //
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //
-//import gov.pnnl.proven.module.disclosure.old.ProvenMemberDeprecated;
+//import com.hazelcast.core.ExecutionCallback;
 //
-//@ApplicationScoped
-//public class ExchangeProv {
+//abstract class ProvenRequest implements Callable<ServiceResponse>, ExecutionCallback<ServiceResponse>, Serializable {
 //
-//	private final Logger log = LoggerFactory.getLogger(ExchangeProv.class);
+//	private static final long serialVersionUID = 2784904800787177607L;
+//	
+//	private final Logger log = LoggerFactory.getLogger(ProvenRequest.class);
 //	
 //	
-//	@Inject ProvenMemberDeprecated pm;
-//	
-//	@PostConstruct
-//	public void initialize() {
-//		log.debug("ExchangeProv Post Construct..." + pm.getClass().toString());
+//	String name;
+//
+//	public ProvenRequest() {
+//		this.name = "world_default_constructor";
 //	}
 //	
-//	public String testService() {
-//		return "ExchangeProve testService message...";
+//	public ProvenRequest(String name) {
+//		this.name = name;
 //	}
+//	
+//	@Override
+//	public ServiceResponse call() {
+//		ServiceResponse sr = getServiceProvider().get().submit();
+//		log.debug("REQUESTED BY:: " + sr.requestName);
+//		return sr;
+//	}
+//	
+//	@Override 
+//	public void onFailure(Throwable t) {
+//		log.debug("ON FAILURE :: " + t.toString());
+//		System.out.println(t.toString() + "SERVICE EXCEPTION !!!!!!!!!!!!!!!!!!!!!!!");
+//		
+//	}
+//
+//	@Override 
+//	public void onResponse(ServiceResponse sr) {
+//		log.debug("ON RESPONSE :: " + sr.getRequestName());
+//		System.out.println("ON RESPONSE :: " + sr.getRequestName());
+//	}
+//
+//	
+//	
+//	protected abstract Supplier<ProvenService> getServiceProvider();
+//
+//	
+//	public String getName() { 
+//		return name;
+//	}
+//
+//	public void setName(String name) {
+//		this.name = name;
+//	}
+//
+//
+//	
 //	
 //}
