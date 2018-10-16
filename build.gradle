@@ -1,0 +1,96 @@
+allprojects {
+
+	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
+}
+
+
+subprojects {
+
+	apply plugin: 'java'
+	apply plugin: 'eclipse'
+
+	sourceCompatibility = 1.8
+
+	repositories {
+		mavenCentral()
+		mavenLocal()
+	}
+
+	dependencies {	
+		testCompile 'junit:junit:4.8.2'
+		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
+		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'		
+	}
+}
+
+//
+// Project Dependencies
+//
+
+project('proven-member:utils-lib') {
+	// No dependencies
+}
+
+project('proven-member:message-lib') {
+	// No dependencies
+}
+
+project('proven-member:exchange-lib') {
+	// No dependencies
+}
+
+project('proven-member:module-lib') {
+	// No dependenies
+}
+
+project('proven-member:hybrid-lib') {
+	dependencies { 
+		compile project(':proven-member:message-lib')
+    } 
+}
+
+project('proven-member:stream-lib') {
+	// No dependenies
+}
+
+project('proven-member:member-lib') {
+	dependencies { 
+		compile project(':proven-member:hybrid-lib')
+    }
+}
+
+project('proven-member:disclosure-module') {
+	dependencies {
+		compile project(':proven-member:module-lib')
+	}
+}
+
+project('proven-member:stream-service') {
+	dependencies {
+		compile project(':proven-member:module-lib')
+	}
+}
+
+project('proven-member:hybrid-service') {
+	dependencies {
+		compile project(':proven-member:utils-lib')
+		compile project(':proven-member:hybrid-lib')
+	}
+}
+
+project('proven-member:member-service') {
+	dependencies {
+		compile project(':proven-member:module-lib')
+	}
+}
+
+
+project('proven-client') {
+	dependencies { 
+		compile project(':proven-member:message-lib')
+    } 
+}
+
+

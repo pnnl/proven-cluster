@@ -19,8 +19,8 @@ task sourcesJar(type: Jar) {
 
 task allInOneJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
     classifier 'all-in-one'
+    with jar
 }
     
  publishing {
@@ -31,7 +31,7 @@ task allInOneJar(type: Jar) {
             from components.java
             artifact sourcesJar
             artifact allInOneJar
-//            artifact javadocJar
+            artifact javadocJar
         }
 	}
 }	
@@ -43,7 +43,6 @@ task allInOneJar(type: Jar) {
  
 dependencies {
 }
-
 
 test { systemProperties 'property': 'value'   }
 

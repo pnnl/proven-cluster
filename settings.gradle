@@ -1,0 +1,39 @@
+include "proven-member:utils-lib"
+include "proven-member:member-lib"
+include "proven-member:exchange-lib"
+include "proven-member:module-lib"
+include "proven-member:message-lib"
+include "proven-member:stream-lib"
+include "proven-member:hybrid-lib"
+include "proven-member:stream-service"
+include "proven-member:disclosure-module"
+include "proven-member:hybrid-service"
+include "proven-member:member-service"
+include "proven-client"
+include "proven-disclosure"
+
+
+rootProject.name = 'proven-cluster'
+
+rootProject.children.each {project ->
+	
+	String fileBaseName = project.name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }
+	String projectDirName = "$fileBaseName"
+	project.projectDir = new File(settingsDir, projectDirName)
+	project.buildFileName = "${fileBaseName}.gradle"
+	assert project.projectDir.isDirectory()
+	assert project.buildFile.isFile()
+	//println project.buildFileName
+	//println project.children
+	
+	project.children.each {subProject ->
+		String subFileBaseName = subProject.name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }
+		subFileBaseName = subFileBaseName.minus(":" +  subFileBaseName  + ":")
+		String subProjectDirName = "$subFileBaseName"
+		//subProject.projectDir = new File(settingsDir, projectDirName)
+		subProject.buildFileName = "${subFileBaseName}.gradle"
+		assert subProject.projectDir.isDirectory()
+		assert subProject.buildFile.isFile()
+	}
+	
+}
