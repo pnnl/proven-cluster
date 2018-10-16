@@ -17,15 +17,12 @@ eclipse {
 war {
   archiveName = 'disclosure.war'
   webXml = null
-
 }
 
 
 dependencies {
-
 	   providedCompile group: 'javax', name: 'javaee-web-api', version: '8.0'
 	   providedCompile group: 'javax', name: 'javaee-api', version: '8.0'    
-
 }
 
 
