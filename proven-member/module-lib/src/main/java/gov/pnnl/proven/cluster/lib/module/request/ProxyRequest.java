@@ -43,13 +43,6 @@
 package gov.pnnl.proven.cluster.lib.module.request;
 
 import java.io.Serializable;
-import java.util.concurrent.Callable;
-
-import com.hazelcast.ringbuffer.impl.ArrayRingbuffer;
-
-import gov.pnnl.proven.cluster.lib.module.ProvenModuleSave;
-import gov.pnnl.proven.cluster.lib.module.exception.UnsupportedRequestException;
-import gov.pnnl.proven.cluster.lib.module.service.ModuleService;
 
 /**
  * Represents a request that may be serviced by a {@link ProvenModuleSave}
@@ -58,6 +51,8 @@ import gov.pnnl.proven.cluster.lib.module.service.ModuleService;
  *
  */
 public class ProxyRequest<T> implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Request input type

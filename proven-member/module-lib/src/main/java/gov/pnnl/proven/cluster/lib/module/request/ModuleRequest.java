@@ -44,7 +44,6 @@ package gov.pnnl.proven.cluster.lib.module.request;
 
 import java.io.Serializable;
 
-import gov.pnnl.proven.cluster.lib.module.ProvenModuleSave;
 import gov.pnnl.proven.cluster.lib.module.exception.UnsupportedRequestException;
 import gov.pnnl.proven.cluster.lib.module.service.ModuleService;
 

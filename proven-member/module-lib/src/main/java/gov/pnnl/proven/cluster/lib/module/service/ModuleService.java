@@ -42,16 +42,8 @@ package gov.pnnl.proven.cluster.lib.module.service;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
-import com.hazelcast.core.ExecutionCallback;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
-import com.hazelcast.core.IExecutorService;
-import com.hazelcast.internal.nearcache.impl.SampleableNearCacheRecordMap;
-import com.hazelcast.mapreduce.KeyValueSource;
-import com.hazelcast.mapreduce.impl.AbstractJob;
-
-import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
-import gov.pnnl.proven.cluster.lib.module.request.ModuleRequest;
 import gov.pnnl.proven.cluster.lib.module.request.ProxyRequest;
 
 /**
