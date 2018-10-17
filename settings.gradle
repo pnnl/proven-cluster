@@ -11,6 +11,7 @@ include "proven-member:hybrid-service"
 include "proven-member:member-service"
 include "proven-client"
 include "proven-disclosure"
+include "proven-docker"
 
 
 rootProject.name = 'proven-cluster'
