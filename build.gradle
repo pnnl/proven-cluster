@@ -77,7 +77,6 @@ project('proven-member:hybrid-service') {
 	dependencies {
 		compile project(':proven-member:utils-lib')
 		compile project(':proven-member:hybrid-lib')
-		compile project(':proven-member:module-lib')
 	}
 }
 
