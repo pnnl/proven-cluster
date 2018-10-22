@@ -37,62 +37,26 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.client.lib.disclosure;
+
 /**
+ * Represents an operation providing a RequestRegistration.
  * 
- */
-package gov.pnnl.proven.disclosure;
-
-import java.io.Serializable;
-
-/**
- * Represents a request that may be serviced by a {@link ProvenModule}
+ * @param <T>
+ *            the request input
+ * @param <V>
+ *            the request result value
+ * 
  * 
  * @author d3j766
- *
+ * 
+ * @see
+ * @since
+ * 
  */
-public class ProxyRequest<T> implements Serializable {
+@FunctionalInterface
+public interface RequestLocator<T, V> {
 
-	/**
-	 * Request input type
-	 */
-	T t;
-
-	/**
-	 * Maximum number of request retries before being sent to error stream
-	 */
-	private int retries;
-
-	/**
-	 * Time to live (in seconds) before being removed from a request buffer.
-	 */
-	private int ttl;
-
-	/**
-	 * Request constructor. Input of request is required at time of
-	 * construction.
-	 * 
-	 * @param t
-	 *            the type of input for the request
-	 */
-	public ProxyRequest(T t) {
-		this.t = t;
-	}
-
-	public int getRetries() {
-		return retries;
-	}
-
-	public void setRetries(int retries) {
-		this.retries = retries;
-	}
-
-	public int getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
-	}
-
+	RequestRegistration<T, V> getLocator();
 
 }

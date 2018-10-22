@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.*
+
 allprojects {
 
 	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
@@ -21,7 +23,8 @@ subprojects {
 		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 		compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
 		compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
-		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'		
+		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
+		compile group: 'commons-validator', name: 'commons-validator', version: '1.6'			
 	}
 }
 
