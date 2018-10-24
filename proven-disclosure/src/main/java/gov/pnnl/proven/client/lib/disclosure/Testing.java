@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure;
 
+import java.util.UUID;
+
 import org.apache.commons.validator.routines.DomainValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +63,11 @@ public class Testing {
 	      else {
 	    	  logger.info("NOT VALID");
 	      }
+	      
+	      for (int i = 0; i < 100; i++) {
+	    	  System.out.println(UUID.randomUUID().toString());
+	      }
+   
 		
 		
 	}

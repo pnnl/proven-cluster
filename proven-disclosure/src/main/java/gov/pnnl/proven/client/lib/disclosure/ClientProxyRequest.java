@@ -39,7 +39,12 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidRequestRegistrationException;
+import gov.pnnl.proven.client.lib.disclosure.exception.UnknownClientSessionIdException;
 
 /**
  * Represents a client request that can be serviced by a Proven Cluster. A
@@ -57,6 +62,20 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final int MAX_SESIONS = 100;
+	private static final String INITIAL_SESSION_ID;
+	private static Set<String> SESSION_IDS = new HashSet<String>();
+
+	static {
+		INITIAL_SESSION_ID = UUID.randomUUID().toString();
+		SESSION_IDS.add(INITIAL_SESSION_ID);
+	}
+
+	/**
+	 * Identifies the session identifier for this request.
+	 */
+	private String sessionId;
+
 	/**
 	 * Static factory method to create a new ClientProxyRequest.
 	 * 
@@ -66,12 +85,17 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> {
 	 * @throws InvalidRequestRegistrationException
 	 *             if the registration is not complete.
 	 */
-	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequest(RequestRegistration<T, V> registeredRequest)
-			throws InvalidRequestRegistrationException {
+	public synchronized static <T, V> ClientProxyRequest<T, V> createClientProxyRequest(
+			RequestRegistration<T, V> registeredRequest, boolean newSession)
+			throws InvalidRequestRegistrationException, MaximumSessions {
 
 		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest);
 
-		// TODO - set default values for a client proxy request here, if any
+		// Generate new session id for this instance, if requested
+		if (newSession) {
+			
+			cpr.setS SESSION_ID = UUID.randomUUID().toString();
+		}
 
 		return cpr;
 	}
@@ -82,6 +106,19 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> {
 	protected ClientProxyRequest(RequestRegistration<T, V> registeredRequest)
 			throws InvalidRequestRegistrationException {
 		super(registeredRequest);
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) throws UnknownClientSessionIdException {
+
+		if (!SESSION_IDS.contains(sessionId)) {
+			throw new UnknownClientSessionIdException("Could not find session identifier for Client");
+		}
+
+		this.sessionId = sessionId;
 	}
 
 }

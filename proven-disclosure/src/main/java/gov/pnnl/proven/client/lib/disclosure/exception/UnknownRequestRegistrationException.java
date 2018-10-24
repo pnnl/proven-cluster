@@ -39,19 +39,19 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure.exception;
 
-public class UnkownRequestRegistrationException extends Exception {
+public class UnknownRequestRegistrationException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 
-	public UnkownRequestRegistrationException() {
+	public UnknownRequestRegistrationException() {
 		super();
 	}
 
-	public UnkownRequestRegistrationException(String message) {
+	public UnknownRequestRegistrationException(String message) {
 		super(message);
 	}
 
-	public UnkownRequestRegistrationException(String message, Throwable e) {
+	public UnknownRequestRegistrationException(String message, Throwable e) {
 		super(message, e);
 	}
 
