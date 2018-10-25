@@ -938,8 +938,8 @@ public class RepositoryResource {
 
 		ProvenMessageResponse pmr = null;
 
-		try {
-
+		try {	
+			log.error("Inside addProvenMessage service");
 			cs.begin();
 		
 			// Add proven message to stream
@@ -995,9 +995,10 @@ public class RepositoryResource {
 			pmr.setReason(e.getMessage());
 			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 			pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-
+			e.printStackTrace();
 		}
 
+		log.error("Leaving addProvenMessage service::Response:: " + pmr.getResponse());
 		return pmr;
 	}
 
