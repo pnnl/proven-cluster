@@ -110,8 +110,8 @@ public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serial
 	public void writeData(ObjectDataOutput out) throws IOException {
 		
 		out.writeUTF(this.measurementName);
-		out.writeUTF((null == this.provenMessage) ? ("") : this.provenMessage.toString());
-		out.writeUTF(this.provenMessage.toString());
+		String provenMessageStr = ((null == this.provenMessage) ? ("") : this.provenMessage.toString());
+		out.writeUTF(provenMessageStr);
 		out.writeObject(this.filters);
 	}
 	
