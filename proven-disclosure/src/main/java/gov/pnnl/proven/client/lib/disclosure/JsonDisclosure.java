@@ -37,119 +37,104 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.client.lib.disclosure;
 
-package gov.pnnl.proven.message;
-
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
-
+import java.io.StringReader;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
 /**
- * Represents a time-series query.
+ * Contains Proven request data represented in the JSON format. JSON data (input
+ * or schema) is checked for correctness when it's added, either at construction
+ * or use of a setter method. Incorrect JSON values will throw a
+ * {@code JsonParsingException}.
  * 
  * @author d3j766
  *
+ * @see
+ * @since
  */
-@XmlRootElement
-public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serializable {
+public class JsonDisclosure implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
-	private static Logger log = LoggerFactory.getLogger(ProvenQueryTimeSeries.class);
-	
-	/**
-	 * Name of measurement, identifies a time-series measurement container. If
-	 * null, proven's storage component is responsible for measurement
-	 * assignment. Provides a default.
-	 */
-	private String measurementName = MessageUtils.DEFAULT_MEASUREMENT;
+	private static Logger log = LoggerFactory.getLogger(JsonDisclosure.class);
 
 	/**
-	 * Semantic link to proven message concept instance.
+	 * JSON input data. Only String value is serialized.
 	 */
-	private URI provenMessage;
+	@SuppressWarnings("unused")
+	private transient JsonObject inputJson;
+	private String input;
 
 	/**
-	 * List of filters to apply to measurement.
+	 * JSON schema data. Only String value is serialized.
 	 */
-	private List<ProvenQueryFilter> filters;
+	@SuppressWarnings("unused")
+	private transient JsonObject schemaJson;
+	private String schema;
 
-	
-	public ProvenQueryTimeSeries() {
+	public JsonDisclosure() {
 	}
 
-	
-	void addFilter(ProvenQueryFilter filter) {
-		if (null == filters) {
-			filters = new ArrayList<ProvenQueryFilter>();
+	public JsonDisclosure(String input) {
+		this(input, null);
+	}
+
+	public JsonDisclosure(String input, String schema) {
+		addInput(input);
+		addSchema(schema);
+	}
+
+	private void addSchema(String schema) {
+		JsonObject obj = toJsonObject(schema);
+		this.schemaJson = obj;
+		this.schema = schema;
+	}
+
+	private void addInput(String input) {
+		JsonObject obj = toJsonObject(input);
+		this.inputJson = obj;
+		this.input = input;
+	}
+
+	private JsonObject toJsonObject(String json) {
+
+		JsonReader reader = Json.createReader(new StringReader(json));
+		JsonObject ret = null;
+
+		if (null != json) {
+			try {
+				ret = reader.readObject();
+			} catch (JsonParsingException e) {
+				log.error("Encountered invalid JSON in " + this.getClass().getSimpleName() + " :: " + json);
+				e.printStackTrace();
+				throw e;
+			} finally {
+				reader.close();
+			}
 		}
-		filters.add(filter);
+		return ret;
 	}
 
-	
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		
-		this.measurementName = in.readUTF();
-		String provenMessageStr = in.readUTF();
-		this.provenMessage = ((provenMessageStr.isEmpty()) ? null : URI.create(provenMessageStr));
-		this.filters = in.readObject();
-	}
-	
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		
-		out.writeUTF(this.measurementName);
-		String provenMessageStr = ((null == this.provenMessage) ? ("") : this.provenMessage.toString());
-		out.writeUTF(provenMessageStr);
-		out.writeObject(this.filters);
-	}
-	
-	
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-	
-	
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
-	}
-	
-	
-	public String getMeasurementName() {
-		return measurementName;
+	public String getInput() {
+		return input;
 	}
 
-	public void setMeasurementName(String measurementName) {
-		this.measurementName = measurementName;
+	public void setInput(String input) {
+		addInput(input);
 	}
 
-	public URI getProvenMessage() {
-		return provenMessage;
+	public String getSchema() {
+		return schema;
 	}
 
-	public void setProvenMessage(URI provenMessage) {
-		this.provenMessage = provenMessage;
-	}
-
-	public List<ProvenQueryFilter> getFilters() {
-		return filters;
-	}
-
-	public void setFilters(List<ProvenQueryFilter> filters) {
-		this.filters = filters;
+	public void setSchema(String schema) {
+		addSchema(schema);
 	}
 
 }

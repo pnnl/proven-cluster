@@ -37,119 +37,33 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.client.lib.disclosure;
 
-package gov.pnnl.proven.message;
-
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import gov.pnnl.proven.client.lib.disclosure.exception.InvalidDisclosureDomainException;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+@FunctionalInterface
+public interface DomainProvider extends Serializable {
 
-/**
- * Represents a time-series query.
- * 
- * @author d3j766
- *
- */
-@XmlRootElement
-public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serializable {
+	static Logger log = LoggerFactory.getLogger(DomainProvider.class);
 
-	private static final long serialVersionUID = 1L;
+	static final String COMMON_SUB_DOMAIN = "common";
+	static final String PROVEN_DISCLOSURE_DOMAIN = "proven.pnnl.gov";
+	static final String DISCLOSURE_DOMAIN_COMMON = COMMON_SUB_DOMAIN + "." + PROVEN_DISCLOSURE_DOMAIN;
+	static final String DISCLOSURE_REVERSE_DOMAIN_BASE = "gov.pnnl.proven";
+	static final String DISCLOSURE_REVERSE_DOMAIN_COMMON = DISCLOSURE_REVERSE_DOMAIN_BASE + "." + "common";
 
-	private static Logger log = LoggerFactory.getLogger(ProvenQueryTimeSeries.class);
-	
-	/**
-	 * Name of measurement, identifies a time-series measurement container. If
-	 * null, proven's storage component is responsible for measurement
-	 * assignment. Provides a default.
-	 */
-	private String measurementName = MessageUtils.DEFAULT_MEASUREMENT;
 
-	/**
-	 * Semantic link to proven message concept instance.
-	 */
-	private URI provenMessage;
+	DisclosureDomain getDomain();
 
-	/**
-	 * List of filters to apply to measurement.
-	 */
-	private List<ProvenQueryFilter> filters;
-
-	
-	public ProvenQueryTimeSeries() {
-	}
-
-	
-	void addFilter(ProvenQueryFilter filter) {
-		if (null == filters) {
-			filters = new ArrayList<ProvenQueryFilter>();
+	static DisclosureDomain getCommonDomain() {
+		try {
+			return new DisclosureDomain(DISCLOSURE_DOMAIN_COMMON);
+		} catch (InvalidDisclosureDomainException e) {
+			log.error("Common domain not defined correctly");
+			throw new IllegalArgumentException();
 		}
-		filters.add(filter);
 	}
-
-	
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		
-		this.measurementName = in.readUTF();
-		String provenMessageStr = in.readUTF();
-		this.provenMessage = ((provenMessageStr.isEmpty()) ? null : URI.create(provenMessageStr));
-		this.filters = in.readObject();
-	}
-	
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		
-		out.writeUTF(this.measurementName);
-		String provenMessageStr = ((null == this.provenMessage) ? ("") : this.provenMessage.toString());
-		out.writeUTF(provenMessageStr);
-		out.writeObject(this.filters);
-	}
-	
-	
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-	
-	
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
-	}
-	
-	
-	public String getMeasurementName() {
-		return measurementName;
-	}
-
-	public void setMeasurementName(String measurementName) {
-		this.measurementName = measurementName;
-	}
-
-	public URI getProvenMessage() {
-		return provenMessage;
-	}
-
-	public void setProvenMessage(URI provenMessage) {
-		this.provenMessage = provenMessage;
-	}
-
-	public List<ProvenQueryFilter> getFilters() {
-		return filters;
-	}
-
-	public void setFilters(List<ProvenQueryFilter> filters) {
-		this.filters = filters;
-	}
-
 }

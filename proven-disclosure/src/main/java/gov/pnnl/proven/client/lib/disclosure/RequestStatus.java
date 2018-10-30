@@ -37,11 +37,47 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.client.lib.disclosure;
+
 /**
+ * Identifies possible status values for a request as it's processed inside a
+ * Proven Cluster.
  * 
- */
-/**
  * @author d3j766
+ * 
+ * @see
+ * @since
  *
  */
-package gov.pnnl.proven.disclosure;
+public enum RequestStatus {
+
+	New(RequestStatusName.REQUEST_STATUS_NEW),
+	Retry(RequestStatusName.REQUEST_STATUS_RETRY),
+	Ready(RequestStatusName.REQUEST_STATUS_READY),
+	Running(RequestStatusName.REQUEST_STATUS_RUNNING),
+	Completed(RequestStatusName.REQUEST_STATUS_COMPLETED),
+	Fail(RequestStatusName.REQUEST_STATUS_FAIL);
+
+	public class RequestStatusName {
+		public static final String REQUEST_STATUS_NEW = "request.state.new";
+		public static final String REQUEST_STATUS_RETRY = "request.state.retry";
+		public static final String REQUEST_STATUS_READY = "request.state.ready";
+		public static final String REQUEST_STATUS_RUNNING = "request.state.running";
+		public static final String REQUEST_STATUS_COMPLETED = "request.state.completed";
+		public static final String REQUEST_STATUS_FAIL = "request.state.name.fail";
+	}
+
+	private String statusName;
+
+	RequestStatus() {
+	}
+
+	RequestStatus(String statusName) {
+		this.statusName = statusName;
+	}
+
+	public String getStatusName() {
+		return statusName;
+	};
+
+}

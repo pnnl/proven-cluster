@@ -40,10 +40,8 @@
 
 package gov.pnnl.proven.message;
 
-import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * Represents the different content types for a {@code ProvenMessage}.
@@ -105,8 +103,19 @@ public enum MessageContent {
 	 * Cluster administrative message content. Contains directives to configure
 	 * and manage cluster members.
 	 */
-	Administrative(MessageContentStream.ADMINISTRATIVE_STREAM);
+	Administrative(MessageContentStream.ADMINISTRATIVE_STREAM),
+	
+	/**
+	 * Request response messages.  
+	 */
+	Response(MessageContentStream.RESPONSE_STREAM);
+	
+	
 
+	// TODO - Should not contain domain information in this class. That is,
+	// BASE_STREAM should be removed. Leaving the core stream names. Move to
+	// StreamManager or one of it's managed components to manage the stream and
+	// domain relationship.
 	public class MessageContentStream {
 		public static final String BASE_STREAM = "gov.pnnl.proven.message.";
 		public static final String EXPLICIT_STREAM = BASE_STREAM + "explicit";
@@ -116,6 +125,7 @@ public enum MessageContent {
 		public static final String QUERY_STREAM = BASE_STREAM + "query";
 		public static final String CONTINUOUS_QUERY_STREAM = BASE_STREAM + "continuous";
 		public static final String ADMINISTRATIVE_STREAM = BASE_STREAM + "administrative";
+		public static final String RESPONSE_STREAM = BASE_STREAM + "response";
 	}
 
 	private static Logger log = LoggerFactory.getLogger(MessageContent.class);
@@ -127,7 +137,7 @@ public enum MessageContent {
 	 */
 	MessageContent() {
 	}
-	
+
 	/**
 	 * Creates message content type with associated stream name.
 	 * 
@@ -145,7 +155,5 @@ public enum MessageContent {
 	public String getStream() {
 		return stream;
 	}
-	
-	
 
 }

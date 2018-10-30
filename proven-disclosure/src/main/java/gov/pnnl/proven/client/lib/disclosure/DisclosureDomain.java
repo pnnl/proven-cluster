@@ -37,119 +37,59 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.client.lib.disclosure;
 
-package gov.pnnl.proven.message;
-
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
-
+import org.apache.commons.validator.routines.DomainValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import gov.pnnl.proven.client.lib.disclosure.exception.InvalidDisclosureDomainException;
 
 /**
- * Represents a time-series query.
+ * Information disclosed by external clients to a Proven Cluster are organized
+ * under domain names. A valid domain name used by Proven must have a recognized
+ * top-level domain as defined in {@code DomainValidator}
  * 
  * @author d3j766
  *
+ * @see DomainValidator
+ * @since
+ * 
  */
-@XmlRootElement
-public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serializable {
+public class DisclosureDomain implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
-	private static Logger log = LoggerFactory.getLogger(ProvenQueryTimeSeries.class);
-	
-	/**
-	 * Name of measurement, identifies a time-series measurement container. If
-	 * null, proven's storage component is responsible for measurement
-	 * assignment. Provides a default.
-	 */
-	private String measurementName = MessageUtils.DEFAULT_MEASUREMENT;
+	static Logger log = LoggerFactory.getLogger(DisclosureDomain.class);
 
 	/**
-	 * Semantic link to proven message concept instance.
+	 * Domain name.
 	 */
-	private URI provenMessage;
+	String domain;
 
-	/**
-	 * List of filters to apply to measurement.
-	 */
-	private List<ProvenQueryFilter> filters;
+	public DisclosureDomain(String domain) throws InvalidDisclosureDomainException {
 
-	
-	public ProvenQueryTimeSeries() {
-	}
-
-	
-	void addFilter(ProvenQueryFilter filter) {
-		if (null == filters) {
-			filters = new ArrayList<ProvenQueryFilter>();
+		// Get a DomainValidator
+		DomainValidator validator = DomainValidator.getInstance();
+		if (!validator.isValid(domain)) {
+			throw new InvalidDisclosureDomainException();
 		}
-		filters.add(filter);
 	}
 
-	
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		
-		this.measurementName = in.readUTF();
-		String provenMessageStr = in.readUTF();
-		this.provenMessage = ((provenMessageStr.isEmpty()) ? null : URI.create(provenMessageStr));
-		this.filters = in.readObject();
-	}
-	
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		
-		out.writeUTF(this.measurementName);
-		String provenMessageStr = ((null == this.provenMessage) ? ("") : this.provenMessage.toString());
-		out.writeUTF(provenMessageStr);
-		out.writeObject(this.filters);
-	}
-	
-	
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-	
-	
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
-	}
-	
-	
-	public String getMeasurementName() {
-		return measurementName;
+	public String getDomain() {
+		return domain;
 	}
 
-	public void setMeasurementName(String measurementName) {
-		this.measurementName = measurementName;
-	}
-
-	public URI getProvenMessage() {
-		return provenMessage;
-	}
-
-	public void setProvenMessage(URI provenMessage) {
-		this.provenMessage = provenMessage;
-	}
-
-	public List<ProvenQueryFilter> getFilters() {
-		return filters;
-	}
-
-	public void setFilters(List<ProvenQueryFilter> filters) {
-		this.filters = filters;
+	public String getReverseDomain() {
+		String ret = "";
+		String[] parts = domain.split(".");
+		int start = 0;
+		int end = parts.length;
+		while (start < end) {
+			ret += parts[start];
+			start++;
+		}
+		return ret;
 	}
 
 }

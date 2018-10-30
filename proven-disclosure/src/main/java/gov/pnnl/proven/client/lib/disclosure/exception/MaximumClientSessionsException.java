@@ -37,62 +37,37 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.disclosure;
+package gov.pnnl.proven.client.lib.disclosure.exception;
 
-import java.io.Serializable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.client.lib.disclosure.ClientProxyRequest;
+
 
 /**
- * Represents a request that may be serviced by a {@link ProvenModule}
+ * Indicates a client exceeded its maximum number of sessions.
  * 
  * @author d3j766
  *
+ * @see ClientProxyRequest#MAX_SESSIONS
+ * 
  */
-public class ProxyRequest<T> implements Serializable {
+public class MaximumClientSessionsException extends Exception {
 
-	/**
-	 * Request input type
-	 */
-	T t;
+	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(MaximumClientSessionsException.class);
 
-	/**
-	 * Maximum number of request retries before being sent to error stream
-	 */
-	private int retries;
-
-	/**
-	 * Time to live (in seconds) before being removed from a request buffer.
-	 */
-	private int ttl;
-
-	/**
-	 * Request constructor. Input of request is required at time of
-	 * construction.
-	 * 
-	 * @param t
-	 *            the type of input for the request
-	 */
-	public ProxyRequest(T t) {
-		this.t = t;
+	public MaximumClientSessionsException() {
+		super();
 	}
 
-	public int getRetries() {
-		return retries;
+	public MaximumClientSessionsException(String message) {
+		super(message);
 	}
 
-	public void setRetries(int retries) {
-		this.retries = retries;
+	public MaximumClientSessionsException(String message, Throwable e) {
+		super(message, e);
 	}
-
-	public int getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
-	}
-
 
 }

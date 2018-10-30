@@ -37,119 +37,59 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-
-package gov.pnnl.proven.message;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+package gov.pnnl.proven.client.lib.disclosure;
 
 /**
- * Represents a time-series query.
+ * Identifies the module servicing scope for a disclosed request. A request is
+ * disclosed to a module application running inside a Proven Cluster, and the
+ * scope informs the Cluster as to what module or modules will be used to
+ * service the request it received. A module will only be included in the scope
+ * if it can service the request.
  * 
  * @author d3j766
  *
  */
-@XmlRootElement
-public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	private static Logger log = LoggerFactory.getLogger(ProvenQueryTimeSeries.class);
-	
-	/**
-	 * Name of measurement, identifies a time-series measurement container. If
-	 * null, proven's storage component is responsible for measurement
-	 * assignment. Provides a default.
-	 */
-	private String measurementName = MessageUtils.DEFAULT_MEASUREMENT;
+public enum RequestScope {
 
 	/**
-	 * Semantic link to proven message concept instance.
+	 * A single module located anywhere in the cluster.  The default.
 	 */
-	private URI provenMessage;
+	ModuleAny(RequestScopeType.REQUEST_SCOPE_MODULE_ANY),
 
 	/**
-	 * List of filters to apply to measurement.
+	 * The module on which the request was disclosed.
 	 */
-	private List<ProvenQueryFilter> filters;
+	Module(RequestScopeType.REQUEST_SCOPE_MODULE),
 
-	
-	public ProvenQueryTimeSeries() {
-	}
+	/**
+	 * Any module located in the member on which the request was disclosed.
+	 */
+	MemberModule(RequestScopeType.REQUEST_SCOPE_MEMBER_MODULE),
 
+	/**
+	 * All modules located in the member on which the request was disclosed.
+	 */
+	MemberModules(RequestScopeType.REQUEST_SCOPE_MEMBER_MODULES);
 	
-	void addFilter(ProvenQueryFilter filter) {
-		if (null == filters) {
-			filters = new ArrayList<ProvenQueryFilter>();
-		}
-		filters.add(filter);
-	}
 
-	
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		
-		this.measurementName = in.readUTF();
-		String provenMessageStr = in.readUTF();
-		this.provenMessage = ((provenMessageStr.isEmpty()) ? null : URI.create(provenMessageStr));
-		this.filters = in.readObject();
-	}
-	
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		
-		out.writeUTF(this.measurementName);
-		String provenMessageStr = ((null == this.provenMessage) ? ("") : this.provenMessage.toString());
-		out.writeUTF(provenMessageStr);
-		out.writeObject(this.filters);
-	}
-	
-	
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-	
-	
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
-	}
-	
-	
-	public String getMeasurementName() {
-		return measurementName;
+	public class RequestScopeType {
+		public static final String REQUEST_SCOPE_MODULE_ANY = "request.scope.module_any";
+		public static final String REQUEST_SCOPE_MODULE = "request.scope.module";
+		public static final String REQUEST_SCOPE_MEMBER_MODULE = "request.scope.member_module";
+		public static final String REQUEST_SCOPE_MEMBER_MODULES = "request.scope.member_modules";
 	}
 
-	public void setMeasurementName(String measurementName) {
-		this.measurementName = measurementName;
+	private String scope;
+
+	RequestScope() {
 	}
 
-	public URI getProvenMessage() {
-		return provenMessage;
+	RequestScope(String scope) {
+		this.scope = scope;
 	}
 
-	public void setProvenMessage(URI provenMessage) {
-		this.provenMessage = provenMessage;
-	}
-
-	public List<ProvenQueryFilter> getFilters() {
-		return filters;
-	}
-
-	public void setFilters(List<ProvenQueryFilter> filters) {
-		this.filters = filters;
-	}
+	public String getRequestScope() {
+		return scope;
+	};
 
 }

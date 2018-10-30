@@ -37,119 +37,31 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-
-package gov.pnnl.proven.message;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
+package gov.pnnl.proven.client.lib.disclosure;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
 /**
- * Represents a time-series query.
+ * Identifies location in Proven Cluster for client data disclosure. This is the
+ * name of a Proven Cluster's IMap which contains location and state information
+ * for the available Disclosure Buffers. A Proven Client will use this
+ * information to add their requests for processing in the cluster.
  * 
  * @author d3j766
+ * 
+ * @see
+ * @since
  *
  */
-@XmlRootElement
-public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serializable {
+public class ClientDisclosureMap implements DisclosureMap {
 
-	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(DisclosureMap.class);
+	public static final String CLIENT_DISCLOSURE_MAP_NAME = "client.disclosure_map";
 
-	private static Logger log = LoggerFactory.getLogger(ProvenQueryTimeSeries.class);
-	
-	/**
-	 * Name of measurement, identifies a time-series measurement container. If
-	 * null, proven's storage component is responsible for measurement
-	 * assignment. Provides a default.
-	 */
-	private String measurementName = MessageUtils.DEFAULT_MEASUREMENT;
-
-	/**
-	 * Semantic link to proven message concept instance.
-	 */
-	private URI provenMessage;
-
-	/**
-	 * List of filters to apply to measurement.
-	 */
-	private List<ProvenQueryFilter> filters;
-
-	
-	public ProvenQueryTimeSeries() {
-	}
-
-	
-	void addFilter(ProvenQueryFilter filter) {
-		if (null == filters) {
-			filters = new ArrayList<ProvenQueryFilter>();
-		}
-		filters.add(filter);
-	}
-
-	
 	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		
-		this.measurementName = in.readUTF();
-		String provenMessageStr = in.readUTF();
-		this.provenMessage = ((provenMessageStr.isEmpty()) ? null : URI.create(provenMessageStr));
-		this.filters = in.readObject();
-	}
-	
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		
-		out.writeUTF(this.measurementName);
-		String provenMessageStr = ((null == this.provenMessage) ? ("") : this.provenMessage.toString());
-		out.writeUTF(provenMessageStr);
-		out.writeObject(this.filters);
-	}
-	
-	
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-	
-	
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
-	}
-	
-	
-	public String getMeasurementName() {
-		return measurementName;
-	}
-
-	public void setMeasurementName(String measurementName) {
-		this.measurementName = measurementName;
-	}
-
-	public URI getProvenMessage() {
-		return provenMessage;
-	}
-
-	public void setProvenMessage(URI provenMessage) {
-		this.provenMessage = provenMessage;
-	}
-
-	public List<ProvenQueryFilter> getFilters() {
-		return filters;
-	}
-
-	public void setFilters(List<ProvenQueryFilter> filters) {
-		this.filters = filters;
-	}
+	public String getMapName() {
+		return CLIENT_DISCLOSURE_MAP_NAME;
+	};
 
 }
