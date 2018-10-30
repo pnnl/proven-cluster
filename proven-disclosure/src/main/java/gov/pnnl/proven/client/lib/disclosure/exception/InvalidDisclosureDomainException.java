@@ -39,9 +39,24 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.client.lib.disclosure.DisclosureDomain;
+
+
+/**
+ * Indicates an invalid domain value was provided to a disclosure request.
+ * 
+ * @author d3j766
+ * 
+ * @see DisclosureDomain
+ *
+ */
 public class InvalidDisclosureDomainException extends Exception {
 
 	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(InvalidDisclosureDomainException.class);
 
 	public InvalidDisclosureDomainException() {
 		super();

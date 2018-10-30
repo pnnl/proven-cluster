@@ -39,12 +39,14 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Identifies location in Proven Cluster for client data disclosure. Thsi is the
+ * Identifies location in Proven Cluster for client data disclosure. This is the
  * name of a Proven Cluster's IMap which contains location and state information
  * for the available Disclosure Buffers. A Proven Client will use this
- * information to add their requests to a Disclosure Buffer for processing in
- * the cluster.
+ * information to add their requests for processing in the cluster.
  * 
  * @author d3j766
  * 
@@ -52,26 +54,14 @@ package gov.pnnl.proven.client.lib.disclosure;
  * @since
  *
  */
-public enum ClientDisclosureMap implements DisclosureMap {
+public class ClientDisclosureMap implements DisclosureMap {
 
-	Client(ClientDisclosureMapName.CLIENT_DISCLOSURE_MAP_NAME);
-
-	public class ClientDisclosureMapName {
-		public static final String CLIENT_DISCLOSURE_MAP_NAME = "client.disclosureMap";
-	}
-
-	private String mapName;
-
-	ClientDisclosureMap() {
-	}
-
-	ClientDisclosureMap(String mapName) {
-		this.mapName = mapName;
-	}
+	static Logger log = LoggerFactory.getLogger(DisclosureMap.class);
+	public static final String CLIENT_DISCLOSURE_MAP_NAME = "client.disclosure_map";
 
 	@Override
 	public String getMapName() {
-		return mapName;
+		return CLIENT_DISCLOSURE_MAP_NAME;
 	};
 
 }

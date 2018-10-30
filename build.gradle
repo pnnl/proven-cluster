@@ -67,6 +67,8 @@ project('proven-member:member-lib') {
 project('proven-member:disclosure-module') {
 	dependencies {
 		compile project(':proven-member:module-lib')
+		compile project(':proven-disclosure')
+		
 	}
 }
 

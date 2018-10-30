@@ -40,18 +40,21 @@
 package gov.pnnl.proven.client.lib.disclosure;
 
 import java.io.Serializable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidDisclosureDomainException;
 
 @FunctionalInterface
 public interface DomainProvider extends Serializable {
 
-	static Logger logger = LoggerFactory.getLogger(DomainProvider.class);
-	static final String DISCLOSURE_DOMAIN_BASE = "proven.pnnl.gov";
-	static final String DISCLOSURE_DOMAIN_COMMON = "common" + "." + DISCLOSURE_DOMAIN_BASE;
+	static Logger log = LoggerFactory.getLogger(DomainProvider.class);
+
+	static final String COMMON_SUB_DOMAIN = "common";
+	static final String PROVEN_DISCLOSURE_DOMAIN = "proven.pnnl.gov";
+	static final String DISCLOSURE_DOMAIN_COMMON = COMMON_SUB_DOMAIN + "." + PROVEN_DISCLOSURE_DOMAIN;
+	static final String DISCLOSURE_REVERSE_DOMAIN_BASE = "gov.pnnl.proven";
+	static final String DISCLOSURE_REVERSE_DOMAIN_COMMON = DISCLOSURE_REVERSE_DOMAIN_BASE + "." + "common";
+
 
 	DisclosureDomain getDomain();
 
@@ -59,9 +62,8 @@ public interface DomainProvider extends Serializable {
 		try {
 			return new DisclosureDomain(DISCLOSURE_DOMAIN_COMMON);
 		} catch (InvalidDisclosureDomainException e) {
-			logger.error("Common domain not defined correctly");
+			log.error("Common domain not defined correctly");
 			throw new IllegalArgumentException();
 		}
-
 	}
 }

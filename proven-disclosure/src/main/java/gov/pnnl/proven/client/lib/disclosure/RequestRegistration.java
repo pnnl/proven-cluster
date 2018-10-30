@@ -39,6 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure;
 
+import java.io.Serializable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Contains information necessary to locate a registered request inside a
  * ProvenCluster.
@@ -49,7 +53,11 @@ package gov.pnnl.proven.client.lib.disclosure;
  * @since
  * 
  */
-public class RequestRegistration<T, V> {
+public class RequestRegistration<T, V> implements Serializable {
+
+
+	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(RequestRegistration.class);
 
 	private String requestName;
 

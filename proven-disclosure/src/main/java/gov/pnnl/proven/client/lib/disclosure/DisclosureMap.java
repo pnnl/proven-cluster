@@ -49,7 +49,7 @@ package gov.pnnl.proven.client.lib.disclosure;
  */
 @FunctionalInterface
 public interface DisclosureMap {
-
+	
 	String getMapName();
 
 }

@@ -44,7 +44,8 @@ package gov.pnnl.proven.client.lib.disclosure;
 
 import java.io.Serializable;
 import java.util.UUID;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidRequestRegistrationException;
 
 /**
@@ -69,6 +70,7 @@ import gov.pnnl.proven.client.lib.disclosure.exception.InvalidRequestRegistratio
 public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, DomainProvider, Serializable {
 
 	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(ProxyRequest.class);
 
 	public static final int DEFAULT_REQUEST_RETRIES = 4;
 
@@ -82,12 +84,15 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 	 */
 	final String requestId;
 
+	/**
+	 * A reference to a registered request inside a Proven Cluster.
+	 */
 	RequestRegistration<T, V> registeredRequest;
 
 	/**
-	 * Provides the domain for the source requestor. A Proven Cluster groups
+	 * Provides domain for the request's source. A Proven Cluster groups
 	 * together requests and other associated information for storage under a
-	 * {@code DomainProvider#getCommonDomain()}
+	 * {@code DisclosureDomain}
 	 */
 	DomainProvider sourceDomain;
 
@@ -107,7 +112,7 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 	private int retries;
 
 	/**
-	 * Constructs a new ProxyRequest.
+	 * Constructs a new ProxyRequest. 
 	 * 
 	 * @param registeredRequest
 	 *            provides the request's registration information.
@@ -132,7 +137,7 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 
 		// Add registration and set common defaults
 		this.requestId = registeredRequest.getRequestName() + "-" + UUID.randomUUID().toString();
-		this.registeredRequest = registeredRequest; 
+		this.registeredRequest = registeredRequest;
 		this.created = new java.util.Date().getTime();
 		this.scope = RequestScope.ModuleAny;
 		setRetries(DEFAULT_REQUEST_RETRIES);
@@ -158,9 +163,10 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 
 	/**
 	 * Returns {@code DisclosureDomain} for the request. If sourceDomain has not
-	 * been set, then the common domain, as defined in {@code DomainProvider} is returned.
+	 * been set, then the common domain, as defined in {@code DomainProvider} is
+	 * returned.
 	 * 
-	 * @see DomainProvider 
+	 * @see DomainProvider
 	 * 
 	 */
 	@Override

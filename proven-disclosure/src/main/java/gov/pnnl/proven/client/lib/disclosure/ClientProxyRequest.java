@@ -39,12 +39,15 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidRequestRegistrationException;
-import gov.pnnl.proven.client.lib.disclosure.exception.UnknownClientSessionIdException;
+import gov.pnnl.proven.client.lib.disclosure.exception.MaximumClientSessionsException;
+import gov.pnnl.proven.client.lib.disclosure.exception.UnknownSessionException;
 
 /**
  * Represents a client request that can be serviced by a Proven Cluster. A
@@ -58,67 +61,131 @@ import gov.pnnl.proven.client.lib.disclosure.exception.UnknownClientSessionIdExc
  * @param <V>
  *            the result data type of the request
  */
-public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> {
+public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(ClientProxyRequest.class);
 
-	private static final int MAX_SESIONS = 100;
-	private static final String INITIAL_SESSION_ID;
-	private static Set<String> SESSION_IDS = new HashSet<String>();
+	public static final int MAX_SESSIONS = 100;
+	private static final String DEFAULT_SESSION;
+	private static Set<String> SESSIONS = new HashSet<String>();
 
 	static {
-		INITIAL_SESSION_ID = UUID.randomUUID().toString();
-		SESSION_IDS.add(INITIAL_SESSION_ID);
+		DEFAULT_SESSION = getNewSession();
+		SESSIONS.add(DEFAULT_SESSION);
 	}
 
 	/**
 	 * Identifies the session identifier for this request.
 	 */
-	private String sessionId;
+	private String requestSession;
+
+	/**
+	 * Creates a new session identifier.
+	 * 
+	 * @return new session id
+	 */
+	private static String getNewSession() {
+		return UUID.randomUUID().toString();
+	}
 
 	/**
 	 * Static factory method to create a new ClientProxyRequest.
 	 * 
 	 * @param registeredRequest
 	 *            provides the request's cluster registration information.
-	 * @return the new ClientProxyReuest
+	 * @return the new ClientProxyReuest. The new request is assigned the
+	 *         default session identifier.
 	 * @throws InvalidRequestRegistrationException
 	 *             if the registration is not complete.
 	 */
-	public synchronized static <T, V> ClientProxyRequest<T, V> createClientProxyRequest(
-			RequestRegistration<T, V> registeredRequest, boolean newSession)
-			throws InvalidRequestRegistrationException, MaximumSessions {
-
+	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequest(RequestRegistration<T, V> registeredRequest)
+			throws InvalidRequestRegistrationException {
 		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest);
-
-		// Generate new session id for this instance, if requested
-		if (newSession) {
-			
-			cpr.setS SESSION_ID = UUID.randomUUID().toString();
-		}
-
 		return cpr;
 	}
 
-	// The parent class ensures the registered request information provided is
-	// complete and will
-	// set its default values.
+	/**
+	 * Static factory method to create a new ClientProxyRequest and a
+	 * 
+	 * @param registeredRequest
+	 *            provides the request's cluster registration information.
+	 * @return the new ClientProxyReuest. The new request is assigned a new
+	 *         session identifier.
+	 * @throws InvalidRequestRegistrationException
+	 *             if the registration is not complete.
+	 * @throws MaximumClientSessionsException
+	 *             if number of client sessions has exceeded number allowed, see
+	 *             {@code ClientProxyRequest#MAX_SESSIONS}
+	 */
+	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequestNewSesssion(
+			RequestRegistration<T, V> registeredRequest, boolean newSession)
+			throws InvalidRequestRegistrationException, MaximumClientSessionsException {
+		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest, true);
+		return cpr;
+	}
+
+	/**
+	 * Static factory method to create a new ClientProxyRequest and a
+	 * 
+	 * @param registeredRequest
+	 *            provides the request's cluster registration information.
+	 * @return the new ClientProxyReuest. The new request is assigned to a
+	 *         previous client's request session.
+	 * @throws InvalidRequestRegistrationException
+	 *             if the registration is not complete.
+	 * @throws UnknownSessionException
+	 *             if provided session does not exist
+	 */
+	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequestPreviousSession(
+			RequestRegistration<T, V> registeredRequest, String session)
+			throws InvalidRequestRegistrationException, UnknownSessionException {
+		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest, session);
+		return cpr;
+	}
+
 	protected ClientProxyRequest(RequestRegistration<T, V> registeredRequest)
 			throws InvalidRequestRegistrationException {
 		super(registeredRequest);
+		requestSession = DEFAULT_SESSION;
 	}
 
-	public String getSessionId() {
-		return sessionId;
-	}
-
-	public void setSessionId(String sessionId) throws UnknownClientSessionIdException {
-
-		if (!SESSION_IDS.contains(sessionId)) {
-			throw new UnknownClientSessionIdException("Could not find session identifier for Client");
+	protected ClientProxyRequest(RequestRegistration<T, V> registeredRequest, boolean newSession)
+			throws InvalidRequestRegistrationException, MaximumClientSessionsException {
+		this(registeredRequest);
+		if (newSession) {
+			if (SESSIONS.size() >= MAX_SESSIONS) {
+				throw new MaximumClientSessionsException();
+			} else {
+				requestSession = getNewSession();
+				SESSIONS.add(requestSession);
+			}
 		}
+	}
 
-		this.sessionId = sessionId;
+	protected ClientProxyRequest(RequestRegistration<T, V> registeredRequest, String session)
+			throws InvalidRequestRegistrationException, UnknownSessionException {
+		this(registeredRequest);
+		if (!SESSIONS.contains(session)) {
+			throw new UnknownSessionException();
+		} else {
+			requestSession = getNewSession();
+			SESSIONS.add(requestSession);
+		}
+	}
+
+	public String getRequestSession() {
+		return requestSession;
+	}
+
+	public String getDefaultSession() {
+		return DEFAULT_SESSION;
+	}
+
+	public void removeSession(String session) {
+		if (session != DEFAULT_SESSION) {
+			SESSIONS.remove(session);
+		}
 	}
 
 }

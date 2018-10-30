@@ -39,9 +39,21 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * 
+ * Indicates an invalid or incomplete RequestRegistration was provided to a
+ * disclosure request.
+ * 
+ * @author d3j766
+ *
+ */
 public class InvalidRequestRegistrationException extends Exception {
 
 	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(InvalidRequestRegistrationException.class);
 
 	public InvalidRequestRegistrationException() {
 		super();

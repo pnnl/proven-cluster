@@ -41,32 +41,40 @@ package gov.pnnl.proven.module.disclosure;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
+import com.hazelcast.ringbuffer.Ringbuffer;
+import gov.pnnl.proven.client.lib.disclosure.ClientDisclosureMap;
+import gov.pnnl.proven.client.lib.disclosure.ProxyRequest;
 import gov.pnnl.proven.cluster.lib.module.ProvenModule;
-
-
 
 @ApplicationScoped
 public class DisclosureModule extends ProvenModule {
 
-	private static Logger logger = LoggerFactory.getLogger("TESTING");
+	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
 
-	
+	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
+
+	@Inject
+	private HazelcastInstance hzInstance;
+
+	Ringbuffer<ProxyRequest<?, ?>> db;
+
+	IMap<String, Boolean> cdm;
+
 	@PostConstruct
 	public void init() {
-		
-		System.out.println("Hello there from disclosure module!!!!!!!!!!!!!!!!!!");;
-		logger.info("Hello there from disclosure module!!!!!!!!!!!!!!!!!!");
-		writeDMMessage("Hello again...");
-	}
-	
-	public void writeDMMessage(String message) {
-		logger.info("Inside write!!!!!!!!!!!!!!!!!!");
-		System.out.println(message);
+
+		// TODO This should be part of the member registry when a DisclosureBuffer
+		// reports itself as part of its construction. Placed here for now to
+		// support moving message-lib processing to cluster.
+		db = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
+		cdm = hzInstance.getMap(new ClientDisclosureMap().getMapName());
+		cdm.put(DISCLOSURE_BUFFER, true);
+		log.debug("DisclosureModule constructed");
 	}
 
-	
 }

@@ -39,19 +39,34 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure.exception;
 
-public class UnknownRequestRegistrationException extends Exception {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.client.lib.disclosure.ClientProxyRequest;
+
+
+/**
+ * Indicates a client exceeded its maximum number of sessions.
+ * 
+ * @author d3j766
+ *
+ * @see ClientProxyRequest#MAX_SESSIONS
+ * 
+ */
+public class MaximumClientSessionsException extends Exception {
 
 	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(MaximumClientSessionsException.class);
 
-	public UnknownRequestRegistrationException() {
+	public MaximumClientSessionsException() {
 		super();
 	}
 
-	public UnknownRequestRegistrationException(String message) {
+	public MaximumClientSessionsException(String message) {
 		super(message);
 	}
 
-	public UnknownRequestRegistrationException(String message, Throwable e) {
+	public MaximumClientSessionsException(String message, Throwable e) {
 		super(message, e);
 	}
 

@@ -39,45 +39,102 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure;
 
+import java.io.Serializable;
+import java.io.StringReader;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Identifies possible status values for a request as it's processed inside a
- * Proven Cluster.
+ * Contains Proven request data represented in the JSON format. JSON data (input
+ * or schema) is checked for correctness when it's added, either at construction
+ * or use of a setter method. Incorrect JSON values will throw a
+ * {@code JsonParsingException}.
  * 
  * @author d3j766
- * 
+ *
  * @see
  * @since
- *
  */
-public enum RequestStatus {
+public class JsonDisclosure implements Serializable {
 
-	New(RequestStatusName.REQUEST_STATUS_NEW),
-	Retry(RequestStatusName.REQUEST_STATUS_RETRY),
-	Ready(RequestStatusName.REQUEST_STATUS_READY),
-	Running(RequestStatusName.REQUEST_STATUS_RUNNING),
-	Completed(RequestStatusName.REQUEST_STATUS_COMPLETED),
-	Fail(RequestStatusName.REQUEST_STATUS_FAIL);
+	private static final long serialVersionUID = 1L;
+	private static Logger log = LoggerFactory.getLogger(JsonDisclosure.class);
 
-	public class RequestStatusName {
-		public static final String REQUEST_STATUS_NEW = "request.state.new";
-		public static final String REQUEST_STATUS_RETRY = "request.state.retry";
-		public static final String REQUEST_STATUS_READY = "request.state.ready";
-		public static final String REQUEST_STATUS_RUNNING = "request.state.running";
-		public static final String REQUEST_STATUS_COMPLETED = "request.state.completed";
-		public static final String REQUEST_STATUS_FAIL = "request.state.name.fail";
+	/**
+	 * JSON input data. Only String value is serialized.
+	 */
+	@SuppressWarnings("unused")
+	private transient JsonObject inputJson;
+	private String input;
+
+	/**
+	 * JSON schema data. Only String value is serialized.
+	 */
+	@SuppressWarnings("unused")
+	private transient JsonObject schemaJson;
+	private String schema;
+
+	public JsonDisclosure() {
 	}
 
-	private String statusName;
-
-	RequestStatus() {
+	public JsonDisclosure(String input) {
+		this(input, null);
 	}
 
-	RequestStatus(String statusName) {
-		this.statusName = statusName;
+	public JsonDisclosure(String input, String schema) {
+		addInput(input);
+		addSchema(schema);
 	}
 
-	public String getStatusName() {
-		return statusName;
-	};
+	private void addSchema(String schema) {
+		JsonObject obj = toJsonObject(schema);
+		this.schemaJson = obj;
+		this.schema = schema;
+	}
+
+	private void addInput(String input) {
+		JsonObject obj = toJsonObject(input);
+		this.inputJson = obj;
+		this.input = input;
+	}
+
+	private JsonObject toJsonObject(String json) {
+
+		JsonReader reader = Json.createReader(new StringReader(json));
+		JsonObject ret = null;
+
+		if (null != json) {
+			try {
+				ret = reader.readObject();
+			} catch (JsonParsingException e) {
+				log.error("Encountered invalid JSON in " + this.getClass().getSimpleName() + " :: " + json);
+				e.printStackTrace();
+				throw e;
+			} finally {
+				reader.close();
+			}
+		}
+		return ret;
+	}
+
+	public String getInput() {
+		return input;
+	}
+
+	public void setInput(String input) {
+		addInput(input);
+	}
+
+	public String getSchema() {
+		return schema;
+	}
+
+	public void setSchema(String schema) {
+		addSchema(schema);
+	}
 
 }

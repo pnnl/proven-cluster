@@ -37,47 +37,35 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.client.lib.disclosure;
+package gov.pnnl.proven.client.lib.disclosure.exception;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
- * Identifies possible status values for a request as it's processed inside a
- * Proven Cluster.
+ * Indicates that the requested client session for disclosure is unknown.
+ * Meaning, the session was never created by a previous disclosure request or it has been
+ * removed.
  * 
  * @author d3j766
- * 
- * @see
- * @since
  *
  */
-public enum RequestStatus {
+public class UnknownSessionException extends Exception {
 
-	New(RequestStatusName.REQUEST_STATUS_NEW),
-	Retry(RequestStatusName.REQUEST_STATUS_RETRY),
-	Ready(RequestStatusName.REQUEST_STATUS_READY),
-	Running(RequestStatusName.REQUEST_STATUS_RUNNING),
-	Completed(RequestStatusName.REQUEST_STATUS_COMPLETED),
-	Fail(RequestStatusName.REQUEST_STATUS_FAIL);
+	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(UnknownSessionException.class);
 
-	public class RequestStatusName {
-		public static final String REQUEST_STATUS_NEW = "request.state.new";
-		public static final String REQUEST_STATUS_RETRY = "request.state.retry";
-		public static final String REQUEST_STATUS_READY = "request.state.ready";
-		public static final String REQUEST_STATUS_RUNNING = "request.state.running";
-		public static final String REQUEST_STATUS_COMPLETED = "request.state.completed";
-		public static final String REQUEST_STATUS_FAIL = "request.state.name.fail";
+	public UnknownSessionException() {
+		super();
 	}
 
-	private String statusName;
-
-	RequestStatus() {
+	public UnknownSessionException(String message) {
+		super(message);
 	}
 
-	RequestStatus(String statusName) {
-		this.statusName = statusName;
+	public UnknownSessionException(String message, Throwable e) {
+		super(message, e);
 	}
-
-	public String getStatusName() {
-		return statusName;
-	};
 
 }

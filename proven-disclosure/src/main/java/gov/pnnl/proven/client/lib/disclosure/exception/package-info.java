@@ -39,7 +39,7 @@
  ******************************************************************************/
 
 /**
- * Contains disclosure exception classes.
+ * Contains Proven disclosure exception classes.
  * 
  * @author d3j766
  *

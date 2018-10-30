@@ -41,21 +41,30 @@ package gov.pnnl.proven.client.lib.disclosure;
 
 import java.io.Serializable;
 import org.apache.commons.validator.routines.DomainValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidDisclosureDomainException;
 
 /**
- * 
  * Information disclosed by external clients to a Proven Cluster are organized
  * under domain names. A valid domain name used by Proven must have a recognized
- * top-level domain.  
+ * top-level domain as defined in {@code DomainValidator}
  * 
  * @author d3j766
  *
+ * @see DomainValidator
+ * @since
+ * 
  */
 public class DisclosureDomain implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(DisclosureDomain.class);
 
+	/**
+	 * Domain name.
+	 */
 	String domain;
 
 	public DisclosureDomain(String domain) throws InvalidDisclosureDomainException {
