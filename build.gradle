@@ -91,10 +91,15 @@ project('proven-member:member-service') {
 	}
 }
 
+project(':proven-disclosure') {
+	// No dependencies
+}
+
 
 project('proven-client') {
 	dependencies { 
 		compile project(':proven-member:message-lib')
+		compile project(':proven-disclosure')
     } 
 }
 
