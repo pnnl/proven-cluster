@@ -40,7 +40,10 @@
 package gov.pnnl.proven.client.lib.disclosure;
 
 /**
- * Represents an operation providing the name of a DisclosureMap
+ * Represents an operation providing the name of a DisclosureMap. Disclosure
+ * maps are used to identify locations inside a Proven Cluster that can be used
+ * to disclose requests for processing. This may be for requests that originate
+ * internal to the cluster or external.
  * 
  * @author d3j766
  *
@@ -49,7 +52,7 @@ package gov.pnnl.proven.client.lib.disclosure;
  */
 @FunctionalInterface
 public interface DisclosureMap {
-	
-	String getMapName();
+
+	String getDisclosureMapName();
 
 }

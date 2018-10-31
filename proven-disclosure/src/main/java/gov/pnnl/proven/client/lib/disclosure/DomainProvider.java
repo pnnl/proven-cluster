@@ -44,6 +44,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidDisclosureDomainException;
 
+/**
+ * Represents an operation providing a {@code DisclosureDomain}. This interface
+ * also defines the Proven domain and Proven's Common domain. Domains are used
+ * to identify disclosure sources. If domain information is not provided or
+ * missing, the Common domain will be used.
+ * 
+ * @author d3j766
+ *
+ */
 @FunctionalInterface
 public interface DomainProvider extends Serializable {
 
@@ -51,16 +60,15 @@ public interface DomainProvider extends Serializable {
 
 	static final String COMMON_SUB_DOMAIN = "common";
 	static final String PROVEN_DISCLOSURE_DOMAIN = "proven.pnnl.gov";
-	static final String DISCLOSURE_DOMAIN_COMMON = COMMON_SUB_DOMAIN + "." + PROVEN_DISCLOSURE_DOMAIN;
-	static final String DISCLOSURE_REVERSE_DOMAIN_BASE = "gov.pnnl.proven";
-	static final String DISCLOSURE_REVERSE_DOMAIN_COMMON = DISCLOSURE_REVERSE_DOMAIN_BASE + "." + "common";
-
+	static final String PROVEN_DISCLOSURE_DOMAIN_REVERSE = "gov.pnnl.proven";
+	static final String COMMON_DISCLOSURE_DOMAIN = COMMON_SUB_DOMAIN + "." + PROVEN_DISCLOSURE_DOMAIN;
+	static final String COMMON_DISCLOSURE_DOMAIN_REVERSE = PROVEN_DISCLOSURE_DOMAIN_REVERSE + "." + "common";
 
 	DisclosureDomain getDomain();
 
 	static DisclosureDomain getCommonDomain() {
 		try {
-			return new DisclosureDomain(DISCLOSURE_DOMAIN_COMMON);
+			return new DisclosureDomain(COMMON_DISCLOSURE_DOMAIN);
 		} catch (InvalidDisclosureDomainException e) {
 			log.error("Common domain not defined correctly");
 			throw new IllegalArgumentException();

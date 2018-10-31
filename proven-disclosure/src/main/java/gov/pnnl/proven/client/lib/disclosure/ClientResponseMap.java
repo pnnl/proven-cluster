@@ -37,46 +37,39 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure;
+package gov.pnnl.proven.client.lib.disclosure;
 
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.ringbuffer.Ringbuffer;
-import gov.pnnl.proven.client.lib.disclosure.ClientDisclosureMap;
-import gov.pnnl.proven.client.lib.disclosure.ProxyRequest;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
 
-@ApplicationScoped
-public class DisclosureModule extends ProvenModule {
+/**
+ * Provides the name of a Proven Cluster's IMap which contains REST service
+ * URL's that can be used as targets for a Server Sent Event (SSE) subscription,
+ * allowing Proven Clients to listen for response data from requests previously
+ * submitted to the cluster. The SSE event contains {@code ClientResponseData}
+ * in its data field.
+ * 
+ * The IMap Key is a String containing the REST URL and is defined as (SESSION
+ * must be replaced with the {@code ClientProxyRequest} session value):
+ * 
+ * GET http://<host>:<port>/<context_root>/SESSION/responses
+ * 
+ * The IMap Value is a boolean. True indicates the service is available for use.
+ * False indicates the service is not available for use.
+ * 
+ * @author d3j766
+ * 
+ * @see ClientResponseData
+ * @since
+ *
+ */
+public class ClientResponseMap {
 
-	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
+	static Logger log = LoggerFactory.getLogger(ClientResponseMap.class);
+	public static final String CLIENT_RESPONSE_MAP_NAME = "client.response_map";
 
-	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
-
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	Ringbuffer<ProxyRequest<?, ?>> db;
-
-	IMap<String, Boolean> cdm;
-	
-	@PostConstruct
-	public void init() {
-
-		// TODO This should be part of the member registry when a DisclosureBuffer
-		// reports itself as part of its construction. Placed here for now to
-		// support moving message-lib processing to cluster.
-		db = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		cdm = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		cdm.put(DISCLOSURE_BUFFER, true);	
-		log.debug("DisclosureModule constructed");
-	}
+	public String getResponseMapName() {
+		return CLIENT_RESPONSE_MAP_NAME;
+	};
 
 }

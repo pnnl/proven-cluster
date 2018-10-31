@@ -50,8 +50,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Contains Proven request data represented in the JSON format. JSON data (input
- * or schema) is checked for correctness when it's added, either at construction
- * or use of a setter method. Incorrect JSON values will throw a
+ * or schema) is checked for correctness when it's added either at construction
+ * or use of setter methods. Incorrect JSON values will throw a
  * {@code JsonParsingException}.
  * 
  * @author d3j766

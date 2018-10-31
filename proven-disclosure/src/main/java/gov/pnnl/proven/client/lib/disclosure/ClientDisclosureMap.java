@@ -43,10 +43,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Identifies location in Proven Cluster for client data disclosure. This is the
- * name of a Proven Cluster's IMap which contains location and state information
- * for the available Disclosure Buffers. A Proven Client will use this
- * information to add their requests for processing in the cluster.
+ * Provides the name of a Proven Cluster's IMap containing locations in the
+ * cluster that can be used for client data disclosure. A Proven Client uses
+ * this information to add their requests to a cluster for processing.
+ *
+ * The IMap Key is a String containing the location of the disclosure location.
+ * 
+ * The IMap Value is a boolean. True indicates the disclosure location is
+ * available for use. False indicates the disclosure location is not available
+ * for use.
  * 
  * @author d3j766
  * 
@@ -60,7 +65,7 @@ public class ClientDisclosureMap implements DisclosureMap {
 	public static final String CLIENT_DISCLOSURE_MAP_NAME = "client.disclosure_map";
 
 	@Override
-	public String getMapName() {
+	public String getDisclosureMapName() {
 		return CLIENT_DISCLOSURE_MAP_NAME;
 	};
 

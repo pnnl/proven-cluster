@@ -52,12 +52,13 @@ package gov.pnnl.proven.client.lib.disclosure;
 public enum RequestScope {
 
 	/**
-	 * A single module located anywhere in the cluster.  The default.
+	 * A single module located anywhere in the cluster. The default.
 	 */
 	ModuleAny(RequestScopeType.REQUEST_SCOPE_MODULE_ANY),
 
 	/**
-	 * The module on which the request was disclosed.
+	 * The module on which the request was disclosed. This will result in error
+	 * if the module cannot service the request.
 	 */
 	Module(RequestScopeType.REQUEST_SCOPE_MODULE),
 
@@ -70,7 +71,6 @@ public enum RequestScope {
 	 * All modules located in the member on which the request was disclosed.
 	 */
 	MemberModules(RequestScopeType.REQUEST_SCOPE_MEMBER_MODULES);
-	
 
 	public class RequestScopeType {
 		public static final String REQUEST_SCOPE_MODULE_ANY = "request.scope.module_any";

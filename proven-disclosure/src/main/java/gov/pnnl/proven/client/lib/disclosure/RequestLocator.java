@@ -40,17 +40,18 @@
 package gov.pnnl.proven.client.lib.disclosure;
 
 /**
- * Represents an operation providing a RequestRegistration.
+ * Represents an operation providing a {@code RequestRegistration} which can be
+ * used to locate a request inside a Proven Cluster.
  * 
  * @param <T>
- *            the request input
+ *            the request input.
  * @param <V>
- *            the request result value
+ *            the request result value.
  * 
  * 
  * @author d3j766
  * 
- * @see
+ * @see RequestRegistration, ProxyRequest
  * @since
  * 
  */
