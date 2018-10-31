@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.module.disclosure;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -48,8 +49,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.Member;
 import com.hazelcast.ringbuffer.Ringbuffer;
+
+import fish.payara.micro.PayaraMicro;
 import gov.pnnl.proven.client.lib.disclosure.ClientDisclosureMap;
+import gov.pnnl.proven.client.lib.disclosure.ClientResponseMap;
 import gov.pnnl.proven.client.lib.disclosure.ProxyRequest;
 import gov.pnnl.proven.cluster.lib.module.ProvenModule;
 
@@ -60,23 +65,46 @@ public class DisclosureModule extends ProvenModule {
 
 	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
 
+	public static final String HOST_TAG = "<HOST>";
+	public static final String PORT_TAG = "<PORT>";
+	public static final String SESSION_TAG = "SESSION";
+	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
+			+ SESSION_TAG + "/responses";
+
 	@Inject
 	private HazelcastInstance hzInstance;
 
 	Ringbuffer<ProxyRequest<?, ?>> db;
 
 	IMap<String, Boolean> cdm;
-	
+
+	IMap<String, Boolean> crm;
+
 	@PostConstruct
 	public void init() {
 
-		// TODO This should be part of the member registry when a DisclosureBuffer
+		// TODO This should be part of the member registry when a
+		// DisclosureBuffer
 		// reports itself as part of its construction. Placed here for now to
 		// support moving message-lib processing to cluster.
 		db = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
 		cdm = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		cdm.put(DISCLOSURE_BUFFER, true);	
-		log.debug("DisclosureModule constructed");
+		cdm.put(DISCLOSURE_BUFFER, true);
+		crm = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
+		String responseUrl = buildResponseUrl();
+		crm.put(responseUrl, true);
+		log.debug("DisclossureModule constructed");
 	}
+	
+	private String buildResponseUrl() {
+		String ret;
+		Member member = hzInstance.getCluster().getLocalMember();
+		String host = member.getAddress().getHost();
+		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
+		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
+		ret = ret.replace(PORT_TAG, port);
+		return ret;
+	}
+	
 
 }

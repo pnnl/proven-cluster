@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidRequestRegistrationException;
 import gov.pnnl.proven.client.lib.disclosure.exception.MaximumClientSessionsException;
 import gov.pnnl.proven.client.lib.disclosure.exception.UnknownSessionException;
+import gov.pnnl.proven.client.lib.disclosure.request.RegisteredRequest;
 
 /**
  * Represents a client request that can be serviced by a Proven Cluster. A
@@ -99,14 +100,15 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Seri
 	 * @throws InvalidRequestRegistrationException
 	 *             if the registration is not complete.
 	 */
-	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequest(RequestRegistration<T, V> registeredRequest)
+	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequest(RegisteredRequest<T, V> registeredRequest)
 			throws InvalidRequestRegistrationException {
 		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest);
 		return cpr;
 	}
 
 	/**
-	 * Static factory method to create a new ClientProxyRequest and a
+	 * Static factory method to create a new ClientProxyRequest and create a new
+	 * session.
 	 * 
 	 * @param registeredRequest
 	 *            provides the request's cluster registration information.
@@ -119,14 +121,15 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Seri
 	 *             {@code ClientProxyRequest#MAX_SESSIONS}
 	 */
 	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequestNewSesssion(
-			RequestRegistration<T, V> registeredRequest, boolean newSession)
+			RegisteredRequest<T, V> registeredRequest, boolean newSession)
 			throws InvalidRequestRegistrationException, MaximumClientSessionsException {
 		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest, true);
 		return cpr;
 	}
 
 	/**
-	 * Static factory method to create a new ClientProxyRequest and a
+	 * Static factory method to create a new ClientProxyRequest and use a
+	 * previously created session.
 	 * 
 	 * @param registeredRequest
 	 *            provides the request's cluster registration information.
@@ -138,19 +141,18 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Seri
 	 *             if provided session does not exist
 	 */
 	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequestPreviousSession(
-			RequestRegistration<T, V> registeredRequest, String session)
+			RegisteredRequest<T, V> registeredRequest, String session)
 			throws InvalidRequestRegistrationException, UnknownSessionException {
 		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest, session);
 		return cpr;
 	}
 
-	protected ClientProxyRequest(RequestRegistration<T, V> registeredRequest)
-			throws InvalidRequestRegistrationException {
+	protected ClientProxyRequest(RegisteredRequest<T, V> registeredRequest) throws InvalidRequestRegistrationException {
 		super(registeredRequest);
 		requestSession = DEFAULT_SESSION;
 	}
 
-	protected ClientProxyRequest(RequestRegistration<T, V> registeredRequest, boolean newSession)
+	protected ClientProxyRequest(RegisteredRequest<T, V> registeredRequest, boolean newSession)
 			throws InvalidRequestRegistrationException, MaximumClientSessionsException {
 		this(registeredRequest);
 		if (newSession) {
@@ -163,7 +165,7 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Seri
 		}
 	}
 
-	protected ClientProxyRequest(RequestRegistration<T, V> registeredRequest, String session)
+	protected ClientProxyRequest(RegisteredRequest<T, V> registeredRequest, String session)
 			throws InvalidRequestRegistrationException, UnknownSessionException {
 		this(registeredRequest);
 		if (!SESSIONS.contains(session)) {

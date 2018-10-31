@@ -37,37 +37,24 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.client.lib.disclosure.exception;
+package gov.pnnl.proven.client.lib.disclosure.request;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import gov.pnnl.proven.client.lib.disclosure.DisclosureDomain;
-
+import gov.pnnl.proven.client.lib.disclosure.JsonDisclosure;
 
 /**
- * Indicates an invalid domain value was provided to a disclosure request.
+ * Represents a request for disclosing a query request to a Proven Cluster. 
  * 
  * @author d3j766
- * 
- * @see DisclosureDomain
  *
  */
-public class InvalidDisclosureDomainException extends RuntimeException {
+public class QueryJsonDisclosureRequest extends RegisteredRequest<JsonDisclosure, String> {
 
 	private static final long serialVersionUID = 1L;
-	static Logger log = LoggerFactory.getLogger(InvalidDisclosureDomainException.class);
-
-	public InvalidDisclosureDomainException() {
-		super();
-	}
-
-	public InvalidDisclosureDomainException(String message) {
-		super(message);
-	}
-
-	public InvalidDisclosureDomainException(String message, Throwable e) {
-		super(message, e);
+	
+		public static final String QUERY_JSON_DISCLOSURE_REQUEST_NAME = "request.client.disclosure.query";
+	
+	public QueryJsonDisclosureRequest() {
+		super(QUERY_JSON_DISCLOSURE_REQUEST_NAME, JsonDisclosure.class, String.class);
 	}
 
 }

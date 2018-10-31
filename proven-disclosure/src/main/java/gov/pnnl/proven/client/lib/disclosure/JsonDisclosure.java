@@ -104,10 +104,12 @@ public class JsonDisclosure implements Serializable {
 
 	private JsonObject toJsonObject(String json) {
 
-		JsonReader reader = Json.createReader(new StringReader(json));
 		JsonObject ret = null;
-
+		
 		if (null != json) {
+	
+			JsonReader reader = Json.createReader(new StringReader(json));
+			
 			try {
 				ret = reader.readObject();
 			} catch (JsonParsingException e) {

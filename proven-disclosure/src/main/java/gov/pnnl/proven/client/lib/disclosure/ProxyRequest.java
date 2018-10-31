@@ -47,6 +47,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidRequestRegistrationException;
+import gov.pnnl.proven.client.lib.disclosure.request.RegisteredRequest;
 
 /**
  * An abstract class representing a request that can be serviced by a Proven
@@ -87,7 +88,7 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 	/**
 	 * A reference to a registered request inside a Proven Cluster.
 	 */
-	RequestRegistration<T, V> registeredRequest;
+	RegisteredRequest<T, V> registeredRequest;
 
 	/**
 	 * Provides domain for the request's source. A Proven Cluster groups
@@ -120,7 +121,7 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 	 * @throws InvalidRequestRegistrationException
 	 *             if the registration is not complete
 	 */
-	protected ProxyRequest(RequestRegistration<T, V> registeredRequest) throws InvalidRequestRegistrationException {
+	protected ProxyRequest(RegisteredRequest<T, V> registeredRequest) throws InvalidRequestRegistrationException {
 
 		if (null == registeredRequest) {
 			throw new InvalidRequestRegistrationException("Registered request not provded");
@@ -144,7 +145,7 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 	}
 
 	@Override
-	public RequestRegistration<T, V> getLocator() {
+	public RegisteredRequest<T, V> getLocator() {
 		return registeredRequest;
 	}
 
@@ -192,6 +193,14 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 
 	public void setRetries(int retries) {
 		this.retries = retries;
+	}
+
+	public RequestScope getScope() {
+		return scope;
+	}
+
+	public void setScope(RequestScope scope) {
+		this.scope = scope;
 	}
 
 }

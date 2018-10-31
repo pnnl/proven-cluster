@@ -57,7 +57,7 @@ import gov.pnnl.proven.client.lib.disclosure.exception.InvalidDisclosureDomainEx
  * @since
  * 
  */
-public class DisclosureDomain implements Serializable {
+public class DisclosureDomain implements DomainProvider, Serializable {
 
 	private static final long serialVersionUID = 1L;
 	static Logger log = LoggerFactory.getLogger(DisclosureDomain.class);
@@ -76,8 +76,9 @@ public class DisclosureDomain implements Serializable {
 		}
 	}
 
-	public String getDomain() {
-		return domain;
+	@Override
+	public DisclosureDomain getDomain() {
+		return this;
 	}
 
 	public String getReverseDomain() {

@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * Indicates an invalid or incomplete RequestRegistration was provided to a
+ * Indicates an invalid or incomplete RegisteredRequest was provided to a
  * disclosure request.
  * 
  * @author d3j766

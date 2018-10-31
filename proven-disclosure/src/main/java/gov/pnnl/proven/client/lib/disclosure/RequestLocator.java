@@ -39,8 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.client.lib.disclosure;
 
+import gov.pnnl.proven.client.lib.disclosure.request.RegisteredRequest;
+
 /**
- * Represents an operation providing a {@code RequestRegistration} which can be
+ * Represents an operation providing a {@code RegisteredRequest} which can be
  * used to locate a request inside a Proven Cluster.
  * 
  * @param <T>
@@ -51,13 +53,13 @@ package gov.pnnl.proven.client.lib.disclosure;
  * 
  * @author d3j766
  * 
- * @see RequestRegistration, ProxyRequest
+ * @see RegisteredRequest, ProxyRequest
  * @since
  * 
  */
 @FunctionalInterface
 public interface RequestLocator<T, V> {
 
-	RequestRegistration<T, V> getLocator();
+	RegisteredRequest<T, V> getLocator();
 
 }

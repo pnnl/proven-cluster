@@ -37,37 +37,65 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.client.lib.disclosure.exception;
+package gov.pnnl.proven.client.lib.disclosure.request;
 
+import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.client.lib.disclosure.DisclosureDomain;
-
-
 /**
- * Indicates an invalid domain value was provided to a disclosure request.
+ * Contains information necessary to locate a registered request inside a
+ * ProvenCluster. All three elements of the request registration, the request
+ * name, the input type, and the result type are used to identify and locate the
+ * registered request entry in the cluster.  
  * 
  * @author d3j766
  * 
- * @see DisclosureDomain
- *
+ * @see
+ * @since
+ * 
  */
-public class InvalidDisclosureDomainException extends RuntimeException {
+public class RegisteredRequest<T, V> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	static Logger log = LoggerFactory.getLogger(InvalidDisclosureDomainException.class);
 
-	public InvalidDisclosureDomainException() {
-		super();
+	static Logger log = LoggerFactory.getLogger(RegisteredRequest.class);
+
+	private String requestName;
+	private Class<T> inputType;
+	private Class<V> resultType;
+
+	public RegisteredRequest() {
 	}
 
-	public InvalidDisclosureDomainException(String message) {
-		super(message);
+	public RegisteredRequest(String requestName, Class<T> inputType, Class<V> resultType) {
+		this.requestName = requestName;
+		this.inputType = inputType;
+		this.resultType = resultType;
 	}
 
-	public InvalidDisclosureDomainException(String message, Throwable e) {
-		super(message, e);
+	public String getRequestName() {
+		return requestName;
+	}
+
+	public void setRequestName(String requestName) {
+		this.requestName = requestName;
+	}
+
+	public Class<T> getInputType() {
+		return inputType;
+	}
+
+	public void setInputType(Class<T> inputType) {
+		this.inputType = inputType;
+	}
+
+	public Class<V> getResultType() {
+		return resultType;
+	}
+
+	public void setResultType(Class<V> resultType) {
+		this.resultType = resultType;
 	}
 
 }

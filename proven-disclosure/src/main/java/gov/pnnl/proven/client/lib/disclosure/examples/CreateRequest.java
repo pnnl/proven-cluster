@@ -37,37 +37,51 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.client.lib.disclosure.exception;
+package gov.pnnl.proven.client.lib.disclosure.examples;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import gov.pnnl.proven.client.lib.disclosure.ClientProxyRequest;
 import gov.pnnl.proven.client.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.client.lib.disclosure.JsonDisclosure;
+import gov.pnnl.proven.client.lib.disclosure.RequestScope;
+import gov.pnnl.proven.client.lib.disclosure.exception.InvalidRequestRegistrationException;
+import gov.pnnl.proven.client.lib.disclosure.request.ExplicitJsonDisclosureRequest;
 
+public class CreateRequest {
 
-/**
- * Indicates an invalid domain value was provided to a disclosure request.
- * 
- * @author d3j766
- * 
- * @see DisclosureDomain
- *
- */
-public class InvalidDisclosureDomainException extends RuntimeException {
+	public static void main(String[] args) {
 
-	private static final long serialVersionUID = 1L;
-	static Logger log = LoggerFactory.getLogger(InvalidDisclosureDomainException.class);
+		Logger log = LoggerFactory.getLogger(CreateRequest.class);
+		
+		final String MY_DOMAIN = "provenance.com";
+		
+		ClientProxyRequest<JsonDisclosure, Void> clientRequest = null;
+		ExplicitJsonDisclosureRequest jdr = new ExplicitJsonDisclosureRequest();
 
-	public InvalidDisclosureDomainException() {
-		super();
-	}
+		try {
+			clientRequest = ClientProxyRequest.createClientProxyRequest(jdr);
+		} catch (InvalidRequestRegistrationException e) {
+			e.printStackTrace();
+		}
 
-	public InvalidDisclosureDomainException(String message) {
-		super(message);
-	}
-
-	public InvalidDisclosureDomainException(String message, Throwable e) {
-		super(message, e);
+		if (null != clientRequest) {
+			
+			// Add properties
+			clientRequest.setRetries(5);
+			clientRequest.setScope(RequestScope.MemberModules);
+			clientRequest.setSourceDomain(new DisclosureDomain(MY_DOMAIN));
+			
+			// Add Input data
+			JsonDisclosure jd = new JsonDisclosure("{\"foo\":\"bar\"}");
+			clientRequest.addInput(jd);
+			
+		}
+		else {
+			// Fix request construction...
+		}
+		
+		log.info("ExplicitJsonDisclosureRequest created");
 	}
 
 }

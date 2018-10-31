@@ -37,65 +37,24 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.client.lib.disclosure;
+package gov.pnnl.proven.client.lib.disclosure.request;
 
-import java.io.Serializable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import gov.pnnl.proven.client.lib.disclosure.JsonDisclosure;
 
 /**
- * Contains information necessary to locate a registered request inside a
- * ProvenCluster.
+ * Represents a request for disclosing domain data to a Proven Cluster. 
  * 
  * @author d3j766
- * 
- * @see
- * @since
- * 
+ *
  */
-public class RequestRegistration<T, V> implements Serializable {
-
+public class ExplicitJsonDisclosureRequest extends RegisteredRequest<JsonDisclosure, Void> {
 
 	private static final long serialVersionUID = 1L;
-	static Logger log = LoggerFactory.getLogger(RequestRegistration.class);
-
-	private String requestName;
-
-	private Class<T> inputType;
-
-	private Class<V> resultType;
-
-	public RequestRegistration() {
-	}
-
-	public RequestRegistration(String requestName, Class<T> inputType, Class<V> resultType) {
-		this.requestName = requestName;
-		this.inputType = inputType;
-		this.resultType = resultType;
-	}
-
-	public String getRequestName() {
-		return requestName;
-	}
-
-	public void setRequestName(String requestName) {
-		this.requestName = requestName;
-	}
-
-	public Class<T> getInputType() {
-		return inputType;
-	}
-
-	public void setInputType(Class<T> inputType) {
-		this.inputType = inputType;
-	}
-
-	public Class<V> getResultType() {
-		return resultType;
-	}
-
-	public void setResultType(Class<V> resultType) {
-		this.resultType = resultType;
+	
+		public static final String EXPLICIT_JSON_DISCLOSURE_REQUEST_NAME = "request.client.disclosure.explicit";
+	
+	public ExplicitJsonDisclosureRequest() {
+		super(EXPLICIT_JSON_DISCLOSURE_REQUEST_NAME, JsonDisclosure.class, Void.class);
 	}
 
 }
