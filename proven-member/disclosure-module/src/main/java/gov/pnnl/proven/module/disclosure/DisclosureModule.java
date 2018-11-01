@@ -74,11 +74,11 @@ public class DisclosureModule extends ProvenModule {
 	@Inject
 	private HazelcastInstance hzInstance;
 
-	Ringbuffer<ProxyRequest<?, ?>> db;
+	Ringbuffer<ProxyRequest<?, ?>> disclosureBuffer;
 
-	IMap<String, Boolean> cdm;
+	IMap<String, Boolean> clientDisclosureMap;
 
-	IMap<String, Boolean> crm;
+	IMap<String, Boolean> clientResponseMap;
 
 	@PostConstruct
 	public void init() {
@@ -87,12 +87,12 @@ public class DisclosureModule extends ProvenModule {
 		// DisclosureBuffer
 		// reports itself as part of its construction. Placed here for now to
 		// support moving message-lib processing to cluster.
-		db = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		cdm = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		cdm.put(DISCLOSURE_BUFFER, true);
-		crm = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
+		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
+		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
+		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
+		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
 		String responseUrl = buildResponseUrl();
-		crm.put(responseUrl, true);
+		clientResponseMap.put(responseUrl, true);
 		log.debug("DisclossureModule constructed");
 	}
 	

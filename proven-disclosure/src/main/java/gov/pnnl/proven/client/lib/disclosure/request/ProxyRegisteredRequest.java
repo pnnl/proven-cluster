@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * Contains information necessary to locate a registered request inside a
  * ProvenCluster. All three elements of the request registration, the request
  * name, the input type, and the result type are used to identify and locate the
- * registered request entry in the cluster.  
+ * registered request entry in the cluster that it is representing.  
  * 
  * @author d3j766
  * 
@@ -55,20 +55,20 @@ import org.slf4j.LoggerFactory;
  * @since
  * 
  */
-public class RegisteredRequest<T, V> implements Serializable {
+public class ProxyRegisteredRequest<T, V> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	static Logger log = LoggerFactory.getLogger(RegisteredRequest.class);
+	static Logger log = LoggerFactory.getLogger(ProxyRegisteredRequest.class);
 
 	private String requestName;
 	private Class<T> inputType;
 	private Class<V> resultType;
 
-	public RegisteredRequest() {
+	public ProxyRegisteredRequest() {
 	}
 
-	public RegisteredRequest(String requestName, Class<T> inputType, Class<V> resultType) {
+	public ProxyRegisteredRequest(String requestName, Class<T> inputType, Class<V> resultType) {
 		this.requestName = requestName;
 		this.inputType = inputType;
 		this.resultType = resultType;

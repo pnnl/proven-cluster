@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.client.lib.disclosure.exception.InvalidRequestRegistrationException;
 import gov.pnnl.proven.client.lib.disclosure.exception.MaximumClientSessionsException;
 import gov.pnnl.proven.client.lib.disclosure.exception.UnknownSessionException;
-import gov.pnnl.proven.client.lib.disclosure.request.RegisteredRequest;
+import gov.pnnl.proven.client.lib.disclosure.request.ProxyRegisteredRequest;
 
 /**
  * Represents a client request that can be serviced by a Proven Cluster. A
@@ -100,7 +100,7 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Seri
 	 * @throws InvalidRequestRegistrationException
 	 *             if the registration is not complete.
 	 */
-	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequest(RegisteredRequest<T, V> registeredRequest)
+	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequest(ProxyRegisteredRequest<T, V> registeredRequest)
 			throws InvalidRequestRegistrationException {
 		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest);
 		return cpr;
@@ -121,7 +121,7 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Seri
 	 *             {@code ClientProxyRequest#MAX_SESSIONS}
 	 */
 	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequestNewSesssion(
-			RegisteredRequest<T, V> registeredRequest, boolean newSession)
+			ProxyRegisteredRequest<T, V> registeredRequest, boolean newSession)
 			throws InvalidRequestRegistrationException, MaximumClientSessionsException {
 		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest, true);
 		return cpr;
@@ -141,18 +141,18 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Seri
 	 *             if provided session does not exist
 	 */
 	public static <T, V> ClientProxyRequest<T, V> createClientProxyRequestPreviousSession(
-			RegisteredRequest<T, V> registeredRequest, String session)
+			ProxyRegisteredRequest<T, V> registeredRequest, String session)
 			throws InvalidRequestRegistrationException, UnknownSessionException {
 		ClientProxyRequest<T, V> cpr = new ClientProxyRequest<>(registeredRequest, session);
 		return cpr;
 	}
 
-	protected ClientProxyRequest(RegisteredRequest<T, V> registeredRequest) throws InvalidRequestRegistrationException {
+	protected ClientProxyRequest(ProxyRegisteredRequest<T, V> registeredRequest) throws InvalidRequestRegistrationException {
 		super(registeredRequest);
 		requestSession = DEFAULT_SESSION;
 	}
 
-	protected ClientProxyRequest(RegisteredRequest<T, V> registeredRequest, boolean newSession)
+	protected ClientProxyRequest(ProxyRegisteredRequest<T, V> registeredRequest, boolean newSession)
 			throws InvalidRequestRegistrationException, MaximumClientSessionsException {
 		this(registeredRequest);
 		if (newSession) {
@@ -165,7 +165,7 @@ public class ClientProxyRequest<T, V> extends ProxyRequest<T, V> implements Seri
 		}
 	}
 
-	protected ClientProxyRequest(RegisteredRequest<T, V> registeredRequest, String session)
+	protected ClientProxyRequest(ProxyRegisteredRequest<T, V> registeredRequest, String session)
 			throws InvalidRequestRegistrationException, UnknownSessionException {
 		this(registeredRequest);
 		if (!SESSIONS.contains(session)) {

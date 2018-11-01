@@ -47,7 +47,7 @@ import gov.pnnl.proven.client.lib.disclosure.JsonDisclosure;
  * @author d3j766
  *
  */
-public class QueryJsonDisclosureRequest extends RegisteredRequest<JsonDisclosure, String> {
+public class QueryJsonDisclosureRequest extends ProxyRegisteredRequest<JsonDisclosure, String> {
 
 	private static final long serialVersionUID = 1L;
 	
