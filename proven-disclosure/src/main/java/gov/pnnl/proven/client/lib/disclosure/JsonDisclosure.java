@@ -54,6 +54,10 @@ import org.slf4j.LoggerFactory;
  * or use of setter methods. Incorrect JSON values will throw a
  * {@code JsonParsingException}.
  * 
+ * TODO 
+ * Add support for references (e.g. URI location) to remote JSON and JSON-SCHEMA data.  
+ * 
+ * 
  * @author d3j766
  *
  * @see
