@@ -614,7 +614,22 @@ public class ConceptService {
 					point = new Mpoint();
 					for (Object cell : row) {
 						if (cell != null) {
-							point.putRow(colNames.get(cellIndex), cell.toString());
+							if (colNames.get(cellIndex).contains("time") && colNames.get(cellIndex).length() == 4) {
+                                //
+								// Influx returns epoch time in a double format.  Needs to be converted to Long
+								//
+								Double val = new Double(cell.toString());
+								Long lval = val.longValue();
+								point.putRow(colNames.get(cellIndex), lval.toString());
+							 } else {
+								String buff = cell.toString();
+								//
+								// If a cell is a quoted string, remove the surrounding double quotes.
+								//
+								buff = buff.replaceAll("\"", "");
+								point.putRow(colNames.get(cellIndex), buff);
+							 }
+	
 							//
 							// Add each cell Json Object to a row Object.
 							//
@@ -689,7 +704,10 @@ public class ConceptService {
 			// Query query = new Query("select time_idle from cpu limit 10",
 			// dbName);
 			Query query = new Query(queryString, dbName);
-			QueryResult qr = influxDB.query(query);
+			//
+			// Unless TimeUnit parameter is used in query, Epoch time will not be returned.
+			//
+			QueryResult qr = influxDB.query(query, TimeUnit.MILLISECONDS);
 			if (qr.hasError()) {
 				ret = qr.getError();
 			} else {
@@ -804,12 +822,14 @@ public class ConceptService {
 			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
 			String dbName = idbDB;
 			influxDB.setRetentionPolicy(idbRP);
-
+ 
 			// // Query query = new Query("select time_idle from cpu limit 10",
 			// dbName);
 			Query influxQuery = new Query(queryStatement, dbName);
-			QueryResult qr = influxDB.query(influxQuery);
-
+			//
+			// Unless TimeUnit parameter is used in query, Epoch time will not be returned.
+			//
+			QueryResult qr = influxDB.query(influxQuery, TimeUnit.MILLISECONDS);
 			if (qr.hasError()) {
 				ret = new ProvenMessageResponse();
 				ret.setReason("Invalid or missing content.");

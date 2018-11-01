@@ -939,7 +939,6 @@ public class RepositoryResource {
 		ProvenMessageResponse pmr = null;
 
 		try {	
-			log.error("Inside addProvenMessage service");
 			cs.begin();
 		
 			// Add proven message to stream
@@ -998,7 +997,6 @@ public class RepositoryResource {
 			e.printStackTrace();
 		}
 
-		log.error("Leaving addProvenMessage service::Response:: " + pmr.getResponse());
 		return pmr;
 	}
 
