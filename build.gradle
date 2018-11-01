@@ -72,20 +72,20 @@ project('proven-member:disclosure-module') {
 	}
 }
 
-project('proven-member:stream-service') {
+project('proven-member:stream-module') {
 	dependencies {
 		compile project(':proven-member:module-lib')
 	}
 }
 
-project('proven-member:hybrid-service') {
+project('proven-member:hybrid-module') {
 	dependencies {
 		compile project(':proven-member:utils-lib')
 		compile project(':proven-member:hybrid-lib')
 	}
 }
 
-project('proven-member:member-service') {
+project('proven-member:member-module') {
 	dependencies {
 		compile project(':proven-member:module-lib')
 	}
