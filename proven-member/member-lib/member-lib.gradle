@@ -42,6 +42,12 @@ task allInOneJar(type: Jar) {
  }
  
 dependencies {
+	// Support for Jet pipeline development inside a proven member.  
+	compile group: 'com.hazelcast', name: 'hazelcast-client', version: "${payaraHazelcastVersion}"
+    compile (group: 'com.hazelcast.jet', name: 'hazelcast-jet-core', version: "${jetVersion}")
+        // Do not include IMDG from Jet.  Versions for IMDG and Client must match.
+        // Which in this case, is the Payara IMDG version 
+    	{ exclude group: 'com.hazelcast' }		 	      
 }
 
 test { systemProperties 'property': 'value'   }

@@ -1,7 +1,5 @@
-import org.apache.tools.ant.filters.*
 
 allprojects {
-
 	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
 }
 
@@ -12,12 +10,19 @@ subprojects {
 	apply plugin: 'eclipse'
 
 	sourceCompatibility = 1.8
-
+		
 	repositories {
 		mavenCentral()
 		mavenLocal()
 	}
-
+	
+	ext.javaEEVersion = "8.0"
+	ext.jetVersion = "0.7"
+	ext.jetHazelcastVersion = "3.10.5"
+	ext.payaraVersion = "5.183"
+	ext.payaraHazelcastVersion = "3.10.2"
+	ext.influxDbLibVersion = "2.8"
+	
 	dependencies {	
 		testCompile 'junit:junit:4.8.2'
 		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
@@ -45,7 +50,9 @@ project('proven-member:exchange-lib') {
 }
 
 project('proven-member:module-lib') {
-	// No dependenies
+	dependencies { 
+		compile project(':proven-disclosure')
+    }
 }
 
 project('proven-member:hybrid-lib') {
@@ -61,14 +68,12 @@ project('proven-member:stream-lib') {
 project('proven-member:member-lib') {
 	dependencies { 
 		compile project(':proven-member:hybrid-lib')
-    }
+	}
 }
 
 project('proven-member:disclosure-module') {
 	dependencies {
 		compile project(':proven-member:module-lib')
-		compile project(':proven-disclosure')
-		
 	}
 }
 
@@ -80,6 +85,7 @@ project('proven-member:stream-module') {
 
 project('proven-member:hybrid-module') {
 	dependencies {
+		compile project(':proven-member:module-lib')
 		compile project(':proven-member:utils-lib')
 		compile project(':proven-member:hybrid-lib')
 	}

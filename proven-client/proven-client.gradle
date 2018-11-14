@@ -69,15 +69,12 @@ task fatJar(type: Jar) {
  
  dependencies {
 	 compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
-	 //compile group: 'gov.pnnl.proven', name: 'proven-message', version: '0.1'
 	 compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
 	 compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.10.0'
 	 compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 	 compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.26'
 	 compile group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.26'	 
 	 compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.26'	
-	 
-	 
 	 compile group: 'org.apache.activemq', name: 'activemq-rar', version: '5.11.2'
 	 testCompile group: 'junit', name: 'junit', version: '4.+'
  }
