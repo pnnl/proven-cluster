@@ -11,6 +11,9 @@ eclipse {
 }
 
 dependencies {
+	providedCompile group: 'javax', name: 'javaee-web-api', version: "${javaEEVersion}"
+	providedCompile group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
+	providedCompile group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"
 }
 
 
