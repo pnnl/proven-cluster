@@ -877,6 +877,32 @@ public class RepositoryResource {
 
 	}
 
+	
+	@POST
+	@Path("farql")
+	@Consumes(TEXT_PLAIN)
+	// @Produces(APPLICATION_JSON)
+	@Produces(TEXT_PLAIN)
+	//@formatter:off
+	@ApiOperation(value = "Query semantic store using sparql query language", 
+	              hidden = false, 
+	              notes = "Provided sparql query will be submited to semantic store.  "
+	                    + "Format of query results is in JSON, and is described here  "
+	                    + "<a href='https://www.w3.org/TR/sparql11-results-json/'> SPARQL Results Format </a>.  "
+	            		+ "Sparql query laguage is described here  "
+	                    + "<a href='https://www.w3.org/TR/sparql11-query/'> SPARQL Language Reference </a>.  ")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") 
+                          })
+	//@formatter:on
+	public Response getFarql(String queryString) {
+		Response response;
+		String ret = cs.sparqlQuery(queryString);
+		// ret = "hello world!!!";
+		response = Response.ok(ret).build();
+		return response;
+	}
+	
+	
 	@POST
 	@Path("sparql")
 	@Consumes(TEXT_PLAIN)
@@ -934,6 +960,8 @@ public class RepositoryResource {
 			                 @ApiResponse(code = 403, message = "Invalid or missing message content",response = ProvenMessageResponse.class),
 			                 @ApiResponse(code = 500, message = "Internal server error.")})		                  
 	//@formatter:on
+	
+	
 	public ProvenMessageResponse addProvenMessage(ProvenMessage pm) {
 
 		ProvenMessageResponse pmr = null;
@@ -997,6 +1025,68 @@ public class RepositoryResource {
 			e.printStackTrace();
 		}
 
+		return pmr;
+	}
+
+	@POST
+	@Path("addBulkTimeSeries")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	//@formatter:off
+	@ApiOperation(value = "Adds a bulk simulation message", 
+	              notes = "Provided provenance mesage must be valid \"FNCS Bridge Simulation JSON\" object")
+	@ApiResponses(value =  { @ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
+			                 @ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),	
+			                 @ApiResponse(code = 403, message = "Invalid or missing message content",response = ProvenMessageResponse.class),
+			                 @ApiResponse(code = 500, message = "Internal server error.")})		                  
+	//@formatter:on
+	
+	
+	public ProvenMessageResponse addBulkTimeSeries(String pm) {
+	
+		ProvenMessageResponse pmr = null;
+	    String measurement_type = "input";
+		try {	
+			cs.begin();
+		
+
+			// Explicit
+			//
+			// Hack 
+			//
+			   if (pm.contains("measurement") || pm.contains("MEASUREMENT")  ) {
+				   
+				   measurement_type = "output";
+			   }
+	
+				pmr = cs.influxWriteBulkMeasurement(pm, measurement_type);
+	
+			
+			// Invalid message content
+			if (null == pmr) {
+				pmr = new ProvenMessageResponse();
+				pmr.setStatus(Status.BAD_REQUEST);
+				pmr.setReason("Invalid or missing message content type.");
+				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
+				pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+	
+				cs.rollback();
+				
+			} else {
+				
+				cs.commit();
+			}
+	
+		} catch (Exception e) {
+			cs.rollback();
+			pmr = new ProvenMessageResponse();
+			pmr.setStatus(Status.INTERNAL_SERVER_ERROR);
+			pmr.setReason(e.getMessage());
+			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+			pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			e.printStackTrace();
+		}
+	
 		return pmr;
 	}
 
