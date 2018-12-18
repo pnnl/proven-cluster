@@ -1,14 +1,4 @@
 
-dependencies {
-
-    compile group: 'javax', name: 'javaee-web-api', version: "${javaEEVersion}"
-    compile group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
-    compileOnly group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"	    
-    compile group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
-    compileOnly group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"   
-}
-
-
 test { systemProperties 'property': 'value'   }
 
 uploadArchives {

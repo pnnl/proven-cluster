@@ -67,7 +67,7 @@ task allInOneJar(type: Jar) {
  
  dependencies {
 	 compileOnly group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.0'
-	 compile group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}" 
+	 compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}" 
 	 compile group: 'org.topbraid', name: 'shacl', version: '1.1.0'
  }
  

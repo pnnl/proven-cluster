@@ -1,35 +1,61 @@
 
 allprojects {
-	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion" } }
+	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion"
+		} }
 }
 
 
 subprojects {
 
-	apply plugin: 'java'
-	apply plugin: 'eclipse'
-
-	sourceCompatibility = 1.8
-		
-	repositories {
-		mavenCentral()
-		mavenLocal()
-	}
-	
 	ext.javaEEVersion = "8.0"
 	ext.jetVersion = "0.7"
 	ext.jetHazelcastVersion = "3.10.5"
 	ext.payaraVersion = "5.183"
 	ext.payaraHazelcastVersion = "3.10.2"
 	ext.influxDbLibVersion = "2.8"
-	
-	dependencies {	
+	ext.moduleProjectSuffix = "-module"
+	ext.moduleLibProject = 'module-lib'
+	ext.isModuleProject = ((project.name.endsWith("${moduleProjectSuffix}")) || (project.name == "${moduleLibProject}"))
+
+	apply plugin: 'java'
+	apply plugin: 'eclipse'
+
+	if (isModuleProject) {
+		apply plugin: 'war'
+		apply plugin: 'eclipse-wtp'
+	}
+
+	sourceCompatibility = 1.8
+
+	repositories {
+		mavenCentral()
+		mavenLocal()
+	}
+
+	dependencies {
+
+		// All subprojects
 		testCompile 'junit:junit:4.8.2'
 		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 		compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
 		compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
 		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
-		compile group: 'commons-validator', name: 'commons-validator', version: '1.6'			
+		compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
+
+
+		// Module subprojects (assumes WAR plugin for dependencies)
+		if (isModuleProject) {
+			providedCompile group: 'javax', name: 'javaee-web-api', version: "${javaEEVersion}"
+			providedCompile group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
+			providedCompile group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"
+			providedCompile group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
+			providedCompile group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"
+			compile group: 'com.hazelcast', name: 'hazelcast-client', version: "${payaraHazelcastVersion}"
+			compile (group: 'com.hazelcast.jet', name: 'hazelcast-jet-core', version: "${jetVersion}")
+			// Do not include IMDG from Jet.  Versions for IMDG and Client must match.
+			// Which in this case, is the Payara IMDG version
+			{ exclude group: 'com.hazelcast' }
+		}
 	}
 }
 
@@ -50,15 +76,11 @@ project('proven-member:exchange-lib') {
 }
 
 project('proven-member:module-lib') {
-	dependencies { 
-		compile project(':proven-disclosure')
-    }
+	dependencies {  compile project(':proven-disclosure') }
 }
 
 project('proven-member:hybrid-lib') {
-	dependencies { 
-		compile project(':proven-member:message-lib')
-    } 
+	dependencies {  compile project(':proven-member:message-lib') }
 }
 
 project('proven-member:stream-lib') {
@@ -66,21 +88,18 @@ project('proven-member:stream-lib') {
 }
 
 project('proven-member:member-lib') {
-	dependencies { 
+	dependencies {
 		compile project(':proven-member:hybrid-lib')
+		compile project(':proven-member:module-lib')
 	}
 }
 
 project('proven-member:disclosure-module') {
-	dependencies {
-		compile project(':proven-member:module-lib')
-	}
+	dependencies { compile project(':proven-member:module-lib') }
 }
 
 project('proven-member:stream-module') {
-	dependencies {
-		compile project(':proven-member:module-lib')
-	}
+	dependencies { compile project(':proven-member:module-lib') }
 }
 
 project('proven-member:hybrid-module') {
@@ -92,9 +111,7 @@ project('proven-member:hybrid-module') {
 }
 
 project('proven-member:member-module') {
-	dependencies {
-		compile project(':proven-member:module-lib')
-	}
+	dependencies { compile project(':proven-member:module-lib') }
 }
 
 project(':proven-disclosure') {
@@ -103,10 +120,8 @@ project(':proven-disclosure') {
 
 
 project('proven-client') {
-	dependencies { 
+	dependencies {
 		compile project(':proven-member:message-lib')
 		compile project(':proven-disclosure')
-    } 
+	}
 }
-
-

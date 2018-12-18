@@ -93,6 +93,7 @@ public class DisclosureModule extends ProvenModule {
 		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
 		String responseUrl = buildResponseUrl();
 		clientResponseMap.put(responseUrl, true);
+		testPipeline();
 		log.debug("DisclossureModule constructed");
 	}
 	
@@ -106,5 +107,8 @@ public class DisclosureModule extends ProvenModule {
 		return ret;
 	}
 	
+	private void testPipeline() {
+		new TestPipeline().submit();
+	}
 
 }
