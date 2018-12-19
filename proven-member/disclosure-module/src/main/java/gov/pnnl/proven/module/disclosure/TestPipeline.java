@@ -77,8 +77,11 @@ public class TestPipeline implements Serializable {
 		// Create the specification of the computation pipeline. Note
 		// it's a pure POJO: no instance of Jet needed to create it.
 		Pipeline p = Pipeline.create();
-		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-				.filter(word -> !word.isEmpty()).groupingKey(wholeItem()).aggregate(counting())
+		p.drawFrom(Sources.<String>list("text"))
+		        .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
+				.filter(word -> !word.isEmpty())
+				.groupingKey(wholeItem())
+				.aggregate(counting())
 				.drainTo(Sinks.map("counts"));
 
 		// Start Jet, populate the input list
@@ -100,7 +103,7 @@ public class TestPipeline implements Serializable {
 			System.out.println("Count of hello: " + counts.get("hello"));
 			System.out.println("Count of world: " + counts.get("world"));
 		} finally {
-			// Jet.shutdownAll();
+			jet.shutdown();
 		}
 	}
 
