@@ -8,7 +8,7 @@ allprojects {
 subprojects {
 
 	ext.javaEEVersion = "8.0"
-	ext.jetVersion = "0.7"
+	ext.jetVersion = "0.7.2"
 	ext.jetHazelcastVersion = "3.10.5"
 	ext.payaraVersion = "5.183"
 	ext.payaraHazelcastVersion = "3.10.2"
