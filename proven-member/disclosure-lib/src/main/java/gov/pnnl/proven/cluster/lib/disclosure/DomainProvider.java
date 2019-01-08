@@ -37,78 +37,42 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.Member;
-import com.hazelcast.ringbuffer.Ringbuffer;
 
-import fish.payara.micro.PayaraMicro;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientDisclosureMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
 
-@ApplicationScoped
-public class DisclosureModule extends ProvenModule {
+/**
+ * Represents an operation providing a {@code DisclosureDomain}. This interface
+ * also defines the Proven domain and Proven's Common domain. Domains are used
+ * to identify gov.pnnl.proven.cluster.lib.disclosure sources. If domain information is not provided or
+ * missing, the Common domain will be used.
+ * 
+ * @author d3j766
+ *
+ */
+@FunctionalInterface
+public interface DomainProvider extends Serializable {
 
-	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
+	static Logger log = LoggerFactory.getLogger(DomainProvider.class);
 
-	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
+	static final String COMMON_SUB_DOMAIN = "common";
+	static final String PROVEN_DISCLOSURE_DOMAIN = "proven.pnnl.gov";
+	static final String PROVEN_DISCLOSURE_DOMAIN_REVERSE = "gov.pnnl.proven";
+	static final String COMMON_DISCLOSURE_DOMAIN = COMMON_SUB_DOMAIN + "." + PROVEN_DISCLOSURE_DOMAIN;
+	static final String COMMON_DISCLOSURE_DOMAIN_REVERSE = PROVEN_DISCLOSURE_DOMAIN_REVERSE + "." + "common";
 
-	public static final String HOST_TAG = "<HOST>";
-	public static final String PORT_TAG = "<PORT>";
-	public static final String SESSION_TAG = "SESSION";
-	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
-			+ SESSION_TAG + "/responses";
+	DisclosureDomain getDomain();
 
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	Ringbuffer<ProxyRequest<?, ?>> disclosureBuffer;
-
-	IMap<String, Boolean> clientDisclosureMap;
-
-	IMap<String, Boolean> clientResponseMap;
-
-	@PostConstruct
-	public void init() {
-
-		// TODO This should be part of the member registry when a
-		// DisclosureBuffer
-		// reports itself as part of its construction. Placed here for now to
-		// support moving message-lib processing to cluster.
-		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
-		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
-		String responseUrl = buildResponseUrl();
-		clientResponseMap.put(responseUrl, true);
-		//testPipeline();
-		log.debug("DisclossureModule constructed");
+	static DisclosureDomain getCommonDomain() {
+		try {
+			return new DisclosureDomain(COMMON_DISCLOSURE_DOMAIN);
+		} catch (InvalidDisclosureDomainException e) {
+			log.error("Common domain not defined correctly");
+			throw new IllegalArgumentException();
+		}
 	}
-	
-	private String buildResponseUrl() {
-		String ret;
-		Member member = hzInstance.getCluster().getLocalMember();
-		String host = member.getAddress().getHost();
-		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
-		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
-		ret = ret.replace(PORT_TAG, port);
-		return ret;
-	}
-	
-	private void testPipeline() {
-		new TestPipeline().submit();
-	}
-
 }

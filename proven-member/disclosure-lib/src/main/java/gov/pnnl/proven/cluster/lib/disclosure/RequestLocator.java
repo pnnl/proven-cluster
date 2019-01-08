@@ -37,78 +37,29 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.util.List;
-import java.util.Set;
+import gov.pnnl.proven.cluster.lib.disclosure.request.ProxyRegisteredRequest;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.Member;
-import com.hazelcast.ringbuffer.Ringbuffer;
+/**
+ * Represents an operation providing a {@code ProxyRegisteredRequest} which can be
+ * used to locate a request inside a Proven Cluster.
+ * 
+ * @param <T>
+ *            the request input.
+ * @param <V>
+ *            the request result value.
+ * 
+ * 
+ * @author d3j766
+ * 
+ * @see ProxyRegisteredRequest, ProxyRequest
+ * @since
+ * 
+ */
+@FunctionalInterface
+public interface RequestLocator<T, V> {
 
-import fish.payara.micro.PayaraMicro;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientDisclosureMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
-
-@ApplicationScoped
-public class DisclosureModule extends ProvenModule {
-
-	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
-
-	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
-
-	public static final String HOST_TAG = "<HOST>";
-	public static final String PORT_TAG = "<PORT>";
-	public static final String SESSION_TAG = "SESSION";
-	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
-			+ SESSION_TAG + "/responses";
-
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	Ringbuffer<ProxyRequest<?, ?>> disclosureBuffer;
-
-	IMap<String, Boolean> clientDisclosureMap;
-
-	IMap<String, Boolean> clientResponseMap;
-
-	@PostConstruct
-	public void init() {
-
-		// TODO This should be part of the member registry when a
-		// DisclosureBuffer
-		// reports itself as part of its construction. Placed here for now to
-		// support moving message-lib processing to cluster.
-		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
-		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
-		String responseUrl = buildResponseUrl();
-		clientResponseMap.put(responseUrl, true);
-		//testPipeline();
-		log.debug("DisclossureModule constructed");
-	}
-	
-	private String buildResponseUrl() {
-		String ret;
-		Member member = hzInstance.getCluster().getLocalMember();
-		String host = member.getAddress().getHost();
-		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
-		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
-		ret = ret.replace(PORT_TAG, port);
-		return ret;
-	}
-	
-	private void testPipeline() {
-		new TestPipeline().submit();
-	}
+	ProxyRegisteredRequest<T, V> getLocator();
 
 }

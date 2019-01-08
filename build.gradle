@@ -76,7 +76,7 @@ project('proven-member:exchange-lib') {
 }
 
 project('proven-member:module-lib') {
-	dependencies {  compile project(':proven-disclosure') }
+	dependencies {  compile project(':proven-member:disclosure-lib') }
 }
 
 project('proven-member:hybrid-lib') {
@@ -95,7 +95,11 @@ project('proven-member:member-lib') {
 }
 
 project('proven-member:disclosure-module') {
-	dependencies { compile project(':proven-member:module-lib') }
+	dependencies { 
+		compile project(':proven-member:module-lib')
+		compile project(':proven-member:disclosure-lib')
+		
+	}
 }
 
 project('proven-member:stream-module') {
@@ -114,14 +118,10 @@ project('proven-member:member-module') {
 	dependencies { compile project(':proven-member:module-lib') }
 }
 
-project(':proven-disclosure') {
-	// No dependencies
-}
-
 
 project('proven-client') {
 	dependencies {
 		compile project(':proven-member:message-lib')
-		compile project(':proven-disclosure')
+		compile project(':proven-member:disclosure-lib')
 	}
 }

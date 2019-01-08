@@ -37,78 +37,65 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure.request;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.Member;
-import com.hazelcast.ringbuffer.Ringbuffer;
 
-import fish.payara.micro.PayaraMicro;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientDisclosureMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+/**
+ * Contains information necessary to locate a registered request inside a
+ * ProvenCluster. All three elements of the request registration, the request
+ * name, the input type, and the result type are used to identify and locate the
+ * registered request entry in the cluster that it is representing.  
+ * 
+ * @author d3j766
+ * 
+ * @see
+ * @since
+ * 
+ */
+public class ProxyRegisteredRequest<T, V> implements Serializable {
 
-@ApplicationScoped
-public class DisclosureModule extends ProvenModule {
+	private static final long serialVersionUID = 1L;
 
-	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
+	static Logger log = LoggerFactory.getLogger(ProxyRegisteredRequest.class);
 
-	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
+	private String requestName;
+	private Class<T> inputType;
+	private Class<V> resultType;
 
-	public static final String HOST_TAG = "<HOST>";
-	public static final String PORT_TAG = "<PORT>";
-	public static final String SESSION_TAG = "SESSION";
-	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
-			+ SESSION_TAG + "/responses";
-
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	Ringbuffer<ProxyRequest<?, ?>> disclosureBuffer;
-
-	IMap<String, Boolean> clientDisclosureMap;
-
-	IMap<String, Boolean> clientResponseMap;
-
-	@PostConstruct
-	public void init() {
-
-		// TODO This should be part of the member registry when a
-		// DisclosureBuffer
-		// reports itself as part of its construction. Placed here for now to
-		// support moving message-lib processing to cluster.
-		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
-		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
-		String responseUrl = buildResponseUrl();
-		clientResponseMap.put(responseUrl, true);
-		//testPipeline();
-		log.debug("DisclossureModule constructed");
+	public ProxyRegisteredRequest() {
 	}
-	
-	private String buildResponseUrl() {
-		String ret;
-		Member member = hzInstance.getCluster().getLocalMember();
-		String host = member.getAddress().getHost();
-		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
-		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
-		ret = ret.replace(PORT_TAG, port);
-		return ret;
+
+	public ProxyRegisteredRequest(String requestName, Class<T> inputType, Class<V> resultType) {
+		this.requestName = requestName;
+		this.inputType = inputType;
+		this.resultType = resultType;
 	}
-	
-	private void testPipeline() {
-		new TestPipeline().submit();
+
+	public String getRequestName() {
+		return requestName;
+	}
+
+	public void setRequestName(String requestName) {
+		this.requestName = requestName;
+	}
+
+	public Class<T> getInputType() {
+		return inputType;
+	}
+
+	public void setInputType(Class<T> inputType) {
+		this.inputType = inputType;
+	}
+
+	public Class<V> getResultType() {
+		return resultType;
+	}
+
+	public void setResultType(Class<V> resultType) {
+		this.resultType = resultType;
 	}
 
 }

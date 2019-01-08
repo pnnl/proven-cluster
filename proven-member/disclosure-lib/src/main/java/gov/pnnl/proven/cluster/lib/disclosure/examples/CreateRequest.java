@@ -37,78 +37,52 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure.examples;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.Member;
-import com.hazelcast.ringbuffer.Ringbuffer;
 
-import fish.payara.micro.PayaraMicro;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientDisclosureMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.disclosure.ClientProxyRequest;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.JsonDisclosure;
+import gov.pnnl.proven.cluster.lib.disclosure.RequestScope;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidRequestRegistrationException;
+import gov.pnnl.proven.cluster.lib.disclosure.request.ExplicitJsonDisclosureRequest;
 
-@ApplicationScoped
-public class DisclosureModule extends ProvenModule {
+public class CreateRequest {
 
-	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
+	public static void main(String[] args) {
 
-	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
+		Logger log = LoggerFactory.getLogger(CreateRequest.class);
+		
+		final String MY_DOMAIN = "provenance.com";
+		
+		ClientProxyRequest<JsonDisclosure, Void> clientRequest = null;
+		ExplicitJsonDisclosureRequest jdr = new ExplicitJsonDisclosureRequest();
 
-	public static final String HOST_TAG = "<HOST>";
-	public static final String PORT_TAG = "<PORT>";
-	public static final String SESSION_TAG = "SESSION";
-	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
-			+ SESSION_TAG + "/responses";
+		try {
+			clientRequest = ClientProxyRequest.createClientProxyRequest(jdr);
+		} catch (InvalidRequestRegistrationException e) {
+			e.printStackTrace();
+		}
 
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	Ringbuffer<ProxyRequest<?, ?>> disclosureBuffer;
-
-	IMap<String, Boolean> clientDisclosureMap;
-
-	IMap<String, Boolean> clientResponseMap;
-
-	@PostConstruct
-	public void init() {
-
-		// TODO This should be part of the member registry when a
-		// DisclosureBuffer
-		// reports itself as part of its construction. Placed here for now to
-		// support moving message-lib processing to cluster.
-		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
-		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
-		String responseUrl = buildResponseUrl();
-		clientResponseMap.put(responseUrl, true);
-		//testPipeline();
-		log.debug("DisclossureModule constructed");
-	}
-	
-	private String buildResponseUrl() {
-		String ret;
-		Member member = hzInstance.getCluster().getLocalMember();
-		String host = member.getAddress().getHost();
-		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
-		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
-		ret = ret.replace(PORT_TAG, port);
-		return ret;
-	}
-	
-	private void testPipeline() {
-		new TestPipeline().submit();
+		if (null != clientRequest) {
+			
+			// Add properties
+			clientRequest.setRetries(5);
+			clientRequest.setScope(RequestScope.MemberModules);
+			clientRequest.setSourceDomain(new DisclosureDomain(MY_DOMAIN));
+			
+			// Add Input data
+			JsonDisclosure jd = new JsonDisclosure("{\"foo\":\"bar\"}");
+			clientRequest.addInput(jd);
+			
+		}
+		else {
+			// Fix request construction...
+		}
+		
+		log.info("ExplicitJsonDisclosureRequest created");
 	}
 
 }

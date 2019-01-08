@@ -37,78 +37,59 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.util.List;
-import java.util.Set;
+/**
+ * Identifies the module servicing scope for a disclosed request. A request is
+ * disclosed to a module application running inside a Proven Cluster, and the
+ * scope informs the Cluster as to what module or modules will be used to
+ * service the request it received. A module will only be included in the scope
+ * if it can service the request.
+ * 
+ * @author d3j766
+ *
+ */
+public enum RequestScope {
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.Member;
-import com.hazelcast.ringbuffer.Ringbuffer;
+	/**
+	 * A single module located anywhere in the cluster. The default.
+	 */
+	ModuleAny(RequestScopeType.REQUEST_SCOPE_MODULE_ANY),
 
-import fish.payara.micro.PayaraMicro;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientDisclosureMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+	/**
+	 * The module on which the request was disclosed. This will result in error
+	 * if the module cannot service the request.
+	 */
+	Module(RequestScopeType.REQUEST_SCOPE_MODULE),
 
-@ApplicationScoped
-public class DisclosureModule extends ProvenModule {
+	/**
+	 * Any module located in the member on which the request was disclosed.
+	 */
+	MemberModule(RequestScopeType.REQUEST_SCOPE_MEMBER_MODULE),
 
-	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
+	/**
+	 * All modules located in the member on which the request was disclosed.
+	 */
+	MemberModules(RequestScopeType.REQUEST_SCOPE_MEMBER_MODULES);
 
-	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
-
-	public static final String HOST_TAG = "<HOST>";
-	public static final String PORT_TAG = "<PORT>";
-	public static final String SESSION_TAG = "SESSION";
-	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
-			+ SESSION_TAG + "/responses";
-
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	Ringbuffer<ProxyRequest<?, ?>> disclosureBuffer;
-
-	IMap<String, Boolean> clientDisclosureMap;
-
-	IMap<String, Boolean> clientResponseMap;
-
-	@PostConstruct
-	public void init() {
-
-		// TODO This should be part of the member registry when a
-		// DisclosureBuffer
-		// reports itself as part of its construction. Placed here for now to
-		// support moving message-lib processing to cluster.
-		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
-		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
-		String responseUrl = buildResponseUrl();
-		clientResponseMap.put(responseUrl, true);
-		//testPipeline();
-		log.debug("DisclossureModule constructed");
+	public class RequestScopeType {
+		public static final String REQUEST_SCOPE_MODULE_ANY = "request.scope.module_any";
+		public static final String REQUEST_SCOPE_MODULE = "request.scope.module";
+		public static final String REQUEST_SCOPE_MEMBER_MODULE = "request.scope.member_module";
+		public static final String REQUEST_SCOPE_MEMBER_MODULES = "request.scope.member_modules";
 	}
-	
-	private String buildResponseUrl() {
-		String ret;
-		Member member = hzInstance.getCluster().getLocalMember();
-		String host = member.getAddress().getHost();
-		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
-		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
-		ret = ret.replace(PORT_TAG, port);
-		return ret;
+
+	private String scope;
+
+	RequestScope() {
 	}
-	
-	private void testPipeline() {
-		new TestPipeline().submit();
+
+	RequestScope(String scope) {
+		this.scope = scope;
 	}
+
+	public String getRequestScope() {
+		return scope;
+	};
 
 }
