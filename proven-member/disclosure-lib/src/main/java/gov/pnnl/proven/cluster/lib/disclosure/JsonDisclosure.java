@@ -37,78 +37,110 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import java.io.Serializable;
+import java.io.StringReader;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.Member;
-import com.hazelcast.ringbuffer.Ringbuffer;
 
-import fish.payara.micro.PayaraMicro;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientDisclosureMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
-import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+/**
+ * Contains Proven request data represented in the JSON format. JSON data (input
+ * or schema) is checked for correctness when it's added either at construction
+ * or use of setter methods. Incorrect JSON values will throw a
+ * {@code JsonParsingException}.
+ * 
+ * TODO 
+ * Add support for references (e.g. URI location) to remote JSON and JSON-SCHEMA data.  
+ * 
+ * 
+ * @author d3j766
+ *
+ * @see
+ * @since
+ */
+public class JsonDisclosure implements Serializable {
 
-@ApplicationScoped
-public class DisclosureModule extends ProvenModule {
+	private static final long serialVersionUID = 1L;
+	private static Logger log = LoggerFactory.getLogger(JsonDisclosure.class);
 
-	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
+	/**
+	 * JSON input data. Only String value is serialized.
+	 */
+	@SuppressWarnings("unused")
+	private transient JsonObject inputJson;
+	private String input;
 
-	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
+	/**
+	 * JSON schema data. Only String value is serialized.
+	 */
+	@SuppressWarnings("unused")
+	private transient JsonObject schemaJson;
+	private String schema;
 
-	public static final String HOST_TAG = "<HOST>";
-	public static final String PORT_TAG = "<PORT>";
-	public static final String SESSION_TAG = "SESSION";
-	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
-			+ SESSION_TAG + "/responses";
-
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	Ringbuffer<ProxyRequest<?, ?>> disclosureBuffer;
-
-	IMap<String, Boolean> clientDisclosureMap;
-
-	IMap<String, Boolean> clientResponseMap;
-
-	@PostConstruct
-	public void init() {
-
-		// TODO This should be part of the member registry when a
-		// DisclosureBuffer
-		// reports itself as part of its construction. Placed here for now to
-		// support moving message-lib processing to cluster.
-		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
-		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
-		String responseUrl = buildResponseUrl();
-		clientResponseMap.put(responseUrl, true);
-		//testPipeline();
-		log.debug("DisclossureModule constructed");
+	public JsonDisclosure() {
 	}
+
+	public JsonDisclosure(String input) {
+		this(input, null);
+	}
+
+	public JsonDisclosure(String input, String schema) {
+		addInput(input);
+		addSchema(schema);
+	}
+
+	private void addSchema(String schema) {
+		JsonObject obj = toJsonObject(schema);
+		this.schemaJson = obj;
+		this.schema = schema;
+	}
+
+	private void addInput(String input) {
+		JsonObject obj = toJsonObject(input);
+		this.inputJson = obj;
+		this.input = input;
+	}
+
+	private JsonObject toJsonObject(String json) {
+
+		JsonObject ret = null;
+		
+		if (null != json) {
 	
-	private String buildResponseUrl() {
-		String ret;
-		Member member = hzInstance.getCluster().getLocalMember();
-		String host = member.getAddress().getHost();
-		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
-		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
-		ret = ret.replace(PORT_TAG, port);
+			JsonReader reader = Json.createReader(new StringReader(json));
+			
+			try {
+				ret = reader.readObject();
+			} catch (JsonParsingException e) {
+				log.error("Encountered invalid JSON in " + this.getClass().getSimpleName() + " :: " + json);
+				e.printStackTrace();
+				throw e;
+			} finally {
+				reader.close();
+			}
+		}
 		return ret;
 	}
-	
-	private void testPipeline() {
-		new TestPipeline().submit();
+
+	public String getInput() {
+		return input;
+	}
+
+	public void setInput(String input) {
+		addInput(input);
+	}
+
+	public String getSchema() {
+		return schema;
+	}
+
+	public void setSchema(String schema) {
+		addSchema(schema);
 	}
 
 }
