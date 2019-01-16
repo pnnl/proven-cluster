@@ -31,6 +31,10 @@ subprojects {
 		mavenCentral()
 		mavenLocal()
 	}
+	
+	jar {
+		onlyIf { !sourceSets.main.allSource.files.isEmpty() }
+	}
 
 	dependencies {
 
@@ -71,6 +75,10 @@ project('proven-member:message-lib') {
 	// No dependencies
 }
 
+project('proven-member:disclosure-lib') {
+	dependencies {  compile project(':proven-member:message-lib') }
+}
+
 project('proven-member:exchange-lib') {
 	// No dependencies
 }
@@ -103,7 +111,11 @@ project('proven-member:disclosure-module') {
 }
 
 project('proven-member:stream-module') {
-	dependencies { compile project(':proven-member:module-lib') }
+	dependencies { 
+		compile project(':proven-member:module-lib') 
+		compile project(':proven-member:disclosure-lib')
+		compile project(':proven-member:message-lib')
+	}
 }
 
 project('proven-member:hybrid-module') {

@@ -37,41 +37,39 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.module.stream;
 
-import java.io.Serializable;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.core.HazelcastInstance;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureStream;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.module.ProvenModule;
 
-/**
- * Represents an operation providing a {@code DisclosureDomain}. This interface
- * also defines the Proven's own disclosure domain. Domains are used to identify and
- * organize disclosure sources. If domain information is not provided or
- * missing, the default domain is the {@value #PROVEN_DISCLOSURE_DOMAIN}.
- * 
- * @author d3j766
- *
- */
-@FunctionalInterface
-public interface DomainProvider extends Serializable {
+@ApplicationScoped
+public class StreamModule extends ProvenModule {
 
-	static Logger log = LoggerFactory.getLogger(DomainProvider.class);
-
-	static final String PROVEN_DOMAIN = "proven.pnnl.gov";
-	static final String COMMON_SUB_DOMAIN = "common";
-	static final String PROVEN_DISCLOSURE_DOMAIN = COMMON_SUB_DOMAIN + "." + PROVEN_DOMAIN;
-
-	DisclosureDomain getDomain();
-
-	static DisclosureDomain getProvenDisclosureDomain() {
-		try {
-			return new DisclosureDomain(PROVEN_DISCLOSURE_DOMAIN);
-		} catch (InvalidDisclosureDomainException e) {
-			log.error("Default domain not defined correctly");
-			throw new IllegalArgumentException();
-		}
+	public static void main(String[] args) {
 	}
+	
+	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
 
+	@Inject
+	private HazelcastInstance hzInstance;
+
+	@PostConstruct
+	public void init() {
+		
+		log.info("StreamModule startup, creating proven disclosure streams...");
+		DisclosureDomain defaultDomain = DomainProvider.getProvenDisclosureDomain();
+		hzInstance.getMap(DisclosureStream.Disclosed.getName(defaultDomain));
+		hzInstance.getMap(DisclosureStream.Message.getName(defaultDomain));
+		hzInstance.getMap(DisclosureStream.Response.getName(defaultDomain));
+	}
+	
 }

@@ -39,39 +39,105 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnmanagedMessageContentStream;
+import gov.pnnl.proven.message.MessageContent;
 
 /**
- * Represents an operation providing a {@code DisclosureDomain}. This interface
- * also defines the Proven's own disclosure domain. Domains are used to identify and
- * organize disclosure sources. If domain information is not provided or
- * missing, the default domain is the {@value #PROVEN_DISCLOSURE_DOMAIN}.
+ * Disclosure streams store {@code ProvenMessage} instances in the memory
+ * component of Proven's hybrid store. The combination of the message's
+ * {@code DisclosureDomain} and the {@code MessageContent} identifies the
+ * disclosure stream for a ProvenMessage.
  * 
  * @author d3j766
  *
  */
-@FunctionalInterface
-public interface DomainProvider extends Serializable {
+public enum DisclosureStream {
 
-	static Logger log = LoggerFactory.getLogger(DomainProvider.class);
+		Disclosed(StreamType.DISCLOSED_STREAM, MessageContent.Disclosure),
 
-	static final String PROVEN_DOMAIN = "proven.pnnl.gov";
-	static final String COMMON_SUB_DOMAIN = "common";
-	static final String PROVEN_DISCLOSURE_DOMAIN = COMMON_SUB_DOMAIN + "." + PROVEN_DOMAIN;
+		Message(
+				StreamType.MESSAGE_STREAM,
+				MessageContent.Administrative,
+				MessageContent.ContinuousQuery,
+				MessageContent.Explicit,
+				MessageContent.Measurement,
+				MessageContent.Query,
+				MessageContent.Static,
+				MessageContent.Structure),
 
-	DisclosureDomain getDomain();
+		Response(StreamType.RESPONSE_STREAM, MessageContent.Response);
 
-	static DisclosureDomain getProvenDisclosureDomain() {
-		try {
-			return new DisclosureDomain(PROVEN_DISCLOSURE_DOMAIN);
-		} catch (InvalidDisclosureDomainException e) {
-			log.error("Default domain not defined correctly");
-			throw new IllegalArgumentException();
+		private class StreamType {
+			private static final String DISCLOSED_STREAM = "disclosed";
+			private static final String MESSAGE_STREAM = "message";
+			private static final String RESPONSE_STREAM = "response";
 		}
-	}
+
+		static Logger log = LoggerFactory.getLogger(DisclosureStream.class);
+		
+		String streamType;
+		List<MessageContent> messageContents;
+
+		DisclosureStream(String streamType, MessageContent... contents) {
+			this.streamType = streamType;
+			messageContents = Arrays.asList(contents);
+		}
+
+		/**
+		 * Provides the name of the disclosure stream by domain. The domain name
+		 * and stream type are used to name the disclosure stream.
+		 * 
+		 * @param dd
+		 *            the disclosure domain
+		 * 
+		 * @return the name of the associated disclosure stream
+		 * 
+		 */
+		public String getName(DisclosureDomain dd) {
+			return buildStreamName(dd, streamType);
+		}
+
+		/**
+		 * Provides the name of the disclosure stream associated with a
+		 * {@code MessageContent}. It is assumed that there is a single stream
+		 * associated with each message content type. A runtime exception is
+		 * thrown if a stream cannot be found for the provided message content
+		 * type. The domain name and stream type are used to name the disclosure
+		 * stream.
+		 * 
+		 * @param mc
+		 *            the MessageContent to search on
+		 * @param dd
+		 *            the disclosure domain
+		 * 
+		 * @return the name of the associated disclosure stream
+		 * 
+		 */
+		public String getName(MessageContent mc, DisclosureDomain dd) {
+
+			String ret;
+
+			if (Disclosed.messageContents.contains(mc)) {
+				ret = buildStreamName(dd, StreamType.DISCLOSED_STREAM);
+			} else if (Message.messageContents.contains(mc)) {
+				ret = buildStreamName(dd, StreamType.MESSAGE_STREAM);
+			} else if (Response.messageContents.contains(mc)) {
+				ret = buildStreamName(dd, StreamType.RESPONSE_STREAM);
+			} else {
+				throw new UnmanagedMessageContentStream();
+			}
+
+			return ret;
+		}
+
+		private String buildStreamName(DisclosureDomain dd, String sType) {
+			String domainPart = dd.getReverseDomain();
+			String streamPart = sType;
+			return domainPart + "." + streamPart;
+		}
 
 }

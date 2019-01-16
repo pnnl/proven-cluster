@@ -6,9 +6,9 @@
 	</management-center>
 
 	<!-- Property settings -->
-    <properties>
-    	<property name="hazelcast.logging.type">slf4j</property>
-    </properties>
+	<properties>
+		<property name="hazelcast.logging.type">slf4j</property>
+	</properties>
 
 	<network>
 
@@ -42,7 +42,7 @@
 			<write-batch-size>10000</write-batch-size>
 			<write-coalescing>true</write-coalescing>
 
-			
+
 		</map-store>
 
 	</map>
@@ -55,6 +55,10 @@
 		</data-serializable-factories>
 	</serialization>
 
+	<event-journal enabled="true">
+		<mapName>default</mapName>
+	</event-journal>
+	
 
 	<!-- ##################################################################################### -->
 

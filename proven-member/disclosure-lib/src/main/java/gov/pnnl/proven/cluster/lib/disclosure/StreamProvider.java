@@ -43,35 +43,20 @@ import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-
 /**
- * Represents an operation providing a {@code DisclosureDomain}. This interface
- * also defines the Proven's own disclosure domain. Domains are used to identify and
- * organize disclosure sources. If domain information is not provided or
- * missing, the default domain is the {@value #PROVEN_DISCLOSURE_DOMAIN}.
+ * Represents an operation providing a {@code DisclosureStream}.
  * 
  * @author d3j766
  *
  */
 @FunctionalInterface
-public interface DomainProvider extends Serializable {
+public interface StreamProvider extends Serializable {
 
-	static Logger log = LoggerFactory.getLogger(DomainProvider.class);
-
-	static final String PROVEN_DOMAIN = "proven.pnnl.gov";
-	static final String COMMON_SUB_DOMAIN = "common";
-	static final String PROVEN_DISCLOSURE_DOMAIN = COMMON_SUB_DOMAIN + "." + PROVEN_DOMAIN;
-
-	DisclosureDomain getDomain();
-
-	static DisclosureDomain getProvenDisclosureDomain() {
-		try {
-			return new DisclosureDomain(PROVEN_DISCLOSURE_DOMAIN);
-		} catch (InvalidDisclosureDomainException e) {
-			log.error("Default domain not defined correctly");
-			throw new IllegalArgumentException();
-		}
-	}
+	static Logger log = LoggerFactory.getLogger(StreamProvider.class);
+	
+	/**
+	 * Provides a disclosure stream.
+	 */
+	DisclosureStream getStream();
 
 }

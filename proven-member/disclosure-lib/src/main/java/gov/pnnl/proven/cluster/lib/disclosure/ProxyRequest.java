@@ -96,7 +96,7 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 	 * together requests and other associated information for storage under a
 	 * {@code DisclosureDomain}
 	 */
-	DomainProvider sourceDomain;
+	DisclosureDomain sourceDomain;
 
 	/**
 	 * Timestamp when request was request was created.
@@ -177,14 +177,14 @@ public abstract class ProxyRequest<T, V> implements RequestLocator<T, V>, Domain
 		DisclosureDomain ret;
 
 		if (null != sourceDomain) {
-			ret = sourceDomain.getDomain();
+			ret = sourceDomain;
 		} else {
-			ret = DomainProvider.getCommonDomain();
+			ret = DomainProvider.getProvenDisclosureDomain();
 		}
 		return ret;
 	}
 
-	public void setSourceDomain(DomainProvider sourceDomain) {
+	public void setSourceDomain(DisclosureDomain sourceDomain) {
 		this.sourceDomain = sourceDomain;
 	}
 

@@ -83,6 +83,8 @@ public class DisclosureModule extends ProvenModule {
 	@PostConstruct
 	public void init() {
 
+		log.info("DisclosureModule startup...");
+		
 		// TODO This should be part of the member registry when a
 		// DisclosureBuffer
 		// reports itself as part of its construction. Placed here for now to
