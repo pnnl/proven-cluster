@@ -56,7 +56,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.message.MessageContent.MessageContentStream;
+import gov.pnnl.proven.message.MessageContent.MessageContentName;
 
 import static gov.pnnl.proven.message.MessageUtils.*;
 
@@ -153,7 +153,7 @@ public class ProvenMetric implements IdentifiedDataSerializable, Serializable {
 	/**
 	 * A {@link ProvenMetric} builder, uses URI fragment identifier of the
 	 * metric's Value Type. Proven metric data comes from a
-	 * {@link ProvenMessage} {@link MessageContentStream} originally as semantic
+	 * {@link ProvenMessage} {@link MessageContentName} originally as semantic
 	 * data. URI fragment identifiers for the Value Type are used to provide
 	 * metric information to facilitate creation and storage into the registered
 	 * time-series store, if any.

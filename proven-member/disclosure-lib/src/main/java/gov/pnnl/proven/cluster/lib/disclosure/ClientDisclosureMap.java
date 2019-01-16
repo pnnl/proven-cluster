@@ -44,14 +44,17 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Provides the name of a Proven Cluster's IMap containing locations in the
- * cluster that can be used for client data gov.pnnl.proven.cluster.lib.disclosure. A Proven Client uses
- * this information to add their requests to a cluster for processing.
+ * cluster that can be used for client data
+ * gov.pnnl.proven.cluster.lib.disclosure. A Proven Client uses this information
+ * to add their requests to a cluster for processing.
  *
- * The IMap Key is a String containing the location of the gov.pnnl.proven.cluster.lib.disclosure location.
+ * The IMap Key is a String containing the location of the
+ * gov.pnnl.proven.cluster.lib.disclosure location.
  * 
- * The IMap Value is a boolean. True indicates the gov.pnnl.proven.cluster.lib.disclosure location is
- * available for use. False indicates the gov.pnnl.proven.cluster.lib.disclosure location is not available
- * for use.
+ * The IMap Value is a boolean. True indicates the
+ * gov.pnnl.proven.cluster.lib.disclosure location is available for use. False
+ * indicates the gov.pnnl.proven.cluster.lib.disclosure location is not
+ * available for use.
  * 
  * @author d3j766
  * 

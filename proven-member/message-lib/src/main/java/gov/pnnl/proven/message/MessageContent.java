@@ -52,11 +52,19 @@ import org.slf4j.LoggerFactory;
 public enum MessageContent {
 
 	/**
+	 * Represents unprocessed disclosed message data (i.e. content type of data
+	 * as it enters the Proven data platform). Disclosure message content is
+	 * domain instance data that will be identified and processed into another
+	 * content type(s) for further processing.
+	 */
+	Disclosure(MessageContentName.DISCLOSURE),
+
+	/**
 	 * The Default content type for a {@link ProvenMessage}. Explicit message
 	 * content is domain instance data that can be represented in all facets of
 	 * the hybrid store.
 	 */
-	Explicit(MessageContentStream.EXPLICIT_STREAM),
+	Explicit(MessageContentName.EXPLICIT),
 
 	/**
 	 * Static or reference message content. This is data that changes
@@ -65,14 +73,14 @@ public enum MessageContent {
 	 * store, but instead remain available in-memory for query and analysis
 	 * purposes.
 	 */
-	Static(MessageContentStream.STATIC_STREAM),
+	Static(MessageContentName.STATIC),
 
 	/**
 	 * Implicit content is content that is created from existing explicit
 	 * content. This content is considered as transient, in that it can be
 	 * regenerated on demand.
 	 */
-	Implicit(MessageContentStream.IMPLICIT_STREAM),
+	Implicit(MessageContentName.IMPLICIT),
 
 	/**
 	 * Semantic concept structure definitions and associated instance data (e.g.
@@ -80,7 +88,7 @@ public enum MessageContent {
 	 * in its own graph contributing to a single domain's knowledge model or all
 	 * domain knowledge models (e.g. an upper or foundation ontology).
 	 */
-	Structure(MessageContentStream.STRUCTURE_STREAM),
+	Structure(MessageContentName.STRUCTURE),
 
 	/**
 	 * Query message content. Message describes a query for execution over
@@ -88,49 +96,52 @@ public enum MessageContent {
 	 * hybrid store, and results may be stored back in hybrid store and/or
 	 * returned to caller if requested.
 	 */
-	Query(MessageContentStream.QUERY_STREAM),
+	Query(MessageContentName.QUERY),
 
 	/**
 	 * Continuous Query message content. Queries to run over a cluster member's
-	 * ProvenMessage data stream for a configured frequency, in order to detect
+	 * ProvenMessage data name for a configured frequency, in order to detect
 	 * and/or create new purposed message content. This is a type of
 	 * {@link MessageContent#Query}; query results are not returned to
 	 * requester, but instead is installed on server for processing.
 	 */
-	ContinuousQuery(MessageContentStream.CONTINUOUS_QUERY_STREAM),
+	ContinuousQuery(MessageContentName.CONTINUOUS_QUERY),
 
 	/**
 	 * Cluster administrative message content. Contains directives to configure
 	 * and manage cluster members.
 	 */
-	Administrative(MessageContentStream.ADMINISTRATIVE_STREAM),
-	
-	/**
-	 * Request response messages.  
-	 */
-	Response(MessageContentStream.RESPONSE_STREAM);
-	
-	
+	Administrative(MessageContentName.ADMINISTRATIVE),
 
-	// TODO - Should not contain domain information in this class. That is,
-	// BASE_STREAM should be removed. Leaving the core stream names. Move to
-	// StreamManager or one of it's managed components to manage the stream and
-	// domain relationship.
-	public class MessageContentStream {
-		public static final String BASE_STREAM = "gov.pnnl.proven.message.";
-		public static final String EXPLICIT_STREAM = BASE_STREAM + "explicit";
-		public static final String STATIC_STREAM = BASE_STREAM + "static";
-		public static final String IMPLICIT_STREAM = BASE_STREAM + "implicit";
-		public static final String STRUCTURE_STREAM = BASE_STREAM + "structure";
-		public static final String QUERY_STREAM = BASE_STREAM + "query";
-		public static final String CONTINUOUS_QUERY_STREAM = BASE_STREAM + "continuous";
-		public static final String ADMINISTRATIVE_STREAM = BASE_STREAM + "administrative";
-		public static final String RESPONSE_STREAM = BASE_STREAM + "response";
+	/**
+	 * Represents Proven measurement data (i.e. metrics) that will be processed
+	 * and stored into a time-series store registered with the Proven data
+	 * platform.
+	 */
+	Measurement(MessageContentName.MEASUREMENT),
+
+	/**
+	 * Request response messages.
+	 */
+	Response(MessageContentName.RESPONSE);
+
+	
+	public class MessageContentName {
+		public static final String DISCLOSURE = "disclosure";
+		public static final String EXPLICIT = "explicit";
+		public static final String STATIC = "static";
+		public static final String IMPLICIT = "implicit";
+		public static final String STRUCTURE = "structure";
+		public static final String QUERY = "query";
+		public static final String CONTINUOUS_QUERY = "continuous";
+		public static final String ADMINISTRATIVE = "administrative";
+		public static final String MEASUREMENT = "measurement";
+		public static final String RESPONSE = "response";
 	}
 
 	private static Logger log = LoggerFactory.getLogger(MessageContent.class);
 
-	private String stream;
+	private String name;
 
 	/**
 	 * No arg constructor needed for serialization
@@ -139,21 +150,21 @@ public enum MessageContent {
 	}
 
 	/**
-	 * Creates message content type with associated stream name.
+	 * Creates message content type with associated name.
 	 * 
-	 * @param stream
+	 * @param name
 	 */
-	MessageContent(String stream) {
-		this.stream = stream;
+	MessageContent(String name) {
+		this.name = name;
 	}
 
 	/**
-	 * Name of stream for the message content type.
+	 * Name of name for the message content type.
 	 * 
-	 * @return name of stream for content type
+	 * @return name for the content type
 	 */
-	public String getStream() {
-		return stream;
+	public String getName() {
+		return name;
 	}
 
 }

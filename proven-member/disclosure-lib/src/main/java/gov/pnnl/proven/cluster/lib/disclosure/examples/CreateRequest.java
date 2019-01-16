@@ -71,7 +71,7 @@ public class CreateRequest {
 			// Add properties
 			clientRequest.setRetries(5);
 			clientRequest.setScope(RequestScope.MemberModules);
-			clientRequest.setSourceDomain(new DisclosureDomain(MY_DOMAIN));
+			clientRequest.setSourceDomain(new DisclosureDomain("gov"));
 			
 			// Add Input data
 			JsonDisclosure jd = new JsonDisclosure("{\"foo\":\"bar\"}");

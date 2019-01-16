@@ -2,6 +2,9 @@ apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
 
 
+project.version = '0.1'
+jar.enabled = false
+
 eclipse {
 	wtp {
 		facet {
@@ -11,15 +14,15 @@ eclipse {
 	}
 }
 
+war {
+  archiveName = 'stream.war'
+  webXml = null
+}
 
-dependencies {
+
+dependencies { 
 }
 
 
 test { systemProperties 'property': 'value' }
 
-uploadArchives {
-	repositories {
-		flatDir { dirs 'repos' }
-	}
-}

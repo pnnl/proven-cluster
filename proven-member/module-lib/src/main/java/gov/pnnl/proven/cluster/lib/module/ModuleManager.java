@@ -79,9 +79,9 @@ public class ModuleManager {
 	@PostConstruct
 	public void initialize() throws ModuleStartupException {
 
-		logger.debug("Enter PostConstruct for " + this.getClass().getSimpleName());
+		logger.info("Enter PostConstruct for " + this.getClass().getSimpleName());
 		sendStartupMessage();
-		logger.debug("Leave PostConstruct for " + this.getClass().getSimpleName());
+		logger.info("Leave PostConstruct for " + this.getClass().getSimpleName());
 
 	}
 

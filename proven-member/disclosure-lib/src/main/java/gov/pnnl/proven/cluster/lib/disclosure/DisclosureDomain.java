@@ -49,7 +49,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainE
 /**
  * Information disclosed by external clients to a Proven Cluster are organized
  * under domain names. A valid domain name used by Proven must have a recognized
- * top-level domain as defined in {@code DomainValidator}
+ * top-level domain as defined in {@code DomainValidator}.
  * 
  * @author d3j766
  *
@@ -57,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainE
  * @since
  * 
  */
-public class DisclosureDomain implements DomainProvider, Serializable {
+public class DisclosureDomain implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	static Logger log = LoggerFactory.getLogger(DisclosureDomain.class);
@@ -74,21 +74,25 @@ public class DisclosureDomain implements DomainProvider, Serializable {
 		if (!validator.isValid(domain)) {
 			throw new InvalidDisclosureDomainException();
 		}
+		this.domain = domain;
 	}
-
-	@Override
-	public DisclosureDomain getDomain() {
-		return this;
+	
+	public String getDomain() {
+		return domain;
 	}
 
 	public String getReverseDomain() {
 		String ret = "";
-		String[] parts = domain.split(".");
-		int start = 0;
-		int end = parts.length;
-		while (start < end) {
-			ret += parts[start];
-			start++;
+		String[] parts = domain.split("\\.");
+		int end = 0;
+		int start = parts.length;
+		
+		while (start > end) {
+			ret += parts[start-1];
+			if ((start -1) != end) {
+				ret += ".";
+			}
+			start--;
 		}
 		return ret;
 	}

@@ -944,7 +944,7 @@ public class RepositoryResource {
 			// TODO Implement MapStore
 			String key = pm.getMessageKey();
 			pm.getMessageProperties().setDisclosure(new Date().getTime());
-			String stream = pm.getMessageContent().getStream(); 
+			String stream = pm.getMessageContent().getName(); 
 			if (null != hzMemberInstance) {
 				log.warn("HZ cluster instance could not be found");
 				IMap<String, ProvenMessage> pms = hzMemberInstance.getMap(stream);
@@ -961,7 +961,7 @@ public class RepositoryResource {
 			
 			// Query
 
-			if (stream.equals(MessageContent.Explicit.getStream())) {
+			if (stream.equals(MessageContent.Explicit.getName())) {
 			    // Now using MapStore to write messages 8/29/2018
                 // pmr = cs.influxWriteMeasurements(pm.getMeasurements());
 				pmr = new ProvenMessageResponse();
@@ -977,7 +977,7 @@ public class RepositoryResource {
 			}
 
 			// Explicit
-			if (stream.equals(MessageContent.Query.getStream())) {
+			if (stream.equals(MessageContent.Query.getName())) {
 				pmr = cs.influxQuery(pm);
 			}
 
