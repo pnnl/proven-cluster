@@ -93,7 +93,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.api.producer.ProvenProducer;
-import gov.pnnl.proven.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 
 /**
  * @author raju332

@@ -91,9 +91,11 @@ import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.Topic;
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.exception.InvalidProvenMessageException;
-import static gov.pnnl.proven.message.MessageTopic.TopicConfig.*;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
+
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
 import static gov.pnnl.proven.hybrid.util.Consts.JNDI_CONNECTION;
 
 

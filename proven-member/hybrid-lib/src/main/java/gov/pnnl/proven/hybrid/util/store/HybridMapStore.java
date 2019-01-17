@@ -62,11 +62,11 @@ import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.MapStore;
 
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMeasurement;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
 import gov.pnnl.proven.hybrid.util.ProvenConfig;
-import gov.pnnl.proven.message.ProvenMeasurement;
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.ProvenMetric;
-import gov.pnnl.proven.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
 
 /**
  * Session Bean implementation class T3MapStore

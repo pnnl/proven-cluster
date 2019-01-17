@@ -96,7 +96,7 @@ import javax.jms.TextMessage;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 
-import gov.pnnl.proven.message.MessageTopic;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic;
 
 /**
  * @author raju332

@@ -80,9 +80,7 @@
 
 package gov.pnnl.proven.hybrid.message;
 
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.ProvenMessageResponse;
-import static gov.pnnl.proven.message.MessageTopic.TopicConfig.*;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
 import static gov.pnnl.proven.hybrid.util.Consts.*;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
@@ -90,6 +88,9 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 import javax.resource.AdministeredObjectDefinition;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
 
 //@formatter:off
 //@AdministeredObjectDefinition(

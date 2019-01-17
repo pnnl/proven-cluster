@@ -93,8 +93,8 @@ import gov.pnnl.proven.api.exception.SendMessageException;
 import gov.pnnl.proven.api.exchange.ExchangeInfo;
 import gov.pnnl.proven.api.exchange.ExchangeType;
 import gov.pnnl.proven.api.exchange.MqConsumer;
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.exception.InvalidProvenMessageException;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 
 import org.apache.activemq.command.Response;
 import org.slf4j.Logger;

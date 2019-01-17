@@ -37,107 +37,111 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.util.Arrays;
-import java.util.List;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URI;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnmanagedMessageContentStream;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 /**
- * Disclosure streams store {@code ProvenMessage} instances in the memory
- * component of Proven's hybrid store. The combination of the message's
- * {@code DisclosureDomain} and the {@code MessageContent} identifies the
- * disclosure stream for a ProvenMessage.
+ * Proven's general representation of a single RDF statement (s,p,o).
  * 
  * @author d3j766
  *
  */
-public enum DisclosureStream {
+@XmlRootElement
+public class ProvenStatement implements IdentifiedDataSerializable, Serializable {
 
-		Disclosed(StreamType.DISCLOSED_STREAM, MessageContent.Disclosure),
+	private static final long serialVersionUID = 1L;
 
-		Message(
-				StreamType.MESSAGE_STREAM,
-				MessageContent.Administrative,
-				MessageContent.ContinuousQuery,
-				MessageContent.Explicit,
-				MessageContent.Measurement,
-				MessageContent.Query,
-				MessageContent.Static,
-				MessageContent.Structure),
+	private static Logger log = LoggerFactory.getLogger(ProvenStatement.class);
 
-		Response(StreamType.RESPONSE_STREAM, MessageContent.Response);
+	public enum ObjectValueType {
+		Literal, URI
+	}
 
-		private class StreamType {
-			private static final String DISCLOSED_STREAM = "disclosed";
-			private static final String MESSAGE_STREAM = "message";
-			private static final String RESPONSE_STREAM = "response";
-		}
+	private URI subject;
+	private URI predicate;
+	private String object;
+	private ObjectValueType objectValueType;
 
-		static Logger log = LoggerFactory.getLogger(DisclosureStream.class);
-		
-		String streamType;
-		List<MessageContent> messageContents;
+	public ProvenStatement() {
+	}
 
-		DisclosureStream(String streamType, MessageContent... contents) {
-			this.streamType = streamType;
-			messageContents = Arrays.asList(contents);
-		}
+	public ProvenStatement(URI subject, URI predicate, String object, ObjectValueType objectValueType) {
+		this.subject = subject;
+		this.predicate = predicate;
+		this.object = object;
+		this.objectValueType = objectValueType;
+	}
 
-		/**
-		 * Provides the name of the disclosure stream by domain. The domain name
-		 * and stream type are used to name the disclosure stream.
-		 * 
-		 * @param dd
-		 *            the disclosure domain
-		 * 
-		 * @return the name of the associated disclosure stream
-		 * 
-		 */
-		public String getName(DisclosureDomain dd) {
-			return buildStreamName(dd, streamType);
-		}
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
 
-		/**
-		 * Provides the name of the disclosure stream associated with a
-		 * {@code MessageContent}. It is assumed that there is a single stream
-		 * associated with each message content type. A runtime exception is
-		 * thrown if a stream cannot be found for the provided message content
-		 * type. The domain name and stream type are used to name the disclosure
-		 * stream.
-		 * 
-		 * @param mc
-		 *            the MessageContent to search on
-		 * @param dd
-		 *            the disclosure domain
-		 * 
-		 * @return the name of the associated disclosure stream
-		 * 
-		 */
-		public String getName(MessageContent mc, DisclosureDomain dd) {
+		String subjectStr = in.readUTF();
+		this.subject = ((subjectStr.isEmpty()) ? null : URI.create(subjectStr));
+		String predicateStr = in.readUTF();
+		this.predicate = ((predicateStr.isEmpty()) ? null : URI.create(predicateStr));
+		this.object = in.readUTF();
+		this.objectValueType = ObjectValueType.valueOf(in.readUTF());
+	}
 
-			String ret;
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
 
-			if (Disclosed.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.DISCLOSED_STREAM);
-			} else if (Message.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.MESSAGE_STREAM);
-			} else if (Response.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.RESPONSE_STREAM);
-			} else {
-				throw new UnmanagedMessageContentStream();
-			}
+		out.writeUTF(this.subject.toString());
+		out.writeUTF(this.predicate.toString());
+		out.writeUTF(this.object);
+		out.writeUTF(this.objectValueType.toString());
+	}
 
-			return ret;
-		}
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
 
-		private String buildStreamName(DisclosureDomain dd, String sType) {
-			String domainPart = dd.getReverseDomain();
-			String streamPart = sType;
-			return domainPart + "." + streamPart;
-		}
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.PROVEN_STATEMENT_TYPE;
+	}
+
+	public URI getSubject() {
+		return subject;
+	}
+
+	public URI getPredicate() {
+		return predicate;
+	}
+
+	public String getObject() {
+		return object;
+	}
+
+	public ObjectValueType getObjectValueType() {
+		return objectValueType;
+	}
+
+	public void setSubject(URI subject) {
+		this.subject = subject;
+	}
+
+	public void setPredicate(URI predicate) {
+		this.predicate = predicate;
+	}
+
+	public void setObject(String object) {
+		this.object = object;
+	}
+
+	public void setObjectValueType(ObjectValueType objectValueType) {
+		this.objectValueType = objectValueType;
+	}
 
 }

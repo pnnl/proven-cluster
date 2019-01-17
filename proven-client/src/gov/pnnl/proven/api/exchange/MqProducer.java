@@ -93,9 +93,9 @@ import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.MessageContent;
-import gov.pnnl.proven.message.MessageTopic;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 
 /**
  * @author raju332

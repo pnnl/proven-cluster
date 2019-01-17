@@ -80,12 +80,13 @@
 
 package gov.pnnl.proven.hybrid.message;
 
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 import gov.pnnl.proven.hybrid.service.ConceptService;
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.ProvenMessageResponse;
-import gov.pnnl.proven.message.exception.InvalidProvenMessageException;
-import static gov.pnnl.proven.message.MessageTopic.TopicConfig.*;
-import gov.pnnl.proven.message.MessageContent;
+
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
 import static gov.pnnl.proven.hybrid.util.Consts.*;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;

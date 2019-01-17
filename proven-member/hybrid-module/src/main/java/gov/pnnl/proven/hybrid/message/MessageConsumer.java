@@ -94,12 +94,13 @@ import javax.jms.Topic;
 import javax.resource.AdministeredObjectDefinition;
 import javax.resource.ConnectionFactoryDefinition;
 import org.openrdf.model.Statement;
-import gov.pnnl.proven.message.ProvenMeasurement;
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.ProvenMessageResponse;
-import gov.pnnl.proven.message.ProvenStatement;
 
-import static gov.pnnl.proven.message.MessageTopic.TopicConfig.*;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMeasurement;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenStatement;
+
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
 import static gov.pnnl.proven.hybrid.util.Consts.*;
 
 //@formatter:off

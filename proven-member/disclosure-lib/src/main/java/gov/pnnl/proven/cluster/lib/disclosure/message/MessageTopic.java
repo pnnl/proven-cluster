@@ -37,107 +37,55 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.util.Arrays;
-import java.util.List;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnmanagedMessageContentStream;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 
 /**
- * Disclosure streams store {@code ProvenMessage} instances in the memory
- * component of Proven's hybrid store. The combination of the message's
- * {@code DisclosureDomain} and the {@code MessageContent} identifies the
- * disclosure stream for a ProvenMessage.
+ * Represents the different message topics for a {@code ProvenMessage}.
  * 
  * @author d3j766
  *
  */
-public enum DisclosureStream {
+public enum MessageTopic {
 
-		Disclosed(StreamType.DISCLOSED_STREAM, MessageContent.Disclosure),
+	/**
+	 * Identifies topic for data disclosure request.
+	 */
+	Disclosure(TopicConfig.MQ_DISCLOSURE),
 
-		Message(
-				StreamType.MESSAGE_STREAM,
-				MessageContent.Administrative,
-				MessageContent.ContinuousQuery,
-				MessageContent.Explicit,
-				MessageContent.Measurement,
-				MessageContent.Query,
-				MessageContent.Static,
-				MessageContent.Structure),
+	/**
+	 * Identifies topic for query request.
+	 */
+	Query(TopicConfig.MQ_QUERY),
 
-		Response(StreamType.RESPONSE_STREAM, MessageContent.Response);
+	/**
+	 * Identifies topic for a request response.
+	 */
+	Response(TopicConfig.MQ_RESPONSE);
 
-		private class StreamType {
-			private static final String DISCLOSED_STREAM = "disclosed";
-			private static final String MESSAGE_STREAM = "message";
-			private static final String RESPONSE_STREAM = "response";
-		}
-
-		static Logger log = LoggerFactory.getLogger(DisclosureStream.class);
+	public class TopicConfig {
+		public static final String MQ_DISCLOSURE = "gov.pnnl.proven.disclosure.data";
+		public static final String MQ_QUERY = "gov.pnnl.proven.disclosure.query";
+		public static final String MQ_RESPONSE = "gov.pnnl.proven.disclosure.response";
 		
-		String streamType;
-		List<MessageContent> messageContents;
+		public static final String JNDI_DISCLOSURE = "java:global/jms/disclosureData";
+		public static final String JNDI_QUERY = "java:global/jms/disclosureQuery";
+		public static final String JNDI_RESPONSE = "java:global/jms/disclosureResponse";
+	}
 
-		DisclosureStream(String streamType, MessageContent... contents) {
-			this.streamType = streamType;
-			messageContents = Arrays.asList(contents);
-		}
+	private static Logger log = LoggerFactory.getLogger(MessageTopic.class);
+	
+	private final String topicName;
 
-		/**
-		 * Provides the name of the disclosure stream by domain. The domain name
-		 * and stream type are used to name the disclosure stream.
-		 * 
-		 * @param dd
-		 *            the disclosure domain
-		 * 
-		 * @return the name of the associated disclosure stream
-		 * 
-		 */
-		public String getName(DisclosureDomain dd) {
-			return buildStreamName(dd, streamType);
-		}
+	MessageTopic(String topicName) {
+		this.topicName = topicName;
+	}
 
-		/**
-		 * Provides the name of the disclosure stream associated with a
-		 * {@code MessageContent}. It is assumed that there is a single stream
-		 * associated with each message content type. A runtime exception is
-		 * thrown if a stream cannot be found for the provided message content
-		 * type. The domain name and stream type are used to name the disclosure
-		 * stream.
-		 * 
-		 * @param mc
-		 *            the MessageContent to search on
-		 * @param dd
-		 *            the disclosure domain
-		 * 
-		 * @return the name of the associated disclosure stream
-		 * 
-		 */
-		public String getName(MessageContent mc, DisclosureDomain dd) {
-
-			String ret;
-
-			if (Disclosed.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.DISCLOSED_STREAM);
-			} else if (Message.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.MESSAGE_STREAM);
-			} else if (Response.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.RESPONSE_STREAM);
-			} else {
-				throw new UnmanagedMessageContentStream();
-			}
-
-			return ret;
-		}
-
-		private String buildStreamName(DisclosureDomain dd, String sType) {
-			String domainPart = dd.getReverseDomain();
-			String streamPart = sType;
-			return domainPart + "." + streamPart;
-		}
+	public String getTopicName() {
+		return topicName;
+	}
 
 }

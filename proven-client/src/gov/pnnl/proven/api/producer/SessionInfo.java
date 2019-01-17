@@ -80,13 +80,13 @@
 
 package gov.pnnl.proven.api.producer;
 
-import gov.pnnl.proven.message.ProvenMessage;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 
 /**
  * Information related to a provenance exchange session. This information is initially provided by a
