@@ -50,7 +50,7 @@
 	<serialization>
 		<data-serializable-factories>
 			<data-serializable-factory factory-id="1">
-				gov.pnnl.proven.message.ProvenMessageIDSFactory
+				gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory
 			</data-serializable-factory>
 		</data-serializable-factories>
 	</serialization>

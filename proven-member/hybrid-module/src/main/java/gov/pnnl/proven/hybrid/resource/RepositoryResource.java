@@ -146,15 +146,15 @@ import com.github.jsonldjava.utils.JsonUtils;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
 import gov.pnnl.proven.hybrid.concept.ConceptUtil;
 import gov.pnnl.proven.hybrid.concept.DomainModel;
 import gov.pnnl.proven.hybrid.concept.dto.ProvenState;
 import gov.pnnl.proven.hybrid.manager.StoreManager;
 import gov.pnnl.proven.hybrid.service.ConceptService;
 import gov.pnnl.proven.hybrid.util.Consts;
-import gov.pnnl.proven.message.MessageContent;
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.ProvenMessageResponse;
 
 /**
  * Session Bean implementation class RepositoryResource

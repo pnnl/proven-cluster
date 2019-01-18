@@ -80,14 +80,12 @@
 
 package gov.pnnl.proven.hybrid.service;
 
+import static gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric.MetricFragmentIdentifier.*;
 import static gov.pnnl.proven.hybrid.concept.ConceptUtil.*;
 import static gov.pnnl.proven.hybrid.concept.ProvenConceptSchema.*;
 import static gov.pnnl.proven.hybrid.util.Consts.*;
 import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.*;
 import static gov.pnnl.proven.hybrid.util.Utils.*;
-import static gov.pnnl.proven.message.ProvenMetric.MetricFragmentIdentifier.*;
-
-import gov.pnnl.proven.message.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -153,6 +151,9 @@ import org.openrdf.store.blob.BlobObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.disclosure.message.*;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 import gov.pnnl.proven.hybrid.concept.Concept;
 import gov.pnnl.proven.hybrid.concept.DomainModel;
 import gov.pnnl.proven.hybrid.concept.NativeSource;
@@ -165,15 +166,6 @@ import gov.pnnl.proven.hybrid.util.ProvenConfig;
 import gov.pnnl.proven.hybrid.util.Mpoint;
 import gov.pnnl.proven.hybrid.util.Measurement;
 import gov.pnnl.proven.hybrid.util.Results;
-import gov.pnnl.proven.message.ProvenMeasurement;
-import gov.pnnl.proven.message.ProvenMessage;
-import gov.pnnl.proven.message.ProvenMessageResponse;
-import gov.pnnl.proven.message.ProvenMetric;
-import gov.pnnl.proven.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
-import gov.pnnl.proven.message.ProvenQueryFilter;
-import gov.pnnl.proven.message.ProvenQueryTimeSeries;
-import gov.pnnl.proven.message.MessageUtils;
-import gov.pnnl.proven.message.exception.InvalidProvenMessageException;
 
 /**
  * Session Bean implementation class ConcepService

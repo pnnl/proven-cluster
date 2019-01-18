@@ -97,8 +97,8 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.message.ProvenStatement;
-import gov.pnnl.proven.message.exception.InvalidProvenStatementsException;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenStatement;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenStatementsException;
 
 /**
  * Utility methods and Types for the Concept package.

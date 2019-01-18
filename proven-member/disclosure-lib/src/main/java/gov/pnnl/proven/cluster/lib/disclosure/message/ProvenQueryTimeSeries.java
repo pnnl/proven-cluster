@@ -37,107 +37,119 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.util.Arrays;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnmanagedMessageContentStream;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 /**
- * Disclosure streams store {@code ProvenMessage} instances in the memory
- * component of Proven's hybrid store. The combination of the message's
- * {@code DisclosureDomain} and the {@code MessageContent} identifies the
- * disclosure stream for a ProvenMessage.
+ * Represents a time-series query.
  * 
  * @author d3j766
  *
  */
-public enum DisclosureStream {
+@XmlRootElement
+public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serializable {
 
-		Disclosed(StreamType.DISCLOSED_STREAM, MessageContent.Disclosure),
+	private static final long serialVersionUID = 1L;
 
-		Message(
-				StreamType.MESSAGE_STREAM,
-				MessageContent.Administrative,
-				MessageContent.ContinuousQuery,
-				MessageContent.Explicit,
-				MessageContent.Measurement,
-				MessageContent.Query,
-				MessageContent.Static,
-				MessageContent.Structure),
+	private static Logger log = LoggerFactory.getLogger(ProvenQueryTimeSeries.class);
+	
+	/**
+	 * Name of measurement, identifies a time-series measurement container. If
+	 * null, proven's storage component is responsible for measurement
+	 * assignment. Provides a default.
+	 */
+	private String measurementName = MessageUtils.DEFAULT_MEASUREMENT;
 
-		Response(StreamType.RESPONSE_STREAM, MessageContent.Response);
+	/**
+	 * Semantic link to proven message concept instance.
+	 */
+	private URI provenMessage;
 
-		private class StreamType {
-			private static final String DISCLOSED_STREAM = "disclosed";
-			private static final String MESSAGE_STREAM = "message";
-			private static final String RESPONSE_STREAM = "response";
+	/**
+	 * List of filters to apply to measurement.
+	 */
+	private List<ProvenQueryFilter> filters;
+
+	
+	public ProvenQueryTimeSeries() {
+	}
+
+	
+	void addFilter(ProvenQueryFilter filter) {
+		if (null == filters) {
+			filters = new ArrayList<ProvenQueryFilter>();
 		}
+		filters.add(filter);
+	}
 
-		static Logger log = LoggerFactory.getLogger(DisclosureStream.class);
+	
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
 		
-		String streamType;
-		List<MessageContent> messageContents;
+		this.measurementName = in.readUTF();
+		String provenMessageStr = in.readUTF();
+		this.provenMessage = ((provenMessageStr.isEmpty()) ? null : URI.create(provenMessageStr));
+		this.filters = in.readObject();
+	}
+	
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		
+		out.writeUTF(this.measurementName);
+		String provenMessageStr = ((null == this.provenMessage) ? ("") : this.provenMessage.toString());
+		out.writeUTF(provenMessageStr);
+		out.writeObject(this.filters);
+	}
+	
+	
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+	
+	
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
+	}
+	
+	
+	public String getMeasurementName() {
+		return measurementName;
+	}
 
-		DisclosureStream(String streamType, MessageContent... contents) {
-			this.streamType = streamType;
-			messageContents = Arrays.asList(contents);
-		}
+	public void setMeasurementName(String measurementName) {
+		this.measurementName = measurementName;
+	}
 
-		/**
-		 * Provides the name of the disclosure stream by domain. The domain name
-		 * and stream type are used to name the disclosure stream.
-		 * 
-		 * @param dd
-		 *            the disclosure domain
-		 * 
-		 * @return the name of the associated disclosure stream
-		 * 
-		 */
-		public String getName(DisclosureDomain dd) {
-			return buildStreamName(dd, streamType);
-		}
+	public URI getProvenMessage() {
+		return provenMessage;
+	}
 
-		/**
-		 * Provides the name of the disclosure stream associated with a
-		 * {@code MessageContent}. It is assumed that there is a single stream
-		 * associated with each message content type. A runtime exception is
-		 * thrown if a stream cannot be found for the provided message content
-		 * type. The domain name and stream type are used to name the disclosure
-		 * stream.
-		 * 
-		 * @param mc
-		 *            the MessageContent to search on
-		 * @param dd
-		 *            the disclosure domain
-		 * 
-		 * @return the name of the associated disclosure stream
-		 * 
-		 */
-		public String getName(MessageContent mc, DisclosureDomain dd) {
+	public void setProvenMessage(URI provenMessage) {
+		this.provenMessage = provenMessage;
+	}
 
-			String ret;
+	public List<ProvenQueryFilter> getFilters() {
+		return filters;
+	}
 
-			if (Disclosed.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.DISCLOSED_STREAM);
-			} else if (Message.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.MESSAGE_STREAM);
-			} else if (Response.messageContents.contains(mc)) {
-				ret = buildStreamName(dd, StreamType.RESPONSE_STREAM);
-			} else {
-				throw new UnmanagedMessageContentStream();
-			}
-
-			return ret;
-		}
-
-		private String buildStreamName(DisclosureDomain dd, String sType) {
-			String domainPart = dd.getReverseDomain();
-			String streamPart = sType;
-			return domainPart + "." + streamPart;
-		}
+	public void setFilters(List<ProvenQueryFilter> filters) {
+		this.filters = filters;
+	}
 
 }
