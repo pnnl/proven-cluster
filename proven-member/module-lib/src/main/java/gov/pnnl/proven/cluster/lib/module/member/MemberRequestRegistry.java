@@ -44,6 +44,7 @@ import java.io.Serializable;
 import javax.ejb.Singleton;
 
 import fish.payara.cluster.Clustered;
+import gov.pnnl.proven.cluster.lib.module.component.stream.MessageStream;
 
 
 /**

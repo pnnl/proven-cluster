@@ -90,7 +90,7 @@ import javax.jms.ObjectMessage;
 import javax.resource.AdministeredObjectDefinition;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 
 //@formatter:off
 //@AdministeredObjectDefinition(
@@ -122,10 +122,8 @@ public class DisclosureResponse extends MessageConsumer implements MessageListen
 	public void onMessage(Message message) {
 		
 		try {
-
 			
-			
-			ProvenMessageResponse pr;
+			DisclosureResponse pr;
 
 			if (message instanceof ObjectMessage) {
 
@@ -133,7 +131,7 @@ public class DisclosureResponse extends MessageConsumer implements MessageListen
 				System.out.println(message);
 
 				ObjectMessage objectMessage = (ObjectMessage) message;
-				pr = (ProvenMessageResponse) objectMessage.getObject();
+				pr = (DisclosureResponse) objectMessage.getObject();
 
 				// Received response message, request load into hybrid store
 				System.out.println("ProvenMessageResponse :: " + pr.toString());
@@ -146,8 +144,14 @@ public class DisclosureResponse extends MessageConsumer implements MessageListen
 
 	}
 
-	ProvenMessageResponse processMessage(ProvenMessage pm) {
-		return new ProvenMessageResponse();
+	DisclosureResponse processMessage(ProvenMessage pm) {
+		return new DisclosureResponse();
+	}
+
+	@Override
+	gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse processMessage(ProvenMessageOriginal pm) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -130,7 +130,7 @@ public class MqConsumer {
 		
 		Serializable response = null;
 			
-		Message message = responseConsumer.receive(5000);
+		Knowledge message = responseConsumer.receive(5000);
 
         if (message instanceof TextMessage) {
             TextMessage textMessage = (TextMessage) message;

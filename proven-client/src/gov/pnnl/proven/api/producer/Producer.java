@@ -103,6 +103,7 @@ import gov.pnnl.proven.api.exception.NullExchangeInfoException;
 import gov.pnnl.proven.api.exception.SendMessageException;
 import gov.pnnl.proven.api.exchange.ExchangeInfo;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 
 
 /**
@@ -274,7 +275,7 @@ public abstract class Producer implements ProvenStatus {
 
 
 	/**
-	 * Creates a new ProvenanceMessage identified by the provided message name. Message term values
+	 * Creates a new ProvenanceMessage identified by the provided message name. Knowledge term values
 	 * will be provided if the term's origin type is <i>API</i> (meaning it's value is provided by
 	 * the API itself). Caller is responsible for setting values for remaining terms where term
 	 * origin type is <i>USER</i>. Messages cannot be sent unless all term value's are provided,
@@ -322,7 +323,7 @@ public abstract class Producer implements ProvenStatus {
 	 * @throws NullTermValueException
 	 *             if a message term has a null value
 	 */
-	public ProvenResponse sendMessage(ProvenMessage message, ExchangeInfo exchangeInfo, String requestId) throws SendMessageException, NullExchangeInfoException {
+	public ProvenResponse sendMessage(ProvenMessageOriginal message, ExchangeInfo exchangeInfo, String requestId) throws SendMessageException, NullExchangeInfoException {
 
 		/*if(registration.provenContext.getProvenInfo().isSaveMessagesInFile())
 		{

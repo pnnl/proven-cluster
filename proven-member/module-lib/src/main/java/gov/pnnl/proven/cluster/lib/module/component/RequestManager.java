@@ -37,26 +37,33 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
 
-import java.io.Serializable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-/**
- * Represents an operation providing a {@code DisclosureStream}.
- * 
- * @author d3j766
- *
- */
-@FunctionalInterface
-public interface StreamProvider extends Serializable {
+import java.lang.reflect.Method;
 
-	static Logger log = LoggerFactory.getLogger(StreamProvider.class);
+import javax.enterprise.context.ApplicationScoped;
+
+import gov.pnnl.proven.cluster.lib.module.request.ModuleRequest;
+
+@ApplicationScoped
+public class RequestManager {
+
+	public <T> void registerRequest(Class<T> mr) {
+		
+		System.out.println(mr.getName());
+		
+		System.out.println(mr.isAssignableFrom(ModuleRequest.class));
+
+		System.out.println(ModuleRequest.class.isAssignableFrom(mr));
+		
+		Method[] methods = mr.getMethods();
+
+		System.out.println(methods.toString());
+		
+		
+		
+	}
 	
-	/**
-	 * Provides a disclosure stream.
-	 */
-	DisclosureStream getStream();
-
+	
 }

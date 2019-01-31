@@ -55,6 +55,7 @@ public abstract class ProvenModule implements ModuleStartupEventObserver {
 
 		logger.debug("ProvenModule startup message observed");
 
+		// TODO - managers to activate should be configurable per module
 		// Activate managers
 
 		// Log startup message

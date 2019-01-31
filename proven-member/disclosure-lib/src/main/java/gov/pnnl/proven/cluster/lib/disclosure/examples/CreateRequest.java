@@ -44,9 +44,9 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.ClientProxyRequest;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.RequestScope;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidRequestRegistrationException;
+import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.request.ExplicitJsonDisclosureRequest;
 
 public class CreateRequest {

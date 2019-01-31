@@ -37,110 +37,85 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.module.component.stream;
 
-import java.io.Serializable;
-import java.io.StringReader;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.stream.JsonParsingException;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnmanagedMessageContentStream;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+
 /**
- * Contains Proven request data represented in the JSON format. JSON data (input
- * or schema) is checked for correctness when it's added either at construction
- * or use of setter methods. Incorrect JSON values will throw a
- * {@code JsonParsingException}.
- * 
- * TODO 
- * Add support for references (e.g. URI location) to remote JSON and JSON-SCHEMA data.  
- * 
+ * Message streams store {@code ProvenMessage} instances, that have been
+ * disclosed to the platform, in the memory component of Proven's hybrid store.
  * 
  * @author d3j766
  *
- * @see
- * @since
  */
-public class JsonDisclosure implements Serializable {
+public enum MessageStream {
 
-	private static final long serialVersionUID = 1L;
-	private static Logger log = LoggerFactory.getLogger(JsonDisclosure.class);
+	Disclosusre(StreamType.DISCLOSURE_STREAM, MessageContent.Disclosure),
+
+	Knowledge(
+			StreamType.KNOWLEDGE_STREAM,
+			MessageContent.Administrative,
+			MessageContent.ContinuousQuery,
+			MessageContent.Explicit,
+			MessageContent.Implicit,
+			MessageContent.Measurement,
+			MessageContent.Query,
+			MessageContent.Static,
+			MessageContent.Structure),
+
+	Response(StreamType.RESPONSE_STREAM, MessageContent.Response);
+
+	private class StreamType {
+		private static final String DISCLOSURE_STREAM = "disclosed";
+		private static final String KNOWLEDGE_STREAM = "knowledge";
+		private static final String RESPONSE_STREAM = "response";
+	}
+
+	static Logger log = LoggerFactory.getLogger(MessageStream.class);
+
+	private String streamType;
+	private List<MessageContent> messageContents;
+
+	MessageStream(String streamType, MessageContent... contents) {
+		this.streamType = streamType;
+		messageContents = Arrays.asList(contents);
+	}
 
 	/**
-	 * JSON input data. Only String value is serialized.
+	 * Provides the name of the message stream using provided domain.
+	 * 
+	 * @param dd
+	 *            the disclosure domain. If null, the default proven domain is
+	 *            used.
+	 * 
+	 * @return the name of the associated disclosure stream
+	 * 
 	 */
-	@SuppressWarnings("unused")
-	private transient JsonObject inputJson;
-	private String input;
+	protected String getStreamName(DisclosureDomain dd) {
+		return buildStreamName(dd, streamType);
+	}
 
 	/**
-	 * JSON schema data. Only String value is serialized.
+	 * Provides the {@code MessageContent} supported by the stream.
+	 * 
+	 * @return a list of supported MessageContent
+	 * 
 	 */
-	@SuppressWarnings("unused")
-	private transient JsonObject schemaJson;
-	private String schema;
-
-	public JsonDisclosure() {
+	public List<MessageContent> getMessageContents() {
+		return messageContents;
 	}
 
-	public JsonDisclosure(String input) {
-		this(input, null);
-	}
-
-	public JsonDisclosure(String input, String schema) {
-		addInput(input);
-		addSchema(schema);
-	}
-
-	private void addSchema(String schema) {
-		JsonObject obj = toJsonObject(schema);
-		this.schemaJson = obj;
-		this.schema = schema;
-	}
-
-	private void addInput(String input) {
-		JsonObject obj = toJsonObject(input);
-		this.inputJson = obj;
-		this.input = input;
-	}
-
-	private JsonObject toJsonObject(String json) {
-
-		JsonObject ret = null;
-		
-		if (null != json) {
-	
-			JsonReader reader = Json.createReader(new StringReader(json));
-			
-			try {
-				ret = reader.readObject();
-			} catch (JsonParsingException e) {
-				log.error("Encountered invalid JSON in " + this.getClass().getSimpleName() + " :: " + json);
-				e.printStackTrace();
-				throw e;
-			} finally {
-				reader.close();
-			}
-		}
-		return ret;
-	}
-
-	public String getInput() {
-		return input;
-	}
-
-	public void setInput(String input) {
-		addInput(input);
-	}
-
-	public String getSchema() {
-		return schema;
-	}
-
-	public void setSchema(String schema) {
-		addSchema(schema);
+	private String buildStreamName(DisclosureDomain dd, String sType) {
+		String domainPart = dd.getReverseDomain();
+		String streamPart = sType;
+		return domainPart + "." + streamPart;
 	}
 
 }

@@ -96,6 +96,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 
 /**
  * @author raju332
@@ -122,7 +123,7 @@ public class MqProducer {
 		
 	}
 
-	public void sendMessage(ProvenMessage provenMessage, String requestId) throws JMSException{
+	public void sendMessage(ProvenMessageOriginal provenMessage, String requestId) throws JMSException{
 		
 		
 		Topic topic = null;
@@ -144,7 +145,7 @@ public class MqProducer {
 	/*public void sendLogToGridAPPSD(LogMessage logMessage) throws JMSException{
 		Destination topic = session.createTopic("goss.gridappsd.proven.log");
 		MessageProducer messageProducer = session.createProducer(topic);
-		Message message = session.createObjectMessage(provenMessage);
+		Knowledge message = session.createObjectMessage(provenMessage);
 		messageProducer.send(message);
 	}*/
 }

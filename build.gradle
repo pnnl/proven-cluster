@@ -80,7 +80,9 @@ project('proven-member:exchange-lib') {
 }
 
 project('proven-member:module-lib') {
-	dependencies {  compile project(':proven-member:disclosure-lib') }
+	dependencies {  
+		compile project(':proven-member:disclosure-lib')
+		compile project(':proven-member:stream-lib') }
 }
 
 project('proven-member:hybrid-lib') {
@@ -88,7 +90,7 @@ project('proven-member:hybrid-lib') {
 }
 
 project('proven-member:stream-lib') {
-	// No dependenies
+	dependencies {  compile project(':proven-member:disclosure-lib') }
 }
 
 project('proven-member:member-lib') {

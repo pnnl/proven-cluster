@@ -37,12 +37,52 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-/**
- * 
- */
-/**
- * @author d3j766
- *
- */
-package gov.pnnl.proven.cluster.lib.module.component.manager;
+import java.io.IOException;
+import java.util.UUID;
+
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+
+public abstract class DisclosureMessage extends ProvenMessage {
+
+	private static final long serialVersionUID = 1L;
+	
+	String disclosureId;
+	MessageContent disclosedContent;
+	boolean isRequest;
+	boolean isKnowledge;
+	boolean hasMeasurements;
+	
+	DisclosureMessage() {
+		// Set defaults 
+		this.disclosureId = "NOT PROVIDED";
+		this.messageContent = MessageContent.Disclosure;
+		this.disclosedContent = MessageContent.Explicit;
+		this.isRequest = false;
+		this.isKnowledge = true;
+		this.hasMeasurements = false;	
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
+		this.disclosureId = in.readUTF();
+		this.disclosedContent = MessageContent.valueOf(in.readUTF());
+		this.isRequest = in.readBoolean();
+		this.isKnowledge = in.readBoolean();
+		this.hasMeasurements = in.readBoolean();
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
+		out.writeUTF(this.disclosureId);
+		out.writeUTF(this.disclosedContent.toString());
+		out.writeBoolean(this.isRequest);
+		out.writeBoolean(this.isKnowledge);
+		out.writeBoolean(this.hasMeasurements);
+	}	
+	
+}

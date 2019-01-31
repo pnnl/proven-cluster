@@ -37,31 +37,110 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.stream;
+package gov.pnnl.proven.cluster.lib.stream;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
 
-@ApplicationScoped
-public class StreamModule extends ProvenModule {
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnmanagedMessageContentStream;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 
-	public static void main(String[] args) {
-	}
-	
-	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
+/**
+ * Knowledge Graph streams store {@code ProvenMessage} instances in the memory
+ * component of Proven's hybrid store. The combination of the message's
+ * {@code DisclosureDomain} and the {@code MessageContent} identifies the
+ * knowledge graph's stream for a ProvenMessage.
+ * 
+ * @author d3j766
+ *
+ */
+public enum KGStreamName {
 
-	@Inject
-	private HazelcastInstance hzInstance;
+		Disclosed(StreamType.DISCLOSED_STREAM, MessageContent.Disclosure),
 
-	@PostConstruct
-	public void init() {
+		Knowledge(
+				StreamType.KNOWLEDGE_STREAM,
+				MessageContent.Administrative,
+				MessageContent.ContinuousQuery,
+				MessageContent.Explicit,
+				MessageContent.Implicit,
+				MessageContent.Measurement,
+				MessageContent.Query,
+				MessageContent.Static,
+				MessageContent.Structure),
+
+		Response(StreamType.RESPONSE_STREAM, MessageContent.Response);
+
+		private class StreamType {
+			private static final String DISCLOSED_STREAM = "disclosed";
+			private static final String KNOWLEDGE_STREAM = "knowledge";
+			private static final String RESPONSE_STREAM = "response";
+		}
+
+		static Logger log = LoggerFactory.getLogger(KGStreamName.class);
 		
-		log.info("StreamModule startup, creating proven disclosure streams...");
-	}
-	
+		String streamType;
+		List<MessageContent> messageContents;
+
+		KGStreamName(String streamType, MessageContent... contents) {
+			this.streamType = streamType;
+			messageContents = Arrays.asList(contents);
+		}
+
+		/**
+		 * Provides the name of the disclosure stream by domain. The domain name
+		 * and stream type are used to name the disclosure stream.
+		 * 
+		 * @param dd
+		 *            the disclosure domain
+		 * 
+		 * @return the name of the associated disclosure stream
+		 * 
+		 */
+		public String getName(DisclosureDomain dd) {
+			return buildStreamName(dd, streamType);
+		}
+
+		/**
+		 * Provides the name of the disclosure stream associated with a
+		 * {@code MessageContent}. It is assumed that there is a single stream
+		 * associated with each message content type. A runtime exception is
+		 * thrown if a stream cannot be found for the provided message content
+		 * type. The domain name and stream type are used to name the disclosure
+		 * stream.
+		 * 
+		 * @param mc
+		 *            the MessageContent to search on
+		 * @param dd
+		 *            the disclosure domain
+		 * 
+		 * @return the name of the associated disclosure stream
+		 * 
+		 */
+		public String getName(MessageContent mc, DisclosureDomain dd) {
+
+			String ret;
+
+			if (Disclosed.messageContents.contains(mc)) {
+				ret = buildStreamName(dd, StreamType.DISCLOSED_STREAM);
+			} else if (Knowledge.messageContents.contains(mc)) {
+				ret = buildStreamName(dd, StreamType.KNOWLEDGE_STREAM);
+			} else if (Response.messageContents.contains(mc)) {
+				ret = buildStreamName(dd, StreamType.RESPONSE_STREAM);
+			} else {
+				throw new UnmanagedMessageContentStream();
+			}
+
+			return ret;
+		}
+
+		private String buildStreamName(DisclosureDomain dd, String sType) {
+			String domainPart = dd.getReverseDomain();
+			String streamPart = sType;
+			return domainPart + "." + streamPart;
+		}
+
 }

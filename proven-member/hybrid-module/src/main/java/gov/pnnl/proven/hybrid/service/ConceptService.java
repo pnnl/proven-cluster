@@ -719,8 +719,8 @@ public class ConceptService {
 
 	}
 
-	public ProvenMessageResponse influxQuery(ProvenMessage query) throws InvalidProvenMessageException {
-		ProvenMessageResponse ret = null;
+	public DisclosureResponse influxQuery(ProvenMessageOriginal query) throws InvalidProvenMessageException {
+		DisclosureResponse ret = null;
 		String space = " ";
 		String eq = "=";
 		String quote = "'";
@@ -787,14 +787,14 @@ public class ConceptService {
 			QueryResult qr = influxDB.query(influxQuery);
 
 			if (qr.hasError()) {
-				ret = new ProvenMessageResponse();
+				ret = new DisclosureResponse();
 				ret.setReason("Invalid or missing content.");
 				ret.setStatus(Status.BAD_REQUEST);
 				ret.setCode(Status.BAD_REQUEST.getStatusCode());
 				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 
 			} else {
-				ret = new ProvenMessageResponse();
+				ret = new DisclosureResponse();
 				ret.setReason("Success");
 				ret.setStatus(Status.OK);
 				ret.setCode(Status.OK.getStatusCode());
@@ -804,7 +804,7 @@ public class ConceptService {
 			influxDB.close();
 		} else {
 
-			ret = new ProvenMessageResponse();
+			ret = new DisclosureResponse();
 			ret.setReason("Time-series database unavailable or database adapter is disabled.");
 			ret.setStatus(Status.SERVICE_UNAVAILABLE);
 			ret.setCode(Status.SERVICE_UNAVAILABLE.getStatusCode());

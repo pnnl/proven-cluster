@@ -83,7 +83,8 @@ package gov.pnnl.proven.api.exchange;
 import gov.pnnl.proven.api.producer.ProvenResponse;
 import gov.pnnl.proven.api.producer.SessionInfo;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
 
 import java.net.URI;
 
@@ -132,7 +133,7 @@ class RestExchange implements Exchange {
 	 */
 	@Override
 
-	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, final ProvenMessage message, final SessionInfo sessionInfo, String requestId) {
+	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, final ProvenMessageOriginal message, final SessionInfo sessionInfo, String requestId) {
 
 				
 //		final String ADD_SERVICE_PATH = "/provenance/" + provenanceInfo.getContext();
@@ -151,10 +152,10 @@ class RestExchange implements Exchange {
 			URI uri = new URI(exchangeInfo.getServicesUri());
 	        Client client = ClientBuilder.newClient();
 	        
-	        ProvenMessageResponse response = client.target(uri).
+	        DisclosureResponse response = client.target(uri).
 	          request(MediaType.APPLICATION_JSON).
 	          accept(MediaType.APPLICATION_JSON).
-	          post(Entity.entity(message, MediaType.APPLICATION_JSON), ProvenMessageResponse.class);
+	          post(Entity.entity(message, MediaType.APPLICATION_JSON), DisclosureResponse.class);
 	        System.out.println(response.getCode());
 
 	        pr.code = response.getCode();

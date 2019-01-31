@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
 import com.hazelcast.core.MapStore;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMeasurement;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
 import gov.pnnl.proven.hybrid.util.ProvenConfig;
@@ -75,7 +75,7 @@ import gov.pnnl.proven.hybrid.util.ProvenConfig;
  * the proven context and base uri are used.
  * 
  */
-public class HybridMapStore implements MapStore<String, ProvenMessage> {
+public class HybridMapStore implements MapStore<String, ProvenMessageOriginal> {
 
 	private final Logger log = LoggerFactory.getLogger(HybridMapStore.class);
 
@@ -109,7 +109,7 @@ public class HybridMapStore implements MapStore<String, ProvenMessage> {
 	    influxDB.close();
 	  }
 	
-	public ProvenMessage load(String key) {
+	public ProvenMessageOriginal load(String key) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -124,7 +124,7 @@ public class HybridMapStore implements MapStore<String, ProvenMessage> {
 		return null;
 	}
 
-	public void store(String key, ProvenMessage value) {
+	public void store(String key, ProvenMessageOriginal value) {
 		// TODO Auto-generated method stub
 
 	}
@@ -132,16 +132,16 @@ public class HybridMapStore implements MapStore<String, ProvenMessage> {
 
 
 	@Override
-	public void storeAll(Map<String, ProvenMessage> map) { //1
+	public void storeAll(Map<String, ProvenMessageOriginal> map) { //1
 		// TODO Auto-generated method stub
 		if (useIdb) { //2
-			for (Map.Entry<String, ProvenMessage> entry : map.entrySet()) { //3
+			for (Map.Entry<String, ProvenMessageOriginal> entry : map.entrySet()) { //3
 				// OLD Long startTime = System.currentTimeMillis();
 //				influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
 //				// influxDB.enableBatch(BatchOptions.DEFAULT_BATCH_ACTIONS_LIMIT,
 //				// BatchOptions.DEFAULT_BATCH_INTERVAL_DURATION, TimeUnit.SECONDS);
 //				influxDB.enableBatch(20000, 10, TimeUnit.SECONDS);
-				ProvenMessage message = (ProvenMessage) entry.getValue();
+				ProvenMessageOriginal message = (ProvenMessageOriginal) entry.getValue();
 				Collection<ProvenMeasurement> measurements = message.getMeasurements();  
 				for (ProvenMeasurement measurement : measurements) { //4
 

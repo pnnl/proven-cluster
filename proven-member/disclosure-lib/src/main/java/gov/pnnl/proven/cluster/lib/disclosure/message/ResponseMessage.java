@@ -37,31 +37,29 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.stream;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+import java.io.IOException;
+import java.util.UUID;
 
-@ApplicationScoped
-public class StreamModule extends ProvenModule {
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
-	public static void main(String[] args) {
-	}
-	
-	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
+public abstract class ResponseMessage extends ProvenMessage {
 
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	@PostConstruct
-	public void init() {
+	private static final long serialVersionUID = 1L;
 		
-		log.info("StreamModule startup, creating proven disclosure streams...");
+	ResponseMessage() {	
 	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
+	}	
 	
 }

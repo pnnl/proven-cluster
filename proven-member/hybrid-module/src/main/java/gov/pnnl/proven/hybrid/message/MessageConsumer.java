@@ -97,7 +97,8 @@ import org.openrdf.model.Statement;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMeasurement;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenStatement;
 
 import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
@@ -126,9 +127,9 @@ abstract class MessageConsumer {
 //	@Resource(lookup = JNDI_CONNECTION)
 //	ConnectionFactory factory;
 
-	abstract ProvenMessageResponse processMessage(ProvenMessage pm);
+	abstract DisclosureResponse processMessage(ProvenMessageOriginal pm);
 
-	protected void sendResponse(ProvenMessageResponse pr, Message message) {
+	protected void sendResponse(DisclosureResponse pr, Message message) {
 
 		pr.setRequestId(getRequestId(message));
 
@@ -153,7 +154,7 @@ abstract class MessageConsumer {
 		return ret;
 	}
 
-	protected void testOutput(ProvenMessage pm) {
+	protected void testOutput(ProvenMessageOriginal pm) {
 
 		if (null != pm.getStatements()) {
 			int stmts = pm.getStatements().size();

@@ -83,7 +83,8 @@ package gov.pnnl.proven.api.exchange;
 import gov.pnnl.proven.api.producer.ProvenResponse;
 import gov.pnnl.proven.api.producer.SessionInfo;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
 
 import java.util.List;
 
@@ -108,7 +109,7 @@ public interface Exchange {
 	 * @param sessionInfo 
 	 * @return true if the message was successfully added, false otherwise
 	 */
-	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, ProvenMessage message, SessionInfo sessionInfo, String requestId);
+	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, ProvenMessageOriginal message, SessionInfo sessionInfo, String requestId);
 
 	/**
 	 * Adds provided messages to the exchange.

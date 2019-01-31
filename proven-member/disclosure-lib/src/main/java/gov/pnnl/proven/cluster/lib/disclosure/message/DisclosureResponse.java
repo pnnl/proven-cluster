@@ -37,31 +37,116 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.stream;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
+
+import java.io.IOException;
+import java.io.Serializable;
+
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
 
-@ApplicationScoped
-public class StreamModule extends ProvenModule {
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-	public static void main(String[] args) {
+/**
+ * Represents response results for a {@link ProvenMessage} request.
+ * 
+ * @author d3j766
+ *
+ */
+@XmlRootElement
+public class DisclosureResponse extends ResponseMessage implements IdentifiedDataSerializable, Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	private static Logger log = LoggerFactory.getLogger(DisclosureResponse.class);
+
+	private String requestId;
+
+	private Status status;
+
+	private int code;
+
+	private String reason;
+
+	private String response;
+
+	public DisclosureResponse() {
 	}
-	
-	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
 
-	@Inject
-	private HazelcastInstance hzInstance;
-
-	@PostConstruct
-	public void init() {
-		
-		log.info("StreamModule startup, creating proven disclosure streams...");
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
+		this.requestId = in.readUTF();
+		this.status = in.readObject();
+		this.code = in.readInt();
+		this.reason = in.readUTF();
+		this.response = in.readUTF();
 	}
-	
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
+		out.writeUTF(this.requestId);
+		out.writeObject(this.status);
+		out.writeInt(this.code);
+		out.writeUTF(this.reason);
+		out.writeUTF(this.response);
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.DISCLOSURE_RESPONSE_TYPE;
+	}
+
+	public String getRequestId() {
+		return requestId;
+	}
+
+	public void setRequestId(String requestId) {
+		this.requestId = requestId;
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public int getCode() {
+		return code;
+	}
+
+	public void setCode(int code) {
+		this.code = code;
+	}
+
+	public String getReason() {
+		return reason;
+	}
+
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
+
+	public String getResponse() {
+		return response;
+	}
+
+	public void setResponse(String response) {
+		this.response = response;
+	}
+
 }

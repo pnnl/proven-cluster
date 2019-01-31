@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.event;
 
+import gov.pnnl.proven.cluster.lib.module.component.stream.MessageStreamProxy;
+
 /**
  * Module startup event. An implementation of ProvenModule is required to
  * observe this event for module activation to occur.

@@ -37,117 +37,29 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
-import java.io.Serializable;
-
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.UUID;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-/**
- * Represents response results for a {@link ProvenMessage} request.
- * 
- * @author d3j766
- *
- */
-@XmlRootElement
-public class ProvenMessageResponse implements IdentifiedDataSerializable, Serializable {
+public abstract class KnowledgeMessage extends ProvenMessage {
 
 	private static final long serialVersionUID = 1L;
-
-	private static Logger log = LoggerFactory.getLogger(ProvenMessageResponse.class);
-
-	private String requestId;
-
-	private Status status;
-
-	private int code;
-
-	private String reason;
-
-	private String response;
-
-	public ProvenMessageResponse() {
+		
+	KnowledgeMessage() {	
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-
-		this.requestId = in.readUTF();
-		this.status = in.readObject();
-		this.code = in.readInt();
-		this.reason = in.readUTF();
-		this.response = in.readUTF();
+		super.readData(in);
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-
-		out.writeUTF(this.requestId);
-		out.writeObject(this.status);
-		out.writeInt(this.code);
-		out.writeUTF(this.reason);
-		out.writeUTF(this.response);
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_MESSAGE_RESPONSE_TYPE;
-	}
+		super.writeData(out);
+	}	
 	
-		
-	public String getRequestId() {
-		return requestId;
-	}
-
-	public void setRequestId(String requestId) {
-		this.requestId = requestId;
-	}
-
-	public Status getStatus() {
-		return status;
-	}
-
-	public void setStatus(Status status) {
-		this.status = status;
-	}
-
-	public int getCode() {
-		return code;
-	}
-
-	public void setCode(int code) {
-		this.code = code;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public String getResponse() {
-		return response;
-	}
-
-	public void setResponse(String response) {
-		this.response = response;
-	}
-
 }
