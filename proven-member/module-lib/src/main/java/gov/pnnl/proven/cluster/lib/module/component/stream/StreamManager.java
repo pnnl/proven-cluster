@@ -38,32 +38,83 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.lib.module.component.manager;
+package gov.pnnl.proven.cluster.lib.module.component.stream;
 
-import java.lang.reflect.Method;
-
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
-import gov.pnnl.proven.cluster.lib.module.request.ModuleRequest;
 
+/**
+ * A component manager responsible for managing the platform's message streams.
+ *  
+ * @author d3j766
+ * 
+ * @see ComponentManager
+ *
+ */
 @ApplicationScoped
-public class RequestManager {
+public class StreamManager implements ComponentManager, ModuleComponent, MessageStreamProvider {
 
-	public <T> void registerRequest(Class<T> mr) {
-		
-		System.out.println(mr.getName());
-		
-		System.out.println(mr.isAssignableFrom(ModuleRequest.class));
+	static Logger log = LoggerFactory.getLogger(StreamManager.class);
 
-		System.out.println(ModuleRequest.class.isAssignableFrom(mr));
-		
-		Method[] methods = mr.getMethods();
+	/**
+	 * Set of managed proxy instances that provide access to the underlying
+	 * message streams, organized by the domain of disclosure.
+	 */
+	private Map<DisclosureDomain, Set<MessageStreamProxy>> domainStreams;
 
-		System.out.println(methods.toString());
-		
-		
-		
+	@PostConstruct
+	public void initialize() {
+		domainStreams = new HashMap<DisclosureDomain, Set<MessageStreamProxy>>();
+		createStreams(DomainProvider.getProvenDisclosureDomain());
 	}
-	
-	
+
+	private void createStreams(DisclosureDomain dd) {
+
+		synchronized (domainStreams) {
+
+			if (!isManagedDomain(dd)) {
+				Set<MessageStreamProxy> msps = new HashSet<MessageStreamProxy>();
+				for (MessageStream ms : MessageStream.values()) {
+					msps.add(createStream(dd, ms));
+				}
+				domainStreams.put(dd, msps);
+			}
+		}
+	}
+
+	private MessageStreamProxy createStream(DisclosureDomain dd, MessageStream ms) {
+		return new MessageStreamProxy(dd, ms);
+	}
+
+	private boolean isManagedDomain(DisclosureDomain dd) {
+		return (!domainStreams.containsKey(dd));
+	}
+
+	@Override
+	public MessageStreamProxy getMessageStream(DisclosureDomain dd, MessageStream ms) {
+
+		if (!isManagedDomain(dd)) {
+			createStreams(dd);
+		}
+
+		Optional<MessageStreamProxy> msp = domainStreams.get(dd)
+				.stream()
+				.filter(obj -> obj.getStreamName().equals(ms.getStreamName(dd)))
+				.findAny();
+		
+		return msp.get();
+	}
+
 }

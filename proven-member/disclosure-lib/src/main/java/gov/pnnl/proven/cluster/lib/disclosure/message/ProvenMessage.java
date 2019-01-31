@@ -47,6 +47,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+
+import javax.json.JsonObject;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -57,6 +59,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 
 /**
@@ -68,8 +71,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMes
  * @author d3j766
  *
  */
-@XmlRootElement
-public class ProvenMessage implements IdentifiedDataSerializable, Serializable {
+public abstract class ProvenMessage implements IdentifiedDataSerializable, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -84,44 +86,50 @@ public class ProvenMessage implements IdentifiedDataSerializable, Serializable {
 	public static final String MESSAGE_KEY_DELIMETER = "^||^";
 
 	public enum MessageKeyPartOrder {
-		MessageId, Domain, Name, Source, Created;
+		MessageId,
+		Domain,
+		Name,
+		Source,
+		Created;
 	};
 
+	/**
+	 * Provides the KEY for a ProvenMessage being stored in a message stream.
+	 * 
+	 * @return a String representing the KEY
+	 */
 	public String getMessageKey() {
 
 		String ret = "";
 		ret += this.messageId + MESSAGE_KEY_DELIMETER;
-		ret += ((this.domain == null) ? "" : this.domain) + MESSAGE_KEY_DELIMETER;
-		ret += ((this.name == null) ? "" : this.name) + MESSAGE_KEY_DELIMETER;
-		ret += ((this.source == null) ? "" : this.source) + MESSAGE_KEY_DELIMETER;
+		ret += ((this.domain == null) ? "" : this.domain.getDomain()) + MESSAGE_KEY_DELIMETER;
 		ret += this.messageProperties.getCreated();
 
 		return ret;
 	}
 
 	/**
-	 * Messages are assigned an identifier, making it unique across disclosure
-	 * sources.
+	 * Messages are stored internally as JSON
 	 */
-	@XmlJavaTypeAdapter(UUIDAdapter.class)
-	private UUID messageId;
+	JsonObject message;
+	
+	
+	/**
+	 * JSON schema, can be disclosed with message.
+	 */
+	JsonObject messageSchema;
+
 
 	/**
-	 * The provided unprocessed message content, used to construct a new
-	 * ProvenMessage.
+	 * Messages are assigned an identifier , making it unique across disclosure
+	 * sources.
 	 */
-	private String message;
+	UUID messageId;
 
 	/**
 	 * Identifies {@link MessageContent}
 	 */
-	private MessageContent messageContent;
-
-	/**
-	 * Message name is assigned at construction, if not provided. The name
-	 * cannot be modified once assigned.
-	 */
-	private String name;
+	MessageContent messageContent;
 
 	/**
 	 * Identifies messages domain, all messages must be associated with a
@@ -133,141 +141,82 @@ public class ProvenMessage implements IdentifiedDataSerializable, Serializable {
 	 * by sub-graphs in its semantic store, by databases in time-series store,
 	 * and by key values in distributed Map structures in the memory grid.
 	 */
-	private String domain;
+	DisclosureDomain domain;
 
 	/**
-	 * If true, message content will not be persisted in hybrid store. Default
-	 * is false.
+	 * If true, message content will not be persisted in the semantic or
+	 * time-series components of the hybrid store. Default is false.
 	 */
-	private boolean isTransient;
+	boolean isTransient;
 
 	/**
 	 * If true, message content will remain in memory grid facet of hybrid store
 	 * unless explicitly removed, @see {@link MessageContent#Static}. Default is
 	 * false.
 	 */
-	private boolean isStatic;
+	boolean isStatic;
 
 	/**
 	 * Identifies source of the message (e.g. proven-client).
 	 */
-	private String source;
+	String source;
 
 	/**
-	 * Listing of keywords that can be associated with the message for query and
-	 * discovery purposes.
+	 * Properties associated with message. 
 	 */
-	private Collection<String> keywords;
+	MessageProperties messageProperties = new MessageProperties();
 
-	/**
-	 * Properties associated with message.
-	 * 
-	 * TODO Make serializable and non-transient
-	 */
-	private MessageProperties messageProperties = new MessageProperties();
-
-	/**
-	 * Collection of measurements include in message, if any.
-	 */
-	private Collection<ProvenMeasurement> measurements;
-
-	/**
-	 * Collection of RDF Statements included in message, if any.
-	 */
-	private Collection<ProvenStatement> statements;
-
-	/**
-	 * Identifies query objects. Only applicable for
-	 * {@link MessageContent#Query}
-	 */
-	private ProvenQueryTimeSeries tsQuery;
-
-	/**
-	 * Use static method {@link ProvenMessage#message(String)} to obtain a
-	 * {@link ProvenMessage.ProvenMessageBuilder} instance and obtain a
-	 * ProvenMessage using the builder. ProvenMessage requires at a minimum a
-	 * JSON message; other parameters will be assigned values if missing. The
-	 * provided JSON is transformed into JSON-LD for storage into Proven's
-	 * hybrid store. Message content may be provided in JSON-LD form, making
-	 * JSON transform unnecessary.
-	 */
-	public ProvenMessage() {
+	public ProvenMessage() {		
 	}
-
-	/**
-	 * Creates a new {@code ProvenMessageBuilder} by providing the JSON message
-	 * content.
-	 * 
-	 * @param message
-	 *            a JSON string, basis for new {@code ProvenMessage}.
-	 * @return a new {@code ProvenMessageBuilder}
-	 * 
-	 */
-	public static ProvenMessageBuilder message(String message) {
-		ProvenMessageBuilder pmb = ProvenMessageBuilder.getInstance(message);
-		return pmb;
+	
+	public ProvenMessage(JsonObject message, DisclosureDomain domain) {
+		this.message = message;
+		this.domain = domain;
+		this.source = "UNKNOWN";
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-
+		this.message = in.readObject();
 		this.messageId = UUID.fromString(in.readUTF());
-		this.message = in.readUTF();
 		this.messageContent = MessageContent.valueOf(in.readUTF());
-		this.name = in.readUTF();
-		this.domain = in.readUTF();
+		this.domain = in.readObject();
 		this.isTransient = in.readBoolean();
 		this.isStatic = in.readBoolean();
 		this.source = in.readUTF();
-		this.keywords = in.readObject();
-		this.messageProperties = in.readObject();
-		this.measurements = in.readObject();
-		this.statements = in.readObject();
-		this.tsQuery = in.readObject();
+		this.messageProperties = in.readObject();	
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-
+		out.writeObject(this.message);
 		out.writeUTF(this.messageId.toString());
-		out.writeUTF(this.message);
 		out.writeUTF(this.messageContent.toString());
-		out.writeUTF(this.name);
-		out.writeUTF(this.domain);
+		out.writeObject(this.domain);
 		out.writeBoolean(this.isTransient);
 		out.writeBoolean(this.isStatic);
 		out.writeUTF(this.source);
-		out.writeObject(this.keywords);
 		out.writeObject(this.messageProperties);
-		out.writeObject(this.measurements);
-		out.writeObject(this.statements);
-		out.writeObject(this.tsQuery);
 	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_MESSAGE_TYPE;
+	
+	public JsonObject getMessage() {
+		return message;
 	}
 
 	public UUID getMessageId() {
 		return messageId;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public String getDomain() {
-		return domain;
-	}
-
 	public MessageContent getMessageContent() {
 		return messageContent;
+	}
+
+	public void setMessageContent(MessageContent messageContent) {
+		this.messageContent = messageContent;
+	}
+
+	public DisclosureDomain getDomain() {
+		return domain;
 	}
 
 	public boolean isTransient() {
@@ -282,301 +231,8 @@ public class ProvenMessage implements IdentifiedDataSerializable, Serializable {
 		return source;
 	}
 
-	public Collection<String> getKeywords() {
-		return keywords;
-	}
-
 	public MessageProperties getMessageProperties() {
 		return messageProperties;
 	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public Collection<ProvenMeasurement> getMeasurements() {
-		return measurements;
-	}
-
-	public Collection<ProvenStatement> getStatements() {
-		return statements;
-	}
-
-	public ProvenQueryTimeSeries getTsQuery() {
-		return tsQuery;
-	}
-
-	public void setMessageId(UUID messageId) {
-		this.messageId = messageId;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setDomain(String domain) {
-		this.domain = domain;
-	}
-
-	public void setMessageContent(MessageContent messageContent) {
-		this.messageContent = messageContent;
-	}
-
-	public void setTransient(boolean isTransient) {
-		this.isTransient = isTransient;
-	}
-
-	public void setStatic(boolean isStatic) {
-		this.isStatic = isStatic;
-	}
-
-	public void setSource(String source) {
-		this.source = source;
-	}
-
-	public void setKeywords(List<String> keywords) {
-		this.keywords = keywords;
-	}
-
-	public void setMessageProperties(MessageProperties messageProperties) {
-		this.messageProperties = messageProperties;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
-	}
-
-	public void setMeasurements(List<ProvenMeasurement> measurements) {
-		this.measurements = measurements;
-	}
-
-	public void setStatements(Collection<ProvenStatement> statements) {
-		this.statements = statements;
-	}
-
-	public void setTsQuery(ProvenQueryTimeSeries tsQuery) {
-		this.tsQuery = tsQuery;
-	}
-
-	/**
-	 * A class used to build ProvenMessage instances. The JSON message string,
-	 * at a minimum, must be provided to successfully build a
-	 * {@code ProvenMessage}.
-	 * 
-	 * @author d3j766
-	 *
-	 */
-	@XmlTransient
-	public static class ProvenMessageBuilder {
-
-		private static Logger log = LoggerFactory.getLogger(ProvenMessageBuilder.class);
-
-		private UUID messageId = UUID.randomUUID();
-		private String message;
-		private MessageContent messageContent = MessageContent.Explicit;
-		private String name;
-		private String domain;
-		private boolean isTransient = false;
-		private boolean isStatic = false;
-		private String source;
-		private List<String> keywords = new ArrayList<String>();
-		private String messageKey;
-
-		/**
-		 * Constructor is protected, use static method
-		 * {@code ProvenMessage#message(String)} to get the builder instance.
-		 * 
-		 * @param message
-		 *            the message content
-		 */
-		protected ProvenMessageBuilder(String message) {
-			this.message = message;
-		}
-
-		/**
-		 * Creates and returns a new builder instance.
-		 * 
-		 * @param message
-		 *            the message content
-		 * @return the {@code ProvenMessageBuilder}
-		 */
-		protected static ProvenMessageBuilder getInstance(String message) {
-			return new ProvenMessageBuilder(message);
-		}
-
-		/**
-		 * Adds a message to builder, if one exists it will be replaced.
-		 * 
-		 * @param message
-		 *            the message content
-		 * 
-		 * @return the {@code ProvenMessageBuilder}
-		 * 
-		 */
-		public ProvenMessageBuilder message(String message) {
-			this.message = message;
-			return this;
-		}
-
-		/**
-		 * Adds a message name. If no name is available at build, the builder
-		 * will generate a new message name.
-		 * 
-		 * @param name
-		 *            the message name
-		 * 
-		 * @return the {@code ProvenMessageBuilder}
-		 * 
-		 */
-		public ProvenMessageBuilder name(String name) {
-			this.name = name;
-			return this;
-		}
-
-		/**
-		 * Associates message with a domain. If no domain is provided, message
-		 * will be associated with Proven's "default" domain.
-		 * 
-		 * @param domain
-		 *            the message's domain
-		 * 
-		 * @return the {@code ProvenMessageBuilder}
-		 * 
-		 * 
-		 */
-		public ProvenMessageBuilder domain(String domain) {
-			this.domain = domain;
-			return this;
-		}
-
-		/**
-		 * Describes source of message. Default is no source description.
-		 * 
-		 * @param source
-		 *            the message's source description
-		 * 
-		 * @return the {@code ProvenMessageBuilder}
-		 * 
-		 */
-		public ProvenMessageBuilder source(String source) {
-			this.source = source;
-			return this;
-		}
-
-		/**
-		 * Indicates if the message is transient. Default is false.
-		 * 
-		 * @param isTransient
-		 *            if true, indicates message will not be persisted to hybrid
-		 *            store.
-		 * 
-		 * @return the {@code ProvenMessageBuilder}
-		 */
-		public ProvenMessageBuilder isTransient(boolean isTransient) {
-			this.isTransient = isTransient;
-			return this;
-		}
-
-		/**
-		 * Indicates if message is static. Default is false.
-		 * 
-		 * @param isStatic
-		 *            if true, indicates message is
-		 *            {@link MessageContent#Static}
-		 * 
-		 * @return the {@code ProvenMessageBuilder}
-		 *
-		 */
-		public ProvenMessageBuilder isStatic(boolean isStatic) {
-			this.isStatic = isStatic;
-			return this;
-		}
-
-		/**
-		 * Provides keywords to associate with message. Default is no keywords.
-		 * 
-		 * @param keywords
-		 *            a list of keywords keywords are associated with message.
-		 *            Default is no keywords.
-		 * 
-		 * @return the {@code ProvenMessageBuilder}
-		 * 
-		 */
-		public ProvenMessageBuilder keywords(List<String> keywords) {
-			this.keywords = keywords;
-			return this;
-		}
-
-		/**
-		 * Identifies message content type, default is
-		 * {@code MessageContent#Explicit}.
-		 * 
-		 * @param messageContent
-		 *            the message's content type. Default is
-		 *            {@link MessageContent#Explicit}
-		 * 
-		 * @return the {@code ProvenMessageBuilder}
-		 * 
-		 */
-		public ProvenMessageBuilder messageContent(MessageContent messageContent) {
-			this.messageContent = messageContent;
-			return this;
-		}
-
-		/**
-		 * Builds and returns a new ProvenMessage using current builder
-		 * settings.
-		 * 
-		 * @return a {@code ProvenMessage}
-		 * @throws InvalidProvenMessageException
-		 *             if build fails a {@link InvalidProvenMessageException} is
-		 *             thrown.
-		 */
-		public ProvenMessage build() throws InvalidProvenMessageException {
-
-			// Create a new proven message and transfer data from builder
-			ProvenMessage pm = new ProvenMessage();
-			pm.messageId = this.messageId;
-			pm.message = this.message;
-			pm.messageContent = this.messageContent;
-			pm.name = this.name;
-			pm.domain = this.domain;
-			pm.isTransient = this.isTransient;
-			pm.isStatic = this.isStatic;
-			pm.source = this.source;
-			pm.keywords = this.keywords;
-
-			try {
-
-				// Construct initial data model
-				String message = MessageUtils.prependContext(pm.message);
-				Model dataModel = MessageUtils.createMessageDataModel(pm, message);
-
-				// TODO determine how/if should utilize OWL reasoning
-				// dataModel = MessageUtils.addHierarchies(dataModel);
-
-				// SHACL rule processing to produce final message data model
-				dataModel = MessageUtils.addShaclRuleResults(dataModel);
-
-				// Save model statements in proven message
-				pm.statements = MessageUtils.getProvenStatements(dataModel);
-
-				// Set measurements if explicit content
-				if (pm.messageContent == MessageContent.Explicit) {
-					pm.measurements = MessageUtils.getProvenMeasurements(dataModel);
-				}
-
-				// Set query if query content
-				if (pm.messageContent == MessageContent.Query) {
-					pm.tsQuery = MessageUtils.getProvenQuery(dataModel);
-				}
-
-			} catch (Exception e) {
-				throw new InvalidProvenMessageException("Failed to build message", e);
-			}
-
-			return pm;
-		}
-
-	}
+	
 }

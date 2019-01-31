@@ -148,7 +148,8 @@ import com.hazelcast.core.IMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
 import gov.pnnl.proven.hybrid.concept.ConceptUtil;
 import gov.pnnl.proven.hybrid.concept.DomainModel;
 import gov.pnnl.proven.hybrid.concept.dto.ProvenState;
@@ -404,7 +405,7 @@ public class RepositoryResource {
 	@Path(R_MESSAGES + "/{domain}" + "/{conceptId}")
 	@Produces(APPLICATION_SPARQL_RESULTS)
 	//@formatter:off
-	@ApiOperation(value="Message(s) data containing provided concept identifier" ,
+	@ApiOperation(value="Knowledge(s) data containing provided concept identifier" ,
             notes= "<i><b> \"" + APPLICATION_SPARQL_RESULTS + "\"</b></i>" + " MIME type result is produced by the service, " +
                     "projected variables in bindings array, include: <br><br>" +
            		 "<b>MessageId</b> - the message identifier <br>"  +
@@ -785,7 +786,7 @@ public class RepositoryResource {
 			// }
 
 			// Remove TS data from RDF message (i.e. statements)
-			// Get Message name and ID information; use to directly link metrics
+			// Get Knowledge name and ID information; use to directly link metrics
 			// with semantic data
 			String pmMessageName = null;
 			String pmMessageId = null;
@@ -927,14 +928,14 @@ public class RepositoryResource {
 	//@formatter:off
 	@ApiOperation(value = "Adds a provenance message", 
 	              notes = "Provided provenance mesage must be valid \"ProvenMessage\" object")
-	@ApiResponses(value =  { @ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
-			                 @ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),	
-			                 @ApiResponse(code = 403, message = "Invalid or missing message content",response = ProvenMessageResponse.class),
+	@ApiResponses(value =  { @ApiResponse(code = 200, message = "Successful operation.", response = DisclosureResponse.class),
+			                 @ApiResponse(code = 201, message = "Created.", response = DisclosureResponse.class),	
+			                 @ApiResponse(code = 403, message = "Invalid or missing message content",response = DisclosureResponse.class),
 			                 @ApiResponse(code = 500, message = "Internal server error.")})		                  
 	//@formatter:on
-	public ProvenMessageResponse addProvenMessage(ProvenMessage pm) {
+	public DisclosureResponse addProvenMessage(ProvenMessageOriginal pm) {
 
-		ProvenMessageResponse pmr = null;
+		DisclosureResponse pmr = null;
 
 		try {
 
@@ -947,7 +948,7 @@ public class RepositoryResource {
 			String stream = pm.getMessageContent().getName(); 
 			if (null != hzMemberInstance) {
 				log.warn("HZ cluster instance could not be found");
-				IMap<String, ProvenMessage> pms = hzMemberInstance.getMap(stream);
+				IMap<String, ProvenMessageOriginal> pms = hzMemberInstance.getMap(stream);
 				pms.set(key, pm);
 			}		
 
@@ -964,7 +965,7 @@ public class RepositoryResource {
 			if (stream.equals(MessageContent.Explicit.getName())) {
 			    // Now using MapStore to write messages 8/29/2018
                 // pmr = cs.influxWriteMeasurements(pm.getMeasurements());
-				pmr = new ProvenMessageResponse();
+				pmr = new DisclosureResponse();
 				
 				pmr.setReason("Success");
 				pmr.setStatus(Status.OK);
@@ -984,7 +985,7 @@ public class RepositoryResource {
 			
 			// Invalid message content
 			if (null == pmr) {
-				pmr = new ProvenMessageResponse();
+				pmr = new DisclosureResponse();
 				pmr.setStatus(Status.BAD_REQUEST);
 				pmr.setReason("Invalid or missing message content type.");
 				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
@@ -999,7 +1000,7 @@ public class RepositoryResource {
 
 		} catch (Exception e) {
 			cs.rollback();
-			pmr = new ProvenMessageResponse();
+			pmr = new DisclosureResponse();
 			pmr.setStatus(Status.INTERNAL_SERVER_ERROR);
 			pmr.setReason(e.getMessage());
 			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());

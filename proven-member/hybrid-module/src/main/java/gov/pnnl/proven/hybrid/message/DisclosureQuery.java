@@ -82,7 +82,8 @@ package gov.pnnl.proven.hybrid.message;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 import gov.pnnl.proven.hybrid.service.ConceptService;
 
@@ -134,16 +135,16 @@ public class DisclosureQuery extends MessageConsumer implements MessageListener 
 		
 		try {
 
-			ProvenMessage pm;
+			ProvenMessageOriginal pm;
 
 			if (message instanceof ObjectMessage) {
 
 				ObjectMessage objectMessage = (ObjectMessage) message;
-				pm = (ProvenMessage) objectMessage.getObject();
+				pm = (ProvenMessageOriginal) objectMessage.getObject();
 				testOutput(pm);
 
 				// Received disclosure message, request query of hybrid store
-				ProvenMessageResponse pr = processMessage(pm);
+				DisclosureResponse pr = processMessage(pm);
 
 				// SEND RESPONSE
 				sendResponse(pr, message);
@@ -156,8 +157,8 @@ public class DisclosureQuery extends MessageConsumer implements MessageListener 
 
 	}
 
-	ProvenMessageResponse processMessage(ProvenMessage pm) {
-		ProvenMessageResponse pmr = new ProvenMessageResponse();
+	DisclosureResponse processMessage(ProvenMessageOriginal pm) {
+		DisclosureResponse pmr = new DisclosureResponse();
 		if (pm.getMessageContent() == MessageContent.Query ) {
 			try {
 				pmr = cs.influxQuery(pm);

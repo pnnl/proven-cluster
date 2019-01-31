@@ -39,7 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.request;
 
-import gov.pnnl.proven.cluster.lib.disclosure.JsonDisclosure;
+import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 
 /**
  * Represents a request for disclosing domain data to a Proven Cluster. 

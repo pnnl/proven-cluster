@@ -154,7 +154,7 @@ public class MessageUtils {
 			Resource replacementSubject = subject;
 			RDFNode replacementObject = object;
 
-			// Check for Message Content Type - only query and explicit
+			// Check for Knowledge Content Type - only query and explicit
 			// currently supported.
 			// TODO add checks for other content types. Like query, should be a
 			// simple property existence check.
@@ -219,7 +219,7 @@ public class MessageUtils {
 
 		// Must throw an exception if root node not found for some reason
 		if (!pmStatementsAdded) {
-			throw new InvalidProvenMessageException("Message root object not found.");
+			throw new InvalidProvenMessageException("Knowledge root object not found.");
 		}
 
 		// Add back in statements w/o BNs

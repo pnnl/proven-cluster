@@ -39,6 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
-public class RegisteredRequest {
+public class RegisteredRequest implements ModuleComponent {
 
 }

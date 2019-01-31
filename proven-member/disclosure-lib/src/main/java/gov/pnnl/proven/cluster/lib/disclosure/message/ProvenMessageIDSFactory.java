@@ -21,12 +21,14 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 	// Serializable types
 	public static final int MESSAGE_PROPERTIES_TYPE = 1;
 	public static final int PROVEN_MEASUREMENT_TYPE = 2;
-	public static final int PROVEN_MESSAGE_TYPE = 3;
-	public static final int PROVEN_MESSAGE_RESPONSE_TYPE = 4;
+	public static final int JSON_DISCLOSURE_MESSAGE_TYPE = 3;
+	public static final int DISCLOSURE_RESPONSE_TYPE = 4;
 	public static final int PROVEN_METRIC_TYPE = 5;
 	public static final int PROVEN_QUERY_FILTER_TYPE = 6;
 	public static final int PROVEN_QUERY_TIME_SERIES_TYPE = 7;
 	public static final int PROVEN_STATEMENT_TYPE = 8;
+	public static final int MEASUREMENT_MESSAGE_TYPE = 9;
+	
 
 	@Override
 	public IdentifiedDataSerializable create(int typeId) {
@@ -37,10 +39,10 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 			return new MessageProperties();
 		case (PROVEN_MEASUREMENT_TYPE):
 			return new ProvenMeasurement();
-		case (PROVEN_MESSAGE_TYPE):
-			return new ProvenMessage();
-		case (PROVEN_MESSAGE_RESPONSE_TYPE):
-			return new ProvenMessageResponse();
+		case (JSON_DISCLOSURE_MESSAGE_TYPE):
+			return new JsonDisclosure();
+		case (DISCLOSURE_RESPONSE_TYPE):
+			return new DisclosureResponse();
 		case (PROVEN_METRIC_TYPE):
 			return new ProvenMetric();
 		case (PROVEN_QUERY_FILTER_TYPE):
@@ -48,6 +50,8 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 		case (PROVEN_QUERY_TIME_SERIES_TYPE):
 			return new ProvenQueryTimeSeries();
 		case (PROVEN_STATEMENT_TYPE):
+			return new ProvenStatement();
+		case (MEASUREMENT_MESSAGE_TYPE):
 			return new ProvenStatement();
 		default:
 			return null;

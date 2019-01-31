@@ -94,6 +94,7 @@ import gov.pnnl.proven.api.exchange.ExchangeInfo;
 import gov.pnnl.proven.api.exchange.ExchangeType;
 import gov.pnnl.proven.api.exchange.MqConsumer;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 
 import org.apache.activemq.command.Response;
@@ -130,14 +131,14 @@ public class ProvenProducer extends Producer{
 
 	public ProvenResponse sendMessage(String message, String requestId) throws InvalidProvenMessageException, SendMessageException, NullExchangeInfoException {
 
-		ProvenMessage pm;
+		ProvenMessageOriginal pm;
 		if(messageInfo != null) {			
-			pm = ProvenMessage.message(message).keywords(messageInfo.getKeywords()).domain(messageInfo.getDomain()).name(messageInfo.getName()).source(messageInfo.getSource()).build();
+			pm = ProvenMessageOriginal.message(message).keywords(messageInfo.getKeywords()).domain(messageInfo.getDomain()).name(messageInfo.getName()).source(messageInfo.getSource()).build();
 		}
 		else
-			pm = ProvenMessage.message(message).build();
+			pm = ProvenMessageOriginal.message(message).build();
 		
-		//System.out.println("PM Message: " + pm.getMessage() + " requestId: " + requestId);
+		//System.out.println("PM Knowledge: " + pm.getMessage() + " requestId: " + requestId);
 		
 		//log.info(pm.getMessage()+ " requestId: " + requestId);
 		return sendMessage(pm, exchangeInfo, requestId);
@@ -160,7 +161,7 @@ public class ProvenProducer extends Producer{
 //		}
 //		else
 //			pm = ProvenMessage.message(message).buildHW();
-//		//System.out.println("PM Message: " + pm.getMessage() + " requestId: " + requestId);
+//		//System.out.println("PM Knowledge: " + pm.getMessage() + " requestId: " + requestId);
 //		//log.info(pm.getMessage()+ " requestId: " + requestId);
 //		sendMessage(pm, exchangeInfo, requestId);
 //	}

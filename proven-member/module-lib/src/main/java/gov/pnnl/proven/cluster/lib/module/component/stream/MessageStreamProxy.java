@@ -37,31 +37,74 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.stream;
+package gov.pnnl.proven.cluster.lib.module.component.stream;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.hazelcast.core.HazelcastInstance;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+import com.hazelcast.core.IMap;
 
-@ApplicationScoped
-public class StreamModule extends ProvenModule {
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
+import gov.pnnl.proven.cluster.lib.module.component.stream.exception.UnsupportedMessageContentException;
 
-	public static void main(String[] args) {
-	}
-	
-	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
+/**
+ * A cluster level component representing an IMDG proven message stream.
+ * 
+ * @author d3j766
+ * 
+ * @see StreamManager
+ *
+ */
+public class MessageStreamProxy implements ClusterComponent {
+
+	static Logger log = LoggerFactory.getLogger(MessageStreamProxy.class);
 
 	@Inject
-	private HazelcastInstance hzInstance;
+	HazelcastInstance hzi;
 
-	@PostConstruct
-	public void init() {
-		
-		log.info("StreamModule startup, creating proven disclosure streams...");
+	String streamName;
+	DisclosureDomain dd;
+	MessageStream ms;
+	IMap<String, ProvenMessage> stream;
+
+	/**
+	 * Instances should be provided by {@code StreamManager}.
+	 */
+	protected MessageStreamProxy(DisclosureDomain dd, MessageStream ms) {
+		this.streamName = ms.getStreamName(dd);
+		this.dd = dd;
+		this.ms = ms;
+		this.stream = hzi.getMap(streamName);
 	}
-	
+
+	public void addMessage(ProvenMessage pm) throws UnsupportedMessageContentException {
+		
+		// Ensure content is supported by stream
+		if (!ms.getMessageContents().contains(pm.getMessageContent())) {
+			throw new UnsupportedMessageContentException();
+		}
+		stream.set(pm.getMessageKey(), pm);
+	}
+
+	public String getStreamName() {
+		return streamName;
+	}
+
+	public void setStreamName(String streamName) {
+		this.streamName = streamName;
+	}
+
+	public DisclosureDomain getDd() {
+		return dd;
+	}
+
+	public void setDd(DisclosureDomain dd) {
+		this.dd = dd;
+	}
+
 }

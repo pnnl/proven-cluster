@@ -37,31 +37,116 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.stream;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.util.UUID;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
 
-@ApplicationScoped
-public class StreamModule extends ProvenModule {
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-	public static void main(String[] args) {
-	}
+/**
+ * Accepts Proven disclosure data represented in the JSON format. JSON data (input
+ * or schema) is checked for correctness when it's added either at construction
+ * or use of setter methods. Incorrect JSON values will throw a
+ * {@code JsonParsingException}.
+ * 
+ * TODO 
+ * Add support for references (e.g. URI location) to remote JSON and JSON-SCHEMA data.  
+ * 
+ * 
+ * @author d3j766
+ *
+ * @see
+ * @since
+ */
+public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataSerializable, Serializable {
+
+	private static final long serialVersionUID = 1L;
 	
-	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
+	private static Logger log = LoggerFactory.getLogger(JsonDisclosure.class);
 
-	@Inject
-	private HazelcastInstance hzInstance;
 
-	@PostConstruct
-	public void init() {
+	public JsonDisclosure() {
+	}
+
+	public JsonDisclosure(String input) {
+		this(input, null);
+	}
+
+	public JsonDisclosure(String input, String schema) {
+		addInput(input);
+		addSchema(schema);
+	}
+
+	private void addSchema(String schema) {
+		JsonObject obj = toJsonObject(schema);
+		messageSchema = obj;
+	}
+
+	private void addInput(String input) {
+		JsonObject obj = toJsonObject(input);
+		message = obj;		
+	}
+
+	private JsonObject toJsonObject(String json) {
+
+		JsonObject ret = null;
 		
-		log.info("StreamModule startup, creating proven disclosure streams...");
-	}
+		if (null != json) {
 	
+			JsonReader reader = Json.createReader(new StringReader(json));
+			
+			try {
+				ret = reader.readObject();
+			} catch (JsonParsingException e) {
+				log.error("Encountered invalid JSON in " + this.getClass().getSimpleName() + " :: " + json);
+				e.printStackTrace();
+				throw e;
+			} finally {
+				reader.close();
+			}
+		}
+		return ret;
+	}
+
+	
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.JSON_DISCLOSURE_MESSAGE_TYPE;
+	}	
+
+	public void setInput(String input) {
+		addInput(input);
+	}
+
+	public void setSchema(String schema) {
+		addSchema(schema);
+	}
+
 }

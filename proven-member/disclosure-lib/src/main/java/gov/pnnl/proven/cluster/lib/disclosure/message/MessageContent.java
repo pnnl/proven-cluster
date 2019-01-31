@@ -91,7 +91,7 @@ public enum MessageContent {
 	Structure(MessageContentName.STRUCTURE),
 
 	/**
-	 * Query message content. Message describes a query for execution over
+	 * Query message content. Knowledge describes a query for execution over
 	 * Proven's hybrid store. These are "select" only query types run against
 	 * hybrid store, and results may be stored back in hybrid store and/or
 	 * returned to caller if requested.
