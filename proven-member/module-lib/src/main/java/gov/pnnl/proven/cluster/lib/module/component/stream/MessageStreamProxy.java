@@ -39,7 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.stream;
 
+import javax.annotation.Resource;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.naming.NamingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.stream.exception.UnsupportedMessageContentException;
+import gov.pnnl.proven.cluster.lib.module.util.HZUtil;
 
 /**
  * A cluster level component representing an IMDG proven message stream.
@@ -64,9 +68,8 @@ public class MessageStreamProxy implements ClusterComponent {
 
 	static Logger log = LoggerFactory.getLogger(MessageStreamProxy.class);
 
-	@Inject
-	HazelcastInstance hzi;
-
+	
+    HazelcastInstance hzi;
 	String streamName;
 	DisclosureDomain dd;
 	MessageStream ms;
@@ -79,6 +82,7 @@ public class MessageStreamProxy implements ClusterComponent {
 		this.streamName = ms.getStreamName(dd);
 		this.dd = dd;
 		this.ms = ms;
+		this.hzi = HZUtil.getHziJndi();
 		this.stream = hzi.getMap(streamName);
 	}
 

@@ -47,6 +47,8 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.naming.NamingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
@@ -79,6 +81,13 @@ public class StreamManager implements ComponentManager, ModuleComponent, Message
 		domainStreams = new HashMap<DisclosureDomain, Set<MessageStreamProxy>>();
 		createStreams(DomainProvider.getProvenDisclosureDomain());
 	}
+	
+	/**
+	 * Force bean activation.
+	 */
+	public void ping() {
+		log.debug("Activating StreamModule");
+	}
 
 	private void createStreams(DisclosureDomain dd) {
 
@@ -94,12 +103,12 @@ public class StreamManager implements ComponentManager, ModuleComponent, Message
 		}
 	}
 
-	private MessageStreamProxy createStream(DisclosureDomain dd, MessageStream ms) {
+	private MessageStreamProxy createStream(DisclosureDomain dd, MessageStream ms) {	
 		return new MessageStreamProxy(dd, ms);
 	}
 
 	private boolean isManagedDomain(DisclosureDomain dd) {
-		return (!domainStreams.containsKey(dd));
+		return (domainStreams.containsKey(dd));
 	}
 
 	@Override

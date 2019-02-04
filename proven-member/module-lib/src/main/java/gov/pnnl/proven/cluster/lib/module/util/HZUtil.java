@@ -37,52 +37,37 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module;
+package gov.pnnl.proven.cluster.lib.module.util;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.enterprise.event.Reception;
-import javax.inject.Inject;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import com.hazelcast.core.HazelcastInstance;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+public class HZUtil {
 
-import gov.pnnl.proven.cluster.lib.module.component.stream.StreamManager;
-import gov.pnnl.proven.cluster.lib.module.event.ModuleShutdown;
-import gov.pnnl.proven.cluster.lib.module.event.ModuleStartup;
-import gov.pnnl.proven.cluster.lib.module.observer.ModuleStartupEventObserver;
+	public static final String HZ_JNDI_NAME = "payara/Hazelcast";
 
+	public static HazelcastInstance getHziJndi() {
 
-@ApplicationScoped
-public abstract class ProvenModule implements ModuleStartupEventObserver {
+		InitialContext context = null;
+		HazelcastInstance instance = null;
 
-	private static Logger logger = LogManager.getLogger(ProvenModule.class);
-	
-	@Inject 
-	StreamManager sm;
-	
-	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
+		try {
+			context = new InitialContext();
+			instance = (HazelcastInstance) context.lookup(HZ_JNDI_NAME);
+		} catch (NamingException e) {
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (null != context) {
+					context.close();
+				}
+			} catch (NamingException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
-		logger.debug("ProvenModule startup message observed");
-
-		// TODO - default managers to activate should be configurable per module
-		// Activate managers
-		sm.ping();
-		
-		// Log startup message
-		logger.info("ProvenModule startup completed.");
-
-	}
-
-	public void observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
-
-		logger.debug("ProvenModule shutdown message observed");
-
-		// Deactivate managers
-
-		// Log shutdown message
-		logger.info("ProvenModule shutdown completed.");
-
+		return instance;
 	}
 
 }

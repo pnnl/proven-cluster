@@ -41,28 +41,50 @@ package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.function.Supplier;
+
+import org.apache.commons.io.input.MessageDigestCalculatingInputStream;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-public abstract class DisclosureMessage extends ProvenMessage {
+/**
+ * Abstract class for disclosure messages. Disclosure messages represent the
+ * original input message being disclosed to the platform, and is responsible
+ * for transforming its disclosed message into a Proven message format suitable
+ * for internal processing to complete the disclosure.
+ * 
+ * @author d3j766
+ *
+ */
+public abstract class DisclosureMessage extends ProvenMessage implements Supplier<ProvenMessage> {
 
 	private static final long serialVersionUID = 1L;
-	
+
+	/**
+	 * Provides a new ProvenMessage based on the content type of the disclosed
+	 * message content. Implementations of {@code DisclosureMessage} must
+	 * override this method.
+	 */
+	@Override
+	public ProvenMessage get() {
+		throw new UnsupportedOperationException("ProvenMessage supplier method missing");
+	}
+
 	String disclosureId;
 	MessageContent disclosedContent;
 	boolean isRequest;
 	boolean isKnowledge;
 	boolean hasMeasurements;
-	
+
 	DisclosureMessage() {
-		// Set defaults 
+		// Set defaults
 		this.disclosureId = "NOT PROVIDED";
 		this.messageContent = MessageContent.Disclosure;
 		this.disclosedContent = MessageContent.Explicit;
 		this.isRequest = false;
 		this.isKnowledge = true;
-		this.hasMeasurements = false;	
+		this.hasMeasurements = false;
 	}
 
 	@Override
@@ -83,6 +105,6 @@ public abstract class DisclosureMessage extends ProvenMessage {
 		out.writeBoolean(this.isRequest);
 		out.writeBoolean(this.isKnowledge);
 		out.writeBoolean(this.hasMeasurements);
-	}	
-	
+	}
+
 }

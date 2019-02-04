@@ -49,5 +49,9 @@ package gov.pnnl.proven.cluster.lib.module.component;
  */
 public interface ComponentManager {
 	
+	/**
+	 * Force initialization of the manager
+	 */
+	public void ping();
 
 }

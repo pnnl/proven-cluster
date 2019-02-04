@@ -39,11 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.module.disclosure;
 
-import java.util.List;
-import java.util.Set;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
+import javax.enterprise.event.Reception;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,15 +50,52 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.Member;
 import com.hazelcast.ringbuffer.Ringbuffer;
-
 import fish.payara.micro.PayaraMicro;
 import gov.pnnl.proven.cluster.lib.disclosure.ClientDisclosureMap;
 import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
 import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.component.stream.MessageStream;
+import gov.pnnl.proven.cluster.lib.module.component.stream.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.event.ModuleShutdown;
+import gov.pnnl.proven.cluster.lib.module.event.ModuleStartup;
+
 
 @ApplicationScoped
 public class DisclosureModule extends ProvenModule {
+
+	@Override
+	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
+
+		super.observeModuleStartup(moduleStartup);
+		
+		log.debug("ProvenModule startup message observed");
+
+		// TODO - managers to activate should be configurable per module
+		// Activate managers
+		//sm.ping();
+		
+		// Log startup message
+		log.info("ProvenModule startup completed.");
+
+	}
+
+	@Override
+	public void observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
+
+		super.observeModuleShutdown(moduleShutdown);
+		
+		log.debug("ProvenModule shutdown message observed");
+
+		// Deactivate managers
+
+		// Log shutdown message
+		log.info("ProvenModule shutdown completed.");
+
+	}
+	
 
 	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
 
@@ -71,6 +107,9 @@ public class DisclosureModule extends ProvenModule {
 	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
 			+ SESSION_TAG + "/responses";
 
+	@Inject
+	StreamManager sm;
+	
 	@Inject
 	private HazelcastInstance hzInstance;
 
@@ -84,6 +123,13 @@ public class DisclosureModule extends ProvenModule {
 	public void init() {
 
 		log.info("DisclosureModule startup...");
+		
+		// Force creation of default Proven streams
+		DisclosureDomain dd = DomainProvider.getProvenDisclosureDomain();
+		sm.getMessageStream(dd, MessageStream.Disclosusre);
+		sm.getMessageStream(dd, MessageStream.Knowledge);
+		sm.getMessageStream(dd, MessageStream.Response);
+		
 		
 		// TODO This should be part of the member registry when a
 		// DisclosureBuffer
@@ -112,5 +158,5 @@ public class DisclosureModule extends ProvenModule {
 	private void testPipeline() {
 		new TestPipeline().submit();
 	}
-
+	
 }
