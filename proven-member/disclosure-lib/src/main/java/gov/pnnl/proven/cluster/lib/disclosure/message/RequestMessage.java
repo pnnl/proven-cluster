@@ -37,52 +37,29 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.enterprise.event.Reception;
-import javax.inject.Inject;
+import java.io.IOException;
+import java.util.UUID;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
-import gov.pnnl.proven.cluster.lib.module.component.stream.StreamManager;
-import gov.pnnl.proven.cluster.lib.module.event.ModuleShutdown;
-import gov.pnnl.proven.cluster.lib.module.event.ModuleStartup;
-import gov.pnnl.proven.cluster.lib.module.observer.ModuleStartupEventObserver;
+public abstract class RequestMessage extends ProvenMessage {
 
-
-@ApplicationScoped
-public abstract class ProvenModule implements ModuleStartupEventObserver {
-
-	private static Logger logger = LogManager.getLogger(ProvenModule.class);
-	
-	@Inject 
-	StreamManager sm;
-	
-	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
-
-		logger.debug("ProvenModule startup message observed");
-
-		// TODO - default managers to activate should be configurable per module
-		// Activate managers
-		sm.ping();
+	private static final long serialVersionUID = 1L;
 		
-		// Log startup message
-		logger.info("ProvenModule startup completed.");
-
+	RequestMessage() {	
 	}
 
-	public void observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
-
-		logger.debug("ProvenModule shutdown message observed");
-
-		// Deactivate managers
-
-		// Log shutdown message
-		logger.info("ProvenModule shutdown completed.");
-
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
 	}
 
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
+	}	
+	
 }
