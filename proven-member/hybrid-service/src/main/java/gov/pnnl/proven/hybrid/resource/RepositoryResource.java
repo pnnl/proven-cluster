@@ -876,31 +876,6 @@ public class RepositoryResource {
 		return response;
 
 	}
-
-	
-	@POST
-	@Path("farql")
-	@Consumes(TEXT_PLAIN)
-	// @Produces(APPLICATION_JSON)
-	@Produces(TEXT_PLAIN)
-	//@formatter:off
-	@ApiOperation(value = "Query semantic store using sparql query language", 
-	              hidden = false, 
-	              notes = "Provided sparql query will be submited to semantic store.  "
-	                    + "Format of query results is in JSON, and is described here  "
-	                    + "<a href='https://www.w3.org/TR/sparql11-results-json/'> SPARQL Results Format </a>.  "
-	            		+ "Sparql query laguage is described here  "
-	                    + "<a href='https://www.w3.org/TR/sparql11-query/'> SPARQL Language Reference </a>.  ")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") 
-                          })
-	//@formatter:on
-	public Response getFarql(String queryString) {
-		Response response;
-		String ret = cs.sparqlQuery(queryString);
-		// ret = "hello world!!!";
-		response = Response.ok(ret).build();
-		return response;
-	}
 	
 	
 	@POST
@@ -989,15 +964,17 @@ public class RepositoryResource {
 			// Query or Add measurements to TS store
 			
 			// Query
-			if (stream.equals(MessageContent.Explicit.getStream())) {
-				pmr = cs.influxWriteMeasurements(pm.getMeasurements());
-			}
-
-			// Explicit
 			if (stream.equals(MessageContent.Query.getStream())) {
 
 				pmr = cs.influxQuery(pm);
-			}
+			} 
+
+			
+			
+			// Explicit
+			     if  (stream.equals(MessageContent.Explicit.getStream())) {
+				    pmr = cs.influxWriteMeasurements(pm.getMeasurements());
+			    }
 
 			
 			// Invalid message content
