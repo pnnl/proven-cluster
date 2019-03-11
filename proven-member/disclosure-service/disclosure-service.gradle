@@ -44,7 +44,7 @@ dependencies {
 	   compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.13'
 	   compile group: 'org.influxdb', name: 'influxdb-java', version: '2.8'
 	   compile group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13'
-	   compile group: 'gov.pnnl.proven', name: 'proven-message', version: '0.2'
+	   compile group: 'gov.pnnl.proven', name: 'proven-message', version: '0.3'
 	   //compile group: 'org.apache.activemq', name: 'activemq-rar', version: '5.11.2'
 	   
 
