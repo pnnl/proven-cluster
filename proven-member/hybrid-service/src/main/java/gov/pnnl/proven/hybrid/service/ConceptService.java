@@ -991,15 +991,15 @@ public class ConceptService {
 		
 	}
 	
-	private ProvenMessageResponse influxWriteBulkSimulationInput(JSONObject messageObject, InfluxDB influxDB) {
+	private ProvenMessageResponse influxWriteBulkSimulationInput(JSONObject commandObject, InfluxDB influxDB) {
 		   ProvenMessageResponse ret = null;
 		   Long timestamp = (long) -1;
            String differenceMrid = null;
            JSONArray forwardDifferenceArray = null;
            JSONArray reverseDifferenceArray = null;
-			JSONObject object = (JSONObject) messageObject.get("input");
-			String simulationid = messageObject.get("simulation_id").toString();
-			object = (JSONObject) messageObject.get("message");
+            JSONObject inputObject = (JSONObject) commandObject.get("input");
+			String simulationid = inputObject.get("simulation_id").toString();
+			JSONObject object = (JSONObject) inputObject.get("message");
 			@SuppressWarnings("unchecked")
 			Set<String> keys = object.keySet();
 			Iterator<String> it = keys.iterator();               
