@@ -977,18 +977,15 @@ public class ConceptService {
 	public char detectObjectType (JSONObject message) {
 		char type = 0;
 		JSONObject object = (JSONObject) message.get("message");
-		Set<String> keys = object.keySet();		
-		Iterator<String> it = keys.iterator();               
-		while (it.hasNext()) {
-			String key = it.next(); 
-			if (key.equalsIgnoreCase("reverse_differences") || key.equalsIgnoreCase("forward_differences")) {
+		if (object != null) {
+			type = 'O';
+		} else {
+			object = (JSONObject) message.get("input");
+			if (object != null) {
 				type = 'I';
-				return type;
-			} else if (key.equalsIgnoreCase("measurements") ) {
-				type = 'O';
-				return type;
-			}
+			} 
 		}
+
 		return type;
 		
 		
@@ -1000,8 +997,9 @@ public class ConceptService {
            String differenceMrid = null;
            JSONArray forwardDifferenceArray = null;
            JSONArray reverseDifferenceArray = null;
+			JSONObject object = (JSONObject) messageObject.get("input");
 			String simulationid = messageObject.get("simulation_id").toString();
-			JSONObject object = (JSONObject) messageObject.get("message");
+			object = (JSONObject) messageObject.get("message");
 			@SuppressWarnings("unchecked")
 			Set<String> keys = object.keySet();
 			Iterator<String> it = keys.iterator();               
