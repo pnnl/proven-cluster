@@ -44,7 +44,7 @@ package gov.pnnl.proven.cluster.lib.module.request;
 
 import java.io.Serializable;
 
-import gov.pnnl.proven.cluster.lib.module.exception.UnsupportedRequestException;
+import gov.pnnl.proven.cluster.lib.module.request.exception.UnsupportedRequestException;
 import gov.pnnl.proven.cluster.lib.module.service.ModuleService;
 
 /**
@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.module.service.ModuleService;
  *
  */
 public abstract class ModuleRequest<T> implements Serializable {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -63,11 +63,10 @@ public abstract class ModuleRequest<T> implements Serializable {
 	private T t;
 
 	/**
-	 * Represents the name of request.  Used by request registry
+	 * Represents the name of request. Used by request registry
 	 */
 	private String requestName;
-	
-	
+
 	/**
 	 * Maximum number of request retries before being sent to error stream
 	 */
@@ -111,11 +110,11 @@ public abstract class ModuleRequest<T> implements Serializable {
 	public ModuleService<T> getServiceProvider() throws UnsupportedRequestException {
 		throw new UnsupportedRequestException();
 	}
-	
+
 	public T getInput() {
 		return t;
 	}
-	
+
 	public String getRequestName() {
 		return requestName;
 	}

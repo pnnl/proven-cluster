@@ -40,27 +40,27 @@
 
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.List;
+import java.util.Date;
 import java.util.UUID;
 
+import javax.json.Json;
 import javax.json.JsonObject;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.apache.jena.rdf.model.Model;
+import javax.json.JsonReader;
+import javax.json.JsonWriter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonSerializable;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 
 /**
  * General messaging construct used by Proven to communicate data between Proven
@@ -103,22 +103,25 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 		String ret = "";
 		ret += this.messageId + MESSAGE_KEY_DELIMETER;
 		ret += ((this.domain == null) ? "" : this.domain.getDomain()) + MESSAGE_KEY_DELIMETER;
-		ret += this.messageProperties.getCreated();
+		ret += this.created;
 
 		return ret;
 	}
 
 	/**
+	 * Epoch time of message creation.
+	 */
+	Long created;
+
+	/**
 	 * Messages are stored internally as JSON
 	 */
 	JsonObject message;
-	
-	
+
 	/**
 	 * JSON schema, can be disclosed with message.
 	 */
 	JsonObject messageSchema;
-
 
 	/**
 	 * Messages are assigned an identifier , making it unique across disclosure
@@ -127,9 +130,12 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	UUID messageId;
 
 	/**
-	 * Identifies {@link MessageContent}
+	 * Messages may be assigned a disclosure identifier provided by the
+	 * discloser as part of the message. This identifier is not managed by the
+	 * platform, but is included in response messages as a convenience to the
+	 * discloser. Null by default.
 	 */
-	MessageContent messageContent;
+	String disclosureId;
 
 	/**
 	 * Identifies messages domain, all messages must be associated with a
@@ -161,44 +167,82 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	 */
 	String source;
 
-	/**
-	 * Properties associated with message. 
-	 */
-	MessageProperties messageProperties = new MessageProperties();
+	public ProvenMessage() {
 
-	public ProvenMessage() {		
 	}
-	
-	public ProvenMessage(JsonObject message, DisclosureDomain domain) {
+
+	public ProvenMessage(JsonObject message) {
+		this(message, null);
+	}
+
+	public ProvenMessage(JsonObject message, JsonObject schema) {
+
+		// Epoch creation time
+		this.created = new Date().getTime();
+
+		// This must not be null - serialization will throw an NPE
 		this.message = message;
-		this.domain = domain;
+
+		// Optional - may be null
+		this.messageSchema = schema;
+
+		// Generated for each message - global identifier
+		this.messageId = UUID.randomUUID();
+
+		// TODO - determine field value from the message -or- transfer when
+		// creating a non-disclosure message.
+		this.disclosureId = "Not Provided";
+
+		// messageContent must be provided in a getter by the concrete class
+
+		// TODO - determine field value from the message. Using Proven's domain
+		// by default.
+		this.domain = DomainProvider.getProvenDisclosureDomain();
+
+		// TODO - determine field value from the message
+		this.isTransient = false;
+
+		// TODO - determine field value from the message
+		this.isStatic = false;
+
+		// TODO - determine field value from the message
 		this.source = "UNKNOWN";
+
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.message = in.readObject();
+		this.created = in.readLong();
+		this.message = jsonIn(in.readByteArray());
+		
+		boolean nullMessageSchema = in.readBoolean();
+		if (!nullMessageSchema) this.messageSchema = jsonIn(in.readByteArray());	
+		
 		this.messageId = UUID.fromString(in.readUTF());
-		this.messageContent = MessageContent.valueOf(in.readUTF());
+		this.disclosureId = in.readUTF();
 		this.domain = in.readObject();
 		this.isTransient = in.readBoolean();
 		this.isStatic = in.readBoolean();
 		this.source = in.readUTF();
-		this.messageProperties = in.readObject();	
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeObject(this.message);
+		out.writeLong(this.created);
+		out.writeByteArray(jsonOut(this.message));
+		
+		boolean nullMessageSchema = (null == this.messageSchema);
+		out.writeBoolean(nullMessageSchema);
+		if (!nullMessageSchema) out.writeByteArray(jsonOut(this.messageSchema));	
+
 		out.writeUTF(this.messageId.toString());
-		out.writeUTF(this.messageContent.toString());
+		out.writeUTF(this.disclosureId);
 		out.writeObject(this.domain);
 		out.writeBoolean(this.isTransient);
 		out.writeBoolean(this.isStatic);
 		out.writeUTF(this.source);
-		out.writeObject(this.messageProperties);
 	}
-	
+
 	public JsonObject getMessage() {
 		return message;
 	}
@@ -207,13 +251,7 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 		return messageId;
 	}
 
-	public MessageContent getMessageContent() {
-		return messageContent;
-	}
-
-	public void setMessageContent(MessageContent messageContent) {
-		this.messageContent = messageContent;
-	}
+	public abstract MessageContent getMessageContent();
 
 	public DisclosureDomain getDomain() {
 		return domain;
@@ -231,8 +269,32 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 		return source;
 	}
 
-	public MessageProperties getMessageProperties() {
-		return messageProperties;
+	public static JsonObject jsonIn(byte[] content) throws IOException {
+
+		JsonObject ret = null;
+
+		if (content.length > 0) {
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(content);
+					JsonReader reader = Json.createReader(bais)) {
+				ret = reader.readObject();
+			}
+		}
+		return ret;
 	}
-	
+
+	public static byte[] jsonOut(JsonObject object) throws IOException {
+
+		byte[] ret = new byte[0];
+
+		if (null != object) {
+			try (ByteArrayOutputStream oos = new ByteArrayOutputStream(); JsonWriter writer = Json.createWriter(oos)) {
+				writer.writeObject(object);
+				writer.close();
+				oos.flush();
+				ret = oos.toByteArray();
+			}
+		}
+		return ret;
+	}
+
 }

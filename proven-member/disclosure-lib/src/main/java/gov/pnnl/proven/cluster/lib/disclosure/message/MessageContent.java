@@ -54,7 +54,7 @@ public enum MessageContent {
 	/**
 	 * Represents unprocessed disclosed message data (i.e. content type of data
 	 * as it enters the Proven data platform). Disclosure message content is
-	 * domain instance data that will be identified and processed into another
+	 * domain instance data that will be identified and translated into another
 	 * content type(s) for further processing.
 	 */
 	Disclosure(MessageContentName.DISCLOSURE),

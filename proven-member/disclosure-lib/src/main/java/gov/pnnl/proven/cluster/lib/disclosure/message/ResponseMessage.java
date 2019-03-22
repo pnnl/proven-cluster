@@ -40,16 +40,24 @@
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
-import java.util.UUID;
-
+import javax.json.JsonObject;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
 public abstract class ResponseMessage extends ProvenMessage {
 
 	private static final long serialVersionUID = 1L;
-		
-	ResponseMessage() {	
+
+	ResponseMessage() {
+	}
+
+	ResponseMessage(JsonObject message) {
+		super(message);
+	}
+	
+	@Override
+	public MessageContent getMessageContent() {
+		return MessageContent.Response;
 	}
 
 	@Override
@@ -60,6 +68,6 @@ public abstract class ResponseMessage extends ProvenMessage {
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
-	}	
-	
+	}
+
 }

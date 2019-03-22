@@ -76,30 +76,19 @@ public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataS
 	
 	private static Logger log = LoggerFactory.getLogger(JsonDisclosure.class);
 
-
+	
 	public JsonDisclosure() {
 	}
-
-	public JsonDisclosure(String input) {
-		this(input, null);
+	
+	public JsonDisclosure(String message) {
+		super(toJsonObject(message));
 	}
 
-	public JsonDisclosure(String input, String schema) {
-		addInput(input);
-		addSchema(schema);
+	public JsonDisclosure(String mesage, String schema) {
+		super(toJsonObject(mesage), toJsonObject(schema));
 	}
 
-	private void addSchema(String schema) {
-		JsonObject obj = toJsonObject(schema);
-		messageSchema = obj;
-	}
-
-	private void addInput(String input) {
-		JsonObject obj = toJsonObject(input);
-		message = obj;		
-	}
-
-	private JsonObject toJsonObject(String json) {
+	private static JsonObject toJsonObject(String json) {
 
 		JsonObject ret = null;
 		
@@ -110,7 +99,7 @@ public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataS
 			try {
 				ret = reader.readObject();
 			} catch (JsonParsingException e) {
-				log.error("Encountered invalid JSON in " + this.getClass().getSimpleName() + " :: " + json);
+				log.error("Encountered invalid JSON disclosure :: " + json);
 				e.printStackTrace();
 				throw e;
 			} finally {
@@ -120,6 +109,11 @@ public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataS
 		return ret;
 	}
 
+	// TODO Implement
+	@Override
+	public ProvenMessage get() {
+		throw new UnsupportedOperationException("ProvenMessage supplier method missing");
+	}
 	
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
@@ -140,13 +134,5 @@ public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataS
 	public int getId() {
 		return ProvenMessageIDSFactory.JSON_DISCLOSURE_MESSAGE_TYPE;
 	}	
-
-	public void setInput(String input) {
-		addInput(input);
-	}
-
-	public void setSchema(String schema) {
-		addSchema(schema);
-	}
 
 }

@@ -40,8 +40,11 @@
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+
+import javax.json.JsonObject;
 
 import org.apache.commons.io.input.MessageDigestCalculatingInputStream;
 
@@ -64,33 +67,45 @@ public abstract class DisclosureMessage extends ProvenMessage implements Supplie
 	/**
 	 * Provides a new ProvenMessage based on the content type of the disclosed
 	 * message content. Implementations of {@code DisclosureMessage} must
-	 * override this method.
+	 * override this method.  
 	 */
 	@Override
-	public ProvenMessage get() {
-		throw new UnsupportedOperationException("ProvenMessage supplier method missing");
-	}
+	public abstract ProvenMessage get();
 
-	String disclosureId;
 	MessageContent disclosedContent;
 	boolean isRequest;
 	boolean isKnowledge;
 	boolean hasMeasurements;
 
-	DisclosureMessage() {
-		// Set defaults
-		this.disclosureId = "NOT PROVIDED";
-		this.messageContent = MessageContent.Disclosure;
+	public DisclosureMessage() {
+	}
+	
+	public DisclosureMessage(JsonObject message) {
+		this(message, null);
+	}
+	
+	public DisclosureMessage(JsonObject message, JsonObject schema) {
+		super(message, schema);
+
+		// TODO these are assumed default characteristics of the disclosed
+		// message for an initial implementation (i.e. explicit disclosure of
+		// measurement data). Need to add internal methods to examine the JSON
+		// to set the member properties based on the actual content of the
+		// message.
 		this.disclosedContent = MessageContent.Explicit;
 		this.isRequest = false;
 		this.isKnowledge = true;
-		this.hasMeasurements = false;
+		this.hasMeasurements = true;
 	}
 
 	@Override
+	public MessageContent getMessageContent() {
+		return MessageContent.Disclosure;
+	}
+	
+	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
-		this.disclosureId = in.readUTF();
 		this.disclosedContent = MessageContent.valueOf(in.readUTF());
 		this.isRequest = in.readBoolean();
 		this.isKnowledge = in.readBoolean();
@@ -100,7 +115,6 @@ public abstract class DisclosureMessage extends ProvenMessage implements Supplie
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
-		out.writeUTF(this.disclosureId);
 		out.writeUTF(this.disclosedContent.toString());
 		out.writeBoolean(this.isRequest);
 		out.writeBoolean(this.isKnowledge);
