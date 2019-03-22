@@ -1,6 +1,4 @@
-include "proven-member:utils-lib"
 include "proven-member:member-lib"
-include "proven-member:exchange-lib"
 include "proven-member:module-lib"
 include "proven-member:disclosure-lib"
 include "proven-member:stream-lib"

@@ -77,6 +77,10 @@ public class DisclosureDomain implements Serializable {
 		this.domain = domain;
 	}
 	
+	public static boolean isValidDomain(String domain) {
+		return DomainValidator.getInstance().isValid(domain);
+	}
+	
 	public String getDomain() {
 		return domain;
 	}

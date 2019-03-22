@@ -23,8 +23,13 @@ subprojects {
 	if (isModuleProject) {
 		apply plugin: 'war'
 		apply plugin: 'eclipse-wtp'
+		
+		war {
+			webXml = null
+		}
 	}
-
+	
+	
 	sourceCompatibility = 1.8
 
 	repositories {
@@ -67,15 +72,23 @@ subprojects {
 // Project Dependencies
 //
 
-project('proven-member:utils-lib') {
-	// No dependencies
+// Contains libraries are used by the the Hazelcast member.
+// This is simple a library container project, and other Proven
+// projects should not depend on this library directly.
+// TODO - Remove this library.  Use the contained libraries directly as 
+//        part of application server deployment. 
+project('proven-member:member-lib') {
+	dependencies {
+		compile project(':proven-member:hybrid-lib')
+		compile project(':proven-member:module-lib')
+	}
 }
 
 project('proven-member:disclosure-lib') {
 	// No dependencies
 }
 
-project('proven-member:exchange-lib') {
+project('proven-member:stream-lib') {
 	// No dependencies
 }
 
@@ -87,17 +100,6 @@ project('proven-member:module-lib') {
 
 project('proven-member:hybrid-lib') {
 	dependencies {  compile project(':proven-member:disclosure-lib') }
-}
-
-project('proven-member:stream-lib') {
-	dependencies {  compile project(':proven-member:disclosure-lib') }
-}
-
-project('proven-member:member-lib') {
-	dependencies {
-		compile project(':proven-member:hybrid-lib')
-		compile project(':proven-member:module-lib')
-	}
 }
 
 project('proven-member:disclosure-module') {
@@ -114,16 +116,14 @@ project('proven-member:stream-module') {
 
 project('proven-member:hybrid-module') {
 	dependencies {
-		compile project(':proven-member:module-lib')
-		compile project(':proven-member:utils-lib')
 		compile project(':proven-member:hybrid-lib')
+		compile project(':proven-member:module-lib')
 	}
 }
 
 project('proven-member:member-module') {
 	dependencies { compile project(':proven-member:module-lib') }
 }
-
 
 project('proven-client') {
 	dependencies {

@@ -85,14 +85,16 @@ import javax.ws.rs.ApplicationPath;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static gov.pnnl.proven.module.disclosure.resource.ResourceConsts.APP_PATH;
+import static gov.pnnl.proven.module.disclosure.resource.ResourceConsts.RESOURCE_PACKAGE;
 
-@ApplicationPath("rest")
+@ApplicationPath(APP_PATH)
 public class ApplicationResource extends ResourceConfig  {
     
-	private final Logger log = LoggerFactory.getLogger(ApplicationResource.class);
+	private static final Logger log = LoggerFactory.getLogger(ApplicationResource.class);
 	
 	public ApplicationResource() throws NamingException {
-        packages("gov.pnnl.proven.module.disclosure.resource");
+        packages(RESOURCE_PACKAGE);
     }
 }
 

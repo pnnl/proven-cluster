@@ -39,17 +39,27 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
+
 /**
  * 
- * Represents a component of Proven that is defined and managed at the modelu
- * level, for example a {@code DisclosureBuffer}.
+ * Represents a component that performs activities to support the operation of a
+ * the Proven module.
  * 
  * @author d3j766
  *
  * @see ProvenComponent
  *
  */
-public interface ModuleComponent extends ProvenComponent {
+public abstract class ModuleComponent extends ProvenComponent {
 
-	
+	static Logger log = LoggerFactory.getLogger(ModuleComponent.class);
+
+	public ModuleComponent() {
+		super();
+	}
+
 }

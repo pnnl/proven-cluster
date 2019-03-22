@@ -40,26 +40,97 @@
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
-import java.util.UUID;
+import javax.json.JsonObject;
+import javax.ws.rs.core.Response;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-public abstract class ResponseMessage extends ProvenMessage {
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+
+/**
+ * General response message. A response message is created or based on a
+ * disclosed {@code ProvenMessage}. The response may be for the disclosure
+ * itself or for the execution of a requested service defined in the message.
+ * 
+ * @see ProvenMessage, DisclosureMessage, KnowledgeMessage, RequestMessage
+ * 
+ * @author d3j766
+ *
+ */
+public class ResponseMessage extends ProvenMessage {
 
 	private static final long serialVersionUID = 1L;
-		
-	ResponseMessage() {	
+
+	/**
+	 * Response status using commonly used HTTP status codes
+	 * 
+	 * @see Response.Status
+	 */
+	protected Response.Status status;
+
+	/**
+	 * Content type of the source message for this response
+	 */
+	protected MessageContent sourceContentType;
+
+	ResponseMessage() {
+	}
+
+	ResponseMessage(Response.Status status, ProvenMessage sourceMessage, JsonObject message) {
+		this(status, sourceMessage, message, null);
+	}
+
+	ResponseMessage(Response.Status status, ProvenMessage sourceMessage, JsonObject message, JsonObject schema) {
+		super(sourceMessage, message, schema);
+		this.status = status;
+		this.sourceContentType = sourceMessage.getMessageContent();
+	}
+	
+
+	public Response.Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Response.Status status) {
+		this.status = status;
+	}
+
+	public MessageContent getSourceContentType() {
+		return sourceContentType;
+	}
+
+	public void setSourceContentType(MessageContent sourceContentType) {
+		this.sourceContentType = sourceContentType;
+	}
+
+	@Override
+	public MessageContent getMessageContent() {
+		return MessageContent.Response;
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.RESPONSE_MESSAGE_TYPE;
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
+		this.status = Response.Status.valueOf(in.readUTF());
+		this.sourceContentType = MessageContent.valueOf(in.readUTF());
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
-	}	
-	
+		out.writeUTF(status.name());
+		out.writeUTF(sourceContentType.name());
+	}
+
 }

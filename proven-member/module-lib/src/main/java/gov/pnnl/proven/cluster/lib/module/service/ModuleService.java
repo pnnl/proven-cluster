@@ -44,7 +44,8 @@ import java.util.concurrent.Callable;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
-import gov.pnnl.proven.cluster.lib.module.request.ProxyRequest;
+
+import gov.pnnl.proven.cluster.lib.module.request.RequestProxy;
 
 /**
  * Root class for all Module Services. A Module service is used to service a
@@ -56,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.module.request.ProxyRequest;
  *
  */
 public abstract class ModuleService<T> implements Serializable, HazelcastInstanceAware,
-		Callable<ProxyRequest<?>> {
+		Callable<RequestProxy<?>> {
 
 	/**
 	 * Service request

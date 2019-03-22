@@ -40,6 +40,9 @@
 
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +57,7 @@ public enum MessageContent {
 	/**
 	 * Represents unprocessed disclosed message data (i.e. content type of data
 	 * as it enters the Proven data platform). Disclosure message content is
-	 * domain instance data that will be identified and processed into another
+	 * domain instance data that will be identified and translated into another
 	 * content type(s) for further processing.
 	 */
 	Disclosure(MessageContentName.DISCLOSURE),
@@ -123,9 +126,13 @@ public enum MessageContent {
 	/**
 	 * Request response messages.
 	 */
-	Response(MessageContentName.RESPONSE);
+	Response(MessageContentName.RESPONSE),
 
-	
+	/**
+	 * Represents any of the message content types
+	 */
+	Any(MessageContentName.ANY);
+
 	public class MessageContentName {
 		public static final String DISCLOSURE = "disclosure";
 		public static final String EXPLICIT = "explicit";
@@ -137,6 +144,7 @@ public enum MessageContent {
 		public static final String ADMINISTRATIVE = "administrative";
 		public static final String MEASUREMENT = "measurement";
 		public static final String RESPONSE = "response";
+		public static final String ANY = "any";
 	}
 
 	private static Logger log = LoggerFactory.getLogger(MessageContent.class);
@@ -159,12 +167,52 @@ public enum MessageContent {
 	}
 
 	/**
-	 * Name of name for the message content type.
+	 * Name of for the message content type.
 	 * 
 	 * @return name for the content type
 	 */
 	public String getName() {
 		return name;
 	}
+	
+	public static MessageContent getValue(String name) {
+		
+		MessageContent ret = null;
+		for (MessageContent mc : values()) {
+			if (name.equals(mc.getName())) {
+				ret = mc;
+				break;
+			}
+		}
+		
+		return ret;
+	}
 
+	/**
+	 * Provides a list of all message content names.
+	 */
+	public static List<String> getNames() {
+
+		List<String> ret = new ArrayList<>();
+		for (MessageContent mc : values()) {
+			ret.add(mc.getName());
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Provides a list of all message content names.
+	 */
+	public static List<MessageContent> getValues() {
+
+		List<MessageContent> ret = new ArrayList<>();
+		for (MessageContent mc : values()) {
+			ret.add(mc);
+		}
+
+		return ret;
+	}
+
+	
 }

@@ -137,7 +137,9 @@ public class MessageUtils {
 
 		// Content type of message data model
 		// Explicit is default
-		pm.setMessageContent(MessageContent.Explicit);
+		
+		// TODO - setter was removed from PM, how does this affect shacl processing.
+		//pm.setMessageContent(MessageContent.Explicit);
 
 		// Listing of statements
 		StmtIterator iter = model.listStatements();
@@ -161,7 +163,10 @@ public class MessageUtils {
 			boolean contentTypeFound = false;
 			if (!contentTypeFound) {
 				if (predicate.equals(queryTypeProp)) {
-					pm.setMessageContent(MessageContent.Query);
+					
+					// TODO - setter was removed from PM, how does this affect shacl processing.
+					//pm.setMessageContent(MessageContent.Query);
+
 					contentTypeFound = true;
 				}
 			}

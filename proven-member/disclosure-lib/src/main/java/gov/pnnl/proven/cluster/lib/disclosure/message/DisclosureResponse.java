@@ -59,6 +59,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
  * @author d3j766
  *
  */
+@Deprecated
 @XmlRootElement
 public class DisclosureResponse extends ResponseMessage implements IdentifiedDataSerializable, Serializable {
 
@@ -76,9 +77,9 @@ public class DisclosureResponse extends ResponseMessage implements IdentifiedDat
 
 	private String response;
 
-	public DisclosureResponse() {
+	public DisclosureResponse() {		
 	}
-
+	
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);

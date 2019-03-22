@@ -45,7 +45,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.hazelcast.core.HazelcastInstance;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
+
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 @ApplicationScoped
 public class StreamModule extends ProvenModule {

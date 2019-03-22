@@ -39,15 +39,24 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Represents a component of Proven that is defined and managed at the cluster
- * level, for example a {@code MessageStreamProxy}.
+ * Represents a component that provide access and activities to support the operation of a
+ * the Proven cluster.
  * 
  * @author d3j766
  * 
  * @see ProvenComponent
  *
  */
-public interface ClusterComponent extends ProvenComponent {
+public abstract class ClusterComponent extends ProvenComponent {
+
+	static Logger log = LoggerFactory.getLogger(ClusterComponent.class);
+
+	public ClusterComponent() {
+		super();
+	}
 
 }

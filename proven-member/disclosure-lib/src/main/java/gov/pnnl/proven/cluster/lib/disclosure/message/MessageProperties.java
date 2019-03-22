@@ -58,6 +58,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
  * @author d3j766
  *
  */
+@Deprecated
 @XmlRootElement
 public class MessageProperties implements IdentifiedDataSerializable, Serializable {
 

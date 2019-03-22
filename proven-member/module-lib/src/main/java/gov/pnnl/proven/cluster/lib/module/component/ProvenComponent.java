@@ -39,16 +39,56 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+
 /**
- * Represents a component of Proven, which performs specially purposed activities
- * to support the management and operation of the platform. Components are defined and managed
- * at either the cluster or module level. They share properties such as a name,
- * state information, and metrics, and are registered with the platform for
- * cross member utilization within a cluster.
+ * Represents a component of Proven that performs activities to support the
+ * management and operation of the platform. These components are defined and
+ * managed at either the cluster or module level.
  * 
  * @author d3j766
  *
  */
-public interface ProvenComponent {
+public abstract class ProvenComponent {
+
+	static Logger log = LoggerFactory.getLogger(ProvenComponent.class);
+
+	private static final String BASE_NAME = "component.proven.pnnl.gov";
+
+	UUID id;
+	String name;
+	ComponentStatus status;
+	String distributedName;
+
+	public ProvenComponent() {
+		id = UUID.randomUUID();
+		status = ComponentStatus.Online;
+		distributedName = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + getComponentType() + "_" + id;
+		;
+	}
+
+	public UUID getId() {
+		return id;
+	}
+
+	// TODO - make abstract
+	public String getComponentType() {
+		return "mc";
+	};
+
+	public abstract ComponentStatus getStatus();
+
+	protected void setStatus(ComponentStatus status) {
+		this.status = status;
+	}
+
+	public String getDistributedName() {
+		return distributedName;
+	}
 
 }

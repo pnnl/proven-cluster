@@ -80,23 +80,28 @@
 
 package gov.pnnl.proven.module.disclosure.resource;
 
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
 import gov.pnnl.proven.module.disclosure.TestPipeline;
 
-
-@Stateless
-@LocalBean
 @Path("/pipeline")
 public class PipelineResource {
 
 	private final Logger log = LoggerFactory.getLogger(PipelineResource.class);
+
+	@Inject
+	StreamManager sm;
+
+	@Inject
+	TestPipeline tp;
 
 	@GET
 	@Path("/test")
@@ -105,7 +110,12 @@ public class PipelineResource {
 		Response response;
 
 		try {
-			new TestPipeline().submit();
+
+			// Runtime message stream access
+			MessageStreamProxy mspRunTime = sm.getMessageStreamProxy(DomainProvider.getProvenDisclosureDomain(),
+					MessageStreamType.Knowledge);
+
+			tp.submit(mspRunTime);
 			response = Response.ok().build();
 
 		} catch (Exception e) {

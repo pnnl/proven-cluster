@@ -56,11 +56,13 @@ import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
-import gov.pnnl.proven.cluster.lib.module.ProvenModule;
-import gov.pnnl.proven.cluster.lib.module.component.stream.MessageStream;
-import gov.pnnl.proven.cluster.lib.module.component.stream.StreamManager;
-import gov.pnnl.proven.cluster.lib.module.event.ModuleShutdown;
-import gov.pnnl.proven.cluster.lib.module.event.ModuleStartup;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.module.event.ModuleShutdown;
+import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 
 
 @ApplicationScoped
@@ -73,7 +75,7 @@ public class DisclosureModule extends ProvenModule {
 		
 		log.debug("ProvenModule startup message observed");
 
-		// TODO - managers to activate should be configurable per module
+		// TODO - managers should be configurable per module
 		// Activate managers
 		//sm.ping();
 		
@@ -107,8 +109,8 @@ public class DisclosureModule extends ProvenModule {
 	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
 			+ SESSION_TAG + "/responses";
 
-	@Inject
-	StreamManager sm;
+//	@Inject
+//	StreamManager sm;
 	
 	@Inject
 	private HazelcastInstance hzInstance;
@@ -118,19 +120,20 @@ public class DisclosureModule extends ProvenModule {
 	IMap<String, Boolean> clientDisclosureMap;
 
 	IMap<String, Boolean> clientResponseMap;
+	
+//	@Inject
+//	@StreamConfig(stream = MessageStream.Knowledge)
+//	MessageStreamProxy mspKnowledge;
+//	
+//	@Inject
+//	MessageStreamProxy mspDisclosure;
+//	
 
 	@PostConstruct
 	public void init() {
 
 		log.info("DisclosureModule startup...");
-		
-		// Force creation of default Proven streams
-		DisclosureDomain dd = DomainProvider.getProvenDisclosureDomain();
-		sm.getMessageStream(dd, MessageStream.Disclosusre);
-		sm.getMessageStream(dd, MessageStream.Knowledge);
-		sm.getMessageStream(dd, MessageStream.Response);
-		
-		
+				
 		// TODO This should be part of the member registry when a
 		// DisclosureBuffer
 		// reports itself as part of its construction. Placed here for now to
@@ -154,9 +157,5 @@ public class DisclosureModule extends ProvenModule {
 		ret = ret.replace(PORT_TAG, port);
 		return ret;
 	}
-	
-	private void testPipeline() {
-		new TestPipeline().submit();
-	}
-	
+		
 }

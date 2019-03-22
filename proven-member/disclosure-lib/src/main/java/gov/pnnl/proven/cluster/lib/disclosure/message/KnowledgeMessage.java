@@ -42,6 +42,8 @@ package gov.pnnl.proven.cluster.lib.disclosure.message;
 import java.io.IOException;
 import java.util.UUID;
 
+import javax.json.JsonObject;
+
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
@@ -49,7 +51,8 @@ public abstract class KnowledgeMessage extends ProvenMessage {
 
 	private static final long serialVersionUID = 1L;
 		
-	KnowledgeMessage() {	
+	public KnowledgeMessage(JsonObject message) {
+		super(message);
 	}
 
 	@Override

@@ -42,7 +42,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.request;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 
 /**
- * Represents a request for disclosing a query request to a Proven Cluster. 
+ * Represents a request for disclosing a query request to a Proven Cluster.
  * 
  * @author d3j766
  *
@@ -50,9 +50,9 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 public class QueryJsonDisclosureRequest extends ProxyRegisteredRequest<JsonDisclosure, String> {
 
 	private static final long serialVersionUID = 1L;
-	
-		public static final String QUERY_JSON_DISCLOSURE_REQUEST_NAME = "request.client.disclosure.query";
-	
+
+	public static final String QUERY_JSON_DISCLOSURE_REQUEST_NAME = "request.client.disclosure.query";
+
 	public QueryJsonDisclosureRequest() {
 		super(QUERY_JSON_DISCLOSURE_REQUEST_NAME, JsonDisclosure.class, String.class);
 	}
