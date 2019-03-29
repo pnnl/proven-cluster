@@ -42,12 +42,14 @@ package gov.pnnl.proven.module.disclosure.sse;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.context.ApplicationScoped;
@@ -126,6 +128,23 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		eventId = new AtomicInteger(1);
 	}
 
+	@PreDestroy
+	public void destroy() {
+
+		// Remove listeners
+		for (SimpleEntry<DisclosureDomain, MessageStreamType> se : sessionRegistry.keySet()) {
+			removeListener(se.getKey(), se.getValue());
+		}
+
+		// Close sessions
+		for (Set<SseSession> sessions : sessionRegistry.values()) {
+			for (SseSession session : sessions) {
+				closeSession(session);
+			}
+		}
+
+	}
+
 	public synchronized void register(SseSession session) {
 
 		// Get register event data to push to client
@@ -144,7 +163,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 		// Add listener if it's first session for a domain stream
 		if (isFirstSession) {
-			addListener(session);
+			addListener(session.getDomain(), session.getEvent().getStreamType());
 		}
 	}
 
@@ -160,16 +179,11 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			if (isLastSession) {
 
 				// Turn off the entry listener
-				removeListener(session);
+				removeListener(session.getDomain(), session.getEvent().getStreamType());
 
-				// Close the SSE session
-				if (!session.getEventSink().isClosed()) {
-					try {
-						session.getEventSink().close();
-					} catch (Exception e) {
-						logger.info("Closure failed for SSE event in session :: " + sessionId);
-					}
-				}
+				// Close the SSE session event sink
+				closeSession(session);
+
 			}
 
 			// Update registry
@@ -230,22 +244,29 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		}
 	}
 
-	private void addListener(SseSession session) {
+	private void closeSession(SseSession session) {
 
-		DisclosureDomain dd = session.getDomain();
-		MessageStreamType mst = session.getEvent().getStreamType();
+		if (!session.getEventSink().isClosed()) {
+			try {
+				session.getEventSink().close();
+			} catch (Exception e) {
+				logger.info("Closure failed for SSE event sink in session :: " + session.getSessionId());
+			}
+		}
+	}
+
+	private void addListener(DisclosureDomain dd, MessageStreamType mst) {
+
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-		MessageStreamProxy msp = getSessionStream(session);
+		MessageStreamProxy msp = sm.getMessageStreamProxy(dd, mst);
 		UUID listenerId = UUID.fromString(msp.getMessageStream().getStream().addEntryListener(this, true));
 		listenerRegistry.put(se, listenerId);
 	}
 
-	private void removeListener(SseSession session) {
+	private void removeListener(DisclosureDomain dd, MessageStreamType mst) {
 
-		DisclosureDomain dd = session.getDomain();
-		MessageStreamType mst = session.getEvent().getStreamType();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-		MessageStreamProxy msp = getSessionStream(session);
+		MessageStreamProxy msp = sm.getMessageStreamProxy(dd, mst);
 		UUID listenerId = listenerRegistry.get(se);
 		if (null != listenerId) {
 			String listenerIdStr = listenerId.toString();
