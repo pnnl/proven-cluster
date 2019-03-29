@@ -39,14 +39,12 @@
  ******************************************************************************/
 package gov.pnnl.proven.module.disclosure.sse;
 
-import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
@@ -57,7 +55,6 @@ import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.OutboundSseEvent.Builder;
-import javax.ws.rs.sse.Sse;
 
 import org.apache.jena.atlas.logging.Log;
 import org.slf4j.Logger;
@@ -68,7 +65,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
-import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
@@ -77,10 +73,11 @@ import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
  * Manages SSE sessions created by the resource class
  * {@code SseSessionResource}. This manager supports session registration and
  * deregistration. Registered sessions listen for entry messages added to their
- * associated stream and push event data based on the entry message to the
- * session's client. The initial event message for a session provides the
- * session identifier; in this way the client may deregister the session when
- * finished.
+ * associated stream according to its {@code SseEvent}, and pushes event data
+ * built from the entry message to the session's client.
+ * 
+ * The initial event message for a registered session provides the session
+ * identifier; in this way the client may deregister the session when finished.
  * 
  * @author d3j766
  *
@@ -147,10 +144,8 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 		// Add listener if it's first session for a domain stream
 		if (isFirstSession) {
-			MessageStreamProxy msp = getSessionStream(session);
-			msp.getMessageStream().getStream().addEntryListener(this, true);
+			addListener(session);
 		}
-
 	}
 
 	public synchronized void deregister(UUID sessionId) {
@@ -165,15 +160,14 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			if (isLastSession) {
 
 				// Turn off the entry listener
-				MessageStreamProxy msp = getSessionStream(session);
-				msp.getMessageStream().getStream().removeEntryListener(sessionId.toString());
+				removeListener(session);
 
 				// Close the SSE session
 				if (!session.getEventSink().isClosed()) {
 					try {
 						session.getEventSink().close();
 					} catch (Exception e) {
-						logger.info("SSE event sink could be closed for session :: " + sessionId);
+						logger.info("Closure failed for SSE event in session :: " + sessionId);
 					}
 				}
 			}
@@ -236,6 +230,30 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		}
 	}
 
+	private void addListener(SseSession session) {
+
+		DisclosureDomain dd = session.getDomain();
+		MessageStreamType mst = session.getEvent().getStreamType();
+		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
+		MessageStreamProxy msp = getSessionStream(session);
+		UUID listenerId = UUID.fromString(msp.getMessageStream().getStream().addEntryListener(this, true));
+		listenerRegistry.put(se, listenerId);
+	}
+
+	private void removeListener(SseSession session) {
+
+		DisclosureDomain dd = session.getDomain();
+		MessageStreamType mst = session.getEvent().getStreamType();
+		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
+		MessageStreamProxy msp = getSessionStream(session);
+		UUID listenerId = listenerRegistry.get(se);
+		if (null != listenerId) {
+			String listenerIdStr = listenerId.toString();
+			msp.getMessageStream().getStream().removeEntryListener(listenerIdStr);
+		}
+		listenerRegistry.remove(se);
+	}
+
 	private boolean isFirstSessionForDomainStream(SseSession session) {
 
 		boolean ret = true;
@@ -267,7 +285,9 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 	private void sendEventData(SseSession session, SseEventData data, String comment) {
 
-		Builder sseBuilder = session.getSse().newEventBuilder();
+		try {
+
+			Builder sseBuilder = session.getSse().newEventBuilder();
 
 		//@formatter:off
 		OutboundSseEvent sseEvent = sseBuilder
@@ -280,10 +300,15 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 				.build();
 		//@formatter:on
 
-		session.getEventSink().send(sseEvent);
+			session.getEventSink().send(sseEvent);
+
+		} catch (Throwable t) {
+			logger.error("SSE event data failed to be sent");
+			t.printStackTrace();
+		}
 	}
 
-	private SseEventData extractEventData(ProvenMessage message) {
+	private SseEventData extractEventData(SseSession session, ProvenMessage message) {
 
 		SseEventData eventData = null;
 
@@ -295,7 +320,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		case Response:
 
 			ResponseMessage rm = (ResponseMessage) message;
-			eventData = new SseResponseEvent(rm);
+			eventData = new SseResponseEvent(session, rm);
 			break;
 
 		default:
@@ -322,16 +347,17 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 				boolean hasSessions = ((null != sessions) && (!sessions.isEmpty()));
 
 				if (hasSessions) {
-					SseEventData eventData = extractEventData(message);
+
 					for (SseSession session : sessions) {
 
 						// Check if event data should be sent to session
 						boolean hasDomain = session.hasDomain(dd);
 						boolean hasContent = session.hasContent(mc);
 						boolean hasRequester = session.hasRequester(message.getRequester());
-						boolean sendEvent = ( (hasDomain) && (hasContent) && (hasRequester) ); 
-						
+						boolean sendEvent = ((hasDomain) && (hasContent) && (hasRequester));
+
 						if (sendEvent) {
+							SseEventData eventData = extractEventData(session, message);
 							String comment = "sse event data for a " + message.getClass().getSimpleName();
 							sendEventData(session, eventData, comment);
 						}

@@ -81,7 +81,8 @@ public class StreamManager extends ModuleComponent implements ComponentManager {
 
 	/**
 	 * Set of managed message stream instances that provide access to the
-	 * underlying message streams, organized by the domain of disclosure.
+	 * underlying IMDG distributed data structures. Message streams are
+	 * organized by disclosure domain.
 	 */
 	private Map<DisclosureDomain, Set<MessageStream>> domainStreams;
 
@@ -105,34 +106,32 @@ public class StreamManager extends ModuleComponent implements ComponentManager {
 		log.debug("Activating StreamManager");
 	}
 
-	
 	public MessageStreamProxy getMessageStreamProxy(DisclosureDomain domain, MessageStreamType streamType) {
-	
+
 		// Create all message streams for domain
 		createStreams(domain);
-	
+
 		// Acquire the message stream for proxy instance
 		Optional<MessageStream> ms = domainStreams.get(domain).stream()
 				.filter(obj -> obj.getStreamName().equals(streamType.getStreamName(domain))).findAny();
-	
+
 		return new MessageStreamProxy(ms.get());
-	
+
 	}
 
 	public Set<MessageStreamProxy> getMessageStreamProxyies(DisclosureDomain domain) {
-	
+
 		Set<MessageStreamProxy> msps = new HashSet<>();
-	
+
 		// Create all message streams for domain
 		createStreams(domain);
-	
+
 		// Acquire the message streams for new proxy instances
 		domainStreams.get(domain).stream().forEach((ms) -> {
 			msps.add(new MessageStreamProxy(ms));
 		});
-		
+
 		return msps;
-		
 	}
 
 	/**
@@ -147,7 +146,7 @@ public class StreamManager extends ModuleComponent implements ComponentManager {
 	 */
 	@Produces
 	private MessageStreamProxy messageStreamProxyProducer(InjectionPoint ip) {
-	
+
 		StreamConfig sc = null;
 		if (null != ip) {
 			// Get Stream Configuration
@@ -156,17 +155,17 @@ public class StreamManager extends ModuleComponent implements ComponentManager {
 				sc = (StreamConfig) annotated.getAnnotation(StreamConfig.class);
 			}
 		}
-	
+
 		// Missing Stream configuration, use default provided by class.
 		if (null == sc) {
 			sc = MessageStreamProxy.class.getAnnotation(StreamConfig.class);
 		}
-	
+
 		// Get disclosure domain and stream type
 		String domainStr = sc.domain();
 		DisclosureDomain domain = new DisclosureDomain(domainStr);
 		MessageStreamType streamType = sc.streamType();
-	
+
 		return getMessageStreamProxy(domain, streamType);
 	}
 

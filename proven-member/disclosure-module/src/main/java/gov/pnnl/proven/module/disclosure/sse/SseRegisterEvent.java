@@ -40,8 +40,12 @@
 package gov.pnnl.proven.module.disclosure.sse;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 
 @XmlRootElement(name = "register-event")
 public class SseRegisterEvent implements SseEventData, Serializable {
@@ -50,17 +54,26 @@ public class SseRegisterEvent implements SseEventData, Serializable {
 
 	String sessionId;
 
-	String event;
+	String registeredEvent;
 
-	String domain;
+	String registeredDomain;
+
+	List<String> registeredMessageContents;
+
+	String registeredRequester;
 
 	SseRegisterEvent() {
 	}
 
 	SseRegisterEvent(SseSession session) {
 		this.sessionId = session.getSessionId().toString();
-		this.event = session.getEvent().getEvent();
-		this.domain = session.getDomain().getDomain();
+		this.registeredEvent = session.getEvent().getEvent();
+		this.registeredDomain = session.getDomain().getDomain();
+		this.registeredMessageContents = new ArrayList<>();
+		for (MessageContent mc : session.getContents()) {
+			this.registeredMessageContents.add(mc.getName());
+		}
+		this.registeredRequester = session.getRequester();
 	}
 
 	public String getSessionId() {
@@ -71,20 +84,36 @@ public class SseRegisterEvent implements SseEventData, Serializable {
 		this.sessionId = sessionId;
 	}
 
-	public String getEvent() {
-		return event;
+	public String getRegisteredEvent() {
+		return registeredEvent;
 	}
 
-	public void setEvent(String event) {
-		this.event = event;
+	public void setRegisteredEvent(String registeredEvent) {
+		this.registeredEvent = registeredEvent;
 	}
 
-	public String getDomain() {
-		return domain;
+	public String getRegisteredDomain() {
+		return registeredDomain;
 	}
 
-	public void setDomain(String domain) {
-		this.domain = domain;
+	public void setRegisteredDomain(String registeredDomain) {
+		this.registeredDomain = registeredDomain;
+	}
+
+	public List<String> getRegisteredMessageContents() {
+		return registeredMessageContents;
+	}
+
+	public void setRegisteredMessageContents(List<String> registeredMessageContents) {
+		this.registeredMessageContents = registeredMessageContents;
+	}
+
+	public String getRegisteredRequester() {
+		return registeredRequester;
+	}
+
+	public void setRegisteredRequester(String registeredRequester) {
+		this.registeredRequester = registeredRequester;
 	}
 
 }

@@ -49,30 +49,36 @@ public class SseResponseEvent implements SseEventData, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	String sessionId;
+	
+	String domain;
+	
+	String messageContent;
+	
+	String requester;
+	
+	String disclosureId;
+	
 	int status;
 
 	String reason;
 	
 	String key;
 
-	String disclosureId;
-
-	String domain;
-
-	String source;
-
 	String message;
 
 	SseResponseEvent() {
 	}
 
-	SseResponseEvent(ResponseMessage message) {
+	SseResponseEvent(SseSession session, ResponseMessage message) {
+		this.sessionId = session.getSessionId().toString();
+		this.domain = message.getDomain().getDomain();
+		this.messageContent = message.getMessageContent().getName();
+		this.requester = message.getRequester();
+		this.disclosureId = message.getDisclosureId();
 		this.status = message.getStatus().getStatusCode();
 		this.reason = message.getStatus().getReasonPhrase();
 		this.key = message.getMessageKey();
-		this.disclosureId = message.getDisclosureId();
-		this.domain = message.getDomain().getDomain();
-		this.source = message.getRequester();
 		this.message = message.getMessage().toString();
 	}
 

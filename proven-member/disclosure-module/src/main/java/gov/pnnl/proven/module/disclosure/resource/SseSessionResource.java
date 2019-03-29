@@ -106,11 +106,11 @@ import static gov.pnnl.proven.module.disclosure.resource.ResourceConsts.R_RESPON
 /**
  * 
  * A resource class used for the registration and deregistration of
- * {@code SseSession}s. Each registered session represents a connection to the
- * requester where SSE data will be pushed based on the session's configuration.
+ * {@code SseSession}s. Each registered session represents a connection to a
+ * client where SSE data will be pushed based on the session's configuration.
  * 
- * TODO - create a SseSession configuration class; supporting a POST of the
- * session configuration information.
+ * TODO - create a SseSession configuration class to support POSTing
+ * configuration.
  * 
  * @author d3j766
  *
@@ -126,11 +126,10 @@ public class SseSessionResource {
 	SseSessionManager sessions;
 
 	/**
-	 * Registers an SSE session with a client requester in order to send
-	 * response event data to the client as it is created/added on server side.
-	 * Response event data is based on {@code ResponseMessage}s. The event data
-	 * sent to the client is filtered using query parameters provided in the
-	 * service call.
+	 * Registers an SSE session with the client requester. Response event data
+	 * is pushed to client as it is created/added on server side. Response event
+	 * data is based on {@code ResponseMessage}s. The event data sent to the
+	 * client is filtered using query parameters provided in the service call.
 	 * 
 	 * TODO - this is initial implementation. Are there other query parameters
 	 * to add?
@@ -182,7 +181,7 @@ public class SseSessionResource {
 	 * @param sessionId
 	 *            the session id, the value is provided in the first even push
 	 *            after registration.
-	 * @return a response indicating success of session removal.       
+	 * @return a response indicating success of session removal.
 	 */
 	@Path("{sesionId}")
 	@DELETE
