@@ -37,83 +37,13 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.disclosure.sse;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlRootElement;
-
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-
-@XmlRootElement(name = "register-event")
-public class SseRegisterEvent implements SseEventData, Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	String sessionId;
-
-	String registeredEvent;
-
-	String registeredDomain;
-
-	List<String> registeredMessageContents;
-
-	String registeredRequester;
-
-	SseRegisterEvent() {
-	}
-
-	SseRegisterEvent(SseSession session) {
-		this.sessionId = session.getSessionId().toString();
-		this.registeredEvent = session.getEvent().getEvent();
-		this.registeredDomain = session.getDomain().getDomain();
-		this.registeredMessageContents = new ArrayList<>();
-		for (MessageContent mc : session.getContents()) {
-			this.registeredMessageContents.add(mc.getName());
-		}
-		this.registeredRequester = session.getRequester();
-	}
-
-	public String getSessionId() {
-		return sessionId;
-	}
-
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
-	}
-
-	public String getRegisteredEvent() {
-		return registeredEvent;
-	}
-
-	public void setRegisteredEvent(String registeredEvent) {
-		this.registeredEvent = registeredEvent;
-	}
-
-	public String getRegisteredDomain() {
-		return registeredDomain;
-	}
-
-	public void setRegisteredDomain(String registeredDomain) {
-		this.registeredDomain = registeredDomain;
-	}
-
-	public List<String> getRegisteredMessageContents() {
-		return registeredMessageContents;
-	}
-
-	public void setRegisteredMessageContents(List<String> registeredMessageContents) {
-		this.registeredMessageContents = registeredMessageContents;
-	}
-
-	public String getRegisteredRequester() {
-		return registeredRequester;
-	}
-
-	public void setRegisteredRequester(String registeredRequester) {
-		this.registeredRequester = registeredRequester;
-	}
-
+/**
+ * Marks implementations as a provider of data for an outbound SSE event. 
+ * 
+ * @author d3j766
+ *
+ */
+public interface SseEventData {
 }

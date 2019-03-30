@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.disclosure.sse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +51,6 @@ import org.slf4j.Logger;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-
 import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.*;
 
 /**
@@ -85,7 +83,7 @@ public class SseSession {
 	private String requester;
 
 	public SseSession(SseEvent event, UUID sessionId, Sse sse, SseEventSink eventSink, Optional<String> domainOpt,
-			Optional<String[]> contentsOpt, Optional<String> requesterOpt) {
+			Optional<List<String>> contentsOpt, Optional<String> requesterOpt) {
 
 		this.event = event;
 		this.sessionId = sessionId;
@@ -102,9 +100,10 @@ public class SseSession {
 		this.contents = new ArrayList<MessageContent>();
 		this.contents.add(Any);
 		if (contentsOpt.isPresent()) {
-			String[] source = contentsOpt.get();
-			if (source.length > 0) {
-				List<MessageContent> valid = MessageContent.getValues();
+			List<String> source = contentsOpt.get();
+			if (source.size() > 0) {
+				// Get valid content types for the event's stream type
+				List<MessageContent> valid = this.event.getStreamType().getMessageContents(); 
 				ArrayList<MessageContent> dest = new ArrayList<>();
 				for (String mcStr : source) {
 					MessageContent mc = MessageContent.getValue(mcStr);

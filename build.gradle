@@ -12,6 +12,7 @@ subprojects {
 	ext.jetHazelcastVersion = "3.10.5"
 	ext.payaraVersion = "5.183"
 	ext.payaraHazelcastVersion = "3.10.2"
+	ext.payaraJerseyVersion = "2.27"
 	ext.influxDbLibVersion = "2.8"
 	ext.moduleProjectSuffix = "-module"
 	ext.moduleLibProject = 'module-lib'

@@ -78,126 +78,52 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.disclosure.resource;
 
-import java.util.Optional;
-import java.util.UUID;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.sse.Sse;
-import javax.ws.rs.sse.SseEventSink;
 import org.slf4j.Logger;
-import gov.pnnl.proven.module.disclosure.sse.SseEvent;
-import gov.pnnl.proven.module.disclosure.sse.SseSession;
-import gov.pnnl.proven.module.disclosure.sse.SseSessionManager;
-import static gov.pnnl.proven.module.disclosure.resource.ResourceConsts.RR_SSE;
-import static gov.pnnl.proven.module.disclosure.resource.ResourceConsts.R_RESPONSE_EVENTS;
+import org.slf4j.LoggerFactory;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
+import gov.pnnl.proven.cluster.module.disclosure.TestPipeline;
 
-/**
- * 
- * A resource class used for the registration and deregistration of
- * {@code SseSession}s. Each registered session represents a connection to a
- * client where SSE data will be pushed based on the session's configuration.
- * 
- * TODO - create a SseSession configuration class to support POSTing
- * configuration.
- * 
- * @author d3j766
- *
- */
-@Path(RR_SSE)
-@RequestScoped
-public class SseSessionResource {
+@Path("/pipeline")
+public class PipelineResource {
+
+	private final Logger log = LoggerFactory.getLogger(PipelineResource.class);
 
 	@Inject
-	Logger logger;
+	StreamManager sm;
 
 	@Inject
-	SseSessionManager sessions;
+	TestPipeline tp;
 
-	/**
-	 * Registers an SSE session with the client requester. Response event data
-	 * is pushed to client as it is created/added on server side. Response event
-	 * data is based on {@code ResponseMessage}s. The event data sent to the
-	 * client is filtered using query parameters provided in the service call.
-	 * 
-	 * TODO - this is initial implementation. Are there other query parameters
-	 * to add?
-	 * 
-	 * @param eventSink
-	 *            represents HTTP client connection where event data will be
-	 *            pushed. Provided by the application container.
-	 * @param domain
-	 *            (optional) identifies disclosure domain that the response
-	 *            event is based on. Only events matching this value will be
-	 *            sent. If not provided, the Proven domain is used.
-	 * @param content
-	 *            (optional) identifies the type of message contents that the
-	 *            response event is based on. The types are listed at
-	 *            {@code MessageContent#getNames()}. Only events matching these
-	 *            value will be sent. If not provided all contentTypes are
-	 *            included.
-	 * @param requestor
-	 *            (optional) identifies disclosure source (i.e. requester) that
-	 *            the response event is based on. This must be provided at
-	 *            disclosure time for a match to be made. Only events matching
-	 *            this value will be sent. If not provided all disclosure
-	 *            sources are included.
-	 */
 	@GET
-	@Path(R_RESPONSE_EVENTS)
-	@Produces(MediaType.SERVER_SENT_EVENTS)
-	public void getResponseEvents(@Context Sse sse, @Context SseEventSink eventSink,
-			@QueryParam("domain") String domain, @QueryParam("content") String[] content,
-			@QueryParam("requester") String requester) {
+	@Path("/test")
+	public Response submitTestPipeline() {
 
-		logger.debug("Registering SSE for domain :: " + domain);
-
-		Optional<String> domainOpt = Optional.ofNullable(domain);
-		Optional<String[]> contentsOpt = Optional.ofNullable(content);
-		Optional<String> requesterOpt = Optional.ofNullable(requester);
-
-		SseSession session = new SseSession(SseEvent.Response, UUID.randomUUID(), sse, eventSink, domainOpt,
-				contentsOpt, requesterOpt);
-		sessions.register(session);
-	}
-
-	/**
-	 * Allows for explicit removal of an SSE session. This will close the
-	 * connection and remove from {@code SseSessionManager}'s registry.
-	 * 
-	 * TODO - improve response to account for errors in deregister.
-	 * 
-	 * @param sessionId
-	 *            the session id, the value is provided in the first even push
-	 *            after registration.
-	 * @return a response indicating success of session removal.
-	 */
-	@Path("{sesionId}")
-	@DELETE
-	public Response deregister(@PathParam("sesionId") String sessionId) {
-
-		Response ret = Response.ok().build();
-		UUID id = null;
+		Response response;
 
 		try {
-			id = UUID.fromString(sessionId);
-			sessions.deregister(id);
-		} catch (IllegalArgumentException e) {
-			ret = Response.status(Status.BAD_REQUEST.getStatusCode(), "Invalid UUID value provided.").build();
+
+			// Runtime message stream access
+			MessageStreamProxy mspRunTime = sm.getMessageStreamProxy(DomainProvider.getProvenDisclosureDomain(),
+					MessageStreamType.Knowledge);
+
+			tp.submit(mspRunTime);
+			response = Response.ok().build();
+
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			response = Response.serverError().entity(e.getMessage()).build();
 		}
 
-		return ret;
+		return response;
 	}
 
 }

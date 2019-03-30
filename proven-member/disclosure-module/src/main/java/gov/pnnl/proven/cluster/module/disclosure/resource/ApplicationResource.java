@@ -78,52 +78,18 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.disclosure.resource;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
-import gov.pnnl.proven.module.disclosure.TestPipeline;
+import static gov.pnnl.proven.cluster.module.disclosure.resource.ResourceConsts.APP_PATH;
+import static gov.pnnl.proven.cluster.module.disclosure.resource.ResourceConsts.RESOURCE_PACKAGE;
+import javax.naming.NamingException;
+import javax.ws.rs.ApplicationPath;
+import org.glassfish.jersey.server.ResourceConfig;
 
-@Path("/pipeline")
-public class PipelineResource {
+@ApplicationPath(APP_PATH)
+public class ApplicationResource extends ResourceConfig {
 
-	private final Logger log = LoggerFactory.getLogger(PipelineResource.class);
-
-	@Inject
-	StreamManager sm;
-
-	@Inject
-	TestPipeline tp;
-
-	@GET
-	@Path("/test")
-	public Response submitTestPipeline() {
-
-		Response response;
-
-		try {
-
-			// Runtime message stream access
-			MessageStreamProxy mspRunTime = sm.getMessageStreamProxy(DomainProvider.getProvenDisclosureDomain(),
-					MessageStreamType.Knowledge);
-
-			tp.submit(mspRunTime);
-			response = Response.ok().build();
-
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			response = Response.serverError().entity(e.getMessage()).build();
-		}
-
-		return response;
+	public ApplicationResource() throws NamingException {
+		packages(RESOURCE_PACKAGE);
 	}
-
 }

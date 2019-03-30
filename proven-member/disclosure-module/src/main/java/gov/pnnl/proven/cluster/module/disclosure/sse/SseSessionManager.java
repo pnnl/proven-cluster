@@ -37,12 +37,11 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.disclosure.sse;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -58,7 +57,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.OutboundSseEvent.Builder;
 
-import org.apache.jena.atlas.logging.Log;
 import org.slf4j.Logger;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.EntryAddedListener;
@@ -81,6 +79,10 @@ import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
  * The initial event message for a registered session provides the session
  * identifier; in this way the client may deregister the session when finished.
  * 
+ * TODO - need to periodically flush sessions that have been closed. These are
+ * sessions that have been closed by means other than the DELETE service
+ * provided by the SSE resource class. Cleanup process.
+ * 
  * @author d3j766
  *
  */
@@ -89,6 +91,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 	public static final String SSE_EXECUTOR_SERVICE = "concurrent/SSE";
 	public static final int SSE_RECONNECT_DELAY = 4000;
+	public static final int REGISTRATIONS_PER_CLEAN = 10;
 
 	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
@@ -107,7 +110,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 	/**
 	 * Maps Storing all registered sessions. The first session added for a
-	 * domain stream will cause the creation of it's domain stream listener. The
+	 * domain stream will cause creation of it's domain stream listener. The
 	 * last session to be removed from a domain stream will cause the removal
 	 * it's domain stream listener. Some data is duplicated between Maps for the
 	 * benefit of retrievals.
@@ -119,6 +122,11 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 	 * A shared resource for SSE event identifiers.
 	 */
 	AtomicInteger eventId;
+
+	/**
+	 * A running count of the number of successfully performed registrations.
+	 */
+	int registrationCount = 0;
 
 	@PostConstruct
 	public void initialize() {
@@ -147,6 +155,11 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 	public synchronized void register(SseSession session) {
 
+		// Clean stale connections periodically
+		if (0 == registrationCount % REGISTRATIONS_PER_CLEAN) {
+			cleanSessions();
+		}
+
 		// Get register event data to push to client
 		SseRegisterEvent sre = new SseRegisterEvent(session);
 
@@ -156,15 +169,25 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		// Add session to registry
 		addSession(session);
 
-		// Send register event before adding the listener, if is the first
-		// session for a domain stream
+		// Send register event
 		String comment = "SSE session registration";
-		sendEventData(session, sre, comment);
+		CompletableFuture.runAsync(() -> {
+			try {
+				sendEventData(session, sre, comment);
+			} catch (Throwable t) {
+				t.printStackTrace();
+				throw t;
+			}
+		}, mes).exceptionally(this::entryException);
 
-		// Add listener if it's first session for a domain stream
+		// Add listener, if it's first session for the domain stream
 		if (isFirstSession) {
 			addListener(session.getDomain(), session.getEvent().getStreamType());
 		}
+
+		registrationCount++;
+		logger.debug("Resistration count :: " + registrationCount);
+		logger.debug("Session registered, session ID :: " + session.getSessionId());
 	}
 
 	public synchronized void deregister(UUID sessionId) {
@@ -183,11 +206,14 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 				// Close the SSE session event sink
 				closeSession(session);
-
 			}
 
 			// Update registry
 			removeSession(sessionId);
+			logger.debug("Session deregistered, session ID :: " + sessionId);
+
+		} else {
+			logger.debug("Session deregistration for session ID :: " + sessionId + " , NOT FOUND");
 		}
 
 	}
@@ -214,8 +240,8 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		UUID sessionId = session.getSessionId();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 
+		// Add to registry
 		sessionsById.put(sessionId, se);
-
 		if (sessionRegistry.containsKey(dd)) {
 			sessionRegistry.get(se).add(session);
 
@@ -238,7 +264,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 				}
 			}
 			if (null != sessionToRemove) {
-				sessionRegistry.remove(sessionToRemove);
+				sessionRegistry.get(domainStream).remove(sessionToRemove);
 				sessionsById.remove(sessionId);
 			}
 		}
@@ -253,6 +279,10 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 				logger.info("Closure failed for SSE event sink in session :: " + session.getSessionId());
 			}
 		}
+	}
+
+	private void cleanSessions() {
+
 	}
 
 	private void addListener(DisclosureDomain dd, MessageStreamType mst) {
@@ -277,12 +307,12 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 	private boolean isFirstSessionForDomainStream(SseSession session) {
 
-		boolean ret = true;
+		boolean ret = false;
 		DisclosureDomain dd = session.getDomain();
 		MessageStreamType mst = session.getEvent().getStreamType();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 		if ((!sessionRegistry.containsKey(se)) || (!sessionRegistry.get(se).isEmpty())) {
-			ret = false;
+			ret = true;
 		}
 		return ret;
 	}
@@ -294,14 +324,10 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		MessageStreamType mst = session.getEvent().getStreamType();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 		if ((sessionRegistry.containsKey(se)) && (sessionRegistry.get(se).size() == 1)
-				&& (sessionRegistry.containsValue(session))) {
+				&& (sessionRegistry.get(se).contains(session))) {
 			ret = true;
 		}
 		return ret;
-	}
-
-	private MessageStreamProxy getSessionStream(SseSession session) {
-		return sm.getMessageStreamProxy(session.getDomain(), session.getEvent().getStreamType());
 	}
 
 	private void sendEventData(SseSession session, SseEventData data, String comment) {
@@ -310,16 +336,16 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 			Builder sseBuilder = session.getSse().newEventBuilder();
 
-		//@formatter:off
-		OutboundSseEvent sseEvent = sseBuilder
-				.name(session.getEvent().getEvent())
-				.id(String.valueOf(eventId.getAndIncrement()))
-				.mediaType(MediaType.APPLICATION_JSON_TYPE)
-				.data(data.getClass(), data)
-				.reconnectDelay(SSE_RECONNECT_DELAY)
-				.comment(comment)
-				.build();
-		//@formatter:on
+			//@formatter:off
+			OutboundSseEvent sseEvent = sseBuilder
+					.name(session.getEvent().getEvent())
+					.id(String.valueOf(eventId.getAndIncrement()))
+					.mediaType(MediaType.APPLICATION_JSON_TYPE)
+					.data(data.getClass(), data)
+					.reconnectDelay(SSE_RECONNECT_DELAY)
+					.comment(comment)
+					.build();
+			//@formatter:on
 
 			session.getEventSink().send(sseEvent);
 
@@ -406,7 +432,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 		Void ret = null;
 
-		// Simple log message for now
+		// Simple log message for now...
 		logger.error("Sending SSE event data for a Proven message has failed.");
 
 		return ret;

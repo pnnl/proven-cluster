@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure;
+package gov.pnnl.proven.cluster.module.disclosure;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -53,16 +53,10 @@ import com.hazelcast.ringbuffer.Ringbuffer;
 import fish.payara.micro.PayaraMicro;
 import gov.pnnl.proven.cluster.lib.disclosure.ClientDisclosureMap;
 import gov.pnnl.proven.cluster.lib.disclosure.ClientResponseMap;
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.ProxyRequest;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleShutdown;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
-import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 
 
 @ApplicationScoped

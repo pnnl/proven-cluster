@@ -37,13 +37,49 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.disclosure.sse;
 
-/**
- * Marks implementations as a provider of data for an outbound SSE event. 
- * 
- * @author d3j766
- *
- */
-public interface SseEventData {
+import java.io.Serializable;
+
+import javax.xml.bind.annotation.XmlRootElement;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+
+@XmlRootElement(name = "response-event")
+public class SseResponseEvent implements SseEventData, Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	String sessionId;
+	
+	String domain;
+	
+	String messageContent;
+	
+	String requester;
+	
+	String disclosureId;
+	
+	int status;
+
+	String reason;
+	
+	String key;
+
+	String message;
+
+	SseResponseEvent() {
+	}
+
+	SseResponseEvent(SseSession session, ResponseMessage message) {
+		this.sessionId = session.getSessionId().toString();
+		this.domain = message.getDomain().getDomain();
+		this.messageContent = message.getMessageContent().getName();
+		this.requester = message.getRequester();
+		this.disclosureId = message.getDisclosureId();
+		this.status = message.getStatus().getStatusCode();
+		this.reason = message.getStatus().getReasonPhrase();
+		this.key = message.getMessageKey();
+		this.message = message.getMessage().toString();
+	}
+
 }

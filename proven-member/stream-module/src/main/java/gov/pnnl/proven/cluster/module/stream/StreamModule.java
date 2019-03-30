@@ -37,73 +37,32 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.stream;
 
-import java.util.ArrayList;
-import java.util.List;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.hazelcast.core.HazelcastInstance;
 
-/**
- * Provides the different SSE event types that can be associated with an
- * {@code SseSession}. Each event type is associated with a single Proven stream
- * type as defined by {@code MessageStreamType}. The event data for the event
- * type is based on entries from its associated stream.
- * 
- * The {@code SseEvent#Register) event type is a special case, representing the
- * registration of a {@code SseSession}, it is not associated with a stream.
- * 
- * @see SseSession, MessageStreamType
- * 
- * 
- * @author d3j766
- *
- */
-public enum SseEvent {
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
-	Register(EventLabel.REGISTER, null),
-	Response(EventLabel.RESPONSE, MessageStreamType.Response);
+@ApplicationScoped
+public class StreamModule extends ProvenModule {
 
-	public class EventLabel {
-		public static final String REGISTER = "sse-register-event";
-		public static final String RESPONSE = "responses-events";
+	public static void main(String[] args) {
 	}
+	
+	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
 
-	private String event;
-	private MessageStreamType stream;
+	@Inject
+	private HazelcastInstance hzInstance;
 
-	SseEvent(String eventLabel, MessageStreamType stream) {
-		this.event = eventLabel;
-		this.stream = stream;
+	@PostConstruct
+	public void init() {
+		
+		log.info("StreamModule startup, creating proven disclosure streams...");
 	}
-
-	/**
-	 * Provides the name of for the SSE event type.
-	 * 
-	 * @return name for the SSE event type
-	 */
-	public String getEvent() {
-		return event;
-	}
-
-	/**
-	 * Provides the SSE event's associated stream type.
-	 * 
-	 * @return name for the SSE event type
-	 */
-	public MessageStreamType getStreamType() {
-		return stream;
-	}
-
-	/**
-	 * Provides a list of all SSE event types.
-	 */
-	public static List<String> getEvents() {
-
-		List<String> ret = new ArrayList<>();
-		for (SseEvent event : values()) {
-			ret.add(event.getEvent());
-		}
-		return ret;
-	}
-
+	
 }

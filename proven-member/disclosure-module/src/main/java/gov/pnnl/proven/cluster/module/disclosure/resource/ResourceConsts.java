@@ -78,21 +78,21 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.disclosure.resource;
 
 public class ResourceConsts {
 	
 	// Application base URI path
-	public static final String APP_PATH = "";
+	public static final String APP_PATH = "/";
 	
 	// Resource package
 	public static final String RESOURCE_PACKAGE = "gov.pnnl.proven.module.disclosure.resource";
 	
 	// RR_ -> Root Resources	
-	public static final String RR_SSE = "sse";
+	public static final String RR_SSE = "/sse/";
 	
 	// R_ -> Resources
-	public static final String R_RESPONSE_EVENTS = "responseEvents";
+	public static final String R_RESPONSE_EVENTS = "/responseEvents/";
 	
 	
 }

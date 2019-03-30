@@ -5,4 +5,4 @@
  * @author d3j766
  *
  */
-package gov.pnnl.proven.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.disclosure.sse;
