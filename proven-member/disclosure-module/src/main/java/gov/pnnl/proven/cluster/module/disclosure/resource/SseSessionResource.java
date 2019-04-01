@@ -165,8 +165,6 @@ public class SseSessionResource {
 			@QueryParam("domain") String domain, @QueryParam("content") String content,
 			@QueryParam("requester") String requester) {
 
-		logger.debug("Registering SSE for domain :: " + domain);
-
 		// domain
 		Optional<String> domainOpt = Optional.ofNullable(domain);
 

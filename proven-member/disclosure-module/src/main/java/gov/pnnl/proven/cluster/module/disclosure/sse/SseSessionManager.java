@@ -56,6 +56,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.OutboundSseEvent.Builder;
+import javax.ws.rs.sse.SseEventSink;
 
 import org.slf4j.Logger;
 import com.hazelcast.core.EntryEvent;
@@ -79,9 +80,9 @@ import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
  * The initial event message for a registered session provides the session
  * identifier; in this way the client may deregister the session when finished.
  * 
- * TODO - need to periodically flush sessions that have been closed. These are
- * sessions that have been closed by means other than the DELETE service
- * provided by the SSE resource class. Cleanup process.
+ * Sessions that have been closed are periodically removed from the registry.
+ * These are sessions that have been closed by means other than the DELETE
+ * service provided by the SSE resource class.
  * 
  * @author d3j766
  *
@@ -91,7 +92,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 	public static final String SSE_EXECUTOR_SERVICE = "concurrent/SSE";
 	public static final int SSE_RECONNECT_DELAY = 4000;
-	public static final int REGISTRATIONS_PER_CLEAN = 10;
+	public static final int REGISTRATIONS_PER_CLEAN = 25;
 
 	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
@@ -155,8 +156,8 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 	public synchronized void register(SseSession session) {
 
-		// Clean stale connections periodically
-		if (0 == registrationCount % REGISTRATIONS_PER_CLEAN) {
+		// Clean closed event sinks periodically
+		if ((registrationCount > 0) && (0 == (registrationCount % REGISTRATIONS_PER_CLEAN))) {
 			cleanSessions();
 		}
 
@@ -200,16 +201,15 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 			boolean isLastSession = isLastSessionForDomainStream(session);
 			if (isLastSession) {
-
-				// Turn off the entry listener
+				
+				// Turn off the entry listener for domain stream
 				removeListener(session.getDomain(), session.getEvent().getStreamType());
-
-				// Close the SSE session event sink
-				closeSession(session);
 			}
 
-			// Update registry
+			// Update registry and close session
 			removeSession(sessionId);
+			closeSession(session);
+
 			logger.debug("Session deregistered, session ID :: " + sessionId);
 
 		} else {
@@ -242,7 +242,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 		// Add to registry
 		sessionsById.put(sessionId, se);
-		if (sessionRegistry.containsKey(dd)) {
+		if (sessionRegistry.containsKey(se)) {
 			sessionRegistry.get(se).add(session);
 
 		} else {
@@ -250,6 +250,8 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			sessions.add(session);
 			sessionRegistry.put(se, sessions);
 		}
+		logger.debug("After adding session - Domain stream " + "[" + dd.getDomain() + "::" + mst.toString()
+				+ "] COUNT :: " + sessionRegistry.get(se).size());
 	}
 
 	private void removeSession(UUID sessionId) {
@@ -264,9 +266,23 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 				}
 			}
 			if (null != sessionToRemove) {
-				sessionRegistry.get(domainStream).remove(sessionToRemove);
-				sessionsById.remove(sessionId);
+				removeSession(sessionToRemove);
 			}
+		}
+	}
+
+	private void removeSession(SseSession session) {
+
+		if (null != session) {
+
+			SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = new SimpleEntry<>(session.getDomain(),
+					session.getEvent().getStreamType());
+			sessionRegistry.get(domainStream).remove(session);
+			sessionsById.remove(session.getSessionId());
+
+			logger.debug("After removing sesson - Domain stream " + "[" + session.getDomain() + "::"
+					+ session.getEvent().getStreamType().toString() + "] COUNT :: "
+					+ sessionRegistry.get(domainStream).size());
 		}
 	}
 
@@ -282,6 +298,16 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 	}
 
 	private void cleanSessions() {
+
+		// For each session if it's event sink is closed then remove it from the
+		// registry.
+		for (Set<SseSession> sessions : sessionRegistry.values()) {
+			for (SseSession session : sessions) {
+				if (session.getEventSink().isClosed()) {
+					removeSession(session);
+				}
+			}
+		}
 
 	}
 
@@ -311,7 +337,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		DisclosureDomain dd = session.getDomain();
 		MessageStreamType mst = session.getEvent().getStreamType();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-		if ((!sessionRegistry.containsKey(se)) || (!sessionRegistry.get(se).isEmpty())) {
+		if ((!sessionRegistry.containsKey(se)) || (sessionRegistry.get(se).isEmpty())) {
 			ret = true;
 		}
 		return ret;
@@ -340,7 +366,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			OutboundSseEvent sseEvent = sseBuilder
 					.name(session.getEvent().getEvent())
 					.id(String.valueOf(eventId.getAndIncrement()))
-					.mediaType(MediaType.APPLICATION_JSON_TYPE)
+					.mediaType(MediaType.APPLICATION_JSON_TYPE )
 					.data(data.getClass(), data)
 					.reconnectDelay(SSE_RECONNECT_DELAY)
 					.comment(comment)
@@ -349,10 +375,15 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 			session.getEventSink().send(sseEvent);
 
+		} catch (IllegalStateException e) {
+			// Connection has been closed - remove session from registry
+			logger.debug("Stale session encountered - Session ID :: " + session.getSessionId());
+			deregister(session.getSessionId());
 		} catch (Throwable t) {
-			logger.error("SSE event data failed to be sent");
+			logger.error("SSE send event data failure");
 			t.printStackTrace();
 		}
+
 	}
 
 	private SseEventData extractEventData(SseSession session, ProvenMessage message) {
@@ -405,8 +436,10 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 						if (sendEvent) {
 							SseEventData eventData = extractEventData(session, message);
-							String comment = "sse event data for a " + message.getClass().getSimpleName();
-							sendEventData(session, eventData, comment);
+							if (null != eventData) {
+								String comment = "sse event data for a " + message.getClass().getSimpleName();
+								sendEventData(session, eventData, comment);
+							}
 						}
 					}
 				}

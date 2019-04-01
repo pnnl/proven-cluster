@@ -1,7 +1,7 @@
+
 /**
+ * Classes representing JAX-RS root resources. 
  * 
- */
-/**
  * @author d3j766
  *
  */

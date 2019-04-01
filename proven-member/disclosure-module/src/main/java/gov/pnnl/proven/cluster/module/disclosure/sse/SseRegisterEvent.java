@@ -47,6 +47,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 
+/**
+ * Represents SSE message for an {@code SseSession} registration event. By
+ * default, the information is sent as {@code MediaType#APPLICATION_JSON}.
+ * 
+ * @author d3j766
+ *
+ */
 @XmlRootElement(name = "register-event")
 public class SseRegisterEvent implements SseEventData, Serializable {
 

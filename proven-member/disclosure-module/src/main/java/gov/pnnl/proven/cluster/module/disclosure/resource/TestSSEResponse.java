@@ -37,100 +37,72 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.message;
+package gov.pnnl.proven.cluster.module.disclosure.resource;
 
-import java.io.IOException;
+import java.util.Calendar;
+import javax.inject.Inject;
+import javax.json.Json;
 import javax.json.JsonObject;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+import static gov.pnnl.proven.cluster.module.disclosure.resource.ResourceConsts.RR_SSE;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
+@Path(RR_SSE)
+public class TestSSEResponse {
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+	@Inject
+	Logger logger;
 
-/**
- * General response message. A response message is created or based on a
- * disclosed {@code ProvenMessage}. The response may be for the disclosure
- * itself or for the execution of a requested service defined in the message.
- * 
- * @see ProvenMessage, DisclosureMessage, KnowledgeMessage, RequestMessage
- * 
- * @author d3j766
- *
- */
-public class ResponseMessage extends ProvenMessage {
+	@StreamConfig(domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN, streamType = MessageStreamType.Response)
+	@Inject
+	MessageStreamProxy msp;
 
-	private static final long serialVersionUID = 1L;
+	@PUT
+	@Path("/test/response/{count}")
+	public Response addResponses(@PathParam("count") int count) throws InterruptedException {
 
-	/**
-	 * Response status using commonly used HTTP status codes
-	 * 
-	 * @see Response.Status
-	 */
-	protected Response.Status status;
+		Response ret = Response.ok().build();
 
-	/**
-	 * Content type of the source message for this response
-	 */
-	protected MessageContent sourceContentType;
+		logger.debug("START :: " + Calendar.getInstance().getTime().toString());
 
-	public ResponseMessage() {
-	}
+		int i = 0;
+		int iterations = count;
+		System.out.println("START :: " + Calendar.getInstance().getTime().toString());
+		while (i <= (iterations - 1)) {
 
-	public ResponseMessage(Response.Status status, ProvenMessage sourceMessage, JsonObject message) {
-		this(status, sourceMessage, message, null);
-	}
+			JsonObject testMessage = Json.createObjectBuilder().add("response", "TESTNG EVENT DATA HOLDER")
+					.add("count", String.valueOf(i)).build();
+			logger.debug("Test Message :: " + testMessage.toString());
 
-	public ResponseMessage(Response.Status status, ProvenMessage sourceMessage, JsonObject message, JsonObject schema) {
-		super(sourceMessage, message, schema);
-		this.status = status;
-		this.sourceContentType = sourceMessage.getMessageContent();
-	}
-	
+			// Create source message
+			JsonDisclosure jd = new JsonDisclosure(testMessage.toString());
 
-	public Response.Status getStatus() {
-		return status;
-	}
+			// Create new response message and add - this should cause a send
+			// event on server
+			ResponseMessage rm = new ResponseMessage(Status.OK, jd, jd.getMessage());
 
-	public void setStatus(Response.Status status) {
-		this.status = status;
-	}
+			// Add message to queue
+			msp.getMessageStream().getStream().put(rm.getMessageKey(), rm);
+			logger.debug("Added response message :: " + i);
 
-	public MessageContent getSourceContentType() {
-		return sourceContentType;
-	}
+			Thread.sleep(1000);
 
-	public void setSourceContentType(MessageContent sourceContentType) {
-		this.sourceContentType = sourceContentType;
-	}
+			i++;
+		}
+		logger.debug("END :: " + Calendar.getInstance().getTime().toString());
 
-	@Override
-	public MessageContent getMessageContent() {
-		return MessageContent.Response;
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.RESPONSE_MESSAGE_TYPE;
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.status = Response.Status.valueOf(in.readUTF());
-		this.sourceContentType = MessageContent.valueOf(in.readUTF());
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeUTF(status.name());
-		out.writeUTF(sourceContentType.name());
+		return ret;
 	}
 
 }

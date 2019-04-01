@@ -59,7 +59,7 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 		case (DISCLOSURE_PROXY_TYPE):
 			return new DisclosureProxy();
 		case (RESPONSE_MESSAGE_TYPE):
-			return new DisclosureProxy();		
+			return new ResponseMessage();		
 		default:
 			return null;
 		}

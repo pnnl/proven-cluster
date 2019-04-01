@@ -1,6 +1,6 @@
 /**
  * Provides classes necessary for management of server-side SSE connections and
- * for sending associated event data to a connected client.
+ * sending SSE message data to connected clients.
  * 
  * @author d3j766
  *

@@ -40,29 +40,41 @@
 package gov.pnnl.proven.cluster.module.disclosure.sse;
 
 import java.io.Serializable;
-
 import javax.xml.bind.annotation.XmlRootElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 
+/**
+ * Represents SSE information for the addition of a {@code ResponseMessage} to a
+ * domain stream. By default, the information is sent as
+ * {@code MediaType#APPLICATION_JSON}. The {@code #message} fieldd represents
+ * the data element of the SSE message, and is in the form of escaped JSON.
+ * 
+ * @author d3j766
+ *
+ */
 @XmlRootElement(name = "response-event")
 public class SseResponseEvent implements SseEventData, Serializable {
+
+	static Logger logger = LoggerFactory.getLogger(SseResponseEvent.class);
 
 	private static final long serialVersionUID = 1L;
 
 	String sessionId;
-	
+
 	String domain;
-	
+
 	String messageContent;
-	
+
 	String requester;
-	
+
 	String disclosureId;
-	
+
 	int status;
 
 	String reason;
-	
+
 	String key;
 
 	String message;
@@ -80,6 +92,78 @@ public class SseResponseEvent implements SseEventData, Serializable {
 		this.reason = message.getStatus().getReasonPhrase();
 		this.key = message.getMessageKey();
 		this.message = message.getMessage().toString();
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
+
+	public String getDomain() {
+		return domain;
+	}
+
+	public void setDomain(String domain) {
+		this.domain = domain;
+	}
+
+	public String getMessageContent() {
+		return messageContent;
+	}
+
+	public void setMessageContent(String messageContent) {
+		this.messageContent = messageContent;
+	}
+
+	public String getRequester() {
+		return requester;
+	}
+
+	public void setRequester(String requester) {
+		this.requester = requester;
+	}
+
+	public String getDisclosureId() {
+		return disclosureId;
+	}
+
+	public void setDisclosureId(String disclosureId) {
+		this.disclosureId = disclosureId;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public String getReason() {
+		return reason;
+	}
+
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 }

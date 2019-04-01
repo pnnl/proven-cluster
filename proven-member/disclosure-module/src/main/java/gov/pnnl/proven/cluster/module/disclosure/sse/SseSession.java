@@ -43,11 +43,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import javax.inject.Inject;
 import javax.ws.rs.sse.Sse;
 import javax.ws.rs.sse.SseEventSink;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
@@ -71,8 +70,7 @@ import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.*;
  */
 public class SseSession {
 
-	@Inject
-	Logger logger;
+	static Logger logger = LoggerFactory.getLogger(SseSession.class);
 
 	private SseEvent event;
 	private UUID sessionId;
@@ -103,7 +101,7 @@ public class SseSession {
 			List<String> source = contentsOpt.get();
 			if (source.size() > 0) {
 				// Get valid content types for the event's stream type
-				List<MessageContent> valid = this.event.getStreamType().getMessageContents(); 
+				List<MessageContent> valid = this.event.getStreamType().getMessageContents();
 				ArrayList<MessageContent> dest = new ArrayList<>();
 				for (String mcStr : source) {
 					MessageContent mc = MessageContent.getValue(mcStr);
@@ -128,6 +126,12 @@ public class SseSession {
 		if ((requesterOpt.isPresent()) && (!requesterOpt.get().isEmpty())) {
 			this.requester = requesterOpt.get();
 		}
+
+		logger.debug("Created new SSE Session:");
+		logger.debug("\tDomain: " + this.domain.getDomain());
+		logger.debug("\tMessageContent: " + this.contents.toString());
+		logger.debug("\tRequester: " + ((null == this.requester) ? ("Any") : (this.requester)));
+		logger.debug("");
 
 	}
 
