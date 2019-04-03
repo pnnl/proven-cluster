@@ -80,18 +80,14 @@
 
 package gov.pnnl.proven.cluster.module.stream.resource;
 
-public class ResourceConsts {
-	
-	// Application base URI path
-	public static final String APP_PATH = "/";
+public class StreamResourceConsts {
 	
 	// Resource package
-	public static final String RESOURCE_PACKAGE = "gov.pnnl.proven.module.stream.resource";
+	public static final String RESOURCE_PACKAGE = "gov.pnnl.proven.cluster.module.stream.resource";
 	
 	// RR_ -> Root Resources	
-	public static final String RR_MESSAGE_STREAM = "messageStreams";
+	public static final String RR_MESSAGE_STREAM = "/messageStreams";
 	
-	// R_ -> Resources
 	
 	
 }

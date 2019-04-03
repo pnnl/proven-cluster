@@ -14,6 +14,7 @@ subprojects {
 	ext.payaraHazelcastVersion = "3.10.2"
 	ext.payaraJerseyVersion = "2.27"
 	ext.influxDbLibVersion = "2.8"
+	ext.swaggerVersion = "2.0.0"
 	ext.moduleProjectSuffix = "-module"
 	ext.moduleLibProject = 'module-lib'
 	ext.isModuleProject = ((project.name.endsWith("${moduleProjectSuffix}")) || (project.name == "${moduleLibProject}"))
@@ -60,6 +61,8 @@ subprojects {
 			providedCompile group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"
 			providedCompile group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
 			providedCompile group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"
+			compile (group: 'io.swagger.core.v3', name: 'swagger-jaxrs2', version: "${swaggerVersion}")
+			compile (group: 'io.swagger.core.v3', name: 'swagger-jaxrs2-servlet-initializer', version: "${swaggerVersion}")
 			compile group: 'com.hazelcast', name: 'hazelcast-client', version: "${payaraHazelcastVersion}"
 			compile (group: 'com.hazelcast.jet', name: 'hazelcast-jet-core', version: "${jetVersion}")
 			// Do not include IMDG from Jet.  Versions for IMDG and Client must match.

@@ -50,7 +50,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.ResourceConsts.RR_SSE;
+import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RR_SSE;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;

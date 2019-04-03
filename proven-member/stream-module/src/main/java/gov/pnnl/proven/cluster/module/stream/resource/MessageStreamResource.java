@@ -80,7 +80,7 @@
 
 package gov.pnnl.proven.cluster.module.stream.resource;
 
-import static gov.pnnl.proven.cluster.module.stream.resource.ResourceConsts.RR_MESSAGE_STREAM;
+import static gov.pnnl.proven.cluster.module.stream.resource.StreamResourceConsts.RR_MESSAGE_STREAM;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -101,6 +101,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainE
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
 import gov.pnnl.proven.cluster.module.stream.dto.MessageStreamDto;
+import io.swagger.v3.oas.annotations.Operation;
 
 /**
  * 
@@ -135,7 +136,14 @@ public class MessageStreamResource {
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getMessageStrerams(@QueryParam("domain") String domain) {
+	//@formatter:off
+	@Operation(summary = "Retrieve message stream information for a specific domain",
+    		   tags = {"Message Stream"},
+               description = "Returns a list of message streams. An empty list will be returned " +
+               				 "if there are no streams for the provided domain value. A 400 Bad " +
+	                         "request will be returned if an invalid domain is provided.")
+	//@formatter:on
+	public Response getMessageStreams(@QueryParam("domain") String domain) {
 
 		Response ret;
 		DisclosureDomain dd = DomainProvider.getProvenDisclosureDomain();

@@ -80,8 +80,8 @@
 
 package gov.pnnl.proven.cluster.module.disclosure.resource;
 
-import static gov.pnnl.proven.cluster.module.disclosure.resource.ResourceConsts.RR_SSE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.ResourceConsts.R_RESPONSE_EVENTS;
+import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RR_SSE;
+import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.R_RESPONSE_EVENTS;
 
 import java.util.List;
 import java.util.Optional;

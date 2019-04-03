@@ -80,16 +80,23 @@
 
 package gov.pnnl.proven.cluster.module.disclosure.resource;
 
-import static gov.pnnl.proven.cluster.module.disclosure.resource.ResourceConsts.APP_PATH;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.ResourceConsts.RESOURCE_PACKAGE;
+import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
+import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
+import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
 import javax.naming.NamingException;
 import javax.ws.rs.ApplicationPath;
 import org.glassfish.jersey.server.ResourceConfig;
 
-@ApplicationPath(APP_PATH)
+import gov.pnnl.proven.cluster.lib.module.resource.CorsFilter;
+import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+
+@ApplicationPath(M_APP_PATH)
 public class ApplicationResource extends ResourceConfig {
 
 	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE);
+		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
+		register(OpenApiResource.class);
+		register(ApiMetadata.class);
+		register(CorsFilter.class);
 	}
 }

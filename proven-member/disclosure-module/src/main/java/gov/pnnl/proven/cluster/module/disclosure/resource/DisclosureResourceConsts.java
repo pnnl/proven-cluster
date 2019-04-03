@@ -80,19 +80,16 @@
 
 package gov.pnnl.proven.cluster.module.disclosure.resource;
 
-public class ResourceConsts {
-	
-	// Application base URI path
-	public static final String APP_PATH = "/";
+public class DisclosureResourceConsts {
 	
 	// Resource package
-	public static final String RESOURCE_PACKAGE = "gov.pnnl.proven.module.disclosure.resource";
+	public static final String RESOURCE_PACKAGE = "gov.pnnl.proven.cluster.module.disclosure.resource";
 	
 	// RR_ -> Root Resources	
-	public static final String RR_SSE = "/sse/";
+	public static final String RR_SSE = "/sse";
 	
 	// R_ -> Resources
-	public static final String R_RESPONSE_EVENTS = "/responseEvents/";
+	public static final String R_RESPONSE_EVENTS = "/responseEvents";
 	
 	
 }

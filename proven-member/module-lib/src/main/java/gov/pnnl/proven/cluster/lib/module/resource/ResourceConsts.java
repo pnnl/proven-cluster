@@ -37,24 +37,17 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.stream;
+package gov.pnnl.proven.cluster.lib.module.resource;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+public class ResourceConsts {
 
-@ApplicationScoped
-public class StreamModule extends ProvenModule {
-
-	public static void main(String[] args) {
-	}
+	// Default resource application base URI path for a Proven module 
+	public static final String M_APP_PATH = "/api";
 	
-	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
-
-	@PostConstruct
-	public void init() {		
-		log.info("StreamModule startup, creating proven disclosure streams");
-	}	
+	// Module resource package
+	public static final String M_RESOURCE_PACKAGE = "gov.pnnl.proven.cluster.lib.module.resource";
+	
+	// Module RR_ -> Root Resources	
+	
+	// Module R_ -> Resources	
 }
