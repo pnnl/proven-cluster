@@ -21,6 +21,7 @@ war {
 
 
 dependencies { 
+	providedCompile group: 'org.glassfish.jersey.core', name: 'jersey-server', version: "${payaraJerseyVersion}"
 }
 
 

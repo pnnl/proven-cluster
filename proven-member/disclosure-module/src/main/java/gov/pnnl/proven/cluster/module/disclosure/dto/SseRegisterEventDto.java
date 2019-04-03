@@ -37,61 +37,52 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.disclosure.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.module.disclosure.sse.SseEventData;
+import gov.pnnl.proven.cluster.module.disclosure.sse.SseSession;
 
 /**
- * Represents SSE information for the addition of a {@code ResponseMessage} to a
- * domain stream. By default, the information is sent as
- * {@code MediaType#APPLICATION_JSON}. The {@code #message} fieldd represents
- * the data element of the SSE message, and is in the form of escaped JSON.
+ * Represents SSE message for an {@code SseSession} registration event. By
+ * default, the information is sent as {@code MediaType#APPLICATION_JSON}.
  * 
  * @author d3j766
  *
  */
-@XmlRootElement(name = "response-event")
-public class SseResponseEvent implements SseEventData, Serializable {
-
-	static Logger logger = LoggerFactory.getLogger(SseResponseEvent.class);
+@XmlRootElement(name = "register-event")
+public class SseRegisterEventDto implements SseEventData, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	String sessionId;
 
-	String domain;
+	String registeredEvent;
 
-	String messageContent;
+	String registeredDomain;
 
-	String requester;
+	List<String> registeredMessageContents;
 
-	String disclosureId;
+	String registeredRequester;
 
-	int status;
-
-	String reason;
-
-	String key;
-
-	String message;
-
-	SseResponseEvent() {
+	public SseRegisterEventDto() {
 	}
 
-	SseResponseEvent(SseSession session, ResponseMessage message) {
+	public SseRegisterEventDto(SseSession session) {
 		this.sessionId = session.getSessionId().toString();
-		this.domain = message.getDomain().getDomain();
-		this.messageContent = message.getMessageContent().getName();
-		this.requester = message.getRequester();
-		this.disclosureId = message.getDisclosureId();
-		this.status = message.getStatus().getStatusCode();
-		this.reason = message.getStatus().getReasonPhrase();
-		this.key = message.getMessageKey();
-		this.message = message.getMessage().toString();
+		this.registeredEvent = session.getEvent().getEvent();
+		this.registeredDomain = session.getDomain().getDomain();
+		this.registeredMessageContents = new ArrayList<>();
+		for (MessageContent mc : session.getContents()) {
+			this.registeredMessageContents.add(mc.getName());
+		}
+		this.registeredRequester = session.getRequester();
 	}
 
 	public String getSessionId() {
@@ -102,68 +93,36 @@ public class SseResponseEvent implements SseEventData, Serializable {
 		this.sessionId = sessionId;
 	}
 
-	public String getDomain() {
-		return domain;
+	public String getRegisteredEvent() {
+		return registeredEvent;
 	}
 
-	public void setDomain(String domain) {
-		this.domain = domain;
+	public void setRegisteredEvent(String registeredEvent) {
+		this.registeredEvent = registeredEvent;
 	}
 
-	public String getMessageContent() {
-		return messageContent;
+	public String getRegisteredDomain() {
+		return registeredDomain;
 	}
 
-	public void setMessageContent(String messageContent) {
-		this.messageContent = messageContent;
+	public void setRegisteredDomain(String registeredDomain) {
+		this.registeredDomain = registeredDomain;
 	}
 
-	public String getRequester() {
-		return requester;
+	public List<String> getRegisteredMessageContents() {
+		return registeredMessageContents;
 	}
 
-	public void setRequester(String requester) {
-		this.requester = requester;
+	public void setRegisteredMessageContents(List<String> registeredMessageContents) {
+		this.registeredMessageContents = registeredMessageContents;
 	}
 
-	public String getDisclosureId() {
-		return disclosureId;
+	public String getRegisteredRequester() {
+		return registeredRequester;
 	}
 
-	public void setDisclosureId(String disclosureId) {
-		this.disclosureId = disclosureId;
-	}
-
-	public int getStatus() {
-		return status;
-	}
-
-	public void setStatus(int status) {
-		this.status = status;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
+	public void setRegisteredRequester(String registeredRequester) {
+		this.registeredRequester = registeredRequester;
 	}
 
 }

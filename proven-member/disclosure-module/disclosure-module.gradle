@@ -22,8 +22,6 @@ war {
 
 dependencies {
 	providedCompile group: 'org.glassfish.jersey.core', name: 'jersey-server', version: "${payaraJerseyVersion}"
-	//compile group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.26'
-	//compile group: 'org.glassfish.jersey.media', name: 'jersey-media-sse', version: '2.26'	 
 }
 
 

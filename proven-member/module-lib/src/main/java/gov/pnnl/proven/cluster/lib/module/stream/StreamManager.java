@@ -134,6 +134,17 @@ public class StreamManager extends ModuleComponent implements ComponentManager {
 		return msps;
 	}
 
+	public Set<MessageStream> getManagedStreams(DisclosureDomain dd) {
+
+		Set<MessageStream> ret = new HashSet<>();
+
+		if ((null != dd) && (domainStreams.containsKey(dd))) {
+			ret = domainStreams.get(dd);
+		}
+
+		return ret;
+	}
+
 	/**
 	 * Produces a new proxy instance for a {@code MessageStream} managed
 	 * component.

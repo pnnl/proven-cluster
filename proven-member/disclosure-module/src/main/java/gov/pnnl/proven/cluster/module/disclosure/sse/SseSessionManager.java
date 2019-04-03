@@ -69,6 +69,8 @@ import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
+import gov.pnnl.proven.cluster.module.disclosure.dto.SseRegisterEventDto;
+import gov.pnnl.proven.cluster.module.disclosure.dto.SseResponseEventDto;
 
 /**
  * Manages SSE sessions created by the resource class
@@ -162,7 +164,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		}
 
 		// Get register event data to push to client
-		SseRegisterEvent sre = new SseRegisterEvent(session);
+		SseRegisterEventDto sre = new SseRegisterEventDto(session);
 
 		// Determine if it is the first session
 		boolean isFirstSession = isFirstSessionForDomainStream(session);
@@ -398,7 +400,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		case Response:
 
 			ResponseMessage rm = (ResponseMessage) message;
-			eventData = new SseResponseEvent(session, rm);
+			eventData = new SseResponseEventDto(session, rm);
 			break;
 
 		default:

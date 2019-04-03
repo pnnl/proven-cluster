@@ -37,90 +37,60 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.stream.dto;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlRootElement;
-
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 
 /**
- * Represents SSE message for an {@code SseSession} registration event. By
- * default, the information is sent as {@code MediaType#APPLICATION_JSON}.
+ * A DTO representing a Proven {@code MessageStream}.
  * 
  * @author d3j766
  *
+ * @see MessageStream
+ *
  */
-@XmlRootElement(name = "register-event")
-public class SseRegisterEvent implements SseEventData, Serializable {
+@XmlRootElement(name = "messageStreams")
+public class MessageStreamDto implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	String sessionId;
+	private String disclosureDomain;
+	private String streamType;
+	private String streamName;
 
-	String registeredEvent;
-
-	String registeredDomain;
-
-	List<String> registeredMessageContents;
-
-	String registeredRequester;
-
-	SseRegisterEvent() {
+	public MessageStreamDto() {
 	}
 
-	SseRegisterEvent(SseSession session) {
-		this.sessionId = session.getSessionId().toString();
-		this.registeredEvent = session.getEvent().getEvent();
-		this.registeredDomain = session.getDomain().getDomain();
-		this.registeredMessageContents = new ArrayList<>();
-		for (MessageContent mc : session.getContents()) {
-			this.registeredMessageContents.add(mc.getName());
-		}
-		this.registeredRequester = session.getRequester();
+	public MessageStreamDto(MessageStream ms) {
+		this.disclosureDomain = ms.getDd().getDomain();
+		this.streamType = ms.getMst().toString();
+		this.streamName = ms.getStreamName();
 	}
 
-	public String getSessionId() {
-		return sessionId;
+	public String getDisclosureDomain() {
+		return disclosureDomain;
 	}
 
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
+	public void setDisclosureDomain(String disclosureDomain) {
+		this.disclosureDomain = disclosureDomain;
 	}
 
-	public String getRegisteredEvent() {
-		return registeredEvent;
+	public String getStreamType() {
+		return streamType;
 	}
 
-	public void setRegisteredEvent(String registeredEvent) {
-		this.registeredEvent = registeredEvent;
+	public void setStreamType(String streamType) {
+		this.streamType = streamType;
 	}
 
-	public String getRegisteredDomain() {
-		return registeredDomain;
+	public String getStreamName() {
+		return streamName;
 	}
 
-	public void setRegisteredDomain(String registeredDomain) {
-		this.registeredDomain = registeredDomain;
-	}
-
-	public List<String> getRegisteredMessageContents() {
-		return registeredMessageContents;
-	}
-
-	public void setRegisteredMessageContents(List<String> registeredMessageContents) {
-		this.registeredMessageContents = registeredMessageContents;
-	}
-
-	public String getRegisteredRequester() {
-		return registeredRequester;
-	}
-
-	public void setRegisteredRequester(String registeredRequester) {
-		this.registeredRequester = registeredRequester;
+	public void setStreamName(String streamName) {
+		this.streamName = streamName;
 	}
 
 }
