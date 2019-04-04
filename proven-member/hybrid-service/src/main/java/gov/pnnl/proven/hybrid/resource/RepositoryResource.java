@@ -903,6 +903,31 @@ public class RepositoryResource {
 	}
 
 	@POST
+	@Path("sparql-update")
+	@Consumes(TEXT_PLAIN)
+	// @Produces(APPLICATION_JSON)
+	@Produces(TEXT_PLAIN)
+	//@formatter:off
+	@ApiOperation(value = "Update semantic store using sparql query language", 
+	              hidden = false, 
+	              notes = "Provided sparql query will be submited to semantic store.  "
+	                    + "Format of query results is in JSON, and is described here  "
+	                    + "<a href='https://www.w3.org/TR/sparql11-results-json/'> SPARQL Results Format </a>.  "
+	            		+ "Sparql query laguage is described here  "
+	                    + "<a href='https://www.w3.org/TR/sparql11-query/'> SPARQL Language Reference </a>.  ")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") 
+                          })
+	//@formatter:on
+	public Response getSparqlUpdate(String queryString) {
+		Response response;
+		String ret = cs.sparqlUpdate(queryString);
+		response = Response.ok(ret).build();
+		return response;
+	}
+
+	
+	
+	@POST
 	@Path("influxql")
 	@Consumes(TEXT_PLAIN)
 	@Produces(TEXT_PLAIN)
