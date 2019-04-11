@@ -59,9 +59,10 @@ import javax.interceptor.InterceptorBinding;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
 
 /**
- * Identifies the bean as a managed proven component. Meaning, the component's
- * creation and destruction must be performed through a
- * {@code ComponentManager}.
+ * Restricts injection context of a managed component to the provided class
+ * types. The provided class types must still adhere to the requirement of being
+ * either another {@code ManagedComponent} or a {@code ComponentManager}. This
+ * annotation is only read from the managed component.
  * 
  * @author d3j766
  *
@@ -75,9 +76,10 @@ public @interface ManagedBy {
 
 	/**
 	 * (Optional) Restricts injection context of a managed component to the
-	 * provided class types. The provided class types must still adhere to the requirement
-	 * of being either another {@code ManagedComponent} or a {@code ComponentManager}.
-	 * This annotation is only read from the managed component. 
+	 * provided class types. The provided class types must still adhere to the
+	 * requirement of being either another {@code ManagedComponent} or a
+	 * {@code ComponentManager}. This annotation is only read from the managed
+	 * component.
 	 * 
 	 * @see ManagedComponent
 	 * 

@@ -39,12 +39,19 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+
+import javax.enterprise.inject.InjectionException;
+import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 
 /**
  * Represents a component of Proven that performs activities to support the
@@ -60,16 +67,20 @@ public abstract class ProvenComponent {
 
 	private static final String BASE_NAME = "component.proven.pnnl.gov";
 
-	UUID id;
-	String name;
-	ComponentStatus status;
-	String distributedName;
+//	@Inject
+//	ScheduledEventManager sem;
+	
+	
+	protected UUID id;
+	protected String name;
+	protected ComponentStatus status;
+	protected String distributedName;
+	protected Boolean isManaged;
 
 	public ProvenComponent() {
 		id = UUID.randomUUID();
 		status = ComponentStatus.Online;
 		distributedName = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + getComponentType() + "_" + id;
-		;
 	}
 
 	public UUID getId() {
@@ -91,4 +102,16 @@ public abstract class ProvenComponent {
 		return distributedName;
 	}
 
+	public Boolean isManaged() {
+		
+		if (null == isManaged) {
+			if (null == (this.getClass().getAnnotation(ManagedComponent.class))) {
+				isManaged = false;
+			} else {
+				isManaged = true;
+			}
+		}
+		return isManaged;
+	}
+	
 }

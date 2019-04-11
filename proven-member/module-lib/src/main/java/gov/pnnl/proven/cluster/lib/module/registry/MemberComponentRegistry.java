@@ -37,33 +37,43 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.registry;
 
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.component.event.ModuleComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ISet;
+
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
- * 
- * Represents a component that performs activities to support the operation of a
- * the Proven module.
+ * Provides a Component Registry at the Member level.
  * 
  * @author d3j766
  *
- * @see ProvenComponent
- *
  */
-//public abstract class ModuleComponent extends ProvenComponent implements ModuleComponentReporter {
-public abstract class ModuleComponent extends ProvenComponent {	
+@ApplicationScoped
+public class MemberComponentRegistry {
 
-	static Logger log = LoggerFactory.getLogger(ModuleComponent.class);
-
-	public ModuleComponent() {
-		super();
-	}
+	//private static final String 
 	
-	protected void sendEvent
+	@Inject
+	Logger logger;
+
+	@Inject
+	HazelcastInstance hzi;
+
+	/**
+	 * Contains the set of Hazelcast member's reporting module components.  
+	 */
+	ISet<ModuleComponent> components;
+
+	@PostConstruct
+	public void initialize() {
+		//components = 
+	}
 
 }

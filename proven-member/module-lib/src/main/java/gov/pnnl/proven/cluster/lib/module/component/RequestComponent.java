@@ -47,23 +47,21 @@ import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
 
 /**
  * 
- * Represents a component that performs activities to support the operation of a
- * the Proven module.
+ * These are components that represent a service provided by the platform that
+ * may be requested for execution within the cluster. Requests for service
+ * execution may originate from inside or outside the platform.
  * 
  * @author d3j766
  *
  * @see ProvenComponent
  *
  */
-//public abstract class ModuleComponent extends ProvenComponent implements ModuleComponentReporter {
-public abstract class ModuleComponent extends ProvenComponent {	
+public abstract class RequestComponent extends ProvenComponent {
 
-	static Logger log = LoggerFactory.getLogger(ModuleComponent.class);
+	static Logger log = LoggerFactory.getLogger(RequestComponent.class);
 
-	public ModuleComponent() {
+	public RequestComponent() {
 		super();
 	}
-	
-	protected void sendEvent
 
 }

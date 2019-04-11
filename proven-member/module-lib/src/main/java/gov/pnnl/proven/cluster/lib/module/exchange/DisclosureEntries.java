@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+import javax.ejb.Schedule;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
@@ -63,6 +64,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.ModuleComponentReporter;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
 
 /**
@@ -78,16 +80,16 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInte
  *
  */
 @ManagedComponent
-public class DisclosureEntries extends ModuleComponent {
+public class DisclosureEntries extends ModuleComponent implements ModuleComponentReporter {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureEntries.class);
-
+	
 	public static final String EXTERNAL_DISCLOSURE_NAME = "gov.pnnl.proven.external.disclosure";
 
 	IQueue<String> queue;
 	CompletableFuture<Void> reader = CompletableFuture.completedFuture(null);
 	DisclosureBuffer localDisclosure;
-
+	
 	@Inject
 	HazelcastInstance hzi;
 
@@ -289,6 +291,12 @@ public class DisclosureEntries extends ModuleComponent {
 
 	public void addLocalDisclosure(DisclosureBuffer db) {
 		localDisclosure = db;
+	}
+
+	@Override
+	@Schedule(second = "*/10", minute = "*", hour = "*")
+	public void statusReport() {
+		log.debug("Sending status report for DisclosureEntries.");
 	}
 
 }

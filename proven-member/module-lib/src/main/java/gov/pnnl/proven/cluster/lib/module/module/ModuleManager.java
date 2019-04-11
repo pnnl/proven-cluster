@@ -47,8 +47,8 @@ import javax.enterprise.event.Event;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.ObserverMethod;
 import javax.inject.Inject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ModuleStartupException;
@@ -69,8 +69,8 @@ import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementatio
 @Startup
 public class ModuleManager {
 
-	private static Logger logger = LogManager.getLogger(ModuleManager.class);
-
+	static Logger logger = LoggerFactory.getLogger(ModuleManager.class);
+	
 	@Inject
 	BeanManager beanManager;
 
@@ -83,7 +83,6 @@ public class ModuleManager {
 		logger.info("Enter PostConstruct for " + this.getClass().getSimpleName());
 		sendStartupMessage();
 		logger.info("Leave PostConstruct for " + this.getClass().getSimpleName());
-
 	}
 
 	public void sendStartupMessage() throws ModuleStartupException {

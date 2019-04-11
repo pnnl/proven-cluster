@@ -47,7 +47,7 @@ import fish.payara.cluster.Clustered;
 
 
 /**
- * Provides a Request Registry for Member level.
+ * Provides a Request Registry at Member level.
  * 
  * @author d3j766
  *

@@ -58,9 +58,9 @@ import javax.interceptor.InterceptorBinding;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 
 /**
- * Identifies the bean as a managed proven component. Meaning, the component's
+ * Identifies the bean as a managed {@code ProvenComponent}. Meaning, the component's
  * creation and destruction must be performed through a {@code ComponentManager}
- * or another {@ManagedComnent}. This may be further restricted by the use of
+ * or another {@ManagedComponent}. This may be further restricted by the use of
  * {@code ManagedBy}.
  * 
  * @author d3j766

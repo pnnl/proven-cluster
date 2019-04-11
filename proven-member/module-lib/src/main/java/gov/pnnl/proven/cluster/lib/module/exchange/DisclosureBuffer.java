@@ -39,20 +39,28 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
+import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.json.stream.JsonParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hazelcast.core.DistributedObjectUtil;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.ringbuffer.ReadResultSet;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
@@ -84,6 +92,9 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 	@Inject
 	HazelcastInstance hzi;
+	
+	@Inject 
+	BeanManager bm;
 
 	@Inject
 	@ManagedComponent
@@ -99,6 +110,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 		// Create buffer instance
 		buffer = hzi.getRingbuffer(getDistributedName());
+		log.debug("Disclosure Buffer created. DO-ID:: " + DistributedObjectUtil.getName(buffer));
 
 		// Start buffer readers
 		startReaders();
@@ -121,7 +133,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	@Inject
 	public DisclosureBuffer(InjectionPoint ip) {
 		super(SUPPORTED_ITEM_STATES);
-		log.debug("DefaultConstructer for DisclosureBuffer");
+		log.debug("DefaultConstructer for DisclosureBuffer");		
 	}
 
 	@Override

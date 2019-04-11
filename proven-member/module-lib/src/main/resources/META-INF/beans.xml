@@ -4,7 +4,7 @@
 	bean-discovery-mode="all">
 
 	<interceptors>
-		<class>gov.pnnl.proven.cluster.lib.module.component.interceptor.ComponentManagerInterceptor</class>
+		<class>gov.pnnl.proven.cluster.lib.module.component.interceptor.ManagedComponentInterceptor</class>
 	</interceptors>
 
 </beans>
