@@ -60,6 +60,7 @@ import com.hazelcast.ringbuffer.ReadResultSet;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;

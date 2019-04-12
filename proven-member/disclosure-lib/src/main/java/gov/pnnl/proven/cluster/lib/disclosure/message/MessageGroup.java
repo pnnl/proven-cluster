@@ -37,53 +37,104 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.disclosure.message;
+
+import java.util.Arrays;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+
 /**
  * 
- */
-package gov.pnnl.proven.cluster.lib.module.stream.annotation;
-
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import javax.enterprise.inject.Typed;
-
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-
-/**
- * Provides configuration information for a new {@code MessageStreamProxy}
+ * Message groups represent a collection of {@code MessageContent}. A
+ * {@code MessageContent} must be a member of one message group.   
+ *  
+ * @see MessageContent
  * 
  * @author d3j766
  *
- * @see ExchangeManager
- * 
  */
-@Documented
-@Inherited
-@Retention(RUNTIME)
-@Target({ TYPE, FIELD, METHOD, PARAMETER })
-public @interface StreamConfig {
+public enum MessageGroup {
+
+	Disclosure(GroupLabel.DISCLOSURE_GROUP, MessageContent.Disclosure),
+
+	Knowledge(
+			GroupLabel.KNOWLEDGE_GROUP,
+			MessageContent.Explicit,
+			MessageContent.Implicit,
+			MessageContent.Measurement,
+			MessageContent.Static,
+			MessageContent.Structure),
+
+	Request(
+			GroupLabel.REQUEST_GROUP,
+			MessageContent.Administrative,
+			MessageContent.ContinuousQuery,
+			MessageContent.Query),
+
+	Response(GroupLabel.RESPONSE_GROUP, MessageContent.Response);
+
+	private class GroupLabel {
+		private static final String DISCLOSURE_GROUP = "disclosed";
+		private static final String KNOWLEDGE_GROUP = "knowledge";
+		private static final String REQUEST_GROUP = "request";
+		private static final String RESPONSE_GROUP = "response";
+	}
+
+	static Logger log = LoggerFactory.getLogger(MessageGroup.class);
+
+	private String groupLabel;
+	private List<MessageContent> messageContents;
+
+	MessageGroup(String groupLabel, MessageContent... contents) {
+		this.groupLabel = groupLabel;
+		messageContents = Arrays.asList(contents);
+	}
 
 	/**
-	 * (Optional) Name of the disclosure domain. Default is the Proven
-	 * disclosure domain.
+	 * Provides the {@code MessageContent} supported by the stream.
 	 * 
-	 * @see DomainProvider#PROVEN_DISCLOSURE_DOMAIN
+	 * @return a list of supported MessageContent
 	 * 
 	 */
-	String domain() default DomainProvider.PROVEN_DISCLOSURE_DOMAIN;
+	public List<MessageContent> getMessageContents() {
+		return messageContents;
+	}
+
+	public static MessageGroup getType(MessageContent mcToCheckFor) {
+
+		MessageGroup ret = null;
+		for (MessageGroup mst : values()) {
+			for (MessageContent mc : mst.messageContents) {
+				if (mc.equals(mcToCheckFor))
+					ret = mst;
+				break;
+			}
+		}
+		return ret;
+	}
 
 	/**
-	 * (Optional) The {@code MessageStreamType}.  Default is {@code MessageStreamType#Disclosure}
+	 * Provides the name of the message stream using provided domain.
+	 * 
+	 * @param dd
+	 *            the disclosure domain. If null, the default proven domain is
+	 *            used.
+	 * 
+	 * @return the name of the associated disclosure stream
+	 * 
 	 */
-	MessageStreamType streamType() default MessageStreamType.Disclosure;
+	public String getStreamName(DisclosureDomain dd) {
+		return buildStreamName(dd, groupLabel);
+	}
+
+	private String buildStreamName(DisclosureDomain dd, String sLabel) {
+		String domainPart = dd.getReverseDomain();
+		String streamPart = sLabel;
+		return domainPart + "." + streamPart;
+	}
 
 }

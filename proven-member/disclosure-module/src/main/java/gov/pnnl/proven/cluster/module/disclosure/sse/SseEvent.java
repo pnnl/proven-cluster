@@ -41,6 +41,8 @@ package gov.pnnl.proven.cluster.module.disclosure.sse;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 
 /**

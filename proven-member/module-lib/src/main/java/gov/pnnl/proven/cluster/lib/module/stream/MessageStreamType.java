@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
 
 /**
  * Message streams store {@code ProvenMessage} instances, that have been
@@ -68,23 +69,13 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
  */
 public enum MessageStreamType {
 
-	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContent.Disclosure),
+	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageGroup.Disclosure),
 
-	Knowledge(
-			StreamLabel.KNOWLEDGE_STREAM,
-			MessageContent.Explicit,
-			MessageContent.Implicit,
-			MessageContent.Measurement,
-			MessageContent.Static,
-			MessageContent.Structure),
+	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageGroup.Knowledge),
 
-	Request(
-			StreamLabel.REQUEST_STREAM,
-			MessageContent.Administrative,
-			MessageContent.ContinuousQuery,
-			MessageContent.Query),
+	Request(StreamLabel.REQUEST_STREAM, MessageGroup.Request),
 
-	Response(StreamLabel.RESPONSE_STREAM, MessageContent.Response);
+	Response(StreamLabel.RESPONSE_STREAM, MessageGroup.Response);
 
 	private class StreamLabel {
 		private static final String DISCLOSURE_STREAM = "disclosed";
@@ -93,14 +84,53 @@ public enum MessageStreamType {
 		private static final String RESPONSE_STREAM = "response";
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageStreamType.class);
+	static Logger log = LoggerFactory.getLogger(MessageGroup.class);
 
 	private String streamLabel;
-	private List<MessageContent> messageContents;
+	private List<MessageGroup> messageGroups;
 
-	MessageStreamType(String streamLabel, MessageContent... contents) {
+	MessageStreamType(String streamLabel, MessageGroup... groups) {
 		this.streamLabel = streamLabel;
-		messageContents = Arrays.asList(contents);
+		messageGroups = Arrays.asList(groups);
+	}
+
+	/**
+	 * Provides the {@code MessageGroup}(s) supported by the stream.
+	 * 
+	 * @return a list of supported MessageGroup
+	 * 
+	 */
+	public List<MessageGroup> getMessageGroups() {
+		return messageGroups;
+	}
+	
+	public List<MessageContent> getMessageContents() {
+		
+		List<MessageContent> ret = new ArrayList<MessageContent>();
+		
+		for (MessageGroup mg : getMessageGroups()) {
+			for (MessageContent mc : mg.getMessageContents()) {
+				ret.add(mc);
+			}
+		}
+		
+		return ret;
+	}
+
+	public static MessageStreamType getType(MessageContent mcToCheckFor) {
+
+		MessageStreamType ret = null;
+		for (MessageStreamType mst : values()) {
+			for (MessageGroup mg : mst.getMessageGroups()) {
+				for (MessageContent mc : mg.getMessageContents()) {
+					if (mc.equals(mcToCheckFor))
+						ret = mst;
+					break;
+				}
+			}
+		}
+		
+		return ret;
 	}
 
 	/**
@@ -113,31 +143,8 @@ public enum MessageStreamType {
 	 * @return the name of the associated disclosure stream
 	 * 
 	 */
-	protected String getStreamName(DisclosureDomain dd) {
+	public String getStreamName(DisclosureDomain dd) {
 		return buildStreamName(dd, streamLabel);
-	}
-
-	/**
-	 * Provides the {@code MessageContent} supported by the stream.
-	 * 
-	 * @return a list of supported MessageContent
-	 * 
-	 */
-	public List<MessageContent> getMessageContents() {
-		return messageContents;
-	}
-	
-	public static MessageStreamType getType(MessageContent mcToCheckFor) {
-		
-		MessageStreamType ret = null;
-		for (MessageStreamType mst : values()) {
-			for (MessageContent mc : mst.messageContents ) {
-				if (mc.equals(mcToCheckFor))
-					ret = mst;
-					break;
-			}
-		}
-		return ret;
 	}
 
 	private String buildStreamName(DisclosureDomain dd, String sLabel) {
