@@ -63,7 +63,5 @@ public abstract class ModuleComponent extends ProvenComponent {
 	public ModuleComponent() {
 		super();
 	}
-	
-	protected void sendEvent
 
 }

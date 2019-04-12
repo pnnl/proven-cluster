@@ -90,9 +90,6 @@ public class DisclosureEntries extends ModuleComponent implements ModuleComponen
 	CompletableFuture<Void> reader = CompletableFuture.completedFuture(null);
 	DisclosureBuffer localDisclosure;
 	
-	@Inject
-	HazelcastInstance hzi;
-
 	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
 

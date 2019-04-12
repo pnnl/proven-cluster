@@ -84,9 +84,6 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 	@ManagedComponent
 	private ServiceBuffer sb;
 
-	@Inject
-	HazelcastInstance hzi;
-
 	@PostConstruct
 	void init() {
 		log.debug("Post construct for ExchangeBuffer");

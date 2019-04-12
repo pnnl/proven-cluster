@@ -37,98 +37,11 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import java.util.Arrays;
-import java.util.List;
-import javax.ejb.Schedule;
-import javax.enterprise.inject.InjectionException;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.interceptor.AroundConstruct;
-import javax.interceptor.Interceptor;
-import javax.interceptor.Interceptors;
-import javax.interceptor.InvocationContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
-
-/**
- * Performs work after the construction of a {@code ModuleComponent}, registering
- * any of it's scheduled CDI event reporters.
- * 
- * @author d3j766
- * 
- */
-@M
-@Interceptor
-public class ModuleComponentScheduledEventInterceptor {
-
-	static Logger log = LoggerFactory.getLogger(ModuleComponentScheduledEventInterceptor.class);
-
-	@AroundConstruct
-	public Object verifyInjection(InvocationContext ctx) throws Exception {
-
-		log.debug("ManagedComponentInterceptor - BEFORE construction.");
-
-		// Determine if InjectionPoint has been provided. If not, throw
-		// exception.
-		InjectionPoint ip = null;
-		for (Object obj : ctx.getParameters()) {
-			if (obj instanceof InjectionPoint) {
-				ip = (InjectionPoint) obj;
-			}
-		}
-		if (null == ip) {
-			throw new InjectionException("Injection point missing in ManagedComponent constructor");
-		}
-
-		// Verify that it's is a ProvenComponent.
-		Class<?> clazz = Class.forName(ip.getType().getTypeName());
-		if (!ProvenComponent.class.isAssignableFrom(clazz)) {
-			throw new InjectionException("The managed component must be a ProvenComponent type");
-		}
-
-		// Verify a ComponentManager is requesting the new managed component.
-		boolean isComponentManager = false;
-		Bean<?> ipBean = ip.getBean();
-		if ((null != ipBean) && (ComponentManager.class.isAssignableFrom(ipBean.getBeanClass()))) {
-			isComponentManager = true;
-		}
-
-		// If not a component manager, verify it is a managed component
-		// performing the injection
-		if (!isComponentManager) {
-			ManagedComponent mc = ipBean.getBeanClass().getAnnotation(ManagedComponent.class);
-			if (null == mc) {
-				throw new InjectionException(
-						"Injection point for managed component is not from a ComponentManager or another managed component");
-			}
-		}
-
-		// So far so good - check if ManagedBy restriction is in place
-		// Class<?> clazz = Class.forName(ip.getType().getTypeName());
-		ManagedBy mb = clazz.getAnnotation(ManagedBy.class);
-		if (null != mb) {
-			List<Class<?>> restrictions = Arrays.asList(mb.value());
-			if (!restrictions.isEmpty()) {
-				if (!restrictions.contains(ipBean.getBeanClass())) {
-					throw new InjectionException(
-							"Injection point for " + clazz.toString() + " not allowed due to ManagedBy restriction");
-				}
-			}
-		}
-
-		// OK to proceed
-		Object result = ctx.proceed();
-
-		log.debug("ManagedComponentInterceptor - AFTER construction.");
-
-		return result;
-	}
-
+public enum ComponentType {
+	Offline,
+	Online,
+	Busy,
+	Failed;
 }

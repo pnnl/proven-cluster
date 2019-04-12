@@ -40,8 +40,10 @@
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import javax.json.JsonObject;
@@ -65,12 +67,11 @@ public abstract class DisclosureMessage extends ProvenMessage implements Supplie
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Provides a new ProvenMessage based on the content type of the disclosed
-	 * message content. Implementations of {@code DisclosureMessage} must
+	 * Provides a new KnowledgeMessage based on the content the disclosed
+	 * message. if the disclosed content type is If the Implementations of {@code DisclosureMessage} must
 	 * override this method.  
 	 */
-	@Override
-	public abstract ProvenMessage get();
+	public abstract Optional<KnowledgeMessage> getKnowledge(Supplier<KnowledgeMessage> kmSupplier);
 
 	MessageContent disclosedContent;
 	boolean isRequest;
@@ -96,6 +97,7 @@ public abstract class DisclosureMessage extends ProvenMessage implements Supplie
 		this.isRequest = false;
 		this.isKnowledge = true;
 		this.hasMeasurements = true;
+		
 	}
 
 	@Override

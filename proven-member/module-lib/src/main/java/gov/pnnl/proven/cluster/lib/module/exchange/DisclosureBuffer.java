@@ -89,9 +89,6 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	private static final BufferedItemState[] SUPPORTED_ITEM_STATES = { BufferedItemState.New };
 	private RequestBuffer localExchange;
 	private CompletableFuture<Void> bufferSourceReader;
-
-	@Inject
-	HazelcastInstance hzi;
 	
 	@Inject 
 	BeanManager bm;

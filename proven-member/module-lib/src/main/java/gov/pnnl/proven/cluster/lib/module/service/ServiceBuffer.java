@@ -62,9 +62,6 @@ public class ServiceBuffer extends ModuleComponent {
 
 	static Logger log = LoggerFactory.getLogger(ServiceBuffer.class);
 
-	@Inject
-	HazelcastInstance hzi;
-
 	@PostConstruct
 	void init() {
 		log.debug("Post construct for ServiceBuffer");

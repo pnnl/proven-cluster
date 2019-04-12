@@ -37,87 +37,113 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.enterprise.util.Nonbinding;
-import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
+
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 
 /**
- * A cluster level managed Proven component representing an IMDG proven message
- * stream.
+ * Message streams store {@code ProvenMessage} instances, that have been
+ * disclosed to the platform. These stream types represent the built-in streams
+ * provided by Proven. Every disclosure domain will have its own set of message
+ * streams as defined here, this includes the Proven disclosure domain as well.
+ * 
+ * Each stream type supports one or more {@code MessageContent} types. A
+ * specific content type is only supported by a single stream type. Attempts to
+ * add message content to a stream where it is not supported will not be
+ * allowed.
+ * 
+ * @see ProvenMessage, MessageContent, DisclosureDomain,
+ *      {@link DomainProvider#getProvenDisclosureDomain()}
  * 
  * @author d3j766
- * 
- * @see ComponentManager
  *
  */
-@ManagedComponent
-@ManagedBy(value = {StreamManager.class})
-public class MessageStream extends ClusterComponent {
+public enum MessageCategory {
 
-	static Logger log = LoggerFactory.getLogger(MessageStream.class);
+	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContent.Disclosure),
 
-	private String streamName;
-	private DisclosureDomain dd;
-	private MessageStreamType mst;
-	private IMap<String, ProvenMessage> stream;
+	Knowledge(
+			StreamLabel.KNOWLEDGE_STREAM,
+			MessageContent.Explicit,
+			MessageContent.Implicit,
+			MessageContent.Measurement,
+			MessageContent.Static,
+			MessageContent.Structure),
 
-	@PostConstruct
-	void init() {
-		log.debug("Post construct for Message stream");
+	Request(
+			StreamLabel.REQUEST_STREAM,
+			MessageContent.Administrative,
+			MessageContent.ContinuousQuery,
+			MessageContent.Query),
+
+	Response(StreamLabel.RESPONSE_STREAM, MessageContent.Response);
+
+	private class StreamLabel {
+		private static final String DISCLOSURE_STREAM = "disclosed";
+		private static final String KNOWLEDGE_STREAM = "knowledge";
+		private static final String REQUEST_STREAM = "request";
+		private static final String RESPONSE_STREAM = "response";
 	}
 
-	@Inject
-	public MessageStream(InjectionPoint ip) {
-		super();
-		log.debug("DefaultConstructer for MessageStream");
+	static Logger log = LoggerFactory.getLogger(MessageStreamType.class);
 
+	private String streamLabel;
+	private List<MessageContent> messageContents;
+
+	MessageStreamType(String streamLabel, MessageContent... contents) {
+		this.streamLabel = streamLabel;
+		messageContents = Arrays.asList(contents);
 	}
 
-	protected void configure(DisclosureDomain dd, MessageStreamType mst) {
-		this.streamName = mst.getStreamName(dd);
-		this.dd = dd;
-		this.mst = mst;
-		this.stream = hzi.getMap(streamName);
+	/**
+	 * Provides the name of the message stream using provided domain.
+	 * 
+	 * @param dd
+	 *            the disclosure domain. If null, the default proven domain is
+	 *            used.
+	 * 
+	 * @return the name of the associated disclosure stream
+	 * 
+	 */
+	protected String getStreamName(DisclosureDomain dd) {
+		return buildStreamName(dd, streamLabel);
 	}
 
-	public String getStreamName() {
-		return streamName;
-	}
-
-	public DisclosureDomain getDd() {
-		return dd;
-	}
-
-	public MessageStreamType getMst() {
-		return mst;
-	}
-
-	public IMap<String, ProvenMessage> getStream() {
-		return stream;
-	}
-
-	public HazelcastInstance getHzi() {
-		return hzi;
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
-		// TODO Auto-generated method stub
-		return null;
+	/**
+	 * Provides the {@code MessageContent} supported by the stream.
+	 * 
+	 * @return a list of supported MessageContent
+	 * 
+	 */
+	public List<MessageContent> getMessageContents() {
+		return messageContents;
 	}
 	
+	public static MessageStreamType getType(MessageContent mcToCheckFor) {
+		
+		MessageStreamType ret = null;
+		for (MessageStreamType mst : values()) {
+			for (MessageContent mc : mst.messageContents ) {
+				if (mc.equals(mcToCheckFor))
+					ret = mst;
+					break;
+			}
+		}
+		return ret;
+	}
+
+	private String buildStreamName(DisclosureDomain dd, String sLabel) {
+		String domainPart = dd.getReverseDomain();
+		String streamPart = sLabel;
+		return domainPart + "." + streamPart;
+	}
+
 }

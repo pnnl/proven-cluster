@@ -39,24 +39,20 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-import javax.enterprise.inject.InjectionException;
 import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.hazelcast.core.HazelcastInstance;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 
 /**
- * Represents a component of Proven that performs activities to support the
- * management and operation of the platform. These components are defined and
- * managed at either the cluster or module level.
+ * Represents a component that performs activities to support the management and
+ * operation of a Proven platform.
  * 
  * @author d3j766
  *
@@ -67,14 +63,20 @@ public abstract class ProvenComponent {
 
 	private static final String BASE_NAME = "component.proven.pnnl.gov";
 
-//	@Inject
-//	ScheduledEventManager sem;
-	
-	
+	@Inject
+	protected HazelcastInstance hzi;
+
+	// @Inject
+	// protected ScheduledEventManager sem;
+
 	protected UUID id;
+
 	protected String name;
+
 	protected ComponentStatus status;
+
 	protected String distributedName;
+
 	protected Boolean isManaged;
 
 	public ProvenComponent() {
@@ -87,11 +89,14 @@ public abstract class ProvenComponent {
 		return id;
 	}
 
-	// TODO - make abstract
+	//public abstract ComponentType componentType(Supplier<ComponentType> ct); 
+	
 	public String getComponentType() {
-		return "mc";
-	};
-
+		return "ms";
+	}
+	
+	//public abstract ComponentStatus componentStatus(Supplier<ComponentStatus> ct);
+	
 	public abstract ComponentStatus getStatus();
 
 	protected void setStatus(ComponentStatus status) {
@@ -103,7 +108,7 @@ public abstract class ProvenComponent {
 	}
 
 	public Boolean isManaged() {
-		
+
 		if (null == isManaged) {
 			if (null == (this.getClass().getAnnotation(ManagedComponent.class))) {
 				isManaged = false;
@@ -113,5 +118,5 @@ public abstract class ProvenComponent {
 		}
 		return isManaged;
 	}
-	
+
 }

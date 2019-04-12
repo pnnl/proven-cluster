@@ -53,7 +53,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
  * Message streams store {@code ProvenMessage} instances, that have been
  * disclosed to the platform. These stream types represent the built-in streams
  * provided by Proven. Every disclosure domain will have its own set of message
- * streams as defined here, this include the Proven disclosure domain as well.
+ * streams as defined here, this includes the Proven disclosure domain as well.
  * 
  * Each stream type supports one or more {@code MessageContent} types. A
  * specific content type is only supported by a single stream type. Attempts to
