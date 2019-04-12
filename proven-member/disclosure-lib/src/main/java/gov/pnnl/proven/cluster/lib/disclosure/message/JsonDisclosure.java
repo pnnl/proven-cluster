@@ -110,10 +110,10 @@ public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataS
 	}
 
 	// TODO Implement
-	@Override
-	public ProvenMessage get() {
-		throw new UnsupportedOperationException("ProvenMessage supplier method missing");
-	}
+//	@Override
+//	public ProvenMessage get() {
+//		throw new UnsupportedOperationException("ProvenMessage supplier method missing");
+//	}
 	
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {

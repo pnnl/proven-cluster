@@ -62,7 +62,7 @@ import com.hazelcast.nio.ObjectDataOutput;
  * @author d3j766
  *
  */
-public abstract class DisclosureMessage extends ProvenMessage implements Supplier<ProvenMessage> {
+public abstract class DisclosureMessage extends ProvenMessage {
 
 	private static final long serialVersionUID = 1L;
 
@@ -71,7 +71,7 @@ public abstract class DisclosureMessage extends ProvenMessage implements Supplie
 	 * message. if the disclosed content type is If the Implementations of {@code DisclosureMessage} must
 	 * override this method.  
 	 */
-	public abstract Optional<KnowledgeMessage> getKnowledge(Supplier<KnowledgeMessage> kmSupplier);
+	//public abstract Optional<KnowledgeMessage> getKnowledge(Supplier<KnowledgeMessage> kmSupplier);
 
 	MessageContent disclosedContent;
 	boolean isRequest;
