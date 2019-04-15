@@ -56,12 +56,11 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
  * provided by Proven. Every disclosure domain will have its own set of message
  * streams as defined here, this includes the Proven disclosure domain as well.
  * 
- * Each stream type supports one or more {@code MessageContent} types. A
- * specific content type is only supported by a single stream type. Attempts to
- * add message content to a stream where it is not supported will not be
+ * Each stream type supports one or more {@code MessageGroup}s. Attempts to
+ * add message content for a group not supported by the stream will not be
  * allowed.
  * 
- * @see ProvenMessage, MessageContent, DisclosureDomain,
+ * @see ProvenMessage, MessageGroup, MessageContent, DisclosureDomain,
  *      {@link DomainProvider#getProvenDisclosureDomain()}
  * 
  * @author d3j766

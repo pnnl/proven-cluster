@@ -42,7 +42,9 @@ package gov.pnnl.proven.cluster.lib.disclosure.message;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -67,8 +69,8 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
  * 
  * @author d3j766
  *
- * @see
- * @since
+ * @see DisclosureMessage, ProvenMessage
+ * 
  */
 public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataSerializable, Serializable {
 
@@ -109,12 +111,7 @@ public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataS
 		return ret;
 	}
 
-	// TODO Implement
-//	@Override
-//	public ProvenMessage get() {
-//		throw new UnsupportedOperationException("ProvenMessage supplier method missing");
-//	}
-	
+
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);

@@ -41,13 +41,11 @@ package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
 import java.util.Arrays;
 import java.util.List;
-import javax.ejb.Schedule;
 import javax.enterprise.inject.InjectionException;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.interceptor.AroundConstruct;
 import javax.interceptor.Interceptor;
-import javax.interceptor.Interceptors;
 import javax.interceptor.InvocationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

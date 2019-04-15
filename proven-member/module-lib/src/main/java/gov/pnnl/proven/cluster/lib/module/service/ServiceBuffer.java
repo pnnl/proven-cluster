@@ -44,7 +44,6 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;

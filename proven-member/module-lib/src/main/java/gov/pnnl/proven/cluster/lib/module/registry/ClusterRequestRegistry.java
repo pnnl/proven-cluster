@@ -37,73 +37,30 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.module.registry;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.enterprise.context.ApplicationScoped;
+
+import fish.payara.cluster.Clustered;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
+
 
 /**
- * A managed component supporting disclosure and processing of module requests.
- * This component reads and processes message requests from a single pair of
- * {@code DisclosureBuffer} and {@code RequestBuffer} module components.
- *
- * TODO Future implementations should add support for multiple readers for both
- * disclosure and request, buffer transfers, metrics, status, and registry
- * reporting.
+ * Provides a Request Registry at Member level.
  * 
  * @author d3j766
- * 
- * @see ExchangeBuffer, DisclosureBuffer, RequestBuffer 
  *
  */
-@ManagedComponent
-public class RequestExchange extends ModuleComponent {
+@Clustered
+@ApplicationScoped
+public class ClusterRequestRegistry  extends MemberComponent {
 
-	static Logger log = LoggerFactory.getLogger(RequestExchange.class);
-	
-	public static final String RE_EXECUTOR_SERVICE = "concurrent/RequestExchange";
-
-	@Inject
-	@ManagedComponent
-	private DisclosureBuffer db;
-
-	@Inject
-	@ManagedComponent
-	private RequestBuffer rb;
-
-	@PostConstruct
-	void init() {
-		log.debug("Post construct for RequestExchange");
-
-		// Connect disclosure/exchange buffers supporting local transfers within
-		// a request exchange
-		db.addLocalExchange(rb);
-		rb.addLocalDisclosure(db);
-		
-	}
-	
-	@Inject
-	public RequestExchange(InjectionPoint ip) {
-		super();
-		log.debug("DefaultConstructer for RequestExchange");
-	}
-
-	@PreDestroy
-	void destroy() {
-	}
-
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	public ComponentStatus getStatus() {
-		// TODO Auto-generated method stub
-		return null;
+		return ComponentStatus.Online;
 	}
-
+	
 }

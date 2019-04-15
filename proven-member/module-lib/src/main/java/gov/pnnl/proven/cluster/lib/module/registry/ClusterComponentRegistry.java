@@ -37,72 +37,53 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.io.Serializable;
 
-public class testCF {
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import org.slf4j.Logger;
 
-	Integer age = -1;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ISet;
 
-	public static void main(String[] args) {
-		
-		Integer age = -1;
+import fish.payara.cluster.Clustered;
+import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
-//		CompletableFuture<String> maturityFuture = CompletableFuture.supplyAsync(() -> {
-//			if (age < 0) {
-//				throw new IllegalArgumentException("Age can not be negative");
-//			}
-//			if (age > 18) {
-//				return "Adult";
-//			} else {
-//				return "Child";
-//			}
-//		}).exceptionally(ex -> {
-//			System.out.println("Oops! We have an exception - " + ex.getMessage());
-//			return "Unknown!";
-//		});
+/**
+ * Provides a Component Registry at the Member level.
+ * 
+ * @author d3j766
+ *
+ */
+@Clustered
+@ApplicationScoped
+public class ClusterComponentRegistry extends ClusterComponent implements Serializable {
 
-		
-//		CompletableFuture<Void> maturityFuture = CompletableFuture.runAsync(testCF::runCfTest).exceptionally(ex -> {
-//			System.out.println("Oops! We have an exception - " + ex.getMessage());
-//			return null;
-//		});
+	private static final long serialVersionUID = 1L;
 
-		
-		CompletableFuture<Void> maturityFuture = CompletableFuture.runAsync(() -> { testCF.runCfTest();}).exceptionally(ex -> {
-			System.out.println("Oops! We have an exception - " + ex.getMessage());
-			return null;
-		});
-		
-		
-		
-		try {
-			System.out.println("Starting...");
-			System.out.println("Starting...");
-			System.out.println("Maturity : " + maturityFuture.get());
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	@Inject
+	Logger logger;
 
+	@Inject
+	HazelcastInstance hzi;
+
+	/**
+	 * Contains the set of Hazelcast member's reporting module components.  
+	 */
+	ISet<ModuleComponent> components;
+
+	@PostConstruct
+	public void initialize() { 
 	}
 
-	public static String runCfTest() {
-		
-		Integer age = -1;
-		
-		if (age < 0) {
-			throw new IllegalArgumentException("Age can not be negative");
-		}
-		if (age > 18) {
-			return "Adult";
-		} else {
-			return "Child";
-		}
+	@Override
+	public ComponentStatus getStatus() {
+		return ComponentStatus.Online;
 	}
+
 }

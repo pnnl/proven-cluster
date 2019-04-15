@@ -41,12 +41,9 @@ package gov.pnnl.proven.cluster.lib.module.exchange;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -56,7 +53,6 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IQueue;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
@@ -97,7 +93,7 @@ public class DisclosureEntries extends ModuleComponent implements ModuleComponen
 	public void init() {
 		log.debug("Post construct for DisclosureEntries");
 
-		// TODO remove hardcode name until multiple exchanges are supported
+		// TODO remove hardcoded name until multiple exchanges are supported
 		// bufferSource = hzi.getQueue(getDistributedName());
 		queue = hzi.getQueue(EXTERNAL_DISCLOSURE_NAME);
 		startReader(false);
@@ -141,7 +137,6 @@ public class DisclosureEntries extends ModuleComponent implements ModuleComponen
 
 		while (true) {
 
-			DisclosureProxy entry;
 			List<DisclosureProxy> entries;
 
 			// Should not continue if local disclosure has no free space - the
@@ -202,7 +197,6 @@ public class DisclosureEntries extends ModuleComponent implements ModuleComponen
 		// interruption, attempts to restart should be made.
 		if (isInterrupted) {
 			log.info("Disclosure entry reader was interrupted.");
-			DisclosureEntryInterruptedException dee = (DisclosureEntryInterruptedException) readerException;
 			startReader(true);
 		}
 

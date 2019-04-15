@@ -50,7 +50,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 /**
  * 
  * Message groups represent a collection of {@code MessageContent}. A
- * {@code MessageContent} must be a member of one message group.   
+ * {@code MessageContent} must be a member of a single message group.   
  *  
  * @see MessageContent
  * 
@@ -93,6 +93,10 @@ public enum MessageGroup {
 		this.groupLabel = groupLabel;
 		messageContents = Arrays.asList(contents);
 	}
+	
+	public String getGroupLabel() {
+		return groupLabel;
+	}
 
 	/**
 	 * Provides the {@code MessageContent} supported by the stream.
@@ -115,26 +119,6 @@ public enum MessageGroup {
 			}
 		}
 		return ret;
-	}
-
-	/**
-	 * Provides the name of the message stream using provided domain.
-	 * 
-	 * @param dd
-	 *            the disclosure domain. If null, the default proven domain is
-	 *            used.
-	 * 
-	 * @return the name of the associated disclosure stream
-	 * 
-	 */
-	public String getStreamName(DisclosureDomain dd) {
-		return buildStreamName(dd, groupLabel);
-	}
-
-	private String buildStreamName(DisclosureDomain dd, String sLabel) {
-		String domainPart = dd.getReverseDomain();
-		String streamPart = sLabel;
-		return domainPart + "." + streamPart;
 	}
 
 }

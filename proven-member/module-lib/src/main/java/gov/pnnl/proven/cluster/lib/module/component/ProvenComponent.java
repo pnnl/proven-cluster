@@ -40,9 +40,6 @@
 package gov.pnnl.proven.cluster.lib.module.component;
 
 import java.util.UUID;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,15 +84,11 @@ public abstract class ProvenComponent {
 
 	public UUID getId() {
 		return id;
-	}
-
-	//public abstract ComponentType componentType(Supplier<ComponentType> ct); 
+	}  
 	
-	public String getComponentType() {
-		return "ms";
+	public ComponentType getComponentType() {
+		return ComponentType.valueOf(this.getClass().getSimpleName());
 	}
-	
-	//public abstract ComponentStatus componentStatus(Supplier<ComponentStatus> ct);
 	
 	public abstract ComponentStatus getStatus();
 

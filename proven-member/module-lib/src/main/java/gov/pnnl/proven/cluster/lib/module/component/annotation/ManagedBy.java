@@ -42,21 +42,11 @@
  */
 package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Stereotype;
-import javax.enterprise.util.Nonbinding;
-import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
-
-import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
 
 /**
  * Restricts injection context of a managed component to the provided class

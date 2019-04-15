@@ -39,9 +39,34 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+/**
+ * Represents the different Proven Components.  
+ * 
+ * @author d3j766
+ *
+ */
 public enum ComponentType {
-	Offline,
-	Online,
-	Busy,
-	Failed;
+	
+	// Disclosure
+	DisclosureEntries,
+
+	// Exchange
+	RequestExchange,
+	DisclosureBuffer,
+	RequestBuffer,
+	ServiceBuffer,
+	
+	// Managers
+	ExchangeManager,
+	RequestManager,
+	StreamManager,
+	
+	// Registry
+	
+	// Request
+	RegisteredRequest,
+	
+	// Stream 
+	MesageStream;
+
 }

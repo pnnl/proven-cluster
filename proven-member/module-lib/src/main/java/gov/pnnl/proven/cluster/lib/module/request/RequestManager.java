@@ -41,13 +41,14 @@
 package gov.pnnl.proven.cluster.lib.module.request;
 
 import java.lang.reflect.Method;
-
 import javax.enterprise.context.ApplicationScoped;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 @ApplicationScoped
-public class RequestManager implements ComponentManager {
+public class RequestManager extends ModuleComponent implements ComponentManager {
 
 	public <T> void registerRequest(Class<T> mr) {
 		
@@ -66,6 +67,10 @@ public class RequestManager implements ComponentManager {
 	@Override
 	public void ping() {
 	}
-	
+
+	@Override
+	public ComponentStatus getStatus() {
+		return ComponentStatus.Online;
+	}
 	
 }

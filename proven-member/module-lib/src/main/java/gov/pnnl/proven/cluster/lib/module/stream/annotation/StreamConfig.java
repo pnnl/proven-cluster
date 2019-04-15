@@ -52,10 +52,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import javax.enterprise.inject.Typed;
-
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 
 /**

@@ -42,9 +42,6 @@ package gov.pnnl.proven.cluster.lib.module.component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.component.event.ModuleComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
-
 /**
  * 
  * These are components that represent a service provided by the platform that

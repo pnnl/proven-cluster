@@ -41,15 +41,12 @@ package gov.pnnl.proven.cluster.lib.module.stream;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.spi.InjectionPoint;
-import javax.enterprise.util.Nonbinding;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;

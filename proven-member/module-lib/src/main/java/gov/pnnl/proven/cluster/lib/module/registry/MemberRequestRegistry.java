@@ -39,11 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.io.Serializable;
+import javax.enterprise.context.ApplicationScoped;
 
-import javax.ejb.Singleton;
-
-import fish.payara.cluster.Clustered;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
 
 
 /**
@@ -52,15 +51,14 @@ import fish.payara.cluster.Clustered;
  * @author d3j766
  *
  */
-@Singleton
-@Clustered
-public class MemberRequestRegistry  implements Serializable {
+@ApplicationScoped
+public class MemberRequestRegistry  extends MemberComponent {
 
 	private static final long serialVersionUID = 1L;
 
-	public String getName() {
-		return "";
+	@Override
+	public ComponentStatus getStatus() {
+		return ComponentStatus.Online;
 	}
-	
 	
 }

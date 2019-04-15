@@ -55,9 +55,9 @@ import com.hazelcast.nio.ObjectDataOutput;
 
 /**
  * Abstract class for disclosure messages. Disclosure messages represent the
- * original input message being disclosed to the platform, and is responsible
- * for transforming its disclosed message into a Proven message format suitable
- * for internal processing to complete the disclosure.
+ * original input message disclosed to the platform. It is responsible for
+ * transforming its message content into either a {@code KnowledgeMessage} or
+ * {@code RequestMessage} in order to support downstream message processing.
  * 
  * @author d3j766
  *
@@ -67,24 +67,32 @@ public abstract class DisclosureMessage extends ProvenMessage {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Provides a new KnowledgeMessage based on the content the disclosed
-	 * message. if the disclosed content type is If the Implementations of {@code DisclosureMessage} must
-	 * override this method.  
+	 * This represents the message content type of the disclosed content itself.
 	 */
-	//public abstract Optional<KnowledgeMessage> getKnowledge(Supplier<KnowledgeMessage> kmSupplier);
-
 	MessageContent disclosedContent;
+
+	/**
+	 * True, if the disclosed content is in the Request message group.
+	 */
 	boolean isRequest;
+
+	/**
+	 * True, if the disclosed content is in the Knowledge message group.
+	 */
 	boolean isKnowledge;
+
+	/**
+	 * True, if the disclosed content is {@code MessageContent#Measurement}.
+	 */
 	boolean hasMeasurements;
 
 	public DisclosureMessage() {
 	}
-	
+
 	public DisclosureMessage(JsonObject message) {
 		this(message, null);
 	}
-	
+
 	public DisclosureMessage(JsonObject message, JsonObject schema) {
 		super(message, schema);
 
@@ -97,14 +105,33 @@ public abstract class DisclosureMessage extends ProvenMessage {
 		this.isRequest = false;
 		this.isKnowledge = true;
 		this.hasMeasurements = true;
-		
+	}
+
+	/**
+	 * TODO Implement.  Provides a new KnowledgeMessage based on the the disclosed
+	 * message; only if the disclosed content type is in
+	 * {@code MessageGroup#Knowledge}.  
+	 */
+	public Optional<KnowledgeMessage> getKnowledgeMessage() {
+		Optional<KnowledgeMessage> ret = Optional.empty();
+		return ret;
+	}
+
+	/**
+	 * TODO Implement.  Provides a new RequestMessage based on the the disclosed
+	 * message; only if the disclosed content type is in
+	 * {@code MessageGroup#Request}.
+	 */
+	public Optional<RequestMessage> getRequestMessage() {
+		Optional<RequestMessage> ret = Optional.empty();
+		return ret;
 	}
 
 	@Override
 	public MessageContent getMessageContent() {
 		return MessageContent.Disclosure;
 	}
-	
+
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
