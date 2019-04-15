@@ -40,6 +40,8 @@
 package gov.pnnl.proven.cluster.lib.module.component;
 
 import java.util.UUID;
+
+import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,9 @@ public abstract class ProvenComponent {
 
 	@Inject
 	protected HazelcastInstance hzi;
+	
+	@Inject
+	BeanManager bm;
 
 	// @Inject
 	// protected ScheduledEventManager sem;
@@ -86,8 +91,17 @@ public abstract class ProvenComponent {
 	
 	public abstract ComponentGroup getComponentGroup(); 
 	
+	
 	public ComponentType getComponentType() {
-		return ComponentType.valueOf(this.getClass().getSimpleName());
+		
+		ComponentType ret = ComponentType.ProvenComponent;
+		try {
+			String className = this.getClass().getSimpleName();
+			ret = ComponentType.valueOf(className);
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}
+		return ret;
 	}
 		
 	public abstract ComponentStatus getStatus();

@@ -47,6 +47,9 @@ package gov.pnnl.proven.cluster.lib.module.component;
  */
 public enum ComponentType {
 	
+	
+	ProvenComponent,
+	
 	// Disclosure
 	DisclosureEntries,
 
@@ -62,6 +65,11 @@ public enum ComponentType {
 	StreamManager,
 	
 	// Registry
+	ClusterComponentRegistry,
+	ClusterRequestRegistry,
+	MemberComponentRegistry,
+	MemberRequestRegistry,
+	
 	
 	// Request
 	RegisteredRequest,

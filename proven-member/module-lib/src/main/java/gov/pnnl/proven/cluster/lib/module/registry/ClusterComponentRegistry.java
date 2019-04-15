@@ -52,6 +52,7 @@ import com.hazelcast.core.ISet;
 import fish.payara.cluster.Clustered;
 import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
@@ -80,7 +81,7 @@ public class ClusterComponentRegistry extends ClusterComponent implements Serial
 	@PostConstruct
 	public void initialize() { 
 	}
-
+	
 	@Override
 	public ComponentStatus getStatus() {
 		return ComponentStatus.Online;

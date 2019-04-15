@@ -44,6 +44,7 @@ import java.io.Serializable;
 import javax.enterprise.context.ApplicationScoped;
 
 import fish.payara.cluster.Clustered;
+import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
 
@@ -56,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
  */
 @Clustered
 @ApplicationScoped
-public class ClusterRequestRegistry  extends MemberComponent implements Serializable {
+public class ClusterRequestRegistry  extends ClusterComponent implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
