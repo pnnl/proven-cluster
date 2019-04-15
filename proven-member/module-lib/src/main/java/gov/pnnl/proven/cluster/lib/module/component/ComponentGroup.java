@@ -37,75 +37,50 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.sse;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import gov.pnnl.proven.cluster.lib.disclosure.message.ComponentGroup;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Provides the different SSE event types that can be associated with an
- * {@code SseSession}. Each event type is associated with a single Proven stream
- * type as defined by {@code MessageStreamType}. The event data for the event
- * type is based on entries from its associated stream.
- * 
- * The {@code SseEvent#Register) event type is a special case, representing the
- * registration of a {@code SseSession}, it is not associated with a stream.
- * 
- * @see SseSession, MessageStreamType
- * 
+ * Represents the different component groups.
  * 
  * @author d3j766
  *
  */
-public enum SseEvent {
+public enum ComponentGroup {
 
-	Register(EventLabel.REGISTER, null),
-	Response(EventLabel.RESPONSE, MessageStreamType.Response);
+	Cluster(GroupLabel.CLUSTER_GROUP),
 
-	public class EventLabel {
-		public static final String REGISTER = "sse-register-event";
-		public static final String RESPONSE = "response-events";
+	Member(GroupLabel.MEMBER_GROUP),
+
+	Module(GroupLabel.MODULE_GROUP),
+
+	Request(GroupLabel.REQUEST_GROUP);
+
+	private class GroupLabel {
+		private static final String CLUSTER_GROUP = "cluster";
+		private static final String MEMBER_GROUP = "member";
+		private static final String MODULE_GROUP = "module";
+		private static final String REQUEST_GROUP = "request";
 	}
 
-	private String event;
-	private MessageStreamType stream;
+	static Logger log = LoggerFactory.getLogger(ComponentGroup.class);
 
-	SseEvent(String eventLabel, MessageStreamType stream) {
-		this.event = eventLabel;
-		this.stream = stream;
+	private String groupLabel;
+
+	ComponentGroup(String groupLabel) {
+		this.groupLabel = groupLabel;
 	}
 
 	/**
-	 * Provides the name of for the SSE event type.
+	 * Provides the group's label.
 	 * 
-	 * @return name for the SSE event type
-	 */
-	public String getEvent() {
-		return event;
-	}
-
-	/**
-	 * Provides the SSE event's associated stream type.
+	 * @return a group label as a String.
 	 * 
-	 * @return name for the SSE event type
 	 */
-	public MessageStreamType getStreamType() {
-		return stream;
-	}
-
-	/**
-	 * Provides a list of all SSE event types.
-	 */
-	public static List<String> getEvents() {
-
-		List<String> ret = new ArrayList<>();
-		for (SseEvent event : values()) {
-			ret.add(event.getEvent());
-		}
-		return ret;
+	public String getGroupLable() {
+		return groupLabel;
 	}
 
 }

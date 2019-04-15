@@ -68,8 +68,6 @@ public abstract class ProvenComponent {
 
 	protected UUID id;
 
-	protected String name;
-
 	protected ComponentStatus status;
 
 	protected String distributedName;
@@ -86,10 +84,12 @@ public abstract class ProvenComponent {
 		return id;
 	}  
 	
+	public abstract ComponentGroup getComponentGroup(); 
+	
 	public ComponentType getComponentType() {
 		return ComponentType.valueOf(this.getClass().getSimpleName());
 	}
-	
+		
 	public abstract ComponentStatus getStatus();
 
 	protected void setStatus(ComponentStatus status) {

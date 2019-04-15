@@ -60,4 +60,8 @@ public abstract class MemberComponent extends ProvenComponent {
 		super();
 	}
 
+	public ComponentGroup getComponentGroup() {
+		return ComponentGroup.Member;
+	}
+	
 }

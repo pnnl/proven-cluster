@@ -48,6 +48,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
@@ -57,7 +58,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
  *
  */
 @ApplicationScoped
-public class MemberComponentRegistry extends ModuleComponent {
+public class MemberComponentRegistry extends MemberComponent {
 
 	//private static final String 
 	

@@ -58,5 +58,9 @@ public abstract class ClusterComponent extends ProvenComponent {
 	public ClusterComponent() {
 		super();
 	}
+	
+	public ComponentGroup getComponentGroup() {
+		return ComponentGroup.Cluster;
+	}
 
 }

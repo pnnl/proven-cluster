@@ -61,4 +61,8 @@ public abstract class ModuleComponent extends ProvenComponent {
 		super();
 	}
 
+	public ComponentGroup getComponentGroup() {
+		return ComponentGroup.Module;
+	}
+	
 }

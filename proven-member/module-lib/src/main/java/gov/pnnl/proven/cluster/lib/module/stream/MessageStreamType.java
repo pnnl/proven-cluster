@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ComponentGroup;
 
 /**
  * Message streams store {@code ProvenMessage} instances, that have been
@@ -68,13 +68,13 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
  */
 public enum MessageStreamType {
 
-	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageGroup.Disclosure),
+	Disclosure(StreamLabel.DISCLOSURE_STREAM, ComponentGroup.Disclosure),
 
-	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageGroup.Knowledge),
+	Knowledge(StreamLabel.KNOWLEDGE_STREAM, ComponentGroup.Knowledge),
 
-	Request(StreamLabel.REQUEST_STREAM, MessageGroup.Request),
+	Request(StreamLabel.REQUEST_STREAM, ComponentGroup.Request),
 
-	Response(StreamLabel.RESPONSE_STREAM, MessageGroup.Response);
+	Response(StreamLabel.RESPONSE_STREAM, ComponentGroup.Response);
 
 	private class StreamLabel {
 		private static final String DISCLOSURE_STREAM = "disclosed";
@@ -83,12 +83,12 @@ public enum MessageStreamType {
 		private static final String RESPONSE_STREAM = "response";
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageGroup.class);
+	static Logger log = LoggerFactory.getLogger(ComponentGroup.class);
 
 	private String streamLabel;
-	private List<MessageGroup> messageGroups;
+	private List<ComponentGroup> messageGroups;
 
-	MessageStreamType(String streamLabel, MessageGroup... groups) {
+	MessageStreamType(String streamLabel, ComponentGroup... groups) {
 		this.streamLabel = streamLabel;
 		messageGroups = Arrays.asList(groups);
 	}
@@ -99,7 +99,7 @@ public enum MessageStreamType {
 	 * @return a list of supported MessageGroup
 	 * 
 	 */
-	public List<MessageGroup> getMessageGroups() {
+	public List<ComponentGroup> getMessageGroups() {
 		return messageGroups;
 	}
 	
@@ -107,7 +107,7 @@ public enum MessageStreamType {
 		
 		List<MessageContent> ret = new ArrayList<MessageContent>();
 		
-		for (MessageGroup mg : getMessageGroups()) {
+		for (ComponentGroup mg : getMessageGroups()) {
 			for (MessageContent mc : mg.getMessageContents()) {
 				ret.add(mc);
 			}
@@ -120,7 +120,7 @@ public enum MessageStreamType {
 
 		MessageStreamType ret = null;
 		for (MessageStreamType mst : values()) {
-			for (MessageGroup mg : mst.getMessageGroups()) {
+			for (ComponentGroup mg : mst.getMessageGroups()) {
 				for (MessageContent mc : mg.getMessageContents()) {
 					if (mc.equals(mcToCheckFor))
 						ret = mst;

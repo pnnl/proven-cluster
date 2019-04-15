@@ -60,5 +60,9 @@ public abstract class RequestComponent extends ProvenComponent {
 	public RequestComponent() {
 		super();
 	}
+	
+	public ComponentGroup getComponentGroup() {
+		return ComponentGroup.Request;
+	}
 
 }

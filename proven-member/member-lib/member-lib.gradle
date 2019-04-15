@@ -18,6 +18,7 @@ task sourcesJar(type: Jar) {
 }
 
 task allInOneJar(type: Jar) {
+    group = 'build'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     classifier 'all-in-one'
     with jar

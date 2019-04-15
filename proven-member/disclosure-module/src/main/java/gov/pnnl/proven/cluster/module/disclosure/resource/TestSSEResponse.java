@@ -53,7 +53,7 @@ import org.slf4j.Logger;
 import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RR_SSE;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageGroup;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;

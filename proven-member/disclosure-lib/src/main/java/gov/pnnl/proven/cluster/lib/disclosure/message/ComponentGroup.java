@@ -57,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
  * @author d3j766
  *
  */
-public enum MessageGroup {
+public enum ComponentGroup {
 
 	Disclosure(GroupLabel.DISCLOSURE_GROUP, MessageContent.Disclosure),
 
@@ -84,12 +84,12 @@ public enum MessageGroup {
 		private static final String RESPONSE_GROUP = "response";
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageGroup.class);
+	static Logger log = LoggerFactory.getLogger(ComponentGroup.class);
 
 	private String groupLabel;
 	private List<MessageContent> messageContents;
 
-	MessageGroup(String groupLabel, MessageContent... contents) {
+	ComponentGroup(String groupLabel, MessageContent... contents) {
 		this.groupLabel = groupLabel;
 		messageContents = Arrays.asList(contents);
 	}
@@ -108,10 +108,10 @@ public enum MessageGroup {
 		return messageContents;
 	}
 
-	public static MessageGroup getType(MessageContent mcToCheckFor) {
+	public static ComponentGroup getType(MessageContent mcToCheckFor) {
 
-		MessageGroup ret = null;
-		for (MessageGroup mst : values()) {
+		ComponentGroup ret = null;
+		for (ComponentGroup mst : values()) {
 			for (MessageContent mc : mst.messageContents) {
 				if (mc.equals(mcToCheckFor))
 					ret = mst;
