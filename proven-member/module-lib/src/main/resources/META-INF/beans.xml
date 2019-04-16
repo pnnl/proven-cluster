@@ -5,6 +5,7 @@
 
 	<interceptors>
 		<class>gov.pnnl.proven.cluster.lib.module.component.interceptor.ManagedComponentInterceptor</class>
+				<class>gov.pnnl.proven.cluster.lib.module.component.interceptor.ComponentInterceptor</class>
 	</interceptors>
 
 </beans>

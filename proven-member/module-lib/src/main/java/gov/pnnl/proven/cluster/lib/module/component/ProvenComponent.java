@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.hazelcast.core.HazelcastInstance;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 
 /**
@@ -56,6 +57,7 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
  * @author d3j766
  *
  */
+@Component
 public abstract class ProvenComponent {
 
 	static Logger log = LoggerFactory.getLogger(ProvenComponent.class);
