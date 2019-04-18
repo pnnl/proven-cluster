@@ -87,7 +87,7 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 		log.debug("Post construct for ExchangeBuffer");
 		// TODO Add default declarative configurations for buffers
 		// TODO Integrate buffer id's into their names
-		buffer = hzi.getRingbuffer(getDistributedName());
+		buffer = hzi.getRingbuffer(getDOName());
 	}
 
 	@Inject

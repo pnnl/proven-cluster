@@ -51,10 +51,11 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
+
 import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
 
 /**
  * Verifies injection of a {@code ManagedComponent} is a {@code ProvenComponent}
@@ -70,9 +71,10 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 public class ManagedComponentInterceptor {
 
 	static Logger log = LoggerFactory.getLogger(ManagedComponentInterceptor.class);
-	
-	 @Inject @Intercepted 
-	 private Bean<?> intercepted;
+
+	@Inject
+	@Intercepted
+	private Bean<?> intercepted;
 
 	@AroundConstruct
 	public Object verifyInjection(InvocationContext ctx) throws Exception {
@@ -130,14 +132,6 @@ public class ManagedComponentInterceptor {
 		// OK to proceed
 		Object result = ctx.proceed();
 
-		log.debug("ManagedComponentInterceptor - AFTER construction.");
-
-		log.debug("########################################################################################################################");		
-		log.debug(intercepted.getName());
-		log.debug(intercepted.toString());
-		log.debug("########################################################################################################################");
-		
-		
 		return result;
 	}
 

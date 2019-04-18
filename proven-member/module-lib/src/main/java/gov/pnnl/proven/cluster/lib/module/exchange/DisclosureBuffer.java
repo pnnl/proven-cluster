@@ -57,9 +57,9 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageContentException;
 
 /**
@@ -100,7 +100,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 		log.debug("Post construct for DisclosureBuffer");
 
 		// Create buffer instance
-		buffer = hzi.getRingbuffer(getDistributedName());
+		buffer = hzi.getRingbuffer(getDOName());
 		log.debug("Disclosure Buffer created. DO-ID:: " + DistributedObjectUtil.getName(buffer));
 
 		// Start buffer readers
@@ -114,7 +114,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 	@PreDestroy
 	void destroy() {
-		log.debug("Destroying DisclosureBuffer :: " + getDistributedName());
+		log.debug("Destroying DisclosureBuffer :: " + getDOName());
 		log.debug("Destroying readers");
 
 		// Cancel state readers

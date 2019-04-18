@@ -52,6 +52,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
 /**
  * A cluster level managed Proven component representing an IMDG proven message
@@ -85,7 +86,7 @@ public class MessageStream extends ClusterComponent {
 
 	}
 
-	protected void configure(DisclosureDomain dd, MessageStreamType mst) {
+	public void configure(DisclosureDomain dd, MessageStreamType mst) {
 		this.streamName = mst.getStreamName(dd);
 		this.dd = dd;
 		this.mst = mst;

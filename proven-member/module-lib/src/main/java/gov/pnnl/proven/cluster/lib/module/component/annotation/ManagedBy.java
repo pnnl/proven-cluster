@@ -52,11 +52,11 @@ import java.lang.annotation.Target;
  * Restricts injection context of a managed component to the provided class
  * types. The provided class types must still adhere to the requirement of being
  * either another {@code ManagedComponent} or a {@code ComponentManager}. This
- * annotation is only read from the managed component.
+ * annotation is ignored if not used with {@code ManagedComponent}.
  * 
  * @author d3j766
  *
- * @see ComponentManager, ProvenComponent
+ * @see ManagedComponent, ComponentManager, ProvenComponent
  * 
  */
 @Documented

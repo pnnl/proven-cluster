@@ -38,7 +38,7 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,10 +56,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 
 /**

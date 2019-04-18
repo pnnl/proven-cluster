@@ -37,67 +37,86 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.module;
 
+package gov.pnnl.proven.cluster.lib.module.manager;
+
+import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.enterprise.event.Event;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.ObserverMethod;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Intercepted;
+import javax.enterprise.inject.spi.Bean;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
-import gov.pnnl.proven.cluster.lib.module.module.exception.ModuleStartupException;
-import gov.pnnl.proven.cluster.lib.module.module.exception.MultipleModuleImplementationException;
-import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementationException;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 
 /**
- * Startup bean for a web module application. On application startup, a startup
- * message is sent to the {@link ProvenModule} implementation. Only a single
- * {@code ProvenModule} implementation per application is supported. The module
- * is required to observe this startup message for module activation to take
- * place. An unsuccessful startup will be logged to the container.
+ * A component manager responsible for managing a set of {@code RequestExchange}
+ * components that support the disclosure and processing of module requests.
  * 
  * @author d3j766
+ * 
+ * @see ComponentManager, RequestExchange
  *
  */
-@Singleton
-@Startup
-public class ModuleManager {
+@ApplicationScoped
+public class ExchangeManager extends ModuleComponent implements ComponentManager {
 
-	static Logger logger = LoggerFactory.getLogger(ModuleManager.class);
+	static Logger log = LoggerFactory.getLogger(ExchangeManager.class);
+
 	
 	@Inject
-	BeanManager beanManager;
+	@ManagedComponent
+	Provider<RequestExchange> reProvider;
 
-	@Inject
-	Event<ModuleStartup> mse;
+	/**
+	 * Set of managed request exchange instances that provide access to
+	 * disclosure and exchange buffers supporting request processing.
+	 */
+	private Set<RequestExchange> res;
 
 	@PostConstruct
-	public void initialize() throws ModuleStartupException {
-
-		logger.info("Enter PostConstruct for " + this.getClass().getSimpleName());
-		sendStartupMessage();
-		logger.info("Leave PostConstruct for " + this.getClass().getSimpleName());
+	public void initialize() {
+		// Initialize manager with a new RequestExchange component
+		log.debug("Creating initial request exchange component");
+		res = new HashSet<RequestExchange>();
+		createExchange();
+		
 	}
 
-	public void sendStartupMessage() throws ModuleStartupException {
+	@Inject
+	public ExchangeManager() {
+		super();
+	}
+	
+	/**
+	 * Force bean activation.
+	 */
+	public void ping() {
+		log.debug("Activating ExchangeManager");
+	}
 
-		ModuleStartup ms = new ModuleStartup();
-		Set<ObserverMethod<? super ModuleStartup>> observers = beanManager.resolveObserverMethods(ms);
-		if (observers.isEmpty()) {
-			logger.info("Module implementation was not provided");
-			throw new NoModuleImplementationException();
-		} else if (observers.size() > 1) {
-			logger.info("Multiple module implementations provided");
-			throw new MultipleModuleImplementationException();
-		} else {
-			mse.fire(ms);
+	/**
+	 * Creates and adds a new request exchange component to the manager.
+	 */
+	private void createExchange() {
+
+		synchronized (res) {
+			RequestExchange re = reProvider.get();
+			res.add(re);
 		}
+	}
+
+	@Override
+	public ComponentStatus getStatus() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

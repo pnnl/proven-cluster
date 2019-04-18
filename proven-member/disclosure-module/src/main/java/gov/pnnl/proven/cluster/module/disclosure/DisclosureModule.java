@@ -62,6 +62,10 @@ import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
 @ApplicationScoped
 public class DisclosureModule extends ProvenModule {
 
+	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
+
+	
+	
 	@Override
 	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
 
@@ -93,7 +97,7 @@ public class DisclosureModule extends ProvenModule {
 	}
 	
 
-	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
+	
 
 	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
 
@@ -127,6 +131,7 @@ public class DisclosureModule extends ProvenModule {
 	public void init() {
 
 		log.info("DisclosureModule startup...");
+		log.info("Hazelcast Version :: " + hzInstance.getCluster().getClusterVersion().toString());
 				
 		// TODO This should be part of the member registry when a
 		// DisclosureBuffer

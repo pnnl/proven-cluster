@@ -98,8 +98,8 @@ import org.slf4j.Logger;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
-import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
 import gov.pnnl.proven.cluster.module.stream.dto.MessageStreamDto;
 import io.swagger.v3.oas.annotations.Operation;
 

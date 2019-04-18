@@ -38,84 +38,39 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.module.manager;
 
-import java.util.HashSet;
-import java.util.Set;
-import javax.annotation.PostConstruct;
+import java.lang.reflect.Method;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Intercepted;
-import javax.enterprise.inject.spi.Bean;
-import javax.inject.Inject;
-import javax.inject.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
+
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.request.ModuleRequest;
 
-/**
- * A component manager responsible for managing a set of {@code RequestExchange}
- * components that support the disclosure and processing of module requests.
- * 
- * @author d3j766
- * 
- * @see ComponentManager, RequestExchange
- *
- */
 @ApplicationScoped
-public class ExchangeManager extends ModuleComponent implements ComponentManager {
+public class RequestManager extends ModuleComponent implements ComponentManager {
 
-	static Logger log = LoggerFactory.getLogger(ExchangeManager.class);
+	public <T> void registerRequest(Class<T> mr) {
+		
+		System.out.println(mr.getName());
+		
+		System.out.println(mr.isAssignableFrom(ModuleRequest.class));
 
-	
-	@Inject
-	@ManagedComponent
-	Provider<RequestExchange> reProvider;
+		System.out.println(ModuleRequest.class.isAssignableFrom(mr));
+		
+		Method[] methods = mr.getMethods();
 
-	/**
-	 * Set of managed request exchange instances that provide access to
-	 * disclosure and exchange buffers supporting request processing.
-	 */
-	private Set<RequestExchange> res;
-
-	@PostConstruct
-	public void initialize() {
-		// Initialize manager with a new RequestExchange component
-		log.debug("Creating initial request exchange component");
-		res = new HashSet<RequestExchange>();
-		createExchange();
+		System.out.println(methods.toString());
 		
 	}
-
-	@Inject
-	public ExchangeManager() {
-		super();
-	}
 	
-	/**
-	 * Force bean activation.
-	 */
+	@Override
 	public void ping() {
-		log.debug("Activating ExchangeManager");
-	}
-
-	/**
-	 * Creates and adds a new request exchange component to the manager.
-	 */
-	private void createExchange() {
-
-		synchronized (res) {
-			RequestExchange re = reProvider.get();
-			res.add(re);
-		}
 	}
 
 	@Override
 	public ComponentStatus getStatus() {
-		// TODO Auto-generated method stub
-		return null;
+		return ComponentStatus.Online;
 	}
-
+	
 }

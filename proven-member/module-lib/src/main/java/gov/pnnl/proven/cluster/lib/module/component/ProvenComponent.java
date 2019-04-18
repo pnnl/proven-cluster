@@ -66,58 +66,42 @@ public abstract class ProvenComponent {
 
 	@Inject
 	protected HazelcastInstance hzi;
+
+//	 @Inject
+//	 protected ScheduledEventManager sem;
+
+	protected UUID cId;
+
+	protected ComponentStatus cStatus;
 	
-	@Inject
-	BeanManager bm;
+	protected ComponentType cType;
 
-	// @Inject
-	// protected ScheduledEventManager sem;
-
-	protected UUID id;
-
-	protected ComponentStatus status;
-
-	protected String distributedName;
+	protected String doName;
 
 	protected Boolean isManaged;
 
 	public ProvenComponent() {
-		id = UUID.randomUUID();
-		status = ComponentStatus.Online;
-		distributedName = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + getComponentType() + "_" + id;
+		cId = UUID.randomUUID();
+		cStatus = ComponentStatus.Online;
+		cType = ComponentType.valueOf(this.getClass().getSuperclass().getSimpleName());
+		doName = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + cId + "_" + cType.toString();
 	}
 
 	public UUID getId() {
-		return id;
-	}  
-	
-	public abstract ComponentGroup getComponentGroup(); 
-	
+		return cId;
+	}
+
+	public abstract ComponentStatus getStatus();
 	
 	public ComponentType getComponentType() {
-		
-		ComponentType ret = ComponentType.ProvenComponent;
-		try {
-			String className = this.getClass().getSimpleName();
-			ret = ComponentType.valueOf(className);
-		} catch (Exception e) {
-			//e.printStackTrace();
-		}
-		return ret;
-	}
-		
-	public abstract ComponentStatus getStatus();
-
-	protected void setStatus(ComponentStatus status) {
-		this.status = status;
+		return cType;
 	}
 
-	public String getDistributedName() {
-		return distributedName;
+	public String getDOName() {
+		return doName;
 	}
 
 	public Boolean isManaged() {
-
 		if (null == isManaged) {
 			if (null == (this.getClass().getAnnotation(ManagedComponent.class))) {
 				isManaged = false;
@@ -127,5 +111,7 @@ public abstract class ProvenComponent {
 		}
 		return isManaged;
 	}
+
+	public abstract ComponentGroup getComponentGroup();
 
 }

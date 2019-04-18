@@ -37,40 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.module.manager;
 
-package gov.pnnl.proven.cluster.lib.module.request;
+import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
 
-import java.lang.reflect.Method;
-import javax.enterprise.context.ApplicationScoped;
-
-import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-
-@ApplicationScoped
-public class RequestManager extends ModuleComponent implements ComponentManager {
-
-	public <T> void registerRequest(Class<T> mr) {
-		
-		System.out.println(mr.getName());
-		
-		System.out.println(mr.isAssignableFrom(ModuleRequest.class));
-
-		System.out.println(ModuleRequest.class.isAssignableFrom(mr));
-		
-		Method[] methods = mr.getMethods();
-
-		System.out.println(methods.toString());
-		
-	}
+/**
+ * Manages the creation of and access to a set of ProvenComponents.
+ * 
+ * @author d3j766
+ * 
+ * @see ProvenComponent
+ *
+ */
+public interface ComponentManager {
 	
-	@Override
-	public void ping() {
-	}
+	/**
+	 * Force initialization of the manager
+	 */
+	public void ping();
 
-	@Override
-	public ComponentStatus getStatus() {
-		return ComponentStatus.Online;
-	}
-	
 }

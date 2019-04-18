@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import javax.enterprise.inject.InjectionException;
@@ -51,11 +53,12 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentManager;
+
 import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
 
 /**
  * Verifies injection of a {@code ManagedComponent} is a {@code ProvenComponent}
@@ -68,7 +71,9 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
  */
 @Component
 @Interceptor
-public class ComponentInterceptor {
+public class ComponentInterceptor implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	static Logger log = LoggerFactory.getLogger(ComponentInterceptor.class);
 
@@ -81,26 +86,12 @@ public class ComponentInterceptor {
 		// OK to proceed
 		Object result = ctx.proceed();
 		
+		ProvenComponent pc = (ProvenComponent) ctx.getTarget();
+		log.info("Proven component constructed :: "+ pc.getDOName());
 		
-		log.debug(
-				"##############################################################################################################");
-		log.debug("BEFORE COMPONENT CONSTRUCTION");
-		log.debug(intercepted.getBeanClass().getSimpleName());
 		
-		log.debug(
-				"##############################################################################################################");
-
-
 		
-		log.debug("ManagedComponentInterceptor - AFTER construction.");
-
-		log.debug(
-				"##############################################################################################################");
-		log.debug("AFTER COMPONENT CONSTRUCTION");
-		log.debug(intercepted.getBeanClass().getSimpleName());		
-		log.debug(
-				"##############################################################################################################");
-
+		
 		return result;
 	}
 

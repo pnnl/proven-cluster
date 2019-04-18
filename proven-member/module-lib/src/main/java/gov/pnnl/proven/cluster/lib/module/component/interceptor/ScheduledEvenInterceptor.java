@@ -37,21 +37,58 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.component.interceptor;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
+import javax.enterprise.inject.InjectionException;
+import javax.enterprise.inject.Intercepted;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Inject;
+import javax.interceptor.AroundConstruct;
+import javax.interceptor.Interceptor;
+import javax.interceptor.InvocationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
 
 /**
- * Manages the creation of and access to a set of ProvenComponents.
+ * Verifies injection of a {@code ManagedComponent} is a {@code ProvenComponent}
+ * and it's being requested by a {@code ComponentManager} or another
+ * {@code ManagedComponent}. An {@code InjectionException} is thrown if this is
+ * not the case.
  * 
  * @author d3j766
  * 
- * @see ProvenComponent
- *
  */
-public interface ComponentManager {
+@Component
+@Interceptor
+public class ScheduledEvenInterceptor implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	static Logger log = LoggerFactory.getLogger(ScheduledEvenInterceptor.class);
+
+	 @Inject @Intercepted 
+	 private Bean<?> intercepted;
 	
-	/**
-	 * Force initialization of the manager
-	 */
-	public void ping();
+	@AroundConstruct
+	public Object verifyInjection(InvocationContext ctx) throws Exception {
+
+		// OK to proceed
+		Object result = ctx.proceed();
+		
+		ProvenComponent pc = (ProvenComponent) ctx.getTarget();
+		log.info("Proven component constructed :: "+ pc.getDOName());
+		
+		return result;
+	}
 
 }

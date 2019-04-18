@@ -63,7 +63,7 @@ public class MessageStreamProxy {
 
 	private MessageStream messageStream;
 
-	protected MessageStreamProxy(MessageStream ms) {
+	public MessageStreamProxy(MessageStream ms) {
 		this.messageStream = ms;
 	}
 

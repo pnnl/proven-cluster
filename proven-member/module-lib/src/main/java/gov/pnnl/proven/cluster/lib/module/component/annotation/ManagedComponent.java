@@ -56,10 +56,11 @@ import javax.inject.Qualifier;
 import javax.interceptor.InterceptorBinding;
 
 /**
- * Identifies the bean as a managed {@code ProvenComponent}. Meaning, the component's
- * creation and destruction must be performed through a {@code ComponentManager}
- * or another {@ManagedComponent}. This may be further restricted by the use of
- * {@code ManagedBy}.
+ * Identifies the bean as a managed {@code ProvenComponent}. Meaning, the
+ * component's creation and destruction must be performed through a
+ * {@code ComponentManager} or another {@ManagedComponent} that can be traced
+ * back to their {@code ComponentManager}. This may be further restricted by
+ * the use of {@code ManagedBy}.
  * 
  * @author d3j766
  *
@@ -68,7 +69,6 @@ import javax.interceptor.InterceptorBinding;
  */
 @Documented
 @Stereotype
-@Inherited
 @Qualifier
 @Dependent
 @InterceptorBinding

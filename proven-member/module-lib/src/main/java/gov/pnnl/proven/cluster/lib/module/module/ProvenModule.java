@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.module;
 
+import java.util.UUID;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.Reception;
@@ -49,9 +51,9 @@ import org.apache.logging.log4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleShutdown;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
-import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeManager;
+import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleEventObserver;
-import gov.pnnl.proven.cluster.lib.module.stream.StreamManager;
 
 
 @ApplicationScoped
@@ -64,6 +66,9 @@ public abstract class ProvenModule implements ModuleEventObserver {
 	
 	@Inject
 	ExchangeManager em;
+	
+	// Module identifier
+	UUID moduleId;
 	
 	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
 
@@ -89,6 +94,13 @@ public abstract class ProvenModule implements ModuleEventObserver {
 		// Log shutdown message
 		logger.info("ProvenModule shutdown completed.");
 
+	}
+	
+	public UUID getModuleId() {
+		if (null == moduleId) {
+			moduleId = UUID.randomUUID();
+		}
+		return moduleId;
 	}
 
 }

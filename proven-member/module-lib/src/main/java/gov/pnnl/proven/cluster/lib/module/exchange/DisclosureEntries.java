@@ -60,7 +60,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.event.ModuleComponentReporter;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
 
 /**
@@ -76,7 +75,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInte
  *
  */
 @ManagedComponent
-public class DisclosureEntries extends ModuleComponent implements ModuleComponentReporter {
+public class DisclosureEntries extends ModuleComponent {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureEntries.class);
 	
@@ -282,12 +281,6 @@ public class DisclosureEntries extends ModuleComponent implements ModuleComponen
 
 	public void addLocalDisclosure(DisclosureBuffer db) {
 		localDisclosure = db;
-	}
-
-	@Override
-	@Schedule(second = "*/10", minute = "*", hour = "*")
-	public void statusReport() {
-		log.debug("Sending status report for DisclosureEntries.");
 	}
 
 }
