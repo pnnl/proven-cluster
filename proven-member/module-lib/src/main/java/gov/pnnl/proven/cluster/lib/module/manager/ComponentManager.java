@@ -42,7 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.manager;
 import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
 
 /**
- * Manages the creation of and access to a set of ProvenComponents.
+ * Marker interface indicating implementer manages a set of ProvenComponents.
  * 
  * @author d3j766
  * 

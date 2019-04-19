@@ -37,119 +37,80 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Supplier;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 /**
- * Message streams store {@code ProvenMessage} instances, that have been
- * disclosed to the platform. These stream types represent the built-in streams
- * provided by Proven. Every disclosure domain will have its own set of message
- * streams as defined here, this includes the Proven disclosure domain as well.
- * 
- * Each stream type supports one or more {@code MessageGroup}s. Attempts to
- * add message content for a group not supported by the stream will not be
- * allowed.
- * 
- * @see ProvenMessage, MessageGroup, MessageContent, DisclosureDomain,
- *      {@link DomainProvider#getProvenDisclosureDomain()}
+ * Accepts Proven disclosure data represented in a CSV format. CSV data is
+ * checked for correctness at construction and converted into the platform's
+ * internal JSON format.
  * 
  * @author d3j766
  *
+ * @see DisclosureMessage, ProvenMessage
+ * 
  */
-public enum MessageStreamType {
+public class CsvDisclosure extends DisclosureMessage implements IdentifiedDataSerializable, Serializable {
 
-	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
+	private static final long serialVersionUID = 1L;
 
-	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
+	private static Logger log = LoggerFactory.getLogger(CsvDisclosure.class);
 
-	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
-
-	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
-
-	private class StreamLabel {
-		private static final String DISCLOSURE_STREAM = "disclosed";
-		private static final String KNOWLEDGE_STREAM = "knowledge";
-		private static final String REQUEST_STREAM = "request";
-		private static final String RESPONSE_STREAM = "response";
+	public CsvDisclosure() {
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
-
-	private String streamLabel;
-	private List<MessageContentGroup> messageGroups;
-
-	MessageStreamType(String streamLabel, MessageContentGroup... groups) {
-		this.streamLabel = streamLabel;
-		messageGroups = Arrays.asList(groups);
+	public CsvDisclosure(String message) {
+		super(toJsonObject(message));
 	}
 
-	/**
-	 * Provides the {@code MessageGroup}(s) supported by the stream.
-	 * 
-	 * @return a list of supported MessageGroup
-	 * 
-	 */
-	public List<MessageContentGroup> getMessageGroups() {
-		return messageGroups;
+	public CsvDisclosure(String mesage, String schema) {
+		super(toJsonObject(mesage), toJsonObject(schema));
 	}
-	
-	public List<MessageContent> getMessageContents() {
-		
-		List<MessageContent> ret = new ArrayList<MessageContent>();
-		
-		for (MessageContentGroup mg : getMessageGroups()) {
-			for (MessageContent mc : mg.getMessageContents()) {
-				ret.add(mc);
-			}
-		}
-		
+
+	private static JsonObject toJsonObject(String json) {
+
+		JsonObject ret = null;
+
+		// TODO Implementation
+
 		return ret;
 	}
 
-	public static MessageStreamType getType(MessageContent mcToCheckFor) {
-
-		MessageStreamType ret = null;
-		for (MessageStreamType mst : values()) {
-			for (MessageContentGroup mg : mst.getMessageGroups()) {
-				for (MessageContent mc : mg.getMessageContents()) {
-					if (mc.equals(mcToCheckFor))
-						ret = mst;
-					break;
-				}
-			}
-		}
-		
-		return ret;
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
 	}
 
-	/**
-	 * Provides the name of the message stream using provided domain.
-	 * 
-	 * @param dd
-	 *            the disclosure domain. If null, the default proven domain is
-	 *            used.
-	 * 
-	 * @return the name of the associated disclosure stream
-	 * 
-	 */
-	public String getStreamName(DisclosureDomain dd) {
-		return buildStreamName(dd, streamLabel);
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
 	}
 
-	private String buildStreamName(DisclosureDomain dd, String sLabel) {
-		String domainPart = dd.getReverseDomain();
-		String streamPart = sLabel;
-		return domainPart + "." + streamPart;
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.CSV_DISCLOSURE_MESSAGE_TYPE;
 	}
 
 }

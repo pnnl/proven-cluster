@@ -37,119 +37,34 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.disclosure.exception;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
-
 /**
- * Message streams store {@code ProvenMessage} instances, that have been
- * disclosed to the platform. These stream types represent the built-in streams
- * provided by Proven. Every disclosure domain will have its own set of message
- * streams as defined here, this includes the Proven disclosure domain as well.
- * 
- * Each stream type supports one or more {@code MessageGroup}s. Attempts to
- * add message content for a group not supported by the stream will not be
- * allowed.
- * 
- * @see ProvenMessage, MessageGroup, MessageContent, DisclosureDomain,
- *      {@link DomainProvider#getProvenDisclosureDomain()}
+ * Indicates the externally disclosed message entry's format is not a supported
+ * type.
  * 
  * @author d3j766
  *
  */
-public enum MessageStreamType {
+public class UnsupportedDisclosureEntryType extends Exception {
 
-	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
-
-	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
-
-	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
-
-	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
-
-	private class StreamLabel {
-		private static final String DISCLOSURE_STREAM = "disclosed";
-		private static final String KNOWLEDGE_STREAM = "knowledge";
-		private static final String REQUEST_STREAM = "request";
-		private static final String RESPONSE_STREAM = "response";
-	}
-
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
-
-	private String streamLabel;
-	private List<MessageContentGroup> messageGroups;
-
-	MessageStreamType(String streamLabel, MessageContentGroup... groups) {
-		this.streamLabel = streamLabel;
-		messageGroups = Arrays.asList(groups);
-	}
-
-	/**
-	 * Provides the {@code MessageGroup}(s) supported by the stream.
-	 * 
-	 * @return a list of supported MessageGroup
-	 * 
-	 */
-	public List<MessageContentGroup> getMessageGroups() {
-		return messageGroups;
-	}
+	private static final long serialVersionUID = 1L;
 	
-	public List<MessageContent> getMessageContents() {
-		
-		List<MessageContent> ret = new ArrayList<MessageContent>();
-		
-		for (MessageContentGroup mg : getMessageGroups()) {
-			for (MessageContent mc : mg.getMessageContents()) {
-				ret.add(mc);
-			}
-		}
-		
-		return ret;
+	static Logger log = LoggerFactory.getLogger(UnsupportedDisclosureEntryType.class);
+
+	public UnsupportedDisclosureEntryType() {
+		super();
 	}
 
-	public static MessageStreamType getType(MessageContent mcToCheckFor) {
-
-		MessageStreamType ret = null;
-		for (MessageStreamType mst : values()) {
-			for (MessageContentGroup mg : mst.getMessageGroups()) {
-				for (MessageContent mc : mg.getMessageContents()) {
-					if (mc.equals(mcToCheckFor))
-						ret = mst;
-					break;
-				}
-			}
-		}
-		
-		return ret;
+	public UnsupportedDisclosureEntryType(String message) {
+		super(message);
 	}
 
-	/**
-	 * Provides the name of the message stream using provided domain.
-	 * 
-	 * @param dd
-	 *            the disclosure domain. If null, the default proven domain is
-	 *            used.
-	 * 
-	 * @return the name of the associated disclosure stream
-	 * 
-	 */
-	public String getStreamName(DisclosureDomain dd) {
-		return buildStreamName(dd, streamLabel);
-	}
-
-	private String buildStreamName(DisclosureDomain dd, String sLabel) {
-		String domainPart = dd.getReverseDomain();
-		String streamPart = sLabel;
-		return domainPart + "." + streamPart;
+	public UnsupportedDisclosureEntryType(String message, Throwable e) {
+		super(message, e);
 	}
 
 }

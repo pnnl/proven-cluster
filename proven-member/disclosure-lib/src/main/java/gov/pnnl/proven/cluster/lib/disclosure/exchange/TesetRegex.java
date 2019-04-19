@@ -39,10 +39,21 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
-public interface BufferedItem {
-	
-	BufferedItemState getItemState();
-	
-	void setItemState(BufferedItemState buffereState);
-	
+import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
+
+public class TesetRegex {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		String entry = "    {   } } } } } x \n }  ";
+		String regexTry = "^#CSV.*";
+		String regexGood = "(?s)^\\s*\\{.*\\}\\s*$";
+		
+		if (entry.matches(regexGood)) {
+			System.out.println("YES");
+		}		
+		
+	}
+
 }

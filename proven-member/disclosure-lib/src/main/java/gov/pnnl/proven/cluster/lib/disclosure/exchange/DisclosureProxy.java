@@ -49,15 +49,20 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 
 /**
- * Wrapper class for a disclosed entry/message request. A
+ * Wrapper class for a externally disclosed entry/message request. A
  * {@code DisclosureProxy} may be added to a {@code DisclosureBuffer} as a
  * buffered item.
+ * 
+ * TODO Change this to ExternalDisclosureProxy and create an
+ * InternalDisclosureProxy class. Both classes will inherit from a parent
+ * abstract class called DisclosureProxy.
  * 
  * @author d3j766
  *
@@ -73,11 +78,11 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 	private DisclosureMessage message;
 
 	/**
-	 *  No-arg constructor for serialization
+	 * No-arg constructor for serialization
 	 */
 	public DisclosureProxy() {
 	}
-	
+
 	/**
 	 * Based on an externally provided disclosure entry.
 	 * 
@@ -88,33 +93,18 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 		bufferedState = BufferedItemState.New;
 	}
 
-	/**
-	 * Based on an internally provided disclosure message entry.
-	 * 
-	 * @param message
-	 */
-	public DisclosureProxy(DisclosureMessage message) {
-		this.entry = "Message based construction";
-		this.message = message;
-		bufferedState = BufferedItemState.New;
-	}
-
-	public String getEntry() {
-		return entry;
-	}
-
-	public DisclosureMessage getMessage() throws JsonParsingException {
-
-		// Only do this once
-		if (null == message) {
-			message = new JsonDisclosure(entry);
-		}
-		return message;
+	// @Overrride
+	public DisclosureMessage getMessage() throws UnsupportedDisclosureEntryType, JsonParsingException {
+		return DisclosureEntryType.getEntryMessage(entry);
 	}
 
 	@Override
 	public BufferedItemState getItemState() {
 		return bufferedState;
+	}
+
+	public DisclosureEntryType getEntryType() {
+		return null;
 	}
 
 	@Override
@@ -129,12 +119,14 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 
 		boolean nullEntry = (null == this.entry);
 		out.writeBoolean(nullEntry);
-		if (!nullEntry) out.writeUTF(this.entry);	
+		if (!nullEntry)
+			out.writeUTF(this.entry);
 
 		boolean nullMessage = (null == this.message);
 		out.writeBoolean(nullMessage);
-		if (!nullMessage) out.writeObject(this.message);
-		
+		if (!nullMessage)
+			out.writeObject(this.message);
+
 	}
 
 	@Override
@@ -143,10 +135,12 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
 
 		boolean nullEntry = in.readBoolean();
-		if (!nullEntry) this.entry = in.readUTF();	
+		if (!nullEntry)
+			this.entry = in.readUTF();
 
 		boolean nullMessage = in.readBoolean();
-		if (!nullMessage) this.message = in.readObject();	
+		if (!nullMessage)
+			this.message = in.readObject();
 	}
 
 	@Override

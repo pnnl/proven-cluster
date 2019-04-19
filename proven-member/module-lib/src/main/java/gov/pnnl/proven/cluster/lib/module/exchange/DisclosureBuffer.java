@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import com.hazelcast.core.DistributedObjectUtil;
 import com.hazelcast.ringbuffer.ReadResultSet;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
@@ -83,8 +84,8 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	private static final BufferedItemState[] SUPPORTED_ITEM_STATES = { BufferedItemState.New };
 	private RequestBuffer localExchange;
 	private CompletableFuture<Void> bufferSourceReader;
-	
-	@Inject 
+
+	@Inject
 	BeanManager bm;
 
 	@Inject
@@ -124,7 +125,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	@Inject
 	public DisclosureBuffer(InjectionPoint ip) {
 		super(SUPPORTED_ITEM_STATES);
-		log.debug("DefaultConstructer for DisclosureBuffer");		
+		log.debug("DefaultConstructer for DisclosureBuffer");
 	}
 
 	@Override
@@ -138,22 +139,25 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 			case New:
 
+				// TODO Add a response message to "general" stream to record an
+				// error event. Right now these errors are not being reported.
+
 				log.debug("Item processor for NEW");
-				
+
 				MessageStreamType mst = MessageStreamType.Disclosure;
-				
+
 				items.forEach((item) -> {
 					try {
 						DisclosureMessage dm = item.getMessage();
 						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDomain(), mst);
 						msp.addMessage(dm);
+					} catch (UnsupportedDisclosureEntryType e) {
+						log.error("Message entry type not supported", e);
 					} catch (JsonParsingException e) {
 						log.error("JSON parsing exception", e);
-						e.printStackTrace();
 					} catch (UnsupportedMessageContentException e) {
 						log.error("Message content invalid for disclosure stream", e);
 					}
-
 				});
 				break;
 
@@ -182,7 +186,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	public ComponentStatus getStatus() {
 		return null;
 	}
-	
+
 	void addLocalExchange(RequestBuffer rb) {
 		localExchange = rb;
 	}

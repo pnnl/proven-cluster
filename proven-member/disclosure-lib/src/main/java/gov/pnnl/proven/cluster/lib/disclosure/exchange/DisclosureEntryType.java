@@ -37,119 +37,84 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import javax.json.stream.JsonParsingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
+import com.fasterxml.jackson.core.JsonParseException;
+
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
+import gov.pnnl.proven.cluster.lib.disclosure.message.CsvDisclosure;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 
 /**
- * Message streams store {@code ProvenMessage} instances, that have been
- * disclosed to the platform. These stream types represent the built-in streams
- * provided by Proven. Every disclosure domain will have its own set of message
- * streams as defined here, this includes the Proven disclosure domain as well.
- * 
- * Each stream type supports one or more {@code MessageGroup}s. Attempts to
- * add message content for a group not supported by the stream will not be
- * allowed.
- * 
- * @see ProvenMessage, MessageGroup, MessageContent, DisclosureDomain,
- *      {@link DomainProvider#getProvenDisclosureDomain()}
+ * Indicates the disclosure entry type for entries originating from an external
+ * source. Each type has a "magic" regular expression that is used to determine
+ * if an entry is of that type.
  * 
  * @author d3j766
  *
  */
-public enum MessageStreamType {
+public enum DisclosureEntryType {
 
-	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
+	/**
+	 * CSV formatted value, representing message content types in
+	 * {@code MessageContentGroup#Knowledge}.
+	 */
+	CSV(MagicRegex.CSV_REGEX),
 
-	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
+	/**
+	 * JSON formatted value representation of all message content types.
+	 */
+	JSON(MagicRegex.JSON_REGEX);
 
-	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
-
-	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
-
-	private class StreamLabel {
-		private static final String DISCLOSURE_STREAM = "disclosed";
-		private static final String KNOWLEDGE_STREAM = "knowledge";
-		private static final String REQUEST_STREAM = "request";
-		private static final String RESPONSE_STREAM = "response";
+	public class MagicRegex {
+		public static final String CSV_REGEX = "^#CSV.*";
+		public static final String JSON_REGEX = "(?s)^\\s*\\{.*\\}\\s*$";
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
+	static Logger log = LoggerFactory.getLogger(DisclosureEntryType.class);
 
-	private String streamLabel;
-	private List<MessageContentGroup> messageGroups;
+	private String regex;
 
-	MessageStreamType(String streamLabel, MessageContentGroup... groups) {
-		this.streamLabel = streamLabel;
-		messageGroups = Arrays.asList(groups);
+	DisclosureEntryType(String regex) {
+		this.regex = regex;
+	}
+
+	public String getRegex() {
+		return regex;
 	}
 
 	/**
-	 * Provides the {@code MessageGroup}(s) supported by the stream.
+	 * Determines an external disclosure entrie's type.
 	 * 
-	 * @return a list of supported MessageGroup
-	 * 
+	 * @param entry
+	 *            the disclosure entry
+	 * @throws UnsupportedDisclosureEntryType
+	 *             if the type could not be determined.
+	 * @return the {@code DisclosureEntryType}
 	 */
-	public List<MessageContentGroup> getMessageGroups() {
-		return messageGroups;
-	}
-	
-	public List<MessageContent> getMessageContents() {
-		
-		List<MessageContent> ret = new ArrayList<MessageContent>();
-		
-		for (MessageContentGroup mg : getMessageGroups()) {
-			for (MessageContent mc : mg.getMessageContents()) {
-				ret.add(mc);
-			}
+	public static DisclosureMessage getEntryMessage(String entry)
+			throws UnsupportedDisclosureEntryType, JsonParsingException {
+
+		DisclosureMessage ret = null;
+
+		if (entry.matches(CSV.getRegex())) {
+			ret = new CsvDisclosure(entry);
 		}
-		
+
+		if (entry.matches(JSON.getRegex())) {
+			ret = new JsonDisclosure(entry);
+		}
+
+		if (null == ret) {
+			throw new UnsupportedDisclosureEntryType();
+		}
+
 		return ret;
 	}
-
-	public static MessageStreamType getType(MessageContent mcToCheckFor) {
-
-		MessageStreamType ret = null;
-		for (MessageStreamType mst : values()) {
-			for (MessageContentGroup mg : mst.getMessageGroups()) {
-				for (MessageContent mc : mg.getMessageContents()) {
-					if (mc.equals(mcToCheckFor))
-						ret = mst;
-					break;
-				}
-			}
-		}
-		
-		return ret;
-	}
-
-	/**
-	 * Provides the name of the message stream using provided domain.
-	 * 
-	 * @param dd
-	 *            the disclosure domain. If null, the default proven domain is
-	 *            used.
-	 * 
-	 * @return the name of the associated disclosure stream
-	 * 
-	 */
-	public String getStreamName(DisclosureDomain dd) {
-		return buildStreamName(dd, streamLabel);
-	}
-
-	private String buildStreamName(DisclosureDomain dd, String sLabel) {
-		String domainPart = dd.getReverseDomain();
-		String streamPart = sLabel;
-		return domainPart + "." + streamPart;
-	}
-
 }

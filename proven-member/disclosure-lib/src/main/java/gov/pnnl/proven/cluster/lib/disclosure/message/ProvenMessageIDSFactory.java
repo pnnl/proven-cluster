@@ -32,6 +32,7 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 	public static final int MEASUREMENT_MESSAGE_TYPE = 9;
 	public static final int DISCLOSURE_PROXY_TYPE = 10;
 	public static final int RESPONSE_MESSAGE_TYPE = 11;
+	public static final int CSV_DISCLOSURE_MESSAGE_TYPE = 12;
 
 	@Override
 	public IdentifiedDataSerializable create(int typeId) {
@@ -59,7 +60,9 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 		case (DISCLOSURE_PROXY_TYPE):
 			return new DisclosureProxy();
 		case (RESPONSE_MESSAGE_TYPE):
-			return new ResponseMessage();		
+			return new ResponseMessage();
+		case (CSV_DISCLOSURE_MESSAGE_TYPE):
+			return new CsvDisclosure();
 		default:
 			return null;
 		}
