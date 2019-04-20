@@ -47,7 +47,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.client.impl.protocol.task.BlockingMessageTask;
+//import com.hazelcast.client.impl.protocol.task.BlockingMessageTask;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
@@ -56,13 +56,12 @@ import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
-//import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 
 
 public class TestPipeline implements Serializable {
@@ -101,12 +100,9 @@ public class TestPipeline implements Serializable {
 		// Create the specification of the computation pipeline. Note
 		// it's a pure POJO: no instance of Jet needed to create it.
 		Pipeline p = Pipeline.create();
-//		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-//				.filter(word -> !word.isEmpty()).groupingKey(wholeItem()).aggregate(counting())
-//				.drainTo(Sinks.map("counts"));
 		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-		.filter(word -> !word.isEmpty()).aggregate(counting());
-		//.drainTo(Sinks.map("counts"));
+				.filter(word -> !word.isEmpty()).groupingKey(wholeItem()).aggregate(counting())
+				.drainTo(Sinks.map("counts"));
 
 		// Start Jet, populate the input list
 		JetInstance jet = Jet.newJetClient(config);
