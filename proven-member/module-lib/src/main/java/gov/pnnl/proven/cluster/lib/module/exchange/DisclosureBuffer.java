@@ -58,6 +58,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
@@ -185,6 +186,10 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	@Override
 	public ComponentStatus getStatus() {
 		return null;
+	}
+	
+	public StatusReport getStatusReport() {
+		return new StatusReport();
 	}
 
 	void addLocalExchange(RequestBuffer rb) {

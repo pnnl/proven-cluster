@@ -39,16 +39,19 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.util.Map;
 import java.util.UUID;
 
-import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.hazelcast.core.HazelcastInstance;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.EventReporter;
+import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * Represents a component that performs activities to support the management and
@@ -58,6 +61,7 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
  *
  */
 @Component
+@EventReporter(event = StatusReport.class, schedule = StatusReport.STATUS_REPORT_SCHEDULE)
 public abstract class ProvenComponent {
 
 	static Logger log = LoggerFactory.getLogger(ProvenComponent.class);
@@ -67,13 +71,13 @@ public abstract class ProvenComponent {
 	@Inject
 	protected HazelcastInstance hzi;
 
-//	 @Inject
-//	 protected ScheduledEventManager sem;
+	// @Inject
+	// protected EventManager em;
 
 	protected UUID cId;
 
 	protected ComponentStatus cStatus;
-	
+
 	protected ComponentType cType;
 
 	protected String doName;
@@ -92,9 +96,30 @@ public abstract class ProvenComponent {
 	}
 
 	public abstract ComponentStatus getStatus();
-	
+
+	public abstract StatusReport getStatusReport();
+
 	public ComponentType getComponentType() {
 		return cType;
+	}
+
+	public void registerEvents(Map<Class<? extends ScheduledEvent>, String> events) {
+
+		log.debug("Registering event reporters for :: " + this.getClass().getSimpleName());
+		for (Class<? extends ScheduledEvent> event : events.keySet()) {
+			log.debug(event.getName() + "::" + events.get(event));
+
+			// Status Report
+			// TODO add support for other reporters
+			if (event.getName().equals(StatusReport.class.getName())) {
+				log.debug("Status report being registred");
+				String schedule = events.get(event);
+				// Determine if qualifiers are necessary, may need to send
+				// multiple registrations.
+				// em.register(this::getStatusReport, schedule, true,
+				// Qualifiers...);
+			}
+		}
 	}
 
 	public String getDOName() {

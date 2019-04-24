@@ -85,7 +85,7 @@ public abstract class ProvenModule implements ModuleEventObserver {
 
 	}
 
-	public void observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
+	public String observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
 
 		logger.debug("ProvenModule shutdown message observed");
 
@@ -93,7 +93,7 @@ public abstract class ProvenModule implements ModuleEventObserver {
 
 		// Log shutdown message
 		logger.info("ProvenModule shutdown completed.");
-
+		return "test";
 	}
 	
 	public UUID getModuleId() {

@@ -55,12 +55,15 @@ import javax.enterprise.inject.Stereotype;
 import javax.inject.Qualifier;
 import javax.interceptor.InterceptorBinding;
 
+import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
+
 /**
  * Identifies the bean as a managed {@code ProvenComponent}. Meaning, the
  * component's creation and destruction must be performed through a
  * {@code ComponentManager} or another {@ManagedComponent} that can be traced
- * back to their {@code ComponentManager}. This may be further restricted by
- * the use of {@code ManagedBy}.
+ * back to their {@code ComponentManager}. This may be further restricted by the
+ * use of {@code ManagedBy} to identify the specific
+ * {@code ComponentManager}(s).
  * 
  * @author d3j766
  *

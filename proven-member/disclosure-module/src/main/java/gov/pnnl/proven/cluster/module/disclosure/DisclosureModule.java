@@ -83,7 +83,7 @@ public class DisclosureModule extends ProvenModule {
 	}
 
 	@Override
-	public void observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
+	public String observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
 
 		super.observeModuleShutdown(moduleShutdown);
 		
@@ -93,6 +93,8 @@ public class DisclosureModule extends ProvenModule {
 
 		// Log shutdown message
 		log.info("ProvenModule shutdown completed.");
+		
+		return "test2";
 
 	}
 	

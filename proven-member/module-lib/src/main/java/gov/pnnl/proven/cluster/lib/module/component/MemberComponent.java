@@ -42,6 +42,8 @@ package gov.pnnl.proven.cluster.lib.module.component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.module.component.annotation.EventReporter;
+
 /**
  * 
  * Represents a component that performs activities to support the operation of a

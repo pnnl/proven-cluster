@@ -50,6 +50,7 @@ import com.hazelcast.core.ISet;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * Provides a Component Registry at the Member level.
@@ -83,4 +84,8 @@ public class MemberComponentRegistry extends MemberComponent {
 		return ComponentStatus.Online;
 	}
 
+	public StatusReport getStatusReport() {
+		return new StatusReport();
+	}
+	
 }

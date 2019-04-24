@@ -60,6 +60,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
 
 /**
@@ -279,6 +280,10 @@ public class DisclosureEntries extends ModuleComponent {
 		return null;
 	}
 
+	public StatusReport getStatusReport() {
+		return new StatusReport();
+	}
+	
 	public void addLocalDisclosure(DisclosureBuffer db) {
 		localDisclosure = db;
 	}

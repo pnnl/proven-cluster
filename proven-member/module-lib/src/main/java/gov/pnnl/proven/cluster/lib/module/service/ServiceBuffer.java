@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * A managed component supporting the execution of module requests.
@@ -78,5 +79,8 @@ public class ServiceBuffer extends ModuleComponent {
 		return null;
 	}
 	
+	public StatusReport getStatusReport() {
+		return new StatusReport();
+	}
 
 }

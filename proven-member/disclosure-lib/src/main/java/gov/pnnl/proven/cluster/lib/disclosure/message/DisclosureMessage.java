@@ -108,12 +108,12 @@ public abstract class DisclosureMessage extends ProvenMessage {
 	}
 
 	/**
-	 * TODO Implement.  Provides a new KnowledgeMessage based on the the disclosed
+	 * TODO Implement.  Provides a new KnowledgeMessage(s) based on the the disclosed
 	 * message; only if the disclosed content type is in
-	 * {@code MessageGroup#Knowledge}.  
+	 * {@code MessageGroup#Knowledge}.  This method should "chunk" the message, if necessary.  
 	 */
-	public Optional<KnowledgeMessage> getKnowledgeMessage() {
-		Optional<KnowledgeMessage> ret = Optional.empty();
+	public Optional<Set<KnowledgeMessage>> getKnowledgeMessages() {
+		Optional<Set<KnowledgeMessage>> ret = Optional.empty();
 		return ret;
 	}
 

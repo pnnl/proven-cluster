@@ -52,6 +52,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
 /**
@@ -117,6 +118,10 @@ public class MessageStream extends ClusterComponent {
 	public ComponentStatus getStatus() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public StatusReport getStatusReport() {
+		return new StatusReport();
 	}
 	
 }

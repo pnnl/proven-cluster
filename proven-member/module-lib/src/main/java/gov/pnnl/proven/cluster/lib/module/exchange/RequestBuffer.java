@@ -51,6 +51,7 @@ import com.hazelcast.ringbuffer.Ringbuffer;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.request.RequestProxy;
 import gov.pnnl.proven.cluster.lib.module.service.ServiceBuffer;
 
@@ -114,6 +115,10 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 	public ComponentStatus getStatus() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public StatusReport getStatusReport() {
+		return new StatusReport();
 	}
 	
 }

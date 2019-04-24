@@ -100,7 +100,7 @@ public enum MessageContent {
 	 * returned to caller if requested.
 	 */
 	Query(MessageContentName.QUERY),
-
+	
 	/**
 	 * Continuous Query message content. Queries to run over a cluster member's
 	 * ProvenMessage data name for a configured frequency, in order to detect

@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 
 /**
@@ -117,6 +118,10 @@ public class ExchangeManager extends ModuleComponent implements ComponentManager
 	public ComponentStatus getStatus() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public StatusReport getStatusReport() {
+		return new StatusReport();
 	}
 
 }

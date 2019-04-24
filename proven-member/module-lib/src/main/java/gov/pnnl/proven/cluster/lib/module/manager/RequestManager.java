@@ -45,6 +45,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.request.ModuleRequest;
 
 @ApplicationScoped
@@ -71,6 +72,10 @@ public class RequestManager extends ModuleComponent implements ComponentManager 
 	@Override
 	public ComponentStatus getStatus() {
 		return ComponentStatus.Online;
+	}
+	
+	public StatusReport getStatusReport() {
+		return new StatusReport();
 	}
 	
 }

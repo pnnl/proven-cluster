@@ -44,6 +44,7 @@ import javax.inject.Inject;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 @ManagedComponent
 public class RegisteredRequest extends ModuleComponent {
@@ -58,4 +59,9 @@ public class RegisteredRequest extends ModuleComponent {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	public StatusReport getStatusReport() {
+		return new StatusReport();
+	}
+	
 }

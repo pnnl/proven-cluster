@@ -37,58 +37,69 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
-
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
-import javax.enterprise.inject.InjectionException;
-import javax.enterprise.inject.Intercepted;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.inject.Inject;
-import javax.interceptor.AroundConstruct;
-import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
-
 /**
- * Verifies injection of a {@code ManagedComponent} is a {@code ProvenComponent}
- * and it's being requested by a {@code ComponentManager} or another
- * {@code ManagedComponent}. An {@code InjectionException} is thrown if this is
- * not the case.
- * 
- * @author d3j766
  * 
  */
-@Component
-@Interceptor
-public class ScheduledEvenInterceptor implements Serializable {
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-	private static final long serialVersionUID = 1L;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import javax.ejb.ScheduleExpression;
+import javax.interceptor.InterceptorBinding;
+import gov.pnnl.proven.cluster.lib.module.component.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
 
-	static Logger log = LoggerFactory.getLogger(ScheduledEvenInterceptor.class);
+/**
+ * Identifies a scheduled event and its reporting schedule for a
+ * {@code ProvenComponent}. If a superclass of the component includes
+ * {@code EventReporter} definitions, these will also be included, as long as they do
+ * not conflict with any subclass definitions.
+ * 
+ * @author d3j766
+ *
+ * @see ComponentEvent
+ * 
+ */
+@Inherited
+@InterceptorBinding
+@Retention(RUNTIME)
+@Target({ TYPE })
+public @interface EventReporter {
 
-	 @Inject @Intercepted 
-	 private Bean<?> intercepted;
-	
-	@AroundConstruct
-	public Object verifyInjection(InvocationContext ctx) throws Exception {
+	/**
+	 * (Required) The {@code ScheduledEvent} reporting type.
+	 * 
+	 * see ScheduledEvent
+	 * 
+	 */
+	Class<? extends ScheduledEvent> event();
 
-		// OK to proceed
-		Object result = ctx.proceed();
-		
-		ProvenComponent pc = (ProvenComponent) ctx.getTarget();
-		log.info("Proven component constructed :: "+ pc.getDOName());
-		
-		return result;
-	}
+	/**
+	 * (Required) Contains reporting schedule for the listed scheduled event.
+	 * 
+	 * The string represents a {@code ScheduleExpression}. All attributes should
+	 * be delimited by a colon. All attributes should be included, even if
+	 * empty. Attributes should be specified in the following order: <br>
+	 * <ol>
+	 * <li>second</li>
+	 * <li>minute</li>
+	 * <li>hour</li>
+	 * <li>dayOfMonth</li>
+	 * <li>month</li>
+	 * <li>dayOfWeek</li>
+	 * <li>year</li>
+	 * </ol>
+	 * <br>
+	 * For example the following is a schedule for every 15 minutes for the
+	 * hours of 1am and 2am, every Friday:<br>
+	 * <b>:0/15:1,2:::Fri:<b>
+	 * 
+	 * @see ScheduleExpression
+	 * 
+	 */
+	String schedule();
 
 }

@@ -40,9 +40,14 @@
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import javax.enterprise.inject.InjectionException;
 import javax.enterprise.inject.Intercepted;
 import javax.enterprise.inject.spi.Bean;
@@ -53,44 +58,57 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.EventReporter;
 import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
 
 /**
- * Verifies injection of a {@code ManagedComponent} is a {@code ProvenComponent}
- * and it's being requested by a {@code ComponentManager} or another
- * {@code ManagedComponent}. An {@code InjectionException} is thrown if this is
- * not the case.
+ * Registers defined {@code EventReporter} schedules for a component with
+ * {@code EventManager} at construction. Schedules are activated at
+ * registration time.
  * 
  * @author d3j766
  * 
  */
 @Component
 @Interceptor
-public class ComponentInterceptor implements Serializable {
+public class EventReporterInterceptor implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	static Logger log = LoggerFactory.getLogger(ComponentInterceptor.class);
+	static Logger log = LoggerFactory.getLogger(EventReporterInterceptor.class);
 
-	 @Inject @Intercepted 
-	 private Bean<?> intercepted;
-	
+	@Inject
+	@Intercepted
+	private Bean<?> component;
+
 	@AroundConstruct
 	public Object verifyInjection(InvocationContext ctx) throws Exception {
 
 		// OK to proceed
 		Object result = ctx.proceed();
+
+		Map<Class<? extends ScheduledEvent>, String> events = new HashMap<>();
+		Class<?> componentType = component.getBeanClass();
+		while (componentType != null) {
+			for (Annotation annotation : componentType.getDeclaredAnnotations()) {
+				if (annotation instanceof EventReporter) {
+					EventReporter er = (EventReporter) annotation;
+					events.putIfAbsent(er.event(), er.schedule());
+				}
+			}
+			componentType = componentType.getSuperclass();
+		}
 		
-		ProvenComponent pc = (ProvenComponent) ctx.getTarget();
-		log.info("Proven component constructed :: "+ pc.getDOName());
-		
-		
-		
+		if (!events.isEmpty()) {
+			ProvenComponent pc = (ProvenComponent) ctx.getTarget();
+			pc.registerEvents(events);
+		}
 		
 		return result;
 	}

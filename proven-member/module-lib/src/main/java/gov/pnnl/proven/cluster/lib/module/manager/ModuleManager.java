@@ -87,7 +87,7 @@ public class ModuleManager {
 	}
 
 	public void sendStartupMessage() throws ModuleStartupException {
-
+		
 		ModuleStartup ms = new ModuleStartup();
 		Set<ObserverMethod<? super ModuleStartup>> observers = beanManager.resolveObserverMethods(ms);
 		if (observers.isEmpty()) {

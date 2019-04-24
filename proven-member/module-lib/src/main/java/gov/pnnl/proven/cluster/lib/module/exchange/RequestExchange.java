@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * A managed component supporting disclosure and processing of module requests.
@@ -106,4 +107,8 @@ public class RequestExchange extends ModuleComponent {
 		return null;
 	}
 
+	public StatusReport getStatusReport() {
+		return new StatusReport();
+	}
+	
 }

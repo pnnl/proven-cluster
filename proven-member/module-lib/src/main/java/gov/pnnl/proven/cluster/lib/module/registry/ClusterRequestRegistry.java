@@ -47,6 +47,7 @@ import fish.payara.cluster.Clustered;
 import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 
 /**
@@ -64,6 +65,10 @@ public class ClusterRequestRegistry  extends ClusterComponent implements Seriali
 	@Override
 	public ComponentStatus getStatus() {
 		return ComponentStatus.Online;
+	}
+	
+	public StatusReport getStatusReport() {
+		return new StatusReport();
 	}
 	
 }

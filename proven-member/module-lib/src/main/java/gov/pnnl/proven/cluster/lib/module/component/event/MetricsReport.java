@@ -37,15 +37,21 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.module.event;
+package gov.pnnl.proven.cluster.lib.module.component.event;
 
-import javax.enterprise.event.Observes;
-import javax.enterprise.event.Reception;
 
-public interface ModuleEventObserver {
+/**
+ * Provides information related to the status of a {@code ProvenComponent}.
+ * 
+ * @author d3j766
+ *
+ */
+public class MetricsReport extends ScheduledEvent  {
 
-	public void observeModuleStartup(@Observes (notifyObserver=Reception.ALWAYS) ModuleStartup moduleStartup);
+	private static final long serialVersionUID = 1L;
+		
+	public static final String METRICS_REPORT_SCHEDULE = ":0/5:::::";
 	
-	public String observeModuleShutdown(@Observes (notifyObserver=Reception.ALWAYS) ModuleShutdown moduleShutdown);
+	
 	
 }

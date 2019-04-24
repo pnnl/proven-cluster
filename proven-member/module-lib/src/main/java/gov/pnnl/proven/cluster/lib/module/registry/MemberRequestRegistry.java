@@ -43,6 +43,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 
 /**
@@ -59,6 +60,10 @@ public class MemberRequestRegistry  extends MemberComponent {
 	@Override
 	public ComponentStatus getStatus() {
 		return ComponentStatus.Online;
+	}
+
+	public StatusReport getStatusReport() {
+		return new StatusReport();
 	}
 	
 }
