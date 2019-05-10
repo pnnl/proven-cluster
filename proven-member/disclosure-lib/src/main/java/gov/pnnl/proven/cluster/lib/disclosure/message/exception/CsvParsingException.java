@@ -37,37 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.io.Serializable;
+package gov.pnnl.proven.cluster.lib.disclosure.message.exception;
 
-import javax.enterprise.context.ApplicationScoped;
-
-import fish.payara.cluster.Clustered;
-import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
-
-
-/**
- * Provides a Request Registry at Member level.
- * 
- * @author d3j766
- *
- */
-@Clustered
-@ApplicationScoped
-public class ClusterRequestRegistry  extends ClusterComponent implements Serializable {
+public class CsvParsingException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
-
-	@Override
-	public ComponentStatus getStatus() {
-		return ComponentStatus.Online;
-	}
 	
-	public StatusReport getStatusReport() {
-		return new StatusReport();
+	public CsvParsingException() {
+		super();
+	}
+
+	public CsvParsingException(String message) {
+		super(message);
+	}
+
+	public CsvParsingException(String message, Throwable e) {
+		super(message, e);
 	}
 	
 }

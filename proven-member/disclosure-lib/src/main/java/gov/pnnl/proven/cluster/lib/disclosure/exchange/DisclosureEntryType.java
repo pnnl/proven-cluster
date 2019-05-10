@@ -50,6 +50,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEnt
 import gov.pnnl.proven.cluster.lib.disclosure.message.CsvDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 
 /**
  * Indicates the disclosure entry type for entries originating from an external
@@ -73,7 +74,7 @@ public enum DisclosureEntryType {
 	JSON(MagicRegex.JSON_REGEX);
 
 	public class MagicRegex {
-		public static final String CSV_REGEX = "^#CSV.*";
+		public static final String CSV_REGEX = "(?s)^#CSV\\s*\\R+.*";
 		public static final String JSON_REGEX = "(?s)^\\s*\\{.*\\}\\s*$";
 	}
 
@@ -95,11 +96,16 @@ public enum DisclosureEntryType {
 	 * @param entry
 	 *            the disclosure entry
 	 * @throws UnsupportedDisclosureEntryType
-	 *             if the type could not be determined.
+	 *             if the entry type could not be determined.
+	 * @throws JsonParsingException
+	 *             if parsing failed for a JSON entry type
+	 * @throws CsvParsingException
+	 *             if parsing failed for a CSV entry type
+	 *             
 	 * @return the {@code DisclosureEntryType}
 	 */
 	public static DisclosureMessage getEntryMessage(String entry)
-			throws UnsupportedDisclosureEntryType, JsonParsingException {
+			throws UnsupportedDisclosureEntryType  {
 
 		DisclosureMessage ret = null;
 

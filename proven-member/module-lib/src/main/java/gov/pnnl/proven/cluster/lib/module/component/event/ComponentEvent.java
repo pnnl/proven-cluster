@@ -39,8 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.event;
 
-import java.io.Serializable;
-
 /**
  * Base class for component event classes.
  * 

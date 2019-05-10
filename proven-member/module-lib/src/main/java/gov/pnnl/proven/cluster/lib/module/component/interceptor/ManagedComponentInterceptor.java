@@ -77,7 +77,7 @@ public class ManagedComponentInterceptor {
 	private Bean<?> intercepted;
 
 	@AroundConstruct
-	public Object verifyInjection(InvocationContext ctx) throws Exception {
+	public Object verifyManagedComponent(InvocationContext ctx) throws Exception {
 
 		log.debug("ManagedComponentInterceptor - BEFORE construction.");
 

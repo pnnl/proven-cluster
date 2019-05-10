@@ -44,8 +44,6 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Intercepted;
-import javax.enterprise.inject.spi.Bean;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import org.slf4j.Logger;

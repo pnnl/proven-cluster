@@ -47,15 +47,12 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Stereotype;
 import javax.inject.Qualifier;
 import javax.interceptor.InterceptorBinding;
-
-import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
 
 /**
  * Identifies the bean as a managed {@code ProvenComponent}. Meaning, the

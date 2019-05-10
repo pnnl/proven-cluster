@@ -37,37 +37,69 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
 import java.io.Serializable;
-
-import javax.enterprise.context.ApplicationScoped;
-
-import fish.payara.cluster.Clustered;
-import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
-
+import java.lang.annotation.Annotation;
+import java.util.HashMap;
+import java.util.Map;
+import javax.enterprise.inject.Intercepted;
+import javax.enterprise.inject.spi.Bean;
+import javax.inject.Inject;
+import javax.interceptor.AroundConstruct;
+import javax.interceptor.Interceptor;
+import javax.interceptor.InvocationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
 
 /**
- * Provides a Request Registry at Member level.
+ * Registers defined {@code ScheduledEventReporter} events for a component with
+ * the {@code ScheduledEventManager} at construction time. By default, scheules
+ * are activated once successfully registered with the event manager.
  * 
  * @author d3j766
- *
+ * 
  */
-@Clustered
-@ApplicationScoped
-public class ClusterRequestRegistry  extends ClusterComponent implements Serializable {
+@Component
+@Interceptor
+public class ScheduledEventReporterInterceptor implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@Override
-	public ComponentStatus getStatus() {
-		return ComponentStatus.Online;
+	static Logger log = LoggerFactory.getLogger(ScheduledEventReporterInterceptor.class);
+
+	@Inject
+	@Intercepted
+	private Bean<?> component;
+
+	@AroundConstruct
+	public Object registerScheduledEventReporters(InvocationContext ctx) throws Exception {
+
+		// OK to proceed
+		Object result = ctx.proceed();
+
+		Map<Class<? extends ScheduledEvent>, String> events = new HashMap<>();
+		Class<?> componentType = component.getBeanClass();
+		while (componentType != null) {
+			for (Annotation annotation : componentType.getDeclaredAnnotations()) {
+				if (annotation instanceof ScheduledEventReporter) {
+					ScheduledEventReporter er = (ScheduledEventReporter) annotation;
+					events.putIfAbsent(er.event(), er.schedule());
+				}
+			}
+			componentType = componentType.getSuperclass();
+		}
+
+		if (!events.isEmpty()) {
+			ProvenComponent pc = (ProvenComponent) ctx.getTarget();
+			pc.registerScheduledEvents(events);
+		}
+
+		return result;
 	}
-	
-	public StatusReport getStatusReport() {
-		return new StatusReport();
-	}
-	
+
 }
