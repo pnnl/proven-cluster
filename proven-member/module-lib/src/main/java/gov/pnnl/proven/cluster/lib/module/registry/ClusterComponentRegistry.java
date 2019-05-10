@@ -52,7 +52,6 @@ import com.hazelcast.core.ISet;
 import fish.payara.cluster.Clustered;
 import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 

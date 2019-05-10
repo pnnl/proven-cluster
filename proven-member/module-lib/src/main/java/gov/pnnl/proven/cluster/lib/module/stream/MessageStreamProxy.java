@@ -85,7 +85,7 @@ public class MessageStreamProxy {
 		}
 
 		// Add message
-		messageStream.getStream().set(pm.getMessageKey(), pm);
+		messageStream.getStream().setAsync(pm.getMessageKey(), pm);
 	}
 	
 	public String getStreamName() {

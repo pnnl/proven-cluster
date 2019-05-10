@@ -75,7 +75,6 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 
 	private BufferedItemState bufferedState;
 	private String entry;
-	private DisclosureMessage message;
 
 	/**
 	 * No-arg constructor for serialization
@@ -94,7 +93,7 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 	}
 
 	// @Overrride
-	public DisclosureMessage getMessage() throws UnsupportedDisclosureEntryType, JsonParsingException {
+	public DisclosureMessage getMessage() throws UnsupportedDisclosureEntryType {
 		return DisclosureEntryType.getEntryMessage(entry);
 	}
 
@@ -122,11 +121,6 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 		if (!nullEntry)
 			out.writeUTF(this.entry);
 
-		boolean nullMessage = (null == this.message);
-		out.writeBoolean(nullMessage);
-		if (!nullMessage)
-			out.writeObject(this.message);
-
 	}
 
 	@Override
@@ -137,10 +131,6 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 		boolean nullEntry = in.readBoolean();
 		if (!nullEntry)
 			this.entry = in.readUTF();
-
-		boolean nullMessage = in.readBoolean();
-		if (!nullMessage)
-			this.message = in.readObject();
 	}
 
 	@Override

@@ -47,7 +47,6 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import javax.ejb.Schedule;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
@@ -133,6 +132,8 @@ public class DisclosureEntries extends ModuleComponent {
 
 	}
 
+	
+	// TODO provide exp backoff if disclosure buffer is full
 	protected void runReader() {
 
 		while (true) {
@@ -155,7 +156,7 @@ public class DisclosureEntries extends ModuleComponent {
 				}
 
 				// Item is no longer in IMDG (queue reads are destructive)
-				log.debug("ENTRY ADDING TO DISCLOSURE BUFFER");
+				log.debug("ENTRIES BEING ADDED TO DISCLOSURE BUFFER: " + entries.size());
 
 				boolean entriesAdded = true;
 				if ((null != entries) && (!entries.isEmpty())) {
@@ -170,7 +171,7 @@ public class DisclosureEntries extends ModuleComponent {
 				// message, or these entries will be lost.
 				if (!entriesAdded) {
 					// Overwrite failure - Disclosure Buffer is full.
-					log.error("Failed to add disclosure entries to disclosure buffer- entry lost");
+					log.error("FAILED TO ADD DISCLOSURE ENTRIES TO DISCLOSURE BUFFER- ENTRIES LOST");
 				}
 
 			} else {

@@ -67,7 +67,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
 @InterceptorBinding
 @Retention(RUNTIME)
 @Target({ TYPE })
-public @interface EventReporter {
+public @interface ScheduledEventReporter {
 
 	/**
 	 * (Required) The {@code ScheduledEvent} reporting type.

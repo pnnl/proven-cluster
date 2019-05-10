@@ -41,6 +41,7 @@ package gov.pnnl.proven.cluster.lib.module.exchange;
 
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -122,6 +123,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 
 	protected void startReaders() {
 		for (BufferedItemState state : supportedItemStates) {
+			log.debug("Starting exchange buffer (" + this.getClass().getSimpleName() + ") reader for state : " + state);
 			startReader(state, false);
 		}
 	}
@@ -153,14 +155,25 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 
 		while (true) {
 
-			log.debug("Item processor for :: " + state);
+			// try {
+			// Thread.sleep(10000);
+			// } catch (InterruptedException e) {
+			// // TODO Auto-generated catch block
+			// e.printStackTrace();
+			// }
 
-			ReadResultSet<T> bi = readItem(state);
+			log.debug("--");
+			log.debug(moduleName + ":: BUFFER TAIL SEQUENCE: " + buffer.tailSequence());
+			log.debug("--");
+
+			log.debug(moduleName + ":: Item processor for :: " + state);
+
+			ReadResultSet<T> bufferedItems = readItem(state);
 
 			// TODO - item processor is now on it's own thread, and any
 			// transfers should be taken care of in this thread.
 			CompletableFuture.runAsync(() -> {
-				itemProcessor(bi);
+				itemProcessor(bufferedItems);
 			}, mes).exceptionally(this::itemProcessorException);
 
 			log.debug("Item processor invoved for :: " + state);
@@ -199,7 +212,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 
 		// Other exceptions
 		else {
-			log.info("Exchange buffer reader was completed exceptionally :: " + readerException.getMessage());
+			log.error("Exchange buffer reader was completed exceptionally :: " + readerException.getMessage());
 			readerException.printStackTrace();
 		}
 
@@ -251,13 +264,23 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 	 * 
 	 * @return count of processed buffer items.
 	 */
-	protected long freeSpaceCount(BufferedItemState state) {
-		Long h = buffer.headSequence();
-		Long t = buffer.tailSequence();
-		Long c = buffer.capacity();
-		Long cSeq = h + c - 1;
-		Long r = lastReadItemByState.get(state);
-		Long freeSpace = ((r - h) + 1) + (cSeq - t);
+	protected synchronized long freeSpaceCount(BufferedItemState state) {
+		log.debug("Calculating ringbuffer free space");
+
+			Long h = buffer.headSequence();
+			Long t = buffer.tailSequence();
+			Long c = buffer.capacity();
+			Long cSeq = h + c - 1;
+			Long r = lastReadItemByState.get(state);
+			Long freeSpace = ((r - h) + 1) + (cSeq - t);
+
+			log.debug("\th: " + h);
+			log.debug("\tt: " + t);
+			log.debug("\tc: " + c);
+			log.debug("\tcSeq: " + cSeq);
+			log.debug("\tr: " + r);
+			log.debug("\tfreeSpace: " + freeSpace);
+
 		return freeSpace;
 	}
 
@@ -316,17 +339,20 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 	 * @return true if the items were added. False is returned if there was not
 	 *         enough free space in the buffer to support the new items.
 	 */
-	protected synchronized boolean addItems(Collection<T> items, BufferedItemState state) {
+	protected boolean addItems(Collection<T> items, BufferedItemState state) {
+		// protected synchronized boolean addItems(Collection<T> items,
+		// BufferedItemState state) {
 
 		// Assume write succeeds. Either all items are added or no items
 		// are added.
 		boolean ret = true;
 
 		Runtime rt = Runtime.getRuntime();
-		log.debug("ADDING ITEMS - COUNT :: " + items.size());
+		log.debug("ADDING ITEMS TO DISCLOSURE BUFFER- COUNT :: " + items.size());
 
 		if ((null != items) && (!items.isEmpty())) {
 
+			log.debug("B####################################B");
 			Long fsp = freeSpaceCount(state);
 			log.debug("FREE SPACE COUNT :: " + fsp);
 			if (items.size() <= fsp) {
@@ -342,6 +368,9 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 				log.error("ITEMS COUND NOT BE ADDED NOT ENOUGH FREE SPACE");
 				ret = false;
 			}
+			freeSpaceCount(state);
+			log.debug("E####################################E");
+
 		}
 		log.debug("FREE MEMORY AFTER ADD ITEMS :: " + rt.freeMemory());
 		return ret;
@@ -359,6 +388,8 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 	 */
 	protected ReadResultSet<T> readItem(BufferedItemState state) throws BufferReaderInterruptedException {
 
+		log.debug("READ STREAM ITEMS BEGIN :: " + Calendar.getInstance().getTime().toString());
+
 		long t = buffer.tailSequence();
 		long r = lastReadItemByState.get(state);
 		int startSeq = (int) r + 1;
@@ -369,9 +400,14 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 		int maxCount = maxBatch;
 		ReadResultSet<T> rs;
 
+		log.debug(moduleName + " :: BATCH READ STARTING FOR STATE :: " + state);
+		log.debug("start sequence :: " + startSeq);
+		log.debug("min count :: " + minCount);
+		log.debug("max count :: " + maxCount);
+
 		try {
+
 			// Batch read
-			log.debug("BATCH READ STARTED FOR STATE :: " + state);
 			ICompletableFuture<ReadResultSet<T>> icf = buffer.readManyAsync(startSeq, minCount, maxCount, (bi) -> {
 				return (bi.getItemState().equals(state));
 			});
@@ -389,6 +425,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 		long rc = rs.readCount();
 		lastReadItemByState.put(state, r + rc);
 
+		log.debug("READ STREAM ITEMS END :: " + Calendar.getInstance().getTime().toString());
 		return rs;
 	}
 

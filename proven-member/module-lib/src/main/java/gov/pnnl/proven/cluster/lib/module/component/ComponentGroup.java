@@ -39,23 +39,38 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ClusterComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.MemberComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ModuleComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.RequestComponentReporter;
+
 /**
- * Represents the different component groups.
+ * Represents the different component groups. Marks each group with their group
+ * reporting type.
  * 
  * @author d3j766
  *
  */
 public enum ComponentGroup {
 
+	@ClusterComponentReporter
 	Cluster(GroupLabel.CLUSTER_GROUP),
 
+	@MemberComponentReporter
 	Member(GroupLabel.MEMBER_GROUP),
 
+	@ModuleComponentReporter
 	Module(GroupLabel.MODULE_GROUP),
 
+	@RequestComponentReporter
 	Request(GroupLabel.REQUEST_GROUP);
 
 	private class GroupLabel {
@@ -83,4 +98,17 @@ public enum ComponentGroup {
 		return groupLabel;
 	}
 
+	public List<Annotation> getQualifiers() {
+		Field field;
+		List<Annotation> ret = new ArrayList<>();
+		try {
+			field = this.getClass().getField(this.name());
+			ret = Arrays.asList(field.getAnnotations());
+		} catch (NoSuchFieldException | SecurityException e) {
+			log.error("Invaid field name in ComponentGroup");
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
 }

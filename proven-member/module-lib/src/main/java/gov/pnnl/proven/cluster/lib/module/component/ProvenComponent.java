@@ -39,9 +39,12 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Resource;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +52,7 @@ import com.hazelcast.core.HazelcastInstance;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.EventReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
 import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
@@ -61,12 +64,18 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  *
  */
 @Component
-@EventReporter(event = StatusReport.class, schedule = StatusReport.STATUS_REPORT_SCHEDULE)
+@ScheduledEventReporter(event = StatusReport.class, schedule = StatusReport.STATUS_REPORT_SCHEDULE)
 public abstract class ProvenComponent {
 
 	static Logger log = LoggerFactory.getLogger(ProvenComponent.class);
 
 	private static final String BASE_NAME = "component.proven.pnnl.gov";
+
+	@Resource(lookup = "java:module/ModuleName")
+	protected String moduleName;
+
+	@Resource(lookup = "java:app/AppName")
+	protected String applicationName;
 
 	@Inject
 	protected HazelcastInstance hzi;
@@ -89,6 +98,10 @@ public abstract class ProvenComponent {
 		cStatus = ComponentStatus.Online;
 		cType = ComponentType.valueOf(this.getClass().getSuperclass().getSimpleName());
 		doName = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + cId + "_" + cType.toString();
+		log.debug("PROVEN-COMPONENT CREATED");
+		log.debug("\tID: " + cId);
+		log.debug("\tTYPE: " + cType);
+		log.debug("\tDO-NAME: " + doName);
 	}
 
 	public UUID getId() {
@@ -101,25 +114,6 @@ public abstract class ProvenComponent {
 
 	public ComponentType getComponentType() {
 		return cType;
-	}
-
-	public void registerEvents(Map<Class<? extends ScheduledEvent>, String> events) {
-
-		log.debug("Registering event reporters for :: " + this.getClass().getSimpleName());
-		for (Class<? extends ScheduledEvent> event : events.keySet()) {
-			log.debug(event.getName() + "::" + events.get(event));
-
-			// Status Report
-			// TODO add support for other reporters
-			if (event.getName().equals(StatusReport.class.getName())) {
-				log.debug("Status report being registred");
-				String schedule = events.get(event);
-				// Determine if qualifiers are necessary, may need to send
-				// multiple registrations.
-				// em.register(this::getStatusReport, schedule, true,
-				// Qualifiers...);
-			}
-		}
 	}
 
 	public String getDOName() {
@@ -138,5 +132,29 @@ public abstract class ProvenComponent {
 	}
 
 	public abstract ComponentGroup getComponentGroup();
+
+	public void registerScheduledEvents(Map<Class<? extends ScheduledEvent>, String> events) {
+
+		log.debug("Registering event reporters for :: " + this.getClass().getSimpleName());
+		for (Class<? extends ScheduledEvent> event : events.keySet()) {
+			log.debug(event.getName() + "::" + events.get(event));
+
+			// Status Report
+			// TODO add support for other reporters
+			if (event.getName().equals(StatusReport.class.getName())) {
+				log.debug("Status report being registred");
+				String schedule = events.get(event);
+				List<Annotation> componentReporters = getComponentGroup().getQualifiers();
+				log.debug("Component Reporters:");
+				for (Annotation annotation : componentReporters) {
+					log.debug("Component reporter qualifier: " + annotation.annotationType().getSimpleName());
+				}
+				// Determine if qualifiers are necessary, may need to send
+				// multiple registrations.
+				// em.register(this::getStatusReport, schedule, true,
+				// Qualifiers...);
+			}
+		}
+	}
 
 }

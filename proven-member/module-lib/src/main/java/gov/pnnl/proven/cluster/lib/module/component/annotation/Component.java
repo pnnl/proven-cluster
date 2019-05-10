@@ -44,27 +44,25 @@ package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import javax.ejb.ScheduleExpression;
 import javax.interceptor.InterceptorBinding;
-import gov.pnnl.proven.cluster.lib.module.component.event.ComponentEvent;
-import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
 
 /**
- * Marker annotation for Proven Components
+ * Marker annotation for a Proven Component
  * 
  * @author d3j766
  *
- * @see ComponentEvent
  * 
  */
+@Documented
 @Inherited
 @InterceptorBinding
 @Retention(RUNTIME)
 @Target({ TYPE })
 public @interface Component {
-
 
 }

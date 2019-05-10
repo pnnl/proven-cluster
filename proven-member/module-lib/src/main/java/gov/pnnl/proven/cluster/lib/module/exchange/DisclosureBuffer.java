@@ -52,10 +52,12 @@ import org.slf4j.LoggerFactory;
 import com.hazelcast.core.DistributedObjectUtil;
 import com.hazelcast.ringbuffer.ReadResultSet;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
@@ -141,7 +143,8 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 			case New:
 
 				// TODO Add a response message to "general" stream to record an
-				// error event. Right now these errors are not being reported.
+				// error event. Right now these errors are not being reported,
+				// other than to the console.
 
 				log.debug("Item processor for NEW");
 
@@ -152,12 +155,11 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 						DisclosureMessage dm = item.getMessage();
 						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDomain(), mst);
 						msp.addMessage(dm);
-					} catch (UnsupportedDisclosureEntryType e) {
-						log.error("Message entry type not supported", e);
-					} catch (JsonParsingException e) {
-						log.error("JSON parsing exception", e);
-					} catch (UnsupportedMessageContentException e) {
-						log.error("Message content invalid for disclosure stream", e);
+						log.debug("Added Disclosure messsage to stream :: " + dm.getMessageKey());
+
+					} catch (UnsupportedMessageContentException | UnsupportedDisclosureEntryType | JsonParsingException
+							| InvalidDisclosureDomainException | CsvParsingException e) {
+						log.error("Failed to create and add new disclosure message to stream", e);
 					}
 				});
 				break;
@@ -187,7 +189,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	public ComponentStatus getStatus() {
 		return null;
 	}
-	
+
 	public StatusReport getStatusReport() {
 		return new StatusReport();
 	}

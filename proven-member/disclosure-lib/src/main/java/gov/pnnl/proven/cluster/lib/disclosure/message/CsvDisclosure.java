@@ -39,23 +39,49 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonValue;
+import javax.json.JsonWriterFactory;
+import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonParsingException;
+import javax.rmi.CORBA.Util;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureEntryType;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 
 /**
  * Accepts Proven disclosure data represented in a CSV format. CSV data is
@@ -73,6 +99,92 @@ public class CsvDisclosure extends DisclosureMessage implements IdentifiedDataSe
 
 	private static Logger log = LoggerFactory.getLogger(CsvDisclosure.class);
 
+	private static final String MESSAGE_OBJECT = "message";
+
+	// TODO should consolidate to general Enum that includes all top level
+	// message fields. These below are a subset, used for CSV disclsoure.
+	public enum MessageField {
+
+		DOMAIN_FIELD("domain"),
+		DISCLOSURE_ID_FIELD("disclosureId"),
+		REQUESTOR_ID_FIELD("requestorId");
+
+		private String fieldName;
+
+		MessageField(String fieldName) {
+			this.fieldName = fieldName;
+		}
+
+		public String getFieldName() {
+			return fieldName;
+		}
+
+		@Override
+		public String toString() {
+			return fieldName;
+		}
+
+		public static MessageField getMessageField(String name) {
+
+			name = name.trim();
+			MessageField ret = null;
+			for (MessageField field : MessageField.values()) {
+				if (name.equals(field.fieldName)) {
+					ret = field;
+					break;
+				}
+			}
+
+			return ret;
+		}
+	}
+
+	// Supported headers
+	public static final String CONCEPT_HEADER = "concept";
+	public static final String ID_HEADER = "id";
+	public static final String SUBJECT_ID_HEADER = "subjectId";
+	public static final String PREDICATE_HEADER = "predicate";
+	public static final String OBJECT_ID_HEADER = "objectId";
+	public static final String SUBJECT_CONCEPT_HEADER = "subjectConcept";
+	public static final String OBJECT_CONCEPT_HEADER = "objectConcept";
+
+	// Concept Definition - these headers must be included. Other user defined
+	// headers may exist
+	public static String[] conceptHeaders = { CONCEPT_HEADER, ID_HEADER };
+	private static Set<String> conceptDef = Collections
+			.unmodifiableSet(new HashSet<String>(Arrays.asList(conceptHeaders)));
+
+	// Intra-relationships definition - must match exactly
+	public static String[] intraHeaders = { CONCEPT_HEADER, SUBJECT_ID_HEADER, PREDICATE_HEADER, OBJECT_ID_HEADER };
+	private static Set<String> intraDef = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(intraHeaders)));
+
+	// Inter-relationships definition - must match exactly
+	public static String[] interHeaders = { SUBJECT_CONCEPT_HEADER, OBJECT_CONCEPT_HEADER, SUBJECT_ID_HEADER,
+			PREDICATE_HEADER, OBJECT_ID_HEADER };
+	private static Set<String> interDef = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(interHeaders)));
+
+	public enum HeaderDefinition {
+		CONCEPT("conceptDefinitions"),
+		INTRA("intraConceptRelationships"),
+		INTER("interConceptRelationships");
+
+		private String fieldName;
+
+		HeaderDefinition(String fieldName) {
+			this.fieldName = fieldName;
+		}
+
+		public String getFieldName() {
+			return fieldName;
+		}
+
+		@Override
+		public String toString() {
+			return fieldName;
+		}
+
+	}
+
 	public CsvDisclosure() {
 	}
 
@@ -84,13 +196,136 @@ public class CsvDisclosure extends DisclosureMessage implements IdentifiedDataSe
 		super(toJsonObject(mesage), toJsonObject(schema));
 	}
 
-	private static JsonObject toJsonObject(String json) {
+	private static JsonObject toJsonObject(String json) throws CsvParsingException {
 
+		// root object
 		JsonObject ret = null;
 
-		// TODO Implementation
+		// root object builder
+		JsonObjectBuilder rob = Json.createObjectBuilder();
+
+		// array builder for CSV record objects
+		JsonArrayBuilder ab = Json.createArrayBuilder();
+
+		// message fields
+		Map<MessageField, String> fields = new HashMap<>();
+
+		// header definition
+		HeaderDefinition headerDef = null;
+
+		// Extract proven message property fields, if any
+		try (BufferedReader inFields = new BufferedReader(new StringReader(json))) {
+			Pattern p = Pattern.compile("#?([^=]+)\\=(.*)");
+			inFields.lines().filter((line) -> line.startsWith("#")).forEach((line) -> {
+				Matcher m = p.matcher(line);
+				if (m.find()) {
+					MessageField field = MessageField.getMessageField(m.group(1));
+
+					if (null != field) {
+						fields.put(field, m.group(2).trim());
+						log.debug("Message field extracted from CSV :: " + m.group(1) + "=" + m.group(2));
+					}
+				}
+			});
+		} catch (IOException ex) {
+			log.error("An IOException was caught: " + ex.getMessage());
+			ex.printStackTrace();
+		}
+
+		// Confirm header definition and add record objects to array
+		Iterable<CSVRecord> records;
+		try (BufferedReader in = new BufferedReader(new StringReader(json))) {
+
+			Set<String> headers = null;
+			records = CSVFormat.EXCEL.withFirstRecordAsHeader().withTrim().withCommentMarker('#').withIgnoreEmptyLines()
+					.parse(in);
+			for (CSVRecord record : records) {
+
+				if (null == headers) {
+					headers = record.toMap().keySet();
+				}
+
+				log.debug("CSV headers: " + headers.toString());
+
+				// Verify a compatible definition being provided
+				if (record.getRecordNumber() == 1) {
+
+					if (headers.equals(intraDef)) {
+						log.debug("CSV INTRA definition");
+						headerDef = HeaderDefinition.INTRA;
+					} else if (headers.equals(interDef)) {
+						log.debug("CSV INTER definition");
+						headerDef = HeaderDefinition.INTER;
+					} else if (headers.contains(conceptDef)) {
+						log.debug("CSV CONCEPT definition");
+						headerDef = HeaderDefinition.CONCEPT;
+					} else {
+						log.error("Incomatible CSV definition provided.");
+						throw new CsvParsingException("Invalid CSV header configuration");
+					}
+
+				}
+
+				// Build record object and add to array
+				JsonObjectBuilder b = Json.createObjectBuilder();
+				for (String header : headers) {
+					b.add(header, record.get(header));
+				}
+				JsonObject ob = b.build();
+				ab.add(ob);
+
+			}
+
+		} catch (IOException ex) {
+			log.error(ex.getMessage());
+			ex.printStackTrace();
+		}
+
+		// No records
+		if (null == headerDef) {
+			throw new CsvParsingException("Missing CSV records");
+		}
+
+		// Build root json object message and return
+		JsonArray recordObjects = ab.build();
+		for (MessageField field : fields.keySet()) {
+
+			String fieldName = field.getFieldName();
+			String value = fields.get(field);
+
+			// verify domain
+			if (MessageField.DOMAIN_FIELD == field) {
+				if (!DisclosureDomain.isValidDomain(value)) {
+					throw new InvalidDisclosureDomainException("CSV entry contains an invaid domain");
+				}
+			}
+			rob.add(fieldName, value);
+
+		}
+		JsonObjectBuilder mob = Json.createObjectBuilder();
+		mob.add(headerDef.getFieldName(), recordObjects);
+		rob.add(MESSAGE_OBJECT, mob);
+		ret = rob.build();
+
+		log.debug(prettyPrint(ret));
 
 		return ret;
+	}
+
+	private static String prettyPrint(JsonValue val) {
+
+		Map<String, Boolean> config = new HashMap<>();
+		config.put(JsonGenerator.PRETTY_PRINTING, true);
+		JsonWriterFactory writerFactory = Json.createWriterFactory(config);
+
+		String jsonString = "";
+		try (Writer writer = new StringWriter()) {
+			writerFactory.createWriter(writer).write(val);
+			jsonString = writer.toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return jsonString;
 	}
 
 	@Override

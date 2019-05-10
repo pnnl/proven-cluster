@@ -42,9 +42,8 @@ package gov.pnnl.proven.cluster.lib.module.component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.component.annotation.EventReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
 import gov.pnnl.proven.cluster.lib.module.component.event.MetricsReport;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * 
@@ -56,7 +55,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  * @see ProvenComponent
  *
  */
-@EventReporter(event = MetricsReport.class, schedule = MetricsReport.METRICS_REPORT_SCHEDULE)
+@ScheduledEventReporter(event = MetricsReport.class, schedule = MetricsReport.METRICS_REPORT_SCHEDULE)
 public abstract class ModuleComponent extends ProvenComponent {	
 
 	static Logger log = LoggerFactory.getLogger(ModuleComponent.class);
