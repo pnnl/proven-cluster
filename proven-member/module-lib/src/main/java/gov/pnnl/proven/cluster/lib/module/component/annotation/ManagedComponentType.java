@@ -37,20 +37,42 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.event;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import javax.enterprise.context.Dependent;
+import javax.enterprise.inject.Stereotype;
+import javax.inject.Qualifier;
+import javax.interceptor.InterceptorBinding;
 
 /**
- * Abstract event representing all scheduled events.
+ * Identifies the bean as a managed component type. Meaning, the component's
+ * creation and destruction must be performed through a {@code ComponentManager}
+ * or another {@ManagedComponentType} that can be traced back to a
+ * {@code ComponentManager}. This may be further restricted by the use of
+ * {@code ManagedBy} to identify specific {@code ComponentManager}(s).
  * 
  * @author d3j766
  *
+ * @see ComponentManager, ManagedBy
+ * 
  */
-public abstract class ScheduledEvent extends ComponentEvent {
-	
-	public ScheduledEvent(ModuleComponent mc) {
-		super(mc);
-	}
-
+@Documented
+@Inherited
+@Stereotype
+@Qualifier
+@Dependent
+@InterceptorBinding
+@Retention(RUNTIME)
+@Target({ TYPE, FIELD })
+public @interface ManagedComponentType {
 }

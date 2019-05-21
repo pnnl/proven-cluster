@@ -39,9 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.event;
 
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
- * Provides information related to the status of a {@code ProvenComponent}.
+ * Provides information related to the status of a {@code ManagedComponent}.
  * 
  * @author d3j766
  *
@@ -52,6 +53,8 @@ public class StatusReport extends ScheduledEvent  {
 		
 	public static final String STATUS_REPORT_SCHEDULE = ":0/1:::::";
 	
-	
+	public StatusReport(ModuleComponent c) {
+		super(c);
+	}
 	
 }

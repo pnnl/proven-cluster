@@ -37,20 +37,51 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.event;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
- * Abstract event representing all scheduled events.
+ * 
+ * Represents managed components. These components are managed by a
+ * {@code ComponentManager} and report their {@code ComponentStatus} to a
+ * {@code MemberComponentRegistry}.
  * 
  * @author d3j766
  *
+ * @see ModuleComponent
+ *
  */
-public abstract class ScheduledEvent extends ComponentEvent {
-	
-	public ScheduledEvent(ModuleComponent mc) {
-		super(mc);
+@ScheduledEventReporter(event = StatusReport.class, schedule = StatusReport.STATUS_REPORT_SCHEDULE)
+@ManagedComponentType
+public abstract class ManagedComponent extends ModuleComponent implements StatusReporter {
+
+	static Logger log = LoggerFactory.getLogger(ManagedComponent.class);
+
+	protected ComponentStatus status;
+
+	public ManagedComponent() {
+		super();
+		group.add(ComponentGroup.Managed);
+		status = ComponentStatus.Offline;
+	}
+
+	public ComponentStatus getStatus() {
+		return status;
+	}
+
+	protected void setStatus(ComponentStatus status) {
+		this.status = status;
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
 	}
 
 }

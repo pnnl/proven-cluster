@@ -50,7 +50,7 @@ import com.hazelcast.ringbuffer.Ringbuffer;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.request.RequestProxy;
 import gov.pnnl.proven.cluster.lib.module.service.ServiceBuffer;
@@ -67,7 +67,6 @@ import gov.pnnl.proven.cluster.lib.module.service.ServiceBuffer;
  * @see RequestExchange, DisclosureBuffer, ServiceBuffer
  *
  */
-@ManagedComponent
 public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 
 	static Logger log = LoggerFactory.getLogger(RequestBuffer.class);
@@ -80,7 +79,7 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 	DisclosureBuffer localDisclosure;
 
 	@Inject
-	@ManagedComponent
+	@ManagedComponentType
 	private ServiceBuffer sb;
 
 	@PostConstruct
@@ -88,7 +87,7 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 		log.debug("Post construct for ExchangeBuffer");
 		// TODO Add default declarative configurations for buffers
 		// TODO Integrate buffer id's into their names
-		buffer = hzi.getRingbuffer(getDOName());
+		buffer = hzi.getRingbuffer(getDoId());
 	}
 
 	@Inject
@@ -112,13 +111,34 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 	}
 
 	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
+		
+	}
+
+	@Override
 	public ComponentStatus getStatus() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	public StatusReport getStatusReport() {
-		return new StatusReport();
+
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
+		
 	}
+
 	
 }

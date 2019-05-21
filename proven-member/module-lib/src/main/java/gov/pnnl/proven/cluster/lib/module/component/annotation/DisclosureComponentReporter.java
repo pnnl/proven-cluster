@@ -37,31 +37,32 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 
- * Represents a component that performs activities to support the operation of a
- * the Proven member.
+ */
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import javax.inject.Qualifier;
+
+/**
+ * Marker annotation for a disclosure component event reporter.
  * 
  * @author d3j766
  *
- * @see ProvenComponent
- *
+ * 
  */
-public abstract class MemberComponent extends ProvenComponent {
+@Documented
+@Inherited
+@Qualifier
+@Retention(RUNTIME)
+@Target({ FIELD })
+public @interface DisclosureComponentReporter {
 
-	static Logger log = LoggerFactory.getLogger(MemberComponent.class);
-
-	public MemberComponent() {
-		super();
-	}
-
-	public ComponentGroup getComponentGroup() {
-		return ComponentGroup.Member;
-	}
-	
 }

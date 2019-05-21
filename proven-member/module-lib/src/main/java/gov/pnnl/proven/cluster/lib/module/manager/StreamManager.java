@@ -56,10 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
@@ -74,12 +71,12 @@ import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
  *
  */
 @ApplicationScoped
-public class StreamManager extends ModuleComponent implements ComponentManager {
+public class StreamManager extends ManagerComponent implements ComponentManager {
 
 	static Logger log = LoggerFactory.getLogger(StreamManager.class);
 
 	@Inject
-	@ManagedComponent
+	@ManagedComponentType
 	Provider<MessageStream> msProvider;
 
 	/**
@@ -208,16 +205,6 @@ public class StreamManager extends ModuleComponent implements ComponentManager {
 
 	private boolean isManagedDomain(DisclosureDomain dd) {
 		return (domainStreams.containsKey(dd));
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public StatusReport getStatusReport() {
-		return new StatusReport();
 	}
 	
 }

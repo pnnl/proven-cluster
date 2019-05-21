@@ -46,8 +46,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
@@ -64,19 +63,18 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  * @see ExchangeBuffer, DisclosureBuffer, RequestBuffer 
  *
  */
-@ManagedComponent
-public class RequestExchange extends ModuleComponent {
+public class RequestExchange extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(RequestExchange.class);
 	
 	public static final String RE_EXECUTOR_SERVICE = "concurrent/RequestExchange";
 
 	@Inject
-	@ManagedComponent
+	@ManagedComponentType
 	private DisclosureBuffer db;
 
 	@Inject
-	@ManagedComponent
+	@ManagedComponentType
 	private RequestBuffer rb;
 
 	@PostConstruct
@@ -100,6 +98,23 @@ public class RequestExchange extends ModuleComponent {
 	void destroy() {
 	}
 
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
+		
+	}
 
 	@Override
 	public ComponentStatus getStatus() {
@@ -107,8 +122,10 @@ public class RequestExchange extends ModuleComponent {
 		return null;
 	}
 
-	public StatusReport getStatusReport() {
-		return new StatusReport();
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

@@ -37,42 +37,13 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Stereotype;
-import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
+import gov.pnnl.proven.cluster.lib.module.component.event.HealthReport;
 
-/**
- * Identifies the bean as a managed {@code ProvenComponent}. Meaning, the
- * component's creation and destruction must be performed through a
- * {@code ComponentManager} or another {@ManagedComponent} that can be traced
- * back to their {@code ComponentManager}. This may be further restricted by the
- * use of {@code ManagedBy} to identify the specific
- * {@code ComponentManager}(s).
- * 
- * @author d3j766
- *
- * @see ComponentManager, ProvenComponent, ManagedBy
- * 
- */
-@Documented
-@Stereotype
-@Qualifier
-@Dependent
-@InterceptorBinding
-@Retention(RUNTIME)
-@Target({ TYPE, PARAMETER, FIELD })
-public @interface ManagedComponent {
+public interface HealthReporter {
+	
+	HealthReport getHealthReport();
+	
 }
+

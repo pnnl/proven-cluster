@@ -42,12 +42,9 @@ package gov.pnnl.proven.cluster.lib.module.request;
 import javax.inject.Inject;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
-@ManagedComponent
-public class RegisteredRequest extends ModuleComponent {
+public class RegisteredRequest extends RequestComponent {
 
 	@Inject
 	public RegisteredRequest() {
@@ -55,13 +52,33 @@ public class RegisteredRequest extends ModuleComponent {
 	}
 
 	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
+	}
+
+	@Override
 	public ComponentStatus getStatus() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	public StatusReport getStatusReport() {
-		return new StatusReport();
+
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
+		
 	}
+
 	
 }

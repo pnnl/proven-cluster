@@ -37,20 +37,32 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.event;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import javax.inject.Qualifier;
 
 /**
- * Abstract event representing all scheduled events.
+ * Marker annotation for a manager component event reporter.
  * 
  * @author d3j766
  *
+ * 
  */
-public abstract class ScheduledEvent extends ComponentEvent {
-	
-	public ScheduledEvent(ModuleComponent mc) {
-		super(mc);
-	}
+@Documented
+@Inherited
+@Qualifier
+@Retention(RUNTIME)
+@Target({ FIELD })
+public @interface ManagerComponentReporter {
 
 }

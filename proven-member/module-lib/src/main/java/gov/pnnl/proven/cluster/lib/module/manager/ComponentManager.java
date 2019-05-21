@@ -39,18 +39,19 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.manager;
 
-import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 
 /**
- * Marker interface indicating implementer manages a set of ProvenComponents.
+ * Represents required activities necessary to perform management of
+ * {@code ManagedComponent}s.
  * 
  * @author d3j766
  * 
- * @see ProvenComponent
+ * @see ManagedComponentType
  *
  */
 public interface ComponentManager {
-	
+
 	/**
 	 * Force initialization of the manager
 	 */

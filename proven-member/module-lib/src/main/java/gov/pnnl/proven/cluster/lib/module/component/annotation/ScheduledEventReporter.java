@@ -54,9 +54,9 @@ import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
 
 /**
  * Identifies a scheduled event and its reporting schedule for a
- * {@code ProvenComponent}. If a superclass of the component includes
- * {@code EventReporter} definitions, these will also be included, as long as they do
- * not conflict with any subclass definitions.
+ * {@code ModuleComponent}. If a superclass of the component includes
+ * {@code ScheduledEventReporter} definitions, these will also be included, as
+ * long as they do not conflict with any of the subclass definitions.
  * 
  * @author d3j766
  *
@@ -78,7 +78,7 @@ public @interface ScheduledEventReporter {
 	Class<? extends ScheduledEvent> event();
 
 	/**
-	 * (Required) Contains reporting schedule for the listed scheduled event.
+	 * (Optional) Contains reporting schedule for the listed scheduled event.
 	 * 
 	 * The string represents a {@code ScheduleExpression}. All attributes should
 	 * be delimited by a colon. All attributes should be included, even if

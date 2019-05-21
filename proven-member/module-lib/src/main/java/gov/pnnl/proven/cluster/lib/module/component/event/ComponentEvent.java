@@ -39,6 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.event;
 
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+
 /**
  * Base class for component event classes.
  * 
@@ -47,5 +50,25 @@ package gov.pnnl.proven.cluster.lib.module.component.event;
  */
 public abstract class ComponentEvent {
 
-
+	String clusterGroup;
+	String host;
+	String memberId;
+	String containerName;
+	String moduleId;
+	String managerId;
+	ComponentType componentType;
+	String componentId;
+	String doId;
+	
+	public ComponentEvent(ModuleComponent mc) {
+		clusterGroup = mc.getClusterGroup();
+		host = mc.getHost();
+		memberId = mc.getMemberId();
+		containerName = mc.getContainerName();
+		moduleId = mc.getModuleId();
+		managerId = mc.getManagerId();
+		componentType = mc.getComponentType();
+		componentId = mc.getId().toString();
+		doId = mc.getDoId();
+	}
 }

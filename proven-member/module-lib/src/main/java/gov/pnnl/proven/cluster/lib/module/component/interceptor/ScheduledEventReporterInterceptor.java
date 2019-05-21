@@ -43,6 +43,8 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
+
 import javax.enterprise.inject.Intercepted;
 import javax.enterprise.inject.spi.Bean;
 import javax.inject.Inject;
@@ -51,14 +53,22 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
+
+import gov.pnnl.proven.cluster.lib.module.component.HealthReporter;
+import gov.pnnl.proven.cluster.lib.module.component.MetricsReporter;
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.StatusReporter;
+import gov.pnnl.proven.cluster.lib.module.component.event.HealthReport;
+import gov.pnnl.proven.cluster.lib.module.component.event.MetricsReport;
 import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.registry.ScheduledEventRegistry;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
 
 /**
  * Registers defined {@code ScheduledEventReporter} events for a component with
- * the {@code ScheduledEventManager} at construction time. By default, scheules
+ * the {@code ScheduledEventManager} at construction time. By default, schedules
  * are activated once successfully registered with the event manager.
  * 
  * @author d3j766
@@ -76,11 +86,16 @@ public class ScheduledEventReporterInterceptor implements Serializable {
 	@Intercepted
 	private Bean<?> component;
 
+	@Inject
+	private ScheduledEventRegistry ser;
+
 	@AroundConstruct
 	public Object registerScheduledEventReporters(InvocationContext ctx) throws Exception {
 
 		// OK to proceed
 		Object result = ctx.proceed();
+
+		ModuleComponent mc = (ModuleComponent) ctx.getTarget();
 
 		Map<Class<? extends ScheduledEvent>, String> events = new HashMap<>();
 		Class<?> componentType = component.getBeanClass();
@@ -94,9 +109,36 @@ public class ScheduledEventReporterInterceptor implements Serializable {
 			componentType = componentType.getSuperclass();
 		}
 
-		if (!events.isEmpty()) {
-			ProvenComponent pc = (ProvenComponent) ctx.getTarget();
-			pc.registerScheduledEvents(events);
+		// Register schedule event with the registry
+		componentType = component.getBeanClass();
+		for (Class<? extends ScheduledEvent> clazz : events.keySet()) {
+
+			Supplier<ScheduledEvent> supplier = null;
+			
+			// Status report
+			if ((clazz.equals(StatusReport.class)) && (StatusReporter.class.isAssignableFrom(componentType))) {
+				StatusReporter sr = (StatusReporter) ctx.getTarget();
+				supplier = sr::getStatusReport;
+			}
+
+			// Metrics Report
+			if ((clazz.equals(MetricsReport.class)) && (MetricsReporter.class.isAssignableFrom(componentType))) {
+				MetricsReporter mr = (MetricsReporter) ctx.getTarget();
+				supplier = mr::getMetricsReport;
+			}
+
+			// Health Report
+			if ((clazz.equals(HealthReport.class)) && (HealthReporter.class.isAssignableFrom(componentType))) {
+				HealthReporter hr = (HealthReporter) ctx.getTarget();
+				supplier = hr::getHealthReport;
+			}
+
+			// Register scheduled event if supplier was found, else report error
+			if (null != supplier) {
+				ser.register(mc, clazz, supplier, events.get(clazz));
+			}
+			log.error("Could not determine report supplier for ScheduledEventReporter");
+
 		}
 
 		return result;

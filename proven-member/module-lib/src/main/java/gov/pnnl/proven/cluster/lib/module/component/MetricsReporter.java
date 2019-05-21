@@ -37,20 +37,13 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.event;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.event.MetricsReport;
 
-/**
- * Abstract event representing all scheduled events.
- * 
- * @author d3j766
- *
- */
-public abstract class ScheduledEvent extends ComponentEvent {
+public interface MetricsReporter {
 	
-	public ScheduledEvent(ModuleComponent mc) {
-		super(mc);
-	}
-
+	MetricsReport getMetricsReport();
+	
 }
+

@@ -37,123 +37,66 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.module;
 
-import java.lang.annotation.Annotation;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.annotation.Resource;
+import java.util.Set;
+import javax.annotation.PostConstruct;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import javax.enterprise.event.Event;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.ObserverMethod;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.core.HazelcastInstance;
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
-import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+
+import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
+import gov.pnnl.proven.cluster.lib.module.module.exception.ModuleStartupException;
+import gov.pnnl.proven.cluster.lib.module.module.exception.MultipleModuleImplementationException;
+import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementationException;
 
 /**
- * Represents a component that performs activities to support the management and
- * operation of a Proven platform.
+ * Startup bean for a web module application. On application startup, a startup
+ * message is sent to the {@link ProvenModule} implementation. Only a single
+ * {@code ProvenModule} implementation per application is supported. The module
+ * is required to observe this startup message for module activation to take
+ * place. An unsuccessful startup will be logged to the container.
  * 
  * @author d3j766
  *
  */
-@Component
-@ScheduledEventReporter(event = StatusReport.class, schedule = StatusReport.STATUS_REPORT_SCHEDULE)
-public abstract class ProvenComponent {
+@Singleton
+@Startup
+public class ModuleManager {
 
-	static Logger log = LoggerFactory.getLogger(ProvenComponent.class);
-
-	private static final String BASE_NAME = "component.proven.pnnl.gov";
-
-	@Resource(lookup = "java:module/ModuleName")
-	protected String moduleName;
-
-	@Resource(lookup = "java:app/AppName")
-	protected String applicationName;
+	static Logger logger = LoggerFactory.getLogger(ModuleManager.class);
+	
+	@Inject
+	BeanManager beanManager;
 
 	@Inject
-	protected HazelcastInstance hzi;
+	Event<ModuleStartup> mse;
 
-	// @Inject
-	// protected EventManager em;
+	@PostConstruct
+	public void initialize() throws ModuleStartupException {
 
-	protected UUID cId;
-
-	protected ComponentStatus cStatus;
-
-	protected ComponentType cType;
-
-	protected String doName;
-
-	protected Boolean isManaged;
-
-	public ProvenComponent() {
-		cId = UUID.randomUUID();
-		cStatus = ComponentStatus.Online;
-		cType = ComponentType.valueOf(this.getClass().getSuperclass().getSimpleName());
-		doName = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + cId + "_" + cType.toString();
-		log.debug("PROVEN-COMPONENT CREATED");
-		log.debug("\tID: " + cId);
-		log.debug("\tTYPE: " + cType);
-		log.debug("\tDO-NAME: " + doName);
+		logger.info("Enter PostConstruct for " + this.getClass().getSimpleName());
+		sendStartupMessage();
+		logger.info("Leave PostConstruct for " + this.getClass().getSimpleName());
 	}
 
-	public UUID getId() {
-		return cId;
-	}
-
-	public abstract ComponentStatus getStatus();
-
-	public abstract StatusReport getStatusReport();
-
-	public ComponentType getComponentType() {
-		return cType;
-	}
-
-	public String getDOName() {
-		return doName;
-	}
-
-	public Boolean isManaged() {
-		if (null == isManaged) {
-			if (null == (this.getClass().getAnnotation(ManagedComponent.class))) {
-				isManaged = false;
-			} else {
-				isManaged = true;
-			}
-		}
-		return isManaged;
-	}
-
-	public abstract ComponentGroup getComponentGroup();
-
-	public void registerScheduledEvents(Map<Class<? extends ScheduledEvent>, String> events) {
-
-		log.debug("Registering event reporters for :: " + this.getClass().getSimpleName());
-		for (Class<? extends ScheduledEvent> event : events.keySet()) {
-			log.debug(event.getName() + "::" + events.get(event));
-
-			// Status Report
-			// TODO add support for other reporters
-			if (event.getName().equals(StatusReport.class.getName())) {
-				log.debug("Status report being registred");
-				String schedule = events.get(event);
-				List<Annotation> componentReporters = getComponentGroup().getQualifiers();
-				log.debug("Component Reporters:");
-				for (Annotation annotation : componentReporters) {
-					log.debug("Component reporter qualifier: " + annotation.annotationType().getSimpleName());
-				}
-				// Determine if qualifiers are necessary, may need to send
-				// multiple registrations.
-				// em.register(this::getStatusReport, schedule, true,
-				// Qualifiers...);
-			}
+	public void sendStartupMessage() throws ModuleStartupException {
+		
+		ModuleStartup ms = new ModuleStartup();
+		Set<ObserverMethod<? super ModuleStartup>> observers = beanManager.resolveObserverMethods(ms);
+		if (observers.isEmpty()) {
+			logger.info("Module implementation was not provided");
+			throw new NoModuleImplementationException();
+		} else if (observers.size() > 1) {
+			logger.info("Multiple module implementations provided");
+			throw new MultipleModuleImplementationException();
+		} else {
+			mse.fire(ms);
 		}
 	}
 

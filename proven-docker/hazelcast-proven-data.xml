@@ -10,6 +10,10 @@
 		<property name="hazelcast.logging.type">slf4j</property>
 	</properties>
 
+	<group>
+		<name>development</name>
+	</group>
+
 	<network>
 
 		<port auto-increment="true" port-count="10">${proven.hazelcast.member.port}</port>
@@ -50,7 +54,7 @@
 
 	<queue name="gov.pnnl.proven.external.disclosure">
 		<max-size>1000</max-size>
-		<async-backup-count>1</async-backup-count>			
+		<async-backup-count>1</async-backup-count>
 		<backup-count>0</backup-count>
 		<empty-queue-ttl>-1</empty-queue-ttl>
 	</queue>

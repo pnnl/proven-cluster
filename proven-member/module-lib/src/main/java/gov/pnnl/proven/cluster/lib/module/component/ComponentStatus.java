@@ -43,5 +43,7 @@ public enum ComponentStatus {
 	Offline,
 	Online,
 	Busy,
-	Failed;
+	Unknown,
+	Removed,
+	InTransition;
 }

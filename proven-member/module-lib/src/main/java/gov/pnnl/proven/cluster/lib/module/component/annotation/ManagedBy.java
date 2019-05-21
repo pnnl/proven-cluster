@@ -71,7 +71,7 @@ public @interface ManagedBy {
 	 * {@code ComponentManager}. This annotation is only read from the managed
 	 * component.
 	 * 
-	 * @see ManagedComponent
+	 * @see ManagedComponentType
 	 * 
 	 */
 	Class<?>[] value() default {};

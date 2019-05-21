@@ -37,20 +37,32 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.event;
+package gov.pnnl.proven.cluster.lib.module.stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
- * Abstract event representing all scheduled events.
+ * 
+ * Represents a component that performs mesage stream activities to support the operation of a
+ * the Proven module.
  * 
  * @author d3j766
  *
+ * @see ModuleComponent
+ *
  */
-public abstract class ScheduledEvent extends ComponentEvent {
-	
-	public ScheduledEvent(ModuleComponent mc) {
-		super(mc);
-	}
+public abstract class StreamComponent extends ManagedComponent {	
 
+	static Logger log = LoggerFactory.getLogger(StreamComponent.class);
+
+	public StreamComponent() {
+		super();
+		group.add(ComponentGroup.Stream);
+	}
+	
 }

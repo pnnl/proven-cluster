@@ -58,9 +58,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
@@ -79,7 +78,6 @@ import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageCon
  * @see RequestExchange, RequestBuffer, DisclosureEntries
  *
  */
-@ManagedComponent
 public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureBuffer.class);
@@ -92,7 +90,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	BeanManager bm;
 
 	@Inject
-	@ManagedComponent
+	@ManagedComponentType
 	DisclosureEntries de;
 
 	@Inject
@@ -104,7 +102,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 		log.debug("Post construct for DisclosureBuffer");
 
 		// Create buffer instance
-		buffer = hzi.getRingbuffer(getDOName());
+		buffer = hzi.getRingbuffer(getDoId());
 		log.debug("Disclosure Buffer created. DO-ID:: " + DistributedObjectUtil.getName(buffer));
 
 		// Start buffer readers
@@ -118,10 +116,9 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 	@PreDestroy
 	void destroy() {
-		log.debug("Destroying DisclosureBuffer :: " + getDOName());
+		log.debug("Pre Destroy for DisclosureBuffer");
+		log.debug("Destroying DisclosureBuffer :: " + getDoId());
 		log.debug("Destroying readers");
-
-		// Cancel state readers
 		cancelReaders();
 	}
 
@@ -185,17 +182,20 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 	}
 
-	@Override
-	public ComponentStatus getStatus() {
-		return null;
-	}
-
-	public StatusReport getStatusReport() {
-		return new StatusReport();
-	}
-
 	void addLocalExchange(RequestBuffer rb) {
 		localExchange = rb;
+	}
+
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

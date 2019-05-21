@@ -37,32 +37,31 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.module.exchange;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+
 /**
  * 
- */
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
-
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import javax.inject.Qualifier;
-
-/**
- * Marker annotation for a Cluster Component
+ * Represents exchange components. These components are responsible for
+ * exchanging disclosed data to domain message streams, as well as exchanging
+ * disclosed service requests to {@code ServiceBuffer}(s) for execution.
  * 
  * @author d3j766
  *
- * 
+ *
  */
-@Documented
-@Inherited
-@Qualifier
-@Retention(RUNTIME)
-@Target({ FIELD })
-public @interface ClusterComponentReporter {
+public abstract class ExchangeComponent extends ManagedComponent {
+
+	static Logger log = LoggerFactory.getLogger(ExchangeComponent.class);
+
+	public ExchangeComponent() {
+		super();
+		group.add(ComponentGroup.Exchange);
+	}
 
 }

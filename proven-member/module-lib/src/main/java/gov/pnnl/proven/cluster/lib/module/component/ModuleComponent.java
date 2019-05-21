@@ -39,33 +39,199 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.core.HazelcastInstance;
 
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
-import gov.pnnl.proven.cluster.lib.module.component.event.MetricsReport;
+import fish.payara.micro.PayaraMicro;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Component;
+import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.registry.ScheduledEventRegistry;
 
 /**
- * 
- * Represents a component that performs activities to support the operation of a
- * the Proven module.
+ * The base component, performing activities to support the operation of a
+ * Proven module/application. Module components perform activities at the module
+ * level and may share their resources (compute and data) across the cluster.
  * 
  * @author d3j766
  *
- * @see ProvenComponent
- *
  */
-@ScheduledEventReporter(event = MetricsReport.class, schedule = MetricsReport.METRICS_REPORT_SCHEDULE)
-public abstract class ModuleComponent extends ProvenComponent {	
+@Component
+public abstract class ModuleComponent {
 
 	static Logger log = LoggerFactory.getLogger(ModuleComponent.class);
 
-	public ModuleComponent() {
-		super();
+	private static final String BASE_NAME = "component.proven.pnnl.gov";
+
+	@Resource(lookup = "java:module/ModuleName")
+	protected String moduleName;
+
+	@Resource(lookup = "java:app/AppName")
+	protected String applicationName;
+
+	@Inject
+	protected ScheduledEventRegistry er;
+
+	@Inject
+	protected HazelcastInstance hzi;
+
+	@PreDestroy
+	public void mcDestroy() {
+		log.debug("ProvenComponent PreDestroy..." + this.getClass().getSimpleName());
+		// TODO unregister events from registry
+		// unregisterAll();
 	}
 
-	public ComponentGroup getComponentGroup() {
-		return ComponentGroup.Module;
+	@PostConstruct
+	public void mcInit() {
+
+		clusterGroup = hzi.getConfig().getGroupConfig().getName();
+		host = hzi.getCluster().getLocalMember().getAddress().getHost();
+		memberId = hzi.getCluster().getLocalMember().getUuid();
+		
+		log.debug("MODULE-COMPONENT CONSTRUCTED");
+		log.debug("\tID: " + id);
+		log.debug("\tMANAGER-ID: " + managerId);
+		log.debug("\tTYPE: " + type);
+		log.debug("\tDO-NAME: " + doId);
+
 	}
-	
+
+	protected String clusterGroup;
+
+	protected String host;
+
+	protected String memberId;
+
+	protected String containerName;
+
+	protected String moduleId;
+
+	protected String managerId;
+
+	protected UUID id;
+
+	protected Set<ComponentGroup> group;
+
+	protected ComponentType type;
+
+	protected String doId;
+
+	protected Boolean isManaged;
+
+	public ModuleComponent() {
+		
+		containerName = PayaraMicro.getInstance().getInstanceName();
+		moduleId = ProvenModule.getModuleId().toString();
+		id = UUID.randomUUID();
+		group = new HashSet<>();
+		type = ComponentType.valueOf(this.getClass().getSuperclass().getSimpleName());
+		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + type.toString();
+
+		
+	}
+
+	public String getClusterGroup() {
+		return clusterGroup;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public String getMemberId() {
+		return memberId;
+	}
+
+	public String getContainerName() {
+		return containerName;
+	}
+
+	public String getModuleId() {
+		return moduleId;
+	}
+
+	public String getManagerId() {
+		return managerId;
+	}
+
+	public void setManagerId(String managerId) {
+		this.managerId = managerId;
+	}
+
+	public UUID getId() {
+		return id;
+	}
+
+	public Set<ComponentGroup> getComponentGroups() {
+		return group;
+	}
+
+	public ComponentType getComponentType() {
+		return type;
+	}
+
+	public String getDoId() {
+		return doId;
+	}
+
+	public Boolean isManaged() {
+		if (null == isManaged) {
+			if (null == (this.getClass().getAnnotation(ManagedComponentType.class))) {
+				isManaged = false;
+			} else {
+				isManaged = true;
+			}
+		}
+		return isManaged;
+	}
+
+	public void registerScheduledEvents(Map<Class<? extends ScheduledEvent>, String> events) {
+
+		log.debug("Registering event reporters for :: " + this.getClass().getSimpleName());
+		for (Class<? extends ScheduledEvent> event : events.keySet()) {
+			log.debug(event.getName() + "::" + events.get(event));
+
+			// Status Report
+			// TODO add support for other reporters
+			if (event.getName().equals(StatusReport.class.getName())) {
+				log.debug("Status report being registred");
+				String schedule = events.get(event);
+
+				// Get qualifiers for each component group and add to list
+				List<Annotation> qualifiers = new ArrayList<Annotation>();
+				for (ComponentGroup group : getComponentGroups()) {
+					for (Annotation annotation : group.getQualifiers()) {
+						qualifiers.add(annotation);
+					}
+				}
+
+				log.debug("Component Reporters:");
+				for (Annotation annotation : qualifiers) {
+					log.debug("Component reporter qualifier: " + annotation.annotationType().getSimpleName());
+				}
+				// Determine if qualifiers are necessary, may need to send
+				// multiple registrations.
+				// em.register(this::getStatusReport, schedule, true,
+				// Qualifiers...);
+			}
+		}
+	}
+
 }

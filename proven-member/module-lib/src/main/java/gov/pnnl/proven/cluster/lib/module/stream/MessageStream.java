@@ -48,10 +48,8 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
@@ -64,12 +62,14 @@ import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
  * @see ComponentManager
  *
  */
-@ManagedComponent
 @ManagedBy(value = {StreamManager.class})
-public class MessageStream extends ClusterComponent {
+public class MessageStream extends StreamComponent  {
 
 	static Logger log = LoggerFactory.getLogger(MessageStream.class);
 
+	@Inject
+	protected HazelcastInstance hzi;
+	
 	private String streamName;
 	private DisclosureDomain dd;
 	private MessageStreamType mst;
@@ -115,13 +115,33 @@ public class MessageStream extends ClusterComponent {
 	}
 
 	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
+	}
+
+	@Override
 	public ComponentStatus getStatus() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	public StatusReport getStatusReport() {
-		return new StatusReport();
+
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
+		
 	}
+
 	
 }

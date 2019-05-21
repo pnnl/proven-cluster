@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.module.disclosure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,9 +57,9 @@ import com.hazelcast.core.IQueue;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
+import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
 
 /**
@@ -74,8 +74,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInte
  * @see RequestExchange
  *
  */
-@ManagedComponent
-public class DisclosureEntries extends ModuleComponent {
+public class DisclosureEntries extends DisclosureComponent {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureEntries.class);
 	
@@ -276,17 +275,39 @@ public class DisclosureEntries extends ModuleComponent {
 		return entries;
 	}
 
-	@Override
-	public ComponentStatus getStatus() {
-		return null;
-	}
-
-	public StatusReport getStatusReport() {
-		return new StatusReport();
-	}
 	
 	public void addLocalDisclosure(DisclosureBuffer db) {
 		localDisclosure = db;
+	}
+
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
+		
+	}
+
+	@Override
+	public ComponentStatus getStatus() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

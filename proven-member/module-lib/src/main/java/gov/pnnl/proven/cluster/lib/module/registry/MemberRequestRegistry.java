@@ -41,10 +41,6 @@ package gov.pnnl.proven.cluster.lib.module.registry;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
-
 
 /**
  * Provides a Request Registry at Member level.
@@ -53,17 +49,8 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  *
  */
 @ApplicationScoped
-public class MemberRequestRegistry  extends MemberComponent {
+public class MemberRequestRegistry extends RegistryComponent {
 
 	private static final long serialVersionUID = 1L;
 
-	@Override
-	public ComponentStatus getStatus() {
-		return ComponentStatus.Online;
-	}
-
-	public StatusReport getStatusReport() {
-		return new StatusReport();
-	}
-	
 }

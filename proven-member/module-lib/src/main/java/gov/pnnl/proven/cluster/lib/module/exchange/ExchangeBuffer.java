@@ -59,7 +59,6 @@ import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
 
 /**
@@ -70,7 +69,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterru
  * @author d3j766
  *
  */
-public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleComponent {
+public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(ExchangeBuffer.class);
 
@@ -154,13 +153,6 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 	protected void runReader(BufferedItemState state) {
 
 		while (true) {
-
-			// try {
-			// Thread.sleep(10000);
-			// } catch (InterruptedException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }
 
 			log.debug("--");
 			log.debug(moduleName + ":: BUFFER TAIL SEQUENCE: " + buffer.tailSequence());
@@ -254,7 +246,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 	 * 
 	 * @return true if new buffer items may be added, false otherwise.
 	 */
-	protected boolean hasFreeSpace(BufferedItemState state) {
+	public boolean hasFreeSpace(BufferedItemState state) {
 		return freeSpaceCount(state) > minMaxBatchSizeByState.get(state).getValue();
 	}
 
@@ -339,9 +331,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ModuleCompo
 	 * @return true if the items were added. False is returned if there was not
 	 *         enough free space in the buffer to support the new items.
 	 */
-	protected boolean addItems(Collection<T> items, BufferedItemState state) {
-		// protected synchronized boolean addItems(Collection<T> items,
-		// BufferedItemState state) {
+	public boolean addItems(Collection<T> items, BufferedItemState state) {
 
 		// Assume write succeeds. Either all items are added or no items
 		// are added.

@@ -37,20 +37,54 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.event;
+package gov.pnnl.proven.cluster.lib.module.module;
 
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import javax.enterprise.context.ApplicationScoped;
+
+import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 
 /**
- * Abstract event representing all scheduled events.
+ * Monitors and provides information regarding the state of Proven's runtime
+ * environment. For example, the cluster, the local member node, memory, load
+ * averages, etc.. This information is used by Proven components to determine
+ * their own status based on how this information may affect their ability to
+ * perform their defined operations. State information for elements of the
+ * runtime environment is expressed in terms of a ({@code ComponentStatus}, so
+ * that it may be used directly by a Proven component when determining it's
+ * status.
  * 
  * @author d3j766
  *
  */
-public abstract class ScheduledEvent extends ComponentEvent {
+
+@ApplicationScoped
+public class ModuleMonitor {
 	
-	public ScheduledEvent(ModuleComponent mc) {
-		super(mc);
+	public ComponentStatus clusterState() {
+		return null;
+	}
+	
+	public ComponentStatus memberState() {
+		return null;
+	}
+	
+	public ComponentStatus memoryState() {
+		return null;
 	}
 
+	public ComponentStatus loadState() {
+		return null;
+	}
+
+	
+	/**
+	 * Provides a single state value for the runtime environment, returning the 
+	 * 
+	 * @return
+	 */
+	public ComponentStatus runtimeState() {
+		return null;
+	}
+	
+	
 }

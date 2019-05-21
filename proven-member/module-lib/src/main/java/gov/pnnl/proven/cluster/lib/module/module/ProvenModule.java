@@ -62,13 +62,13 @@ public abstract class ProvenModule implements ModuleEventObserver {
 	private static Logger logger = LogManager.getLogger(ProvenModule.class);
 	
 	@Inject 
-	StreamManager sm;
+	private StreamManager sm;
 	
 	@Inject
-	ExchangeManager em;
+	private ExchangeManager em;
 	
 	// Module identifier
-	UUID moduleId;
+	private static UUID moduleId;
 	
 	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
 
@@ -96,7 +96,7 @@ public abstract class ProvenModule implements ModuleEventObserver {
 		return "test";
 	}
 	
-	public UUID getModuleId() {
+	public static UUID getModuleId() {
 		if (null == moduleId) {
 			moduleId = UUID.randomUUID();
 		}

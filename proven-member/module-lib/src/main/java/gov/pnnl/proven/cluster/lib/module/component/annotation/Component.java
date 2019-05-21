@@ -52,7 +52,7 @@ import java.lang.annotation.Target;
 import javax.interceptor.InterceptorBinding;
 
 /**
- * Marker annotation for a Proven Component
+ * Marker annotation for a {@code ModuleComponent}
  * 
  * @author d3j766
  *

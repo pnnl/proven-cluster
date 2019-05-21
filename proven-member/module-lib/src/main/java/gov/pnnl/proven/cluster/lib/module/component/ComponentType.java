@@ -40,13 +40,25 @@
 package gov.pnnl.proven.cluster.lib.module.component;
 
 /**
- * Represents the different Proven Components.  
+ * Listing of module component types.
  * 
  * @author d3j766
  *
  */
 public enum ComponentType {
-	
+
+	// Registry
+	ClusterComponentRegistry,
+	ClusterRequestRegistry,
+	MemberComponentRegistry,
+	MemberRequestRegistry,
+	ScheduledEventRegistry,
+
+	// Manager
+	ExchangeManager,
+	RequestManager,
+	StreamManager,
+
 	// Disclosure
 	DisclosureEntries,
 
@@ -55,21 +67,10 @@ public enum ComponentType {
 	DisclosureBuffer,
 	RequestBuffer,
 	ServiceBuffer,
-	
-	// Managers
-	ExchangeManager,
-	RequestManager,
-	StreamManager,
-	
-	// Registry
-	ClusterComponentRegistry,
-	ClusterRequestRegistry,
-	MemberComponentRegistry,
-	MemberRequestRegistry,
-	
+
 	// Request
 	RegisteredRequest,
-	
-	// Stream 
+
+	// Stream
 	MessageStream;
 }

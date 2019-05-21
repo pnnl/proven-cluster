@@ -47,10 +47,13 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ClusterComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.MemberComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ModuleComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.DisclosureComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ExchangeComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagerComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.RegistryComponentReporter;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.RequestComponentReporter;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.StreamComponentReporter;
 
 /**
  * Represents the different component groups. Marks each group with their group
@@ -61,23 +64,35 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.RequestComponentR
  */
 public enum ComponentGroup {
 
-	@ClusterComponentReporter
-	Cluster(GroupLabel.CLUSTER_GROUP),
+	@RegistryComponentReporter
+	Registry(GroupLabel.REGISTRY_GROUP),
 
-	@MemberComponentReporter
-	Member(GroupLabel.MEMBER_GROUP),
+	@ManagerComponentReporter
+	Manager(GroupLabel.MANAGER_GROUP),
 
-	@ModuleComponentReporter
-	Module(GroupLabel.MODULE_GROUP),
+	@ManagedComponentReporter
+	Managed(GroupLabel.MANAGED_GROUP),
+
+	@DisclosureComponentReporter
+	Disclosure(GroupLabel.DISCLOSURE_GROUP),
+
+	@ExchangeComponentReporter
+	Exchange(GroupLabel.EXCHANGE_GROUP),
 
 	@RequestComponentReporter
-	Request(GroupLabel.REQUEST_GROUP);
+	Request(GroupLabel.REQUEST_GROUP),
+
+	@StreamComponentReporter
+	Stream(GroupLabel.STREAM_GROUP);
 
 	private class GroupLabel {
-		private static final String CLUSTER_GROUP = "cluster";
-		private static final String MEMBER_GROUP = "member";
-		private static final String MODULE_GROUP = "module";
+		private static final String REGISTRY_GROUP = "registry";
+		private static final String MANAGER_GROUP = "manager";
+		private static final String MANAGED_GROUP = "managed";
+		private static final String DISCLOSURE_GROUP = "disclosure";
+		private static final String EXCHANGE_GROUP = "exchange";
 		private static final String REQUEST_GROUP = "request";
+		private static final String STREAM_GROUP = "stream";
 	}
 
 	static Logger log = LoggerFactory.getLogger(ComponentGroup.class);
@@ -94,7 +109,7 @@ public enum ComponentGroup {
 	 * @return a group label as a String.
 	 * 
 	 */
-	public String getGroupLable() {
+	public String getGroupLabel() {
 		return groupLabel;
 	}
 
@@ -108,7 +123,7 @@ public enum ComponentGroup {
 			log.error("Invaid field name in ComponentGroup");
 			e.printStackTrace();
 		}
-		
+
 		return ret;
 	}
 }

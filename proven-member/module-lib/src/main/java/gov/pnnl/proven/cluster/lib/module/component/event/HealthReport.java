@@ -37,32 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.component.event;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import javax.inject.Qualifier;
+import gov.pnnl.proven.cluster.lib.module.registry.RegistryComponent;
 
 /**
- * Marker annotation for a Module component event reporter.
+ * Provides information related to the status of a {@code ProvenComponent}.
  * 
  * @author d3j766
  *
- * 
  */
-@Documented
-@Inherited
-@Qualifier
-@Retention(RUNTIME)
-@Target({ FIELD })
-public @interface ModuleComponentReporter {
+public class HealthReport extends ScheduledEvent  {
 
+	private static final long serialVersionUID = 1L;
+		
+	public static final String HEALTH_REPORT_SCHEDULE = ":0/1:::::";
+	
+	public HealthReport(RegistryComponent rc) {
+		super(rc);
+	}
 }

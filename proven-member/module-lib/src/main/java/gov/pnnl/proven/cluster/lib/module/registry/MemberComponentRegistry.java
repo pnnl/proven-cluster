@@ -47,10 +47,7 @@ import org.slf4j.Logger;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.MemberComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * Provides a Component Registry at the Member level.
@@ -59,7 +56,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  *
  */
 @ApplicationScoped
-public class MemberComponentRegistry extends MemberComponent {
+public class MemberComponentRegistry extends RegistryComponent {
 
 	//private static final String 
 	
@@ -77,15 +74,6 @@ public class MemberComponentRegistry extends MemberComponent {
 	@PostConstruct
 	public void initialize() {
 		//components = 
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
-		return ComponentStatus.Online;
-	}
-
-	public StatusReport getStatusReport() {
-		return new StatusReport();
 	}
 	
 }

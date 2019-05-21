@@ -45,9 +45,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeComponent;
 
 /**
  * A managed component supporting the execution of module requests.
@@ -57,8 +56,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  * @see RequestExchange
  *
  */
-@ManagedComponent
-public class ServiceBuffer extends ModuleComponent {
+public class ServiceBuffer extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(ServiceBuffer.class);
 
@@ -74,13 +72,34 @@ public class ServiceBuffer extends ModuleComponent {
 	}
 
 	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
+		
+	}
+
+	@Override
 	public ComponentStatus getStatus() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	public StatusReport getStatusReport() {
-		return new StatusReport();
+
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
+		
 	}
+
 
 }

@@ -50,10 +50,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
 
 import fish.payara.cluster.Clustered;
-import gov.pnnl.proven.cluster.lib.module.component.ClusterComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * Provides a Component Registry at the Member level.
@@ -63,7 +60,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  */
 @Clustered
 @ApplicationScoped
-public class ClusterComponentRegistry extends ClusterComponent implements Serializable {
+public class ClusterComponentRegistry extends RegistryComponent implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -80,15 +77,6 @@ public class ClusterComponentRegistry extends ClusterComponent implements Serial
 
 	@PostConstruct
 	public void initialize() { 
-	}
-	
-	@Override
-	public ComponentStatus getStatus() {
-		return ComponentStatus.Online;
-	}
-	
-	public StatusReport getStatusReport() {
-		return new StatusReport();
 	}
 
 }

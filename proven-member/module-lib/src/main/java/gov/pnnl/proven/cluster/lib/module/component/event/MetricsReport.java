@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.event;
 
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
  * Provides information related to the status of a {@code ProvenComponent}.
@@ -50,8 +51,11 @@ public class MetricsReport extends ScheduledEvent  {
 
 	private static final long serialVersionUID = 1L;
 		
-	public static final String METRICS_REPORT_SCHEDULE = ":0/5:::::";
+	public static final String METRICS_REPORT_SCHEDULE = ":0/1:::::";
 	
-	
+	public MetricsReport(ModuleComponent mc) {
+		super(mc);
+	}
+
 	
 }

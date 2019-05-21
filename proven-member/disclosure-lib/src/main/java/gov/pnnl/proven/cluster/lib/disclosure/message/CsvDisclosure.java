@@ -256,14 +256,13 @@ public class CsvDisclosure extends DisclosureMessage implements IdentifiedDataSe
 					} else if (headers.equals(interDef)) {
 						log.debug("CSV INTER definition");
 						headerDef = HeaderDefinition.INTER;
-					} else if (headers.contains(conceptDef)) {
+					} else if (headers.containsAll(conceptDef)) {
 						log.debug("CSV CONCEPT definition");
 						headerDef = HeaderDefinition.CONCEPT;
 					} else {
 						log.error("Incomatible CSV definition provided.");
 						throw new CsvParsingException("Invalid CSV header configuration");
 					}
-
 				}
 
 				// Build record object and add to array
@@ -307,7 +306,7 @@ public class CsvDisclosure extends DisclosureMessage implements IdentifiedDataSe
 		rob.add(MESSAGE_OBJECT, mob);
 		ret = rob.build();
 
-		log.debug(prettyPrint(ret));
+		log.info(prettyPrint(ret));
 
 		return ret;
 	}

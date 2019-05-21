@@ -52,9 +52,9 @@ import javax.interceptor.InvocationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.component.ProvenComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
 
 /**
@@ -66,7 +66,7 @@ import gov.pnnl.proven.cluster.lib.module.manager.ComponentManager;
  * @author d3j766
  * 
  */
-@ManagedComponent
+@ManagedComponentType
 @Interceptor
 public class ManagedComponentInterceptor {
 
@@ -93,10 +93,10 @@ public class ManagedComponentInterceptor {
 			throw new InjectionException("Injection point missing in ManagedComponent constructor");
 		}
 
-		// Verify that it's is a ProvenComponent.
+		// Verify that it's is a module component
 		Class<?> clazz = Class.forName(ip.getType().getTypeName());
-		if (!ProvenComponent.class.isAssignableFrom(clazz)) {
-			throw new InjectionException("The managed component must be a ProvenComponent type");
+		if (!ModuleComponent.class.isAssignableFrom(clazz)) {
+			throw new InjectionException("The managed component must be a ModuleComponent");
 		}
 
 		// Verify a ComponentManager is requesting the new managed component.
@@ -109,7 +109,7 @@ public class ManagedComponentInterceptor {
 		// If not a component manager, verify it is a managed component
 		// performing the injection
 		if (!isComponentManager) {
-			ManagedComponent mc = ipBean.getBeanClass().getAnnotation(ManagedComponent.class);
+			ManagedComponentType mc = ipBean.getBeanClass().getAnnotation(ManagedComponentType.class);
 			if (null == mc) {
 				throw new InjectionException(
 						"Injection point for managed component is not from a ComponentManager or another managed component");
@@ -129,6 +129,9 @@ public class ManagedComponentInterceptor {
 			}
 		}
 
+		log.debug("ManagedComponent verified:: " + ip.getBean().getBeanClass().getSimpleName());
+		log.debug("ManagedComponentInterceptor - AFTER construction.");
+		
 		// OK to proceed
 		Object result = ctx.proceed();
 
