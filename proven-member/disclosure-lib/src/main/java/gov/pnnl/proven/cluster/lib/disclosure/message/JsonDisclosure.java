@@ -72,7 +72,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
  * @see DisclosureMessage, ProvenMessage
  * 
  */
-public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataSerializable, Serializable {
+public class JsonDisclosure {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -81,16 +81,8 @@ public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataS
 	
 	public JsonDisclosure() {
 	}
-	
-	public JsonDisclosure(String message) {
-		super(toJsonObject(message));
-	}
 
-	public JsonDisclosure(String mesage, String schema) {
-		super(toJsonObject(mesage), toJsonObject(schema));
-	}
-
-	private static JsonObject toJsonObject(String json) {
+	public static JsonObject toJsonObject(String json) {
 
 		JsonObject ret = null;
 		
@@ -110,26 +102,5 @@ public class JsonDisclosure extends DisclosureMessage implements IdentifiedDataS
 		}
 		return ret;
 	}
-
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.JSON_DISCLOSURE_MESSAGE_TYPE;
-	}	
 
 }

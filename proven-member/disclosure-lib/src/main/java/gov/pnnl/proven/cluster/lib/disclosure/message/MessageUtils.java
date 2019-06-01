@@ -88,6 +88,8 @@ public class MessageUtils {
 	public static final int NULL_LIST = -1;
 	public static final String PROVEN_MESSAGE_NS = "http://proven.pnnl.gov/proven-message#";
 	public static final String PROVEN_MESSAGE_RES = PROVEN_MESSAGE_NS + "ProvenMessage";
+	public static final String PROVEN_MESSAGE_CONTENT_NODE_RES = PROVEN_MESSAGE_NS + "MessageContentNode";
+	public static final String PROVEN_MESSAGE_CONTENT_CHILD_NODE_RES = PROVEN_MESSAGE_NS + "MessageContentChildNode";
 	public static final String PROVEN_MEASUREMENT_RES = PROVEN_MESSAGE_NS + "Measurement";
 	public static final String PROVEN_QUERY_FILTER_RES = PROVEN_MESSAGE_NS + "QueryFilter";
 	public static final String RDF_TYPE_PROP = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";

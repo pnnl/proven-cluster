@@ -40,29 +40,64 @@
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
-import java.util.UUID;
-
+import java.io.Serializable;
 import javax.json.JsonObject;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-public abstract class KnowledgeMessage extends ProvenMessage {
+/**
+ * Represents a knowledge message.  Content type is determined at disclosure.    
+ *  
+ * @author d3j766
+ *
+ * @see MessageContent
+ * 
+ */
+public class KnowledgeMessage extends ProvenMessage implements IdentifiedDataSerializable, Serializable {
 
 	private static final long serialVersionUID = 1L;
-		
-	public KnowledgeMessage(JsonObject message) {
+	
+	private static Logger log = LoggerFactory.getLogger(KnowledgeMessage.class);
+	
+	MessageContent contentType;
+	
+	
+	public KnowledgeMessage() {
+	}
+
+	public KnowledgeMessage(JsonObject message, MessageContent contentType) {
 		super(message);
+		this.contentType = contentType;
+	}
+		
+	@Override
+	public MessageContent getMessageContent() {
+		return contentType;
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
+		this.contentType = MessageContent.valueOf(in.readUTF());
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
+		out.writeUTF(this.contentType.toString());
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.KNOWLEDGE_MESSAGE_TYPE;
 	}	
 	
 }

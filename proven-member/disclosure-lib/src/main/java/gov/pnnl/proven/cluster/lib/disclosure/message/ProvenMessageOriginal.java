@@ -251,7 +251,7 @@ public class ProvenMessageOriginal implements IdentifiedDataSerializable, Serial
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.JSON_DISCLOSURE_MESSAGE_TYPE;
+		return ProvenMessageIDSFactory.PROVEN_MESSAGE_ORIGINAL_TYPE;
 	}
 
 	public UUID getMessageId() {

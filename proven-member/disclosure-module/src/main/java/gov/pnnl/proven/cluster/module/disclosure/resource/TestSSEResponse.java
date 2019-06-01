@@ -52,6 +52,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RR_SSE;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
@@ -87,7 +88,7 @@ public class TestSSEResponse {
 			logger.debug("Test Message :: " + testMessage.toString());
 
 			// Create source message
-			JsonDisclosure jd = new JsonDisclosure(testMessage.toString());
+			DisclosureMessage jd = new DisclosureMessage(JsonDisclosure.toJsonObject(testMessage.toString()));
 
 			// Create new response message and add - this should cause a send
 			// event on server

@@ -48,6 +48,7 @@ package gov.pnnl.proven.cluster.lib.module.component;
 public enum ComponentType {
 
 	// Registry
+	RegistryComponent,
 	ClusterComponentRegistry,
 	ClusterRequestRegistry,
 	MemberComponentRegistry,

@@ -40,18 +40,12 @@
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.LongSupplier;
-import java.util.function.Supplier;
-
 import javax.json.JsonObject;
-
-import org.apache.commons.io.input.MessageDigestCalculatingInputStream;
-
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 /**
  * Abstract class for disclosure messages. Disclosure messages represent the
@@ -62,7 +56,7 @@ import com.hazelcast.nio.ObjectDataOutput;
  * @author d3j766
  *
  */
-public abstract class DisclosureMessage extends ProvenMessage {
+public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSerializable, Serializable{
 
 	private static final long serialVersionUID = 1L;
 
@@ -108,12 +102,12 @@ public abstract class DisclosureMessage extends ProvenMessage {
 	}
 
 	/**
-	 * TODO Implement.  Provides a new KnowledgeMessage(s) based on the the disclosed
+	 * TODO Implement.  Provides a new KnowledgeMessage based on the the disclosed
 	 * message; only if the disclosed content type is in
-	 * {@code MessageGroup#Knowledge}.  This method should "chunk" the message, if necessary.  
+	 * {@code MessageGroup#Knowledge}.  
 	 */
-	public Optional<Set<KnowledgeMessage>> getKnowledgeMessages() {
-		Optional<Set<KnowledgeMessage>> ret = Optional.empty();
+	public Optional<KnowledgeMessage> getKnowledgeMessage() {
+		Optional<KnowledgeMessage> ret = Optional.empty();
 		return ret;
 	}
 
@@ -149,5 +143,15 @@ public abstract class DisclosureMessage extends ProvenMessage {
 		out.writeBoolean(this.isKnowledge);
 		out.writeBoolean(this.hasMeasurements);
 	}
+	
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.DISCLOSURE_MESSAGE_TYPE;
+	}	
 
 }

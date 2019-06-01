@@ -249,7 +249,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	public boolean hasFreeSpace(BufferedItemState state) {
 		return freeSpaceCount(state) > minMaxBatchSizeByState.get(state).getValue();
 	}
-
+	
 	/**
 	 * Returns the count of already processed buffered items representing the
 	 * buffer's free space.

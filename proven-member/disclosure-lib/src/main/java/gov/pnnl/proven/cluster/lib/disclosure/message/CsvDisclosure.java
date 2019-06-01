@@ -93,7 +93,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingExcept
  * @see DisclosureMessage, ProvenMessage
  * 
  */
-public class CsvDisclosure extends DisclosureMessage implements IdentifiedDataSerializable, Serializable {
+public class CsvDisclosure {
 
 	private static final long serialVersionUID = 1L;
 
@@ -187,16 +187,8 @@ public class CsvDisclosure extends DisclosureMessage implements IdentifiedDataSe
 
 	public CsvDisclosure() {
 	}
-
-	public CsvDisclosure(String message) {
-		super(toJsonObject(message));
-	}
-
-	public CsvDisclosure(String mesage, String schema) {
-		super(toJsonObject(mesage), toJsonObject(schema));
-	}
-
-	private static JsonObject toJsonObject(String json) throws CsvParsingException {
+	
+	public static JsonObject toJsonObject(String json) throws CsvParsingException {
 
 		// root object
 		JsonObject ret = null;
@@ -325,26 +317,6 @@ public class CsvDisclosure extends DisclosureMessage implements IdentifiedDataSe
 			e.printStackTrace();
 		}
 		return jsonString;
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.CSV_DISCLOSURE_MESSAGE_TYPE;
 	}
 
 }

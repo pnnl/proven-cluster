@@ -37,52 +37,27 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.examples;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package gov.pnnl.proven.cluster.lib.module.disclosure.exception;
 
-import gov.pnnl.proven.cluster.lib.disclosure.ClientProxyRequest;
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.RequestScope;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidRequestRegistrationException;
-import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
-import gov.pnnl.proven.cluster.lib.disclosure.request.ExplicitJsonDisclosureRequest;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 
-public class CreateRequest {
+public class EntryParserException extends RuntimeException {
 
-	public static void main(String[] args) {
+	private static final long serialVersionUID = 1L;
+	
+	BufferedItemState state;
 
-		Logger log = LoggerFactory.getLogger(CreateRequest.class);
-		
-		final String MY_DOMAIN = "provenance.com";
-		
-		ClientProxyRequest<JsonDisclosure, Void> clientRequest = null;
-		ExplicitJsonDisclosureRequest jdr = new ExplicitJsonDisclosureRequest();
-
-		try {
-			clientRequest = ClientProxyRequest.createClientProxyRequest(jdr);
-		} catch (InvalidRequestRegistrationException e) {
-			e.printStackTrace();
-		}
-
-		if (null != clientRequest) {
-			
-			// Add properties
-			clientRequest.setRetries(5);
-			clientRequest.setScope(RequestScope.MemberModules);
-			clientRequest.setSourceDomain(new DisclosureDomain("gov"));
-			
-			// Add Input data
-			JsonDisclosure jd = new JsonDisclosure("{\"foo\":\"bar\"}");
-			clientRequest.addInput(jd);
-			
-		}
-		else {
-			// Fix request construction...
-		}
-		
-		log.info("ExplicitJsonDisclosureRequest created");
+	public EntryParserException() {
+		super();
 	}
 
+	public EntryParserException(String message) {
+		super(message);
+	}
+
+	public EntryParserException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }
