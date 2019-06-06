@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
+import javax.json.JsonObject;
 import javax.json.stream.JsonParsingException;
 
 import org.slf4j.Logger;
@@ -102,7 +103,8 @@ public enum DisclosureEntryType {
 	 * @throws CsvParsingException
 	 *             if parsing failed for a CSV entry type
 	 * 
-	 * @return the {@code DisclosureEntryType}
+	 * @return the {@code DisclosureEntryType}. Returns null if type could not
+	 *         be determined.
 	 */
 	public static DisclosureEntryType getEntryType(String entry) throws UnsupportedDisclosureEntryType {
 
@@ -114,10 +116,6 @@ public enum DisclosureEntryType {
 
 		if (entry.matches(JSON.getRegex())) {
 			ret = DisclosureEntryType.JSON;
-		}
-
-		if (null == ret) {
-			throw new UnsupportedDisclosureEntryType();
 		}
 
 		return ret;
@@ -138,7 +136,7 @@ public enum DisclosureEntryType {
 	 * 
 	 * @return the {@code DisclosureEntryType}
 	 */
-	public static DisclosureMessage getEntryMessage(String entry) throws UnsupportedDisclosureEntryType {
+	public static DisclosureMessage getDisclosureMessage(String entry) throws UnsupportedDisclosureEntryType {
 
 		DisclosureMessage ret = null;
 
@@ -156,4 +154,24 @@ public enum DisclosureEntryType {
 
 		return ret;
 	}
+
+	public static JsonObject getJsonEntry(String entry) throws UnsupportedDisclosureEntryType {
+
+		JsonObject ret = null;
+
+		if (entry.matches(CSV.getRegex())) {
+			ret = CsvDisclosure.toJsonObject(entry);
+		}
+
+		if (entry.matches(JSON.getRegex())) {
+			ret = JsonDisclosure.toJsonObject(entry);
+		}
+
+		if (null == ret) {
+			throw new UnsupportedDisclosureEntryType();
+		}
+
+		return ret;
+	}
+
 }

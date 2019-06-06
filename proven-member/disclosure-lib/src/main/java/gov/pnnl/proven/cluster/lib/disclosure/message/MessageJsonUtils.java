@@ -37,33 +37,46 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.exception;
+package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.UUID;
 
-/**
- * Indicates that a {@code MessageContent} was provided that was not associated
- * with an associated {@code DisclosureStream}.
- * 
- * @author d3j766
- *
- */
-public class UnmanagedMessageContentStream extends RuntimeException {
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonWriter;
 
-	private static final long serialVersionUID = 1L;
-	static Logger log = LoggerFactory.getLogger(UnmanagedMessageContentStream.class);
+public class MessageJsonUtils {
 
-	public UnmanagedMessageContentStream() {
-		super();
+	public static JsonObject jsonIn(byte[] content) throws IOException {
+
+		JsonObject ret = null;
+
+		if (content.length > 0) {
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(content);
+					JsonReader reader = Json.createReader(bais)) {
+				ret = reader.readObject();
+			}
+		}
+		return ret;
 	}
 
-	public UnmanagedMessageContentStream(String message) {
-		super(message);
-	}
+	public static byte[] jsonOut(JsonObject object) throws IOException {
 
-	public UnmanagedMessageContentStream(String message, Throwable e) {
-		super(message, e);
-	}
+		byte[] ret = new byte[0];
 
+		if (null != object) {
+			try (ByteArrayOutputStream oos = new ByteArrayOutputStream(); JsonWriter writer = Json.createWriter(oos)) {
+				writer.writeObject(object);
+				writer.close();
+				oos.flush();
+				ret = oos.toByteArray();
+			}
+		}
+		return ret;
+	}
+	
 }

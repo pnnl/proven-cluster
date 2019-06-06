@@ -51,18 +51,25 @@ import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
+import javax.json.stream.JsonParsingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.hazelcast.core.IQueue;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.disclosure.exception.EntryParserException;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
+import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageContentException;
 
 /**
  * A managed component representing a data structure to accept/store externally
@@ -192,7 +199,7 @@ public class DisclosureEntries extends DisclosureComponent {
 				}
 
 				log.debug("ENTRY ADDED TO DISCLOSURE BUFFER");
-				log.info("Queue size :: " + queue.size());
+				log.debug("Queue size :: " + queue.size());
 
 				// TODO implement fall backs instead of simply logging an error
 				// message, or these entries will be lost.
@@ -246,89 +253,68 @@ public class DisclosureEntries extends DisclosureComponent {
 
 	protected void runLargeMessageReader() {
 
-		List<DisclosureProxy> entries = new ArrayList<>();
-		boolean isRetry = false;
-		int retriesLeft = MAX_DISCLOSURE_RETRIES;
-		
 		while (true) {
 
+			List<DisclosureProxy> entries = new ArrayList<>();
 			String disclosedEntry = null;
 
 			// Should not continue if local disclosure has no free space - the
-			// entries will be lost. Free space is determined by max batch size
-			// value, it's assumed that the max number of chunked/parsed
-			// messages generated from one "large message" does not exceed this
-			// value.
+			// entries will be lost
 			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(BufferedItemState.New))) {
 
 				try {
+					// Will block if queue is empty
+					disclosedEntry = largeMessageQueue.take();
 
-					// Process entry - if parse fails throw it away
-					// TODO - failure reporting back to disclosure source -
-					// in addition to console logging.
-					if (!isRetry) {
-						try {
-							disclosedEntry = largeMessageQueue.peek();
-							if (null != disclosedEntry) {
-								entries = new EntryParser(disclosedEntry).parse();
-							}
-							else {
-								// queue is empty incrementally backoff on peeks
-								Thread.sleep(1000);
-							}
-						} catch (EntryParserException ex) {
-							log.error("Large message parsing exception - removing entry");
-							disclosedEntry = null;
-							entries.clear();
-							largeMessageQueue.take();
-							ex.printStackTrace();
-						}
+					// get the type of entry
+					DisclosureEntryType entryType = DisclosureEntryType.getEntryType(disclosedEntry);
+
+					// Only Json disclosure parsing supported
+					if (DisclosureEntryType.JSON == entryType) {
+						entries = new EntryParser(disclosedEntry).parse();
 					}
-					
-					if (!entries.isEmpty()) {
-
-						log.debug("ENTRIES BEING ADDED TO DISCLOSURE BUFFER: " + entries.size());
-
-						boolean entriesAdded = true;
-						if ((null != entries) && (!entries.isEmpty())) {
-							BufferedItemState state = entries.get(0).getItemState();
-							entriesAdded = localDisclosure.addItems(entries, state);
-						}
-
-						log.debug("ENTRY ADDED TO DISCLOSURE BUFFER");
-						log.info("Queue size :: " + queue.size());
-
-						// Allow for retries, before giving up.
-						// TODO -
-						if (!entriesAdded) {
-							isRetry = true;
-							retriesLeft--;
-							log.error("FAILED TO ADD DISCLOSURE ENTRIES, RETRIES LEFT: " + retriesLeft);
-							if (retriesLeft <= 0) {
-								disclosedEntry = null;
-								entries.clear();
-								largeMessageQueue.take();
-								isRetry = false;
-								retriesLeft = MAX_DISCLOSURE_RETRIES;
-							}
-						} else {
-							isRetry = false;
-							retriesLeft = MAX_DISCLOSURE_RETRIES;
-							largeMessageQueue.take();
-						}
+					// TODO Add support for large CSV parsing
+					// For now, create DisclosureProxy without parsing
+					else if (DisclosureEntryType.CSV == entryType) {
+						DisclosureProxy csvDp = new DisclosureProxy(disclosedEntry);
+						entries.add(csvDp);
+					} else {
+						throw new UnsupportedDisclosureEntryType("Could not determine entry type for large message");
 					}
-
+				} catch (UnsupportedDisclosureEntryType | JsonParsingException | CsvParsingException e) {
+					log.error("Failed to process large disclosure entry", e);
+					log.error("Entry discarded");
+					e.printStackTrace();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 					Thread.currentThread().interrupt();
-					throw new DisclosureEntryInterruptedException(
-							"Disclosure entires' large message queue reader interruped", e);
+					throw new DisclosureEntryInterruptedException("Disclosure entires' queue reader interruped", e);
+				}
+
+				// Items are no longer in IMDG (queue reads are destructive)
+				log.debug("ENTRIES BEING ADDED TO DISCLOSURE BUFFER: " + entries.size());
+
+				boolean entriesAdded = true;
+				if ((null != entries) && (!entries.isEmpty())) {
+					BufferedItemState state = entries.get(0).getItemState();
+					entriesAdded = localDisclosure.addItems(entries, state);
+				}
+
+				log.debug("ENTRY ADDED TO DISCLOSURE BUFFER");
+				log.debug("Queue size :: " + queue.size());
+
+				// TODO implement fall backs instead of simply logging an error
+				// message, or these entries will be lost.
+				if (!entriesAdded) {
+					// Overwrite failure - Disclosure Buffer is full.
+					log.error("FAILED TO ADD DISCLOSURE ENTRIES TO DISCLOSURE BUFFER- ENTRIES LOST");
 				}
 
 			} else {
 				log.info("Local disclosure buffer is not available");
 			}
 		}
+
 	}
 
 	/**
@@ -348,7 +334,7 @@ public class DisclosureEntries extends DisclosureComponent {
 		// interruption, attempts to restart should be made.
 		if (isInterrupted) {
 			log.info("Disclosure entry reader was interrupted.");
-			startReader(true);
+			startLargeMessageReader(true);
 		}
 
 		// Cancelled exception - indicates the reader has been cancelled. This
@@ -397,9 +383,7 @@ public class DisclosureEntries extends DisclosureComponent {
 		int max = localDisclosure.getMaxBatchSize(BufferedItemState.New);
 		boolean done = false;
 		boolean initialCheck = true;
-
 		while (!done) {
-
 			// Block on empty queue at startup
 			if (initialCheck) {
 				addEntry(entries, Optional.ofNullable(null));
@@ -407,33 +391,25 @@ public class DisclosureEntries extends DisclosureComponent {
 			}
 
 			// Poll for next item - timeout will flush up to maximum queue
-			// entries. TODO - also flush entries if the entry exceed a max
-			// size.
-			int qSize = queue.size();
+			// entries.
 			int eSize = entries.size();
-			if ((qSize + eSize) < max) {
+			if ((eSize) < max) {
 				String entry = queue.poll(250, TimeUnit.MILLISECONDS);
-				// Timeout occurred
+				// Timeout occurred - return if entries are there
 				if (null == entry) {
-					for (int i = 0; i < qSize - 1; i++) {
-						addEntry(entries, Optional.ofNullable(null));
+					if (!entries.isEmpty()) {
+						done = true;
 					}
-					done = true;
 				} else {
 					addEntry(entries, Optional.ofNullable(entry));
 				}
 			}
 
-			// Flush max entries
+			// Return max entries
 			else {
-				for (int i = 0; i < qSize - 1; i++) {
-					addEntry(entries, Optional.ofNullable(null));
-				}
 				done = true;
 			}
-
 		}
-		log.debug("REMOVED ENTRIES FROM QUEUE :: " + entries.size());
 		return entries;
 	}
 
@@ -460,7 +436,15 @@ public class DisclosureEntries extends DisclosureComponent {
 				log.error("Large message entry offer failed - message has been lost");
 			}
 		} else {
-			entries.add(new DisclosureProxy(entry));
+
+			try {
+				entries.add(new DisclosureProxy(entry));
+			} catch (UnsupportedDisclosureEntryType | JsonParsingException | CsvParsingException e) {
+				log.error("Failed to process a new disclosure entry", e);
+				log.error("Entry discarded:");
+				log.error(entry);
+			}
+
 		}
 	}
 

@@ -10,9 +10,9 @@
 		<property name="hazelcast.logging.type">slf4j</property>
 	</properties>
 
-	<group>
-		<name>development</name>
-	</group>
+<!-- 	<group> -->
+<!-- 		<name>development</name> -->
+<!-- 	</group> -->
 
 	<network>
 
@@ -53,7 +53,7 @@
 	</ringbuffer>
 
 	<queue name="gov.pnnl.proven.external.disclosure">
-		<max-size>1000</max-size>
+		<max-size>10000</max-size>
 		<async-backup-count>1</async-backup-count>
 		<backup-count>0</backup-count>
 		<empty-queue-ttl>-1</empty-queue-ttl>

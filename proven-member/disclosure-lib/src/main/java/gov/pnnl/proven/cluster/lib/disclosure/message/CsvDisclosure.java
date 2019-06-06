@@ -298,7 +298,7 @@ public class CsvDisclosure {
 		rob.add(MESSAGE_OBJECT, mob);
 		ret = rob.build();
 
-		log.info(prettyPrint(ret));
+		//log.info(prettyPrint(ret));
 
 		return ret;
 	}

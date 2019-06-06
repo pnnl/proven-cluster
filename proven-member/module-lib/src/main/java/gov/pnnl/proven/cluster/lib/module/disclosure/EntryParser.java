@@ -60,6 +60,8 @@ import javax.json.stream.JsonParserFactory;
 import javax.json.stream.JsonParser.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.module.disclosure.exception.EntryParserException;
@@ -101,6 +103,7 @@ public class EntryParser {
 
 	private class EntryBuilder {
 
+		private boolean isRoot;
 		private EntryBuilderType ebType;
 		private JsonObjectBuilder ob;
 		private JsonArrayBuilder ab;
@@ -116,23 +119,28 @@ public class EntryParser {
 		EntryBuilder(EntryBuilderType ebType, int size, boolean isRoot) {
 
 			// Create builder based on provided type
+			this.isRoot = isRoot;
 			this.ebType = ebType;
 			if (ebType == EntryBuilderType.OBJECT) {
-
-				oId = UUID.randomUUID().toString();
-				if (isRoot) {
-					oUri = MessageUtils.PROVEN_MESSAGE_CONTENT_NODE_RES + "_" + oId;
-					ob.add(LD_ID, oUri);
-				} else {
-					oUri = MessageUtils.PROVEN_MESSAGE_CONTENT_CHILD_NODE_RES + "_" + oId;
-					ob.add(LD_ID, oUri);
-				}
 				ob = bFactory.createObjectBuilder();
+				addId();
 			} else {
 				ab = bFactory.createArrayBuilder();
 			}
 			this.size = size;
 			this.lastKey = null;
+		}
+
+		private void addId() {
+			if (null == oId) {
+				oId = UUID.randomUUID().toString();
+				if (isRoot) {
+					oUri = MessageUtils.PROVEN_MESSAGE_CONTENT_NODE_RES + "_" + oId;
+				} else {
+					oUri = MessageUtils.PROVEN_MESSAGE_CONTENT_CHILD_NODE_RES + "_" + oId;
+				}
+			}
+			ob.add(LD_ID, oUri);
 		}
 
 		private void add(EntryBuilder uBuilder) {
@@ -155,9 +163,10 @@ public class EntryParser {
 		private void reset() {
 
 			size = MAX_INTERNAL_ENTRY_SIZE_CHARS;
-			lastKey = null;
+			// lastKey = null;
 			if (ebType == EntryBuilderType.OBJECT) {
 				ob = bFactory.createObjectBuilder();
+				addId();
 			} else {
 				ab = bFactory.createArrayBuilder();
 			}
@@ -166,6 +175,8 @@ public class EntryParser {
 	}
 
 	public EntryParser(String entry) {
+
+		unfinishedBuilders = new Stack<>();
 
 		try (JsonParser initParser = pFactory.createParser(new StringReader(entry))) {
 
@@ -176,7 +187,6 @@ public class EntryParser {
 			while (initParser.hasNext()) {
 
 				Event event = initParser.next();
-				System.out.println("CURENT STATE : " + event.toString());
 
 				switch (event) {
 
@@ -185,11 +195,13 @@ public class EntryParser {
 						isFirstEvent = false;
 						String oUri = MessageUtils.PROVEN_MESSAGE_RES + "_" + UUID.randomUUID().toString();
 						ecb.add(LD_ID, oUri);
-					}
-					if ((null != lastKey) && (lastKey.equals(MESSAGE_KEY))) {
-						message = Optional.of(initParser.getObject());
 					} else {
-						initParser.skipObject();
+
+						if ((null != lastKey) && (lastKey.equals(MESSAGE_KEY))) {
+							message = Optional.of(initParser.getObject());
+						} else {
+							ecb.add(lastKey, initParser.getObject());
+						}
 					}
 					break;
 
@@ -249,7 +261,17 @@ public class EntryParser {
 	}
 
 	public List<DisclosureProxy> parse() {
-		return parse(null);
+
+		log.debug("PARSER STARTED");
+		List<DisclosureProxy> ret = parse(null);
+		for (DisclosureProxy dp : ret) {
+			log.debug("START CHUNKED MESSAGE################");
+			log.debug(dp.getJsonEntry().toString());
+			log.debug("END CHUNKED MESSAGE  ################");
+		}
+
+		log.debug("PARSER COMPLETED - " + ret.size());
+		return ret;
 	}
 
 	private List<DisclosureProxy> parse(EntryBuilder eBuilder) {
@@ -272,128 +294,128 @@ public class EntryParser {
 		if (messageParser.isPresent()) {
 
 			try (JsonParser parser = messageParser.get()) {
-						
-			while (parser.hasNext()) {
 
-				Event event = parser.next();
-				System.out.println("CURENT STATE : " + event.toString());
+				while (parser.hasNext()) {
 
-				switch (event) {
+					Event event = parser.next();
 
-				case START_OBJECT:
-				case START_ARRAY:
-					if (isRoot && isFirstEvent) {
-						isFirstEvent = false;
-					} else {
-						if (event == Event.START_OBJECT) {
-							ret.addAll(parse(new EntryBuilder(EntryBuilderType.OBJECT, eBuilder.size)));
+					switch (event) {
+
+					case START_OBJECT:
+					case START_ARRAY:
+						if (isRoot && isFirstEvent) {
+							isFirstEvent = false;
 						} else {
-							ret.addAll(parse(new EntryBuilder(EntryBuilderType.ARRAY, eBuilder.size)));
+							if (event == Event.START_OBJECT) {
+								ret.addAll(parse(new EntryBuilder(EntryBuilderType.OBJECT, eBuilder.size)));
+							} else {
+								ret.addAll(parse(new EntryBuilder(EntryBuilderType.ARRAY, eBuilder.size)));
+							}
+
+							// Child builder has finished. Add it's finished
+							// structure and remaining size count to this
+							// builder and then remove it from the unfinished
+							// stack. Stack should never be empty.
+							EntryBuilder uBuilder = unfinishedBuilders.pop();
+							eBuilder.add(uBuilder);
+							eBuilder.size = uBuilder.size;
 						}
+						break;
 
-						// Child builder has finished. Add it's finished
-						// structure and remaining size count to this builder
-						// and then
-						// remove it from the unfinished stack.
-						EntryBuilder uBuilder = unfinishedBuilders.pop();
-						eBuilder.add(uBuilder);
-						eBuilder.size = uBuilder.size;
-					}
-					break;
+					case END_OBJECT:
+						if (isRoot) {
+							ret.add(buildMessage());
+						}
+					case END_ARRAY:
+						return ret;
 
-				case END_OBJECT:
-					if (isRoot) {
-						ret.add(buildMessage());
-					}
-				case END_ARRAY:
-					return ret;
+					case KEY_NAME:
+						eBuilder.lastKey = parser.getString();
+						eBuilder.size = eBuilder.size - eBuilder.lastKey.length();
+						break;
 
-				case KEY_NAME:
-					eBuilder.lastKey = parser.getString();
-					eBuilder.size = eBuilder.size - eBuilder.lastKey.length();
-					break;
+					case VALUE_STRING:
+						String strVal = parser.getString();
+						eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - strVal.length();
+						if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+							eBuilder.ob.add(eBuilder.lastKey, strVal);
+						} else { // array
+							eBuilder.ab.add(strVal);
+						}
+						break;
 
-				case VALUE_STRING:
-					String strVal = parser.getString();
-					eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - strVal.length();
-					if (eBuilder.ebType == EntryBuilderType.OBJECT) {
-						eBuilder.ob.add(eBuilder.lastKey, strVal);
-					} else { // array
-						eBuilder.ab.add(strVal);
-					}
-					break;
-
-				case VALUE_NUMBER:
-					if (parser.isIntegralNumber()) {
-						long lVal = parser.getLong();
-						long temp = lVal;
-						int count = 0;
-						if (lVal == 0)
-							count = 1;
-						else {
-							while (temp != 0) {
-								temp = temp / 10;
-								++count;
+					case VALUE_NUMBER:
+						if (parser.isIntegralNumber()) {
+							long lVal = parser.getLong();
+							long temp = lVal;
+							int count = 0;
+							if (lVal == 0)
+								count = 1;
+							else {
+								while (temp != 0) {
+									temp = temp / 10;
+									++count;
+								}
+							}
+							eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - count;
+							if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+								eBuilder.ob.add(eBuilder.lastKey, lVal);
+							} else { // array
+								eBuilder.ab.add(lVal);
+							}
+						} else {
+							BigDecimal bdVal = parser.getBigDecimal();
+							eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - bdVal.toString().length();
+							if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+								eBuilder.ob.add(eBuilder.lastKey, bdVal);
+							} else { // array
+								eBuilder.ab.add(bdVal);
 							}
 						}
-						eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - count;
+						break;
+
+					case VALUE_TRUE:
+						eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - 4;
 						if (eBuilder.ebType == EntryBuilderType.OBJECT) {
-							eBuilder.ob.add(eBuilder.lastKey, lVal);
+							eBuilder.ob.add(eBuilder.lastKey, true);
 						} else { // array
-							eBuilder.ab.add(lVal);
+							eBuilder.ab.add(true);
 						}
-					} else {
-						BigDecimal bdVal = parser.getBigDecimal();
-						eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - bdVal.toString().length();
+						break;
+
+					case VALUE_FALSE:
+						eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - 4;
 						if (eBuilder.ebType == EntryBuilderType.OBJECT) {
-							eBuilder.ob.add(eBuilder.lastKey, bdVal);
+							eBuilder.ob.add(eBuilder.lastKey, false);
 						} else { // array
-							eBuilder.ab.add(bdVal);
+							eBuilder.ab.add(false);
 						}
-					}
-					break;
+						break;
 
-				case VALUE_TRUE:
-					eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - 4;
-					if (eBuilder.ebType == EntryBuilderType.OBJECT) {
-						eBuilder.ob.add(eBuilder.lastKey, true);
-					} else { // array
-						eBuilder.ab.add(true);
-					}
-					break;
+					case VALUE_NULL:
+						eBuilder.size = eBuilder.size - 4;
+						if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+							eBuilder.ob.addNull(eBuilder.lastKey);
+						} else { // array
+							eBuilder.ab.addNull();
+						}
+						break;
 
-				case VALUE_FALSE:
-					eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - 4;
-					if (eBuilder.ebType == EntryBuilderType.OBJECT) {
-						eBuilder.ob.add(eBuilder.lastKey, false);
-					} else { // array
-						eBuilder.ab.add(false);
+					default:
+						throw new EntryParserException("Unknown structure processing event: " + event);
 					}
-					break;
 
-				case VALUE_NULL:
-					eBuilder.size = eBuilder.size - 4;
-					if (eBuilder.ebType == EntryBuilderType.OBJECT) {
-						eBuilder.ob.addNull(eBuilder.lastKey);
-					} else { // array
-						eBuilder.ab.addNull();
+					// Check size if exceeded, build current message and add it
+					// to
+					// the Set of return values. Must not end on KEY_NAME event,
+					// as
+					// it would split key from value.
+					if ((eBuilder.size < 0) && (event != Event.KEY_NAME)) {
+						ret.add(buildMessage());
 					}
-					break;
-
-				default:
-					throw new EntryParserException("Unknown structure processing event: " + event);
 				}
 
-				// Check size if exceeded, build current message and add it to
-				// the Set of return values. Must not end on KEY_NAME event, as
-				// it would split key from value.
-				if ((eBuilder.size < 0) && (event != Event.KEY_NAME)) {
-					ret.add(buildMessage());
-				}
-			}
-			
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				throw new EntryParserException("Error occurred parsing disclosure entry.", ex);
 			}
 
@@ -415,7 +437,7 @@ public class EntryParser {
 		EntryBuilder cBuilder = unfinishedBuilders.pop();
 
 		// Get previous builder off stack - may be null.
-		EntryBuilder pBuilder = unfinishedBuilders.pop();
+		EntryBuilder pBuilder = (unfinishedBuilders.isEmpty()) ? (null) : (unfinishedBuilders.pop());
 
 		boolean done = false;
 		while (!done) {
@@ -433,15 +455,15 @@ public class EntryParser {
 				temp.reset();
 				processedBuilders.push(temp);
 				cBuilder = pBuilder;
-				pBuilder = unfinishedBuilders.pop();
+				pBuilder = (unfinishedBuilders.isEmpty()) ? (null) : (unfinishedBuilders.pop());
 			}
 		}
 
 		// Move back to unfinished stack
-		EntryBuilder builder = processedBuilders.pop();
+		EntryBuilder builder = (processedBuilders.isEmpty()) ? (null) : (processedBuilders.pop());
 		while (null != builder) {
 			unfinishedBuilders.push(builder);
-			builder = processedBuilders.pop();
+			builder = (processedBuilders.isEmpty()) ? (null) : (processedBuilders.pop());
 		}
 
 		return ret;

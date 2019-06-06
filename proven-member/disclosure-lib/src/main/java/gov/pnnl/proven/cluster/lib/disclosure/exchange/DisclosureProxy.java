@@ -55,13 +55,15 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEnt
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 
 /**
  * Wrapper class for a externally disclosed entry/message request. A
  * {@code DisclosureProxy} may be added to a {@code DisclosureBuffer} as a
  * buffered item.
- *   
+ * 
  * @author d3j766
  *
  */
@@ -72,7 +74,6 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 	static Logger log = LoggerFactory.getLogger(DisclosureProxy.class);
 
 	private BufferedItemState bufferedState;
-	private String strEntry;
 	private JsonObject jsonEntry;
 
 	/**
@@ -87,33 +88,31 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 	 * @param entry
 	 */
 	public DisclosureProxy(JsonObject jsonEntry) {
-		this.strEntry = null;
 		this.jsonEntry = jsonEntry;
 		bufferedState = BufferedItemState.New;
 	}
-	
+
 	/**
-	 * Based on an externally provided string disclosure entry.
+	 * DisclosureProxy is created using a String value. Disclosure type is
+	 * verified. Conversion to Json is made, if applicable.
 	 * 
 	 * @param entry
+	 *            the disclosed string value
+	 * 
+	 * @throws UnsupportedDisclosureEntryType
+	 *             if string is not a supported disclosure type.
 	 */
-	public DisclosureProxy(String entry) {
-		this.strEntry = entry;
-		this.jsonEntry = null;
+	public DisclosureProxy(String entry) throws UnsupportedDisclosureEntryType {
+		this.jsonEntry = DisclosureEntryType.getJsonEntry(entry);
 		bufferedState = BufferedItemState.New;
 	}
 
-	public DisclosureMessage getMessage() throws UnsupportedDisclosureEntryType {
-		
-		DisclosureMessage ret = null;
-		
-		if (null != jsonEntry) {
-			ret = new DisclosureMessage(jsonEntry);
-		}
-		else {
-			DisclosureEntryType.getEntryMessage(strEntry);
-		}
-		return ret;
+	public JsonObject getJsonEntry() {
+		return jsonEntry;
+	}
+
+	public DisclosureMessage getDisclosureMessage() throws UnsupportedDisclosureEntryType {
+		return new DisclosureMessage(jsonEntry);
 	}
 
 	@Override
@@ -133,19 +132,18 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeUTF(this.bufferedState.toString());
-		boolean nullEntry = (null == this.strEntry);
-		out.writeBoolean(nullEntry);
-		if (!nullEntry)
-			out.writeUTF(this.strEntry);
-
+		boolean nullJsonEntry = (null == this.jsonEntry);
+		out.writeBoolean(nullJsonEntry);
+		if (!nullJsonEntry)
+			out.writeByteArray(MessageJsonUtils.jsonOut(this.jsonEntry));
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
-		boolean nullEntry = in.readBoolean();
-		if (!nullEntry)
-			this.strEntry = in.readUTF();
+		boolean nullJsonEntry = in.readBoolean();
+		if (!nullJsonEntry)
+			this.jsonEntry = MessageJsonUtils.jsonIn(in.readByteArray());
 	}
 
 	@Override

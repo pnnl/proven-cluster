@@ -88,6 +88,7 @@ public class JsonDisclosure {
 		
 		if (null != json) {
 	
+			// TODO Add @id values to message
 			JsonReader reader = Json.createReader(new StringReader(json));
 			
 			try {

@@ -149,7 +149,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 				items.forEach((item) -> {
 					try {
-						DisclosureMessage dm = item.getMessage();
+						DisclosureMessage dm = item.getDisclosureMessage();
 						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDomain(), mst);
 						msp.addMessage(dm);
 						log.debug("Added Disclosure messsage to stream :: " + dm.getMessageKey());

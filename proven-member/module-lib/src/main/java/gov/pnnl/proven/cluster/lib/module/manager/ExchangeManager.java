@@ -66,7 +66,8 @@ public class ExchangeManager extends ManagerComponent implements ComponentManage
 
 	static Logger log = LoggerFactory.getLogger(ExchangeManager.class);
 
-	
+	public static final int MIN_REQUEST_EXCHANGES = 4;
+
 	@Inject
 	@ManagedComponentType
 	Provider<RequestExchange> reProvider;
@@ -83,14 +84,14 @@ public class ExchangeManager extends ManagerComponent implements ComponentManage
 		log.debug("Creating initial request exchange component");
 		res = new HashSet<RequestExchange>();
 		createExchange();
-		
+
 	}
 
 	@Inject
 	public ExchangeManager() {
 		super();
 	}
-	
+
 	/**
 	 * Force bean activation.
 	 */
@@ -104,8 +105,11 @@ public class ExchangeManager extends ManagerComponent implements ComponentManage
 	private void createExchange() {
 
 		synchronized (res) {
-			RequestExchange re = reProvider.get();
-			res.add(re);
+
+			for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
+				RequestExchange re = reProvider.get();
+				res.add(re);
+			}
 		}
 	}
 
