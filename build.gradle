@@ -8,10 +8,14 @@ allprojects {
 subprojects {
 
 	ext.javaEEVersion = "8.0"
-	ext.jetVersion = "0.7.2"
-	ext.jetHazelcastVersion = "3.10.5"
-	ext.payaraVersion = "5.183"
-	ext.payaraHazelcastVersion = "3.10.2"
+	//ext.jetVersion = "0.7.2"
+	ext.jetVersion = "3.0"
+	//ext.jetHazelcastVersion = "3.10.5"
+	ext.jetHazelcastVersion = "3.12"
+	//ext.payaraVersion = "5.183"
+	ext.payaraVersion = "5.192"
+	//ext.payaraHazelcastVersion = "3.10.2"
+	ext.payaraHazelcastVersion = "3.12"
 	ext.payaraJerseyVersion = "2.28"
 	ext.influxDbLibVersion = "2.8"
 	ext.swaggerVersion = "2.0.0"

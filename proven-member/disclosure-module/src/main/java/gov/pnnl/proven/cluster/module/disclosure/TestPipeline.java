@@ -61,7 +61,7 @@ import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+//import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 
 
 public class TestPipeline implements Serializable {
@@ -100,10 +100,16 @@ public class TestPipeline implements Serializable {
 		// Create the specification of the computation pipeline. Note
 		// it's a pure POJO: no instance of Jet needed to create it.
 		Pipeline p = Pipeline.create();
-		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-				.filter(word -> !word.isEmpty()).groupingKey(wholeItem()).aggregate(counting())
-				.drainTo(Sinks.map("counts"));
+		
+//		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
+//				.filter(word -> !word.isEmpty()).groupingKey(wholeItem()).aggregate(counting())
+//				.drainTo(Sinks.map("counts"));
 
+		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
+		.filter(word -> !word.isEmpty()).groupingKey((s2) -> {return s2;}).aggregate(counting())
+		.drainTo(Sinks.map("counts"));
+
+		
 		// Start Jet, populate the input list
 		JetInstance jet = Jet.newJetClient(config);
 

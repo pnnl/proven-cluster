@@ -25,8 +25,8 @@ public class ScheduledEventRegistry extends RegistryComponent {
 
 	//AnnotationLiteral<Annotation>
 	
-	@Resource
-	private TimerService timerService;
+//	@Resource
+//	private TimerService timerService;
 
 	@Resource
 	private BeanManager beanManager;
