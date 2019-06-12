@@ -245,11 +245,11 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		this.created = in.readLong();
-		this.message = jsonIn(in.readByteArray());
+		this.message = MessageJsonUtils.jsonIn(in.readByteArray());
 
 		boolean nullMessageSchema = in.readBoolean();
 		if (!nullMessageSchema)
-			this.messageSchema = jsonIn(in.readByteArray());
+			this.messageSchema = MessageJsonUtils.jsonIn(in.readByteArray());
 
 		this.messageId = UUID.fromString(in.readUTF());
 		this.disclosureId = in.readUTF();
@@ -262,12 +262,12 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeLong(this.created);
-		out.writeByteArray(jsonOut(this.message));
+		out.writeByteArray(MessageJsonUtils.jsonOut(this.message));
 
 		boolean nullMessageSchema = (null == this.messageSchema);
 		out.writeBoolean(nullMessageSchema);
 		if (!nullMessageSchema)
-			out.writeByteArray(jsonOut(this.messageSchema));
+			out.writeByteArray(MessageJsonUtils.jsonOut(this.messageSchema));
 
 		out.writeUTF(this.messageId.toString());
 		out.writeUTF(this.disclosureId);
@@ -280,7 +280,21 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	public JsonObject getMessage() {
 		return message;
 	}
-
+	
+	public String getMessageStr(boolean pretty) {
+		
+		String ret;
+		
+		if (pretty) {
+			ret = MessageJsonUtils.prettyPrint(message);
+		}
+		else {
+			ret = message.toString();
+		}
+		
+		return ret;
+	}
+	
 	public UUID getMessageId() {
 		return messageId;
 	}
@@ -305,34 +319,6 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 
 	public String getRequester() {
 		return requester;
-	}
-
-	public static JsonObject jsonIn(byte[] content) throws IOException {
-
-		JsonObject ret = null;
-
-		if (content.length > 0) {
-			try (ByteArrayInputStream bais = new ByteArrayInputStream(content);
-					JsonReader reader = Json.createReader(bais)) {
-				ret = reader.readObject();
-			}
-		}
-		return ret;
-	}
-
-	public static byte[] jsonOut(JsonObject object) throws IOException {
-
-		byte[] ret = new byte[0];
-
-		if (null != object) {
-			try (ByteArrayOutputStream oos = new ByteArrayOutputStream(); JsonWriter writer = Json.createWriter(oos)) {
-				writer.writeObject(object);
-				writer.close();
-				oos.flush();
-				ret = oos.toByteArray();
-			}
-		}
-		return ret;
 	}
 
 }

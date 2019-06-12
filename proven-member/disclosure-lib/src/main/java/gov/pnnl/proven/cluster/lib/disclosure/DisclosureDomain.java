@@ -39,12 +39,19 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure;
 
+import java.io.IOException;
 import java.io.Serializable;
 import org.apache.commons.validator.routines.DomainValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 
 /**
  * Information disclosed by external clients to a Proven Cluster are organized
@@ -57,7 +64,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainE
  * @since
  * 
  */
-public class DisclosureDomain implements Serializable {
+public class DisclosureDomain implements IdentifiedDataSerializable, Serializable {
 
 	private static final long serialVersionUID = 1L;
 	static Logger log = LoggerFactory.getLogger(DisclosureDomain.class);
@@ -66,6 +73,9 @@ public class DisclosureDomain implements Serializable {
 	 * Domain name.
 	 */
 	String domain;
+	
+	public DisclosureDomain() {
+	}
 
 	public DisclosureDomain(String domain) throws InvalidDisclosureDomainException {
 
@@ -130,5 +140,26 @@ public class DisclosureDomain implements Serializable {
 		}
 		return true;
 	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		this.domain = in.readUTF();
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(this.domain);
+	}
+	
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.DISCLOSURE_DOMAIN_TYPE;
+	}	
+
 	
 }

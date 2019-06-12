@@ -298,25 +298,7 @@ public class CsvDisclosure {
 		rob.add(MESSAGE_OBJECT, mob);
 		ret = rob.build();
 
-		//log.info(prettyPrint(ret));
-
 		return ret;
-	}
-
-	private static String prettyPrint(JsonValue val) {
-
-		Map<String, Boolean> config = new HashMap<>();
-		config.put(JsonGenerator.PRETTY_PRINTING, true);
-		JsonWriterFactory writerFactory = Json.createWriterFactory(config);
-
-		String jsonString = "";
-		try (Writer writer = new StringWriter()) {
-			writerFactory.createWriter(writer).write(val);
-			jsonString = writer.toString();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return jsonString;
 	}
 
 }

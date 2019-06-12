@@ -3,6 +3,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.message;
 import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 
 /**
@@ -34,6 +35,7 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 	public static final int REQUEST_MESSAGE_TYPE = 10;	
 	public static final int DISCLOSURE_PROXY_TYPE = 11;
 	public static final int RESPONSE_MESSAGE_TYPE = 12;
+	public static final int DISCLOSURE_DOMAIN_TYPE = 13;
 
 	@Override
 	public IdentifiedDataSerializable create(int typeId) {
@@ -65,6 +67,8 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 			return new DisclosureProxy();
 		case (RESPONSE_MESSAGE_TYPE):
 			return new ResponseMessage();
+		case (DISCLOSURE_DOMAIN_TYPE):
+			return new DisclosureDomain();
 		default:
 			return null;
 		}

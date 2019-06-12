@@ -42,12 +42,19 @@ package gov.pnnl.proven.cluster.lib.disclosure.message;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonValue;
 import javax.json.JsonWriter;
+import javax.json.JsonWriterFactory;
+import javax.json.stream.JsonGenerator;
 
 public class MessageJsonUtils {
 
@@ -78,5 +85,22 @@ public class MessageJsonUtils {
 		}
 		return ret;
 	}
+	
+	public static String prettyPrint(JsonValue val) {
+
+		Map<String, Boolean> config = new HashMap<>();
+		config.put(JsonGenerator.PRETTY_PRINTING, true);
+		JsonWriterFactory writerFactory = Json.createWriterFactory(config);
+
+		String jsonString = "";
+		try (Writer writer = new StringWriter()) {
+			writerFactory.createWriter(writer).write(val);
+			jsonString = writer.toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return jsonString;
+	}
+
 	
 }
