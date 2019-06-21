@@ -796,7 +796,22 @@ public class ConceptService {
 				//
 				// Set up filter
 				//
-				filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
+
+				if(filter.getDatatype().equals(MetricValueType.Integer.toString()))
+				{
+					filter_statement = filter.getField() + space + eq + Integer.parseInt(filter.getValue());
+				}
+				else if(filter.getDatatype().equals(MetricValueType.Long.toString())) {
+					filter_statement = filter.getField() + space + eq + Long.parseLong(filter.getValue());
+				}
+				else if(filter.getDatatype().equals(MetricValueType.Float.toString())) {
+					filter_statement = filter.getField() + space + eq + Float.parseFloat(filter.getValue());
+				}
+				else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
+					filter_statement = filter.getField() + space + eq + Double.parseDouble(filter.getValue());
+				}
+				else
+					filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
 
 				//
 				// If time oriented, override filter with StartTime and EndTime
