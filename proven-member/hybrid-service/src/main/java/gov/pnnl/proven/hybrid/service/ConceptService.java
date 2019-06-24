@@ -795,20 +795,15 @@ public class ConceptService {
 				// Set up filter
 				//
 
-				if(filter.getDatatype().equals(MetricValueType.Integer.toString()))
-				{
+				if (filter.getDatatype().equals(MetricValueType.Integer.toString())) {
 					filter_statement = filter.getField() + space + eq + Integer.parseInt(filter.getValue());
-				}
-				else if(filter.getDatatype().equals(MetricValueType.Long.toString())) {
+				} else if (filter.getDatatype().equals(MetricValueType.Long.toString())) {
 					filter_statement = filter.getField() + space + eq + Long.parseLong(filter.getValue());
-				}
-				else if(filter.getDatatype().equals(MetricValueType.Float.toString())) {
+				} else if (filter.getDatatype().equals(MetricValueType.Float.toString())) {
 					filter_statement = filter.getField() + space + eq + Float.parseFloat(filter.getValue());
-				}
-				else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
+				} else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
 					filter_statement = filter.getField() + space + eq + Double.parseDouble(filter.getValue());
-				}
-				else
+				} else
 					filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
 
 				//
@@ -1062,31 +1057,38 @@ public class ConceptService {
 			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
 			builder.tag("simulation_id", simulationid);
 			builder.tag("difference_mrid", differenceMrid);
+
+			// Add OUTPUT tag
+			builder.tag("hasSimulationMessageType", "INPUT");
+
+			builder.tag("hasMeasurementDifference", "FORWARD");
+
 			while (fdit.hasNext()) {
 				String fdkey = fdit.next();
+				// if (fdobject.get(fdkey) instanceof String) {
 				if (fdobject.get(fdkey) instanceof String) {
-					if (fdobject.get(fdkey) instanceof String) {
-						builder.addField(fdkey, (String) fdobject.get(fdkey));
-					} else if (fdobject.get(fdkey) instanceof Integer) {
-						builder.addField(fdkey, Integer.valueOf((Integer) fdobject.get(fdkey)));
-					} else if (fdobject.get(fdkey) instanceof Long) {
-						builder.addField(fdkey, Long.valueOf((Long) fdobject.get(fdkey)));
-					} else if (fdobject.get(fdkey) instanceof Float) {
-						builder.addField(fdkey, Float.valueOf((Float) fdobject.get(fdkey)));
-					} else if (fdobject.get(fdkey) instanceof Double) {
-						builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
+					builder.tag(fdkey, (String) fdobject.get(fdkey));
+				} else if (fdobject.get(fdkey) instanceof Integer) {
+					builder.addField(fdkey, Integer.valueOf((Integer) fdobject.get(fdkey)));
+				} else if (fdobject.get(fdkey) instanceof Long) {
+					builder.addField(fdkey, Long.valueOf((Long) fdobject.get(fdkey)));
+				} else if (fdobject.get(fdkey) instanceof Float) {
+					builder.addField(fdkey, Float.valueOf((Float) fdobject.get(fdkey)));
+				} else if (fdobject.get(fdkey) instanceof Double) {
+					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
 
-					}
 				}
-				influxDB.write(idbDB, idbRP, builder.build());
-				ret = new ProvenMessageResponse();
-				ret.setReason("success");
-				ret.setStatus(Status.CREATED);
-				ret.setCode(Status.CREATED.getStatusCode());
-				ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
 
 			}
+			influxDB.write(idbDB, idbRP, builder.build());
+			ret = new ProvenMessageResponse();
+			ret.setReason("success");
+			ret.setStatus(Status.CREATED);
+			ret.setCode(Status.CREATED.getStatusCode());
+			ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
+
 		}
+
 		@SuppressWarnings("unchecked")
 		Iterator<JSONObject> rditerator = reverseDifferenceArray.iterator();
 		while (rditerator.hasNext()) {
@@ -1096,31 +1098,36 @@ public class ConceptService {
 			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
 			builder.tag("simulation_id", simulationid);
 			builder.tag("difference_mrid", differenceMrid);
+
+			// Add OUTPUT tag
+			builder.tag("hasSimulationMessageType", "INPUT");
+
+			// Add DIFFERENCE tag
+			builder.tag("hasMeasurementDifference", "REVERSE");
+
 			while (rdit.hasNext()) {
 				String rdkey = rdit.next();
+				// if (rdobject.get(rdkey) instanceof String) {
 				if (rdobject.get(rdkey) instanceof String) {
-					if (rdobject.get(rdkey) instanceof String) {
-						builder.addField(rdkey, (String) rdobject.get(rdkey));
-
-					} else if (rdobject.get(rdkey) instanceof Integer) {
-						builder.addField(rdkey, Integer.valueOf((Integer) rdobject.get(rdkey)));
-					} else if (rdobject.get(rdkey) instanceof Long) {
-						builder.addField(rdkey, Long.valueOf((Long) rdobject.get(rdkey)));
-					} else if (rdobject.get(rdkey) instanceof Float) {
-						builder.addField(rdkey, Float.valueOf((Float) rdobject.get(rdkey)));
-					} else if (rdobject.get(rdkey) instanceof Double) {
-						builder.addField(rdkey, Double.valueOf((Double) rdobject.get(rdkey)));
-
-					}
+					builder.tag(rdkey, (String) rdobject.get(rdkey));
+				} else if (rdobject.get(rdkey) instanceof Integer) {
+					builder.addField(rdkey, Integer.valueOf((Integer) rdobject.get(rdkey)));
+				} else if (rdobject.get(rdkey) instanceof Long) {
+					builder.addField(rdkey, Long.valueOf((Long) rdobject.get(rdkey)));
+				} else if (rdobject.get(rdkey) instanceof Float) {
+					builder.addField(rdkey, Float.valueOf((Float) rdobject.get(rdkey)));
+				} else if (rdobject.get(rdkey) instanceof Double) {
+					builder.addField(rdkey, Double.valueOf((Double) rdobject.get(rdkey)));
 				}
-				influxDB.write(idbDB, idbRP, builder.build());
-				ret = new ProvenMessageResponse();
-				ret.setReason("success");
-				ret.setStatus(Status.CREATED);
-				ret.setCode(Status.CREATED.getStatusCode());
-				ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
 
 			}
+			influxDB.write(idbDB, idbRP, builder.build());
+			ret = new ProvenMessageResponse();
+			ret.setReason("success");
+			ret.setStatus(Status.CREATED);
+			ret.setCode(Status.CREATED.getStatusCode());
+			ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
+
 		}
 		return ret;
 	}
@@ -1182,19 +1189,22 @@ public class ConceptService {
 				Iterator<String> oit = okeys.iterator();
 				Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
 				builder.tag("simulation_id", simulationid);
-				
+
 				// Add instanceId tag, if any
 				if (null != instanceId) {
 					builder.tag("instance_id", instanceId);
 				}
-				
+
+				// Add OUTPUT tag
+				builder.tag("hasSimulationMessageType", "OUTPUT");
+
 				while (oit.hasNext()) {
 					String okey = oit.next();
 					if (object.get(okey) instanceof String) {
 						if (okey.equalsIgnoreCase("measurement_mrid")) {
 							builder.tag(okey, (String) object.get(okey));
 						} else {
-							builder.addField(okey, (String) object.get(okey));
+							builder.tag(okey, (String) object.get(okey));
 						}
 					} else if (object.get(okey) instanceof Integer) {
 						builder.addField(okey, Integer.valueOf((Integer) object.get(okey)));
@@ -1225,12 +1235,15 @@ public class ConceptService {
 					Iterator<String> aoit = aokeys.iterator();
 					Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
 					builder.tag("simulation_id", simulationid);
-					
+
 					// Add instanceId tag, if any
 					if (null != instanceId) {
 						builder.tag("instance_id", instanceId);
 					}
-					
+
+					// Add OUTPUT tag
+					builder.tag("hasSimulationMessageType", "OUTPUT");
+
 					while (aoit.hasNext()) {
 
 						String aokey = aoit.next();
@@ -1238,7 +1251,7 @@ public class ConceptService {
 							if (aokey.equalsIgnoreCase("measurement_mrid")) {
 								builder.tag(aokey, (String) arrayObject.get(aokey));
 							} else {
-								builder.addField(aokey, (String) arrayObject.get(aokey));
+								builder.tag(aokey, (String) arrayObject.get(aokey));
 							}
 						} else if (arrayObject.get(aokey) instanceof Integer) {
 							builder.addField(aokey, Integer.valueOf((Integer) arrayObject.get(aokey)));
