@@ -29,7 +29,7 @@ dependencies {
        providedCompile group: 'org.glassfish.jersey.media', name: 'jersey-media-moxy', version: '2.26'
        providedCompile group: 'org.glassfish.jersey.core', name: 'jersey-server', version: '2.26'
        providedCompile group: 'com.hazelcast', name: 'hazelcast', version: '3.9.3'
-       providedCompile group: 'gov.pnnl.proven', name: 'proven-message', version: '0.3'
+       providedCompile group: 'gov.pnnl.proven', name: 'proven-message', version: '0.4'
 	   compile group: 'org.openrdf.sesame', name: 'sesame-sail-nativerdf', version: '2.7.1'
 	   compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
 	   compile group: 'com.github.jsonld-java', name: 'jsonld-java', version: '0.9.0'
