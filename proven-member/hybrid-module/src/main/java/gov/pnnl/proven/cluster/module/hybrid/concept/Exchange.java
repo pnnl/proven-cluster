@@ -78,23 +78,79 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.Date;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Represents a ProvEn exchange that is participating in the ProvEn framework.
+ *
+ */
+@Iri(EXCHANGE_CLASS)
+@XmlRootElement
+public class Exchange extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(Exchange.class);
+
+	@Iri(HAS_CONNECTSTRING_PROP)
+	private String connectstring;
+
+	@Iri(IS_ENABLED_PROP)
+	private Boolean isEnabled;
+
+	@Iri(HAS_ENABLED_TIME_PROP)
+	private Date enabledTime;
+
+	@Iri(HAS_DISABLED_TIME_PROP)
+	private Date disabledTime;
+
+	public Exchange() {
 	}
+
+	public Exchange(String connectstring) {
+		this.connectstring = connectstring;
+		this.isEnabled = false;
+		log.debug("Exchange concept for " + getConnectstring() + "  created");
+	}
+
+	public String getConnectstring() {
+		return connectstring;
+	}
+
+	public void setConnectstring(String connectstring) {
+		this.connectstring = connectstring;
+	}
+
+	public Boolean getIsEnabled() {
+		return isEnabled;
+	}
+
+	public void setIsEnabled(Boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+
+	public Date getEnabledTime() {
+		return enabledTime;
+	}
+
+	public void setEnabledTime(Date enabledTime) {
+		this.enabledTime = enabledTime;
+	}
+
+	public Date getDisabledTime() {
+		return disabledTime;
+	}
+
+	public void setDisabledTime(Date disabledTime) {
+		this.disabledTime = disabledTime;
+	}
+
 }

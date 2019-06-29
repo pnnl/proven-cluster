@@ -78,23 +78,98 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.message;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
+import gov.pnnl.proven.cluster.module.hybrid.service.ConceptService;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
+import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.*;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.ejb.ActivationConfigProperty;
+import javax.ejb.MessageDriven;
+import javax.inject.Inject;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
+import javax.resource.AdministeredObjectDefinition;
+
+
+//@formatter:off
+//@AdministeredObjectDefinition(
+//		resourceAdapter = JMS_MQ_ADAPTER, 
+//		interfaceName = "javax.jms.Topic", 
+//		className = "org.apache.activemq.command.ActiveMQTopic", 
+//		name = JNDI_QUERY, 
+//		properties = {"PhysicalName=" + MQ_QUERY })
+//
+//@MessageDriven(
+//		name = "queryMdb", 
+//		activationConfig = {
+//		@ActivationConfigProperty(
+//				propertyName = "destinationType", 
+//				propertyValue = "javax.jms.Topic"),
+//		@ActivationConfigProperty(
+//				propertyName = "destination", 
+//				propertyValue = MQ_QUERY),
+//		@ActivationConfigProperty(
+//				propertyName = "resourceAdapter", 
+//				propertyValue = JMS_MQ_ADAPTER),
+//		@ActivationConfigProperty(
+//				propertyName = "connectionFactoryLookup", 
+//				propertyValue = JNDI_CONNECTION) })
+//@formatter:on
+public class DisclosureQuery extends MessageConsumer implements MessageListener {
+    @Inject
+    private ConceptService cs;
+	
+	public DisclosureQuery() {
+	}
+
+	@Override
+	public void onMessage(Message message) {
+
+		
+		try {
+
+			ProvenMessageOriginal pm;
+
+			if (message instanceof ObjectMessage) {
+
+				ObjectMessage objectMessage = (ObjectMessage) message;
+				pm = (ProvenMessageOriginal) objectMessage.getObject();
+				testOutput(pm);
+
+				// Received disclosure message, request query of hybrid store
+				DisclosureResponse pr = processMessage(pm);
+
+				// SEND RESPONSE
+				sendResponse(pr, message);
+
+			}
+
+		} catch (Exception ex) {
+			System.out.println("FAILED TO GET PM");
+		}
+
+	}
+
+	DisclosureResponse processMessage(ProvenMessageOriginal pm) {
+		DisclosureResponse pmr = new DisclosureResponse();
+		if (pm.getMessageContent() == MessageContent.Query ) {
+			try {
+				pmr = cs.influxQuery(pm);
+			} catch (InvalidProvenMessageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			pmr.setResponse("Error, query object missing from message.");
+		}
+		return pmr;
 	}
 }

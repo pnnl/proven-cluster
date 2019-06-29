@@ -78,23 +78,64 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.xml.bind.annotation.XmlRootElement;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+/**
+ * Run-time configuration properties for the ProvEn Server.
+ */
+@Iri(PROPERTY_CLASS)
+@XmlRootElement
+public class Property extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(Property.class);
+
+	@Iri(HAS_KEY_PROP)
+	private String key;
+
+	@Iri(HAS_VALUE_PROP)
+	private String val;
+	
+	@Iri(HAS_DESCRIPTION_PROP)
+	private String description;
+
+	public Property() {
+	};
+
+	public Property(String key, String val, String description) {
+		this.key = key;
+		this.val = val;
+		this.description = description;
 	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public String getVal() {
+		return val;
+	}
+
+	public void setVal(String val) {
+		this.val = val;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 }

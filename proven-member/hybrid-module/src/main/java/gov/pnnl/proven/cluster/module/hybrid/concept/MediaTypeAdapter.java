@@ -78,23 +78,29 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+/**
+ * JAXB adapter for JAX-RS MediaType
+ *
+ */
+public class MediaTypeAdapter extends XmlAdapter<String, MediaType> {
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+	/*
+	 * Java => XML
+	 */
+	public String marshal(MediaType val) throws Exception {
+		return val.toString();
 	}
+
+	/*
+	 * XML => Java
+	 */
+	public MediaType unmarshal(String val) throws Exception {
+		return MediaType.valueOf(val);
+	}
+
 }

@@ -78,23 +78,53 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.resource;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
 import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
+import static gov.pnnl.proven.cluster.module.hybrid.resource.HybridResourceConsts.RESOURCE_PACKAGE;
 import javax.naming.NamingException;
 import javax.ws.rs.ApplicationPath;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 
 @ApplicationPath(M_APP_PATH)
 public class ApplicationResource extends ResourceConfig {
 
+	private final Logger log = LoggerFactory.getLogger(ApplicationResource.class);
+
 	public ApplicationResource() throws NamingException {
+
 		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
 		register(OpenApiResource.class);
-		register(ApiMetadata.class);
+		//register(ApiMetadata.class);
 		//register(CorsFilter.class);
+
+		// packages("gov.pnnl.proven.hybrid.resource");
+		// register(MultiPartFeature.class);
+		// register(MoxyXmlFeature.class);
+		// register(MoxyJsonFeature.class);
+		//
+		// register(RestResponseFilter.class);
+		//
+		// // Swagger configuration
+		// register(io.swagger.jaxrs.listing.ApiListingResource.class);
+		// register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
+		// BeanConfig beanConfig = new BeanConfig();
+		// beanConfig.setTitle("Provenance Environment (ProvEn) REST Services");
+		// beanConfig.setDescription(
+		// "REST based services providing access to ProvEn's hybrid (Semantic +
+		// Time-Series) data repository.");
+		// beanConfig.setVersion("v1");
+		// beanConfig.setTermsOfServiceUrl("TERMS OF SERVICE - PROTOTYPE");
+		// beanConfig.setLicense("LICENSE - PNNL LIMITED DISTRIBUTION");
+		// beanConfig.setSchemes(new String[] { "http" });
+		// beanConfig.setBasePath("/" + Utils.getModuleName() + "/rest");
+		// beanConfig.setResourcePackage("gov.pnnl.proven.hybrid.resource");
+		// beanConfig.setPrettyPrint(true);
+		// beanConfig.setScan(true);
+
 	}
 }

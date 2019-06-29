@@ -78,23 +78,91 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+/**
+ * Static ProvEn schema.
+ */
+public class ProvenConceptSchema {
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
-	}
+	// ///////////////////////////////////////////////////////////////////////////////
+	// Classes
+	// ///////////////////////////////////////////////////////////////////////////////
+	public static final String BATCH_SCHEDULE_CLASS = PROVEN_NS + "BatchSchedule";
+	public static final String COMPONENT_SERVICE_CLASS = PROVEN_NS + "ComponentService";
+	public static final String CONTEXT_CLASS = (PROVEN_NS + "Context");
+	public static final String DOMAIN_MODEL_CLASS = PROVEN_NS + "DomainModel";
+	public static final String EXCHANGE_CLASS = PROVEN_NS + "Exchange";
+	public static final String FOUNDATION_MODEL_CLASS = PROVEN_NS + "FoundationModel";
+	public static final String HARVESTER_CLASS = PROVEN_NS + "Harvester";
+	public static final String MAINTENANCE_SCHEDULE_CLASS = PROVEN_NS + "MaintenanceSchedule";
+	public static final String NATIVE_SOURCE_CLASS = PROVEN_NS + "NativeSource";
+	public static final String NATIVE_SOURCE_SCHEDULE_CLASS = PROVEN_NS + "NativeSourceSchedule";
+	public static final String ONTOLOGY_CLASS = PROVEN_NS + "Ontology";
+	public static final String PRODUCT_CLASS = PROVEN_NS + "Product";
+	public static final String PRODUCT_SCHEDULE_CLASS = PROVEN_NS + "ProductSchedule";
+	public static final String PROPERTY_CLASS = PROVEN_NS + "Property";
+	public static final String PROVENANCE_MESSAGE_CLASS = PROVEN_NS + "ProvenanceMessage";
+	public static final String REPRESENTATION_CLASS = PROVEN_NS + "Representation";
+	public static final String SCHEDULE_CLASS = PROVEN_NS + "Schedule";
+
+	// ///////////////////////////////////////////////////////////////////////////////
+	// DataType Properties
+	// ///////////////////////////////////////////////////////////////////////////////
+	public static final String RDF_TYPE_PROP = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+	
+	public static final String HAS_BASE_URI_PROP = PROVEN_NS + "hasBaseUri";
+	public static final String HAS_BATCH_JOB_XML_NAME_PROP = PROVEN_NS + "hasBatchJobXmlName";
+	public static final String HAS_BLOB_KEY_PROP = PROVEN_NS + "hasBlobKey";
+	public static final String HAS_BLOB_STATUS_PROP = PROVEN_NS + "hasBlobStatus";
+	public static final String HAS_COMPONENT_PROP = PROVEN_NS + "hasComponent";
+	public static final String HAS_COMPONENT_METHOD_PROP = PROVEN_NS + "hasComponentMethod";
+	public static final String HAS_COMPONENT_SERVICE_TYPE_PROP = PROVEN_NS
+			+ "hasComponentServiceType";
+	public static final String HAS_CONCEPT_ID_PROP = PROVEN_NS + "hasConceptId";
+	public static final String HAS_CONNECTSTRING_PROP = PROVEN_NS + "hasConnectstring";
+	public static final String HAS_CONTEXT_URI_PROP = PROVEN_NS + "hasContextUri";
+	public static final String HAS_CREATED_TIME_PROP = PROVEN_NS + "hasCreatedTime";
+	public static final String HAS_DESCRIPTION_PROP = PROVEN_NS + "hasDescription";
+	public static final String HAS_DISABLED_TIME_PROP = PROVEN_NS + "hasDisabledTime";
+	public static final String HAS_ENABLED_TIME_PROP = PROVEN_NS + "hasEnabledTime";
+	public static final String HAS_EXCHANGE_SESSION_PROP = PROVEN_NS + "hasExchangeSession";
+	public static final String HAS_KEY_PROP = PROVEN_NS + "hasKey";
+	public static final String HAS_LOCATION_PROP = PROVEN_NS + "hasLocation";
+	public static final String HAS_MAINTENANCE_STATUS_PROP = PROVEN_NS + "hasMaintenanceStatus";
+	public static final String HAS_MAINTENANCE_STATUS_TIME_PROP = PROVEN_NS
+			+ "hasMaintenanceStatusTime";
+	public static final String HAS_MEDIA_TYPE_PROP = PROVEN_NS + "hasMediaType";
+	public static final String HAS_MESSAGE_NAME = PROVEN_NS + "hasMessageName";
+	public static final String HAS_MESSAGE_ID = PROVEN_NS + "hasMessageID";
+	public static final String HAS_NAME_PROP = PROVEN_NS + "hasName";
+	public static final String HAS_PROVENANCE_PROP = PROVEN_NS + "hasProvenance";
+	public static final String HAS_RDF_FORMAT_PROP = PROVEN_NS + "hasRdfFormat";
+	public static final String HAS_RETAIN_LOCAL_COPY_PROP = PROVEN_NS + "hasRetainLocalCopy";
+	public static final String HAS_SCHEDULED_ATTEMPTS_PROP = PROVEN_NS + "hasScheduleAttempts";
+	public static final String HAS_TIMER_SCHEDULE_PROP = PROVEN_NS + "hasTimerSchedule";
+	public static final String HAS_VALUE_PROP = PROVEN_NS + "hasValue";
+	public static final String PART_OF_PROVEN_MESSAGE_PROP = PROVEN_NS + "partOfProvenMessage";
+	public static final String IS_ENABLED_PROP = PROVEN_NS + "isEnabled";
+	public static final String IS_EXCHANGE_MAINTENANCE_PROP = PROVEN_NS + "isExchangeMaintenance";
+	public static final String IS_SERVER_MAINTENANCE_PROP = PROVEN_NS + "isExchangeMaintenance";
+	
+
+	// ///////////////////////////////////////////////////////////////////////////////
+	// Object Properties
+	// ///////////////////////////////////////////////////////////////////////////////
+	public static final String HAS_COMPONENT_SERVICE_PROP = PROVEN_NS + "hasComponentService";
+	public static final String HAS_DOMAIN_MODEL_PROP = PROVEN_NS + "hasDomainModel";
+	public static final String HAS_EXPLICIT_CONTENT_PROP = PROVEN_NS + "hasExplicitContent";
+	public static final String HAS_EXPLICIT_STRUCTURE_PROP = PROVEN_NS + "hasExplicitStructure";
+	public static final String HAS_HARVESTER_PROP = PROVEN_NS + "hasHarvester";
+	public static final String HAS_IMPLICIT_CONTENT_PROP = PROVEN_NS + "hasImplicitContent";
+	public static final String HAS_IMPLICIT_STRUCTURE_PROP = PROVEN_NS + "hasImplicitStructure";
+	public static final String HAS_NATIVE_SOURCE_PROP = PROVEN_NS + "hasNativeSource";
+	public static final String HAS_ONTOLOGY_PROP = PROVEN_NS + "hasOntology";
+	public static final String HAS_PRODUCT_PROP = PROVEN_NS + "hasProduct";
+	public static final String HAS_REPRESENTATION_PROP = PROVEN_NS + "hasRepresentation";
+
 }

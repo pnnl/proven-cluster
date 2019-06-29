@@ -78,8 +78,8 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-import static gov.pnnl.proven.hybrid.resource.ResourceConsts.R_REPOSITORY_STATE_DISABLED;
-import static gov.pnnl.proven.hybrid.resource.ResourceConsts.R_REPOSITORY_STATE_ENABLED;
+import static gov.pnnl.proven.cluster.module.hybrid.resource.HybridResourceConsts.R_REPOSITORY_STATE_DISABLED;
+import static gov.pnnl.proven.cluster.module.hybrid.resource.HybridResourceConsts.R_REPOSITORY_STATE_ENABLED;
 
 import java.io.Console;
 import java.lang.management.ManagementFactory;
@@ -97,12 +97,12 @@ import javax.management.ObjectName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.hybrid.concept.Schedule;
-import gov.pnnl.proven.hybrid.manager.PropertiesManager;
-import gov.pnnl.proven.hybrid.manager.ScheduleManager;
-import gov.pnnl.proven.hybrid.manager.StoreManager;
-import gov.pnnl.proven.hybrid.service.ModelService;
-import gov.pnnl.proven.hybrid.util.Consts;
+import gov.pnnl.proven.cluster.module.hybrid.concept.Schedule;
+import gov.pnnl.proven.cluster.module.hybrid.manager.PropertiesManager;
+import gov.pnnl.proven.cluster.module.hybrid.manager.ScheduleManager;
+import gov.pnnl.proven.cluster.module.hybrid.manager.StoreManager;
+import gov.pnnl.proven.cluster.module.hybrid.service.ModelService;
+import gov.pnnl.proven.cluster.module.hybrid.util.Consts;
 
 /**
  * Startup bean. Initializes JMX interface, exposing a set methods for management of ProvEn

@@ -78,23 +78,60 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.xml.bind.annotation.XmlRootElement;
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+/**
+ * Root class for a ProvEn Server schedule.
+ */
+@Iri(SCHEDULE_CLASS)
+@XmlRootElement
+public abstract class Schedule extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(Schedule.class);
+
+	/**
+	 * Name identifier for a schedule and its associated EJB timer.
+	 */
+	@Iri(HAS_NAME_PROP)
+	private String name;
+
+	/**
+	 * String representation of a ScheduledExpression
+	 */
+	@Iri(HAS_TIMER_SCHEDULE_PROP)
+	private String timerSchedule;
+
+	public Schedule() {
 	}
+
+	public Schedule(String name, String timerSchedule) {
+		this.name = name;
+		this.timerSchedule = timerSchedule;
+		log.debug("Schedule concept " + getName() + " created.");
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getTimerSchedule() {
+		return timerSchedule;
+	}
+
+	public void setTimerSchedule(String timerSchedule) {
+		this.timerSchedule = timerSchedule;
+		
+	}
+
 }

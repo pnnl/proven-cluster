@@ -58,60 +58,52 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleShutdown;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
 
-
 @ApplicationScoped
 public class DisclosureModule extends ProvenModule {
 
 	private static Logger log = LoggerFactory.getLogger(DisclosureModule.class);
 
-	
-	
 	@Override
 	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
 
 		super.observeModuleStartup(moduleStartup);
-		
+
 		log.debug("ProvenModule startup message observed");
 
 		// TODO - managers should be configurable per module
 		// Activate managers
-		//sm.ping();
-		
+		// sm.ping();
+
 		// Log startup message
 		log.info("ProvenModule startup completed.");
-
 	}
 
 	@Override
 	public String observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
 
 		super.observeModuleShutdown(moduleShutdown);
-		
+
 		log.debug("ProvenModule shutdown message observed");
 
 		// Deactivate managers
 
 		// Log shutdown message
 		log.info("ProvenModule shutdown completed.");
-		
+
 		return "test2";
 
 	}
-	
-
-	
 
 	public static final String DISCLOSURE_BUFFER = "disclosure.buffer";
-
 	public static final String HOST_TAG = "<HOST>";
 	public static final String PORT_TAG = "<PORT>";
 	public static final String SESSION_TAG = "SESSION";
 	public static final String RESPONSE_URL_TEMPLATE = "http://" + HOST_TAG + ":" + PORT_TAG + "/disclosure/"
 			+ SESSION_TAG + "/responses";
 
-//	@Inject
-//	StreamManager sm;
-	
+	// @Inject
+	// StreamManager sm;
+
 	@Inject
 	private HazelcastInstance hzInstance;
 
@@ -120,21 +112,21 @@ public class DisclosureModule extends ProvenModule {
 	IMap<String, Boolean> clientDisclosureMap;
 
 	IMap<String, Boolean> clientResponseMap;
-	
-//	@Inject
-//	@StreamConfig(stream = MessageStream.Knowledge)
-//	MessageStreamProxy mspKnowledge;
-//	
-//	@Inject
-//	MessageStreamProxy mspDisclosure;
-//	
+
+	// @Inject
+	// @StreamConfig(stream = MessageStream.Knowledge)
+	// MessageStreamProxy mspKnowledge;
+	//
+	// @Inject
+	// MessageStreamProxy mspDisclosure;
+	//
 
 	@PostConstruct
 	public void init() {
 
 		log.info("DisclosureModule startup...");
 		log.info("Hazelcast Version :: " + hzInstance.getCluster().getClusterVersion().toString());
-				
+
 		// TODO This should be part of the member registry when a
 		// DisclosureBuffer
 		// reports itself as part of its construction. Placed here for now to
@@ -145,10 +137,10 @@ public class DisclosureModule extends ProvenModule {
 		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
 		String responseUrl = buildResponseUrl();
 		clientResponseMap.put(responseUrl, true);
-		//testPipeline();
+		// testPipeline();
 		log.debug("DisclossureModule constructed");
 	}
-	
+
 	private String buildResponseUrl() {
 		String ret;
 		Member member = hzInstance.getCluster().getLocalMember();
@@ -158,5 +150,5 @@ public class DisclosureModule extends ProvenModule {
 		ret = ret.replace(PORT_TAG, port);
 		return ret;
 	}
-		
+
 }

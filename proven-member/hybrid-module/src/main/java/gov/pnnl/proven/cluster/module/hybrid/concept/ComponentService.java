@@ -78,23 +78,86 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.xml.bind.annotation.XmlRootElement;
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import gov.pnnl.proven.cluster.module.hybrid.concept.ConceptUtil.ComponentServiceType;
+
+
+/**
+ * Identifies a component service used to perform scheduled ProvEn processing.
+ *   
+ * @see ComponentServiceType
+ *
+ */
+@Iri(COMPONENT_SERVICE_CLASS)
+@XmlRootElement
+public class ComponentService extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(ComponentService.class);
+
+	@Iri(HAS_NAME_PROP)
+	private String name;
+
+	@Iri(HAS_DESCRIPTION_PROP)
+	private String description;
+
+	@Iri(HAS_COMPONENT_PROP)
+	private String component;
+
+	@Iri(HAS_COMPONENT_METHOD_PROP)
+	private String componentMethod;
+
+	@Iri(HAS_COMPONENT_SERVICE_TYPE_PROP)
+	private ComponentServiceType serviceType;
+
+	public ComponentService() {
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getComponent() {
+		return component;
+	}
+
+	public void setComponent(String component) {
+		this.component = component;
+	}
+
+	public String getComponentMethod() {
+		return componentMethod;
+	}
+
+	public void setComponentMethod(String componentMethod) {
+		this.componentMethod = componentMethod;
+	}
+
+	public ComponentServiceType getServiceType() {
+		return serviceType;
+	}
+
+	public void setServiceType(ComponentServiceType serviceType) {
+		this.serviceType = serviceType;
+	}
+
 }

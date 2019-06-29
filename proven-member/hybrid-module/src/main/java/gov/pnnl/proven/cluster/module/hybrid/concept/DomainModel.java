@@ -78,23 +78,74 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.HashSet;
+import java.util.Set;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * Identifies the RDF modlel for a particular domain. Each domain is partitioned to contain explicit
+ * an implicit content and structure information.
+ * 
+ * @author d3j766
+ *
+ */
+@Iri(DOMAIN_MODEL_CLASS)
+@XmlRootElement
+public class DomainModel extends KnowledgeModel {
+
+	private final Logger log = LoggerFactory.getLogger(DomainModel.class);
+
+	@Iri(HAS_EXPLICIT_CONTENT_PROP)
+	private Context explicitContent;
+
+	@Iri(HAS_IMPLICIT_CONTENT_PROP)
+	private Set<Context> implicitContents;
+
+	@Iri(HAS_IMPLICIT_STRUCTURE_PROP)
+	private Context implicitStructure;
+
+	public DomainModel() {
+	};
+
+	public DomainModel(String name) {
+		super(name);
+		this.explicitContent = new Context(name, ConceptUtil.ContextType.EC);
+		this.implicitContents = new HashSet<Context>();
+		this.implicitStructure = new Context(name, ConceptUtil.ContextType.IS);
 	}
+
+	public Context getExplicitContent() {
+		return explicitContent;
+	}
+
+	public void setExplicitContent(Context explicitContent) {
+		this.explicitContent = explicitContent;
+	}
+
+	public Set<Context> getImplicitContents() {
+		return implicitContents;
+	}
+
+	public void setImplicitContents(Set<Context> implicitContents) {
+		this.implicitContents = implicitContents;
+	}
+
+	public Context getImplicitStructure() {
+		return implicitStructure;
+	}
+
+	public void setImplicitStructure(Context implicitStructure) {
+		this.implicitStructure = implicitStructure;
+	}
+
 }

@@ -78,23 +78,75 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
+import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.HashSet;
+import java.util.Set;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Represents ProvEn's knowledge model, which is the aggregation of domain models and foundation
+ * model.
+ *
+ */
+public abstract class KnowledgeModel extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(KnowledgeModel.class);
+
+	@Iri(HAS_NAME_PROP)
+	protected String name;
+
+	@Iri(HAS_BASE_URI_PROP)
+	protected String baseUri;
+
+	@Iri(HAS_ONTOLOGY_PROP)
+	protected Set<Ontology> ontologies = new HashSet<Ontology>();
+
+	public KnowledgeModel() {
 	}
+	
+	public KnowledgeModel(String name) {
+		this.name = name;
+		this.baseUri = PROVEN_NS;
+	}
+	
+	@Override
+	public Set<Representation> getRepresentations() {
+		Set<Representation> reps = super.getRepresentations();
+		for (Ontology ontology : ontologies) {
+			reps.addAll(ontology.getRepresentations());
+		}
+		return reps;
+	};
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getBaseUri() {
+		return baseUri;
+	}
+
+	public void setBaseUri(String baseUri) {
+		this.baseUri = baseUri;
+	}
+
+	public Set<Ontology> getOntologies() {
+		return ontologies;
+	}
+
+	public void setOntologies(Set<Ontology> ontologies) {
+		this.ontologies = ontologies;
+	};
+
 }

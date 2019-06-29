@@ -78,23 +78,51 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.message;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Resource;
+import javax.ejb.Schedule;
+import javax.ejb.Stateless;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.ObjectMessage;
+import javax.jms.Session;
+import javax.jms.Topic;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
-	}
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
+import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.JNDI_CONNECTION;
+
+
+
+@Stateless
+public class SendTestMessage {
+    
+//    @Resource(lookup = JNDI_DISCLOSURE)
+//    Topic topic;
+//    
+//    @Resource(lookup = JNDI_CONNECTION)
+//    ConnectionFactory factory;
+//
+//    @Schedule(hour = "*", minute = "*", second = "*/10", info = "Every 5 second timer", timezone = "UTC", persistent = false)
+//    public void myTimer() throws InvalidProvenMessageException {
+//        try (Connection conn = factory.createConnection()){
+//        	
+//        	System.out.println("INSIDE SEND MESSAGE!!!  :: " + conn.toString());
+//        	
+//            Session sess = conn.createSession(true,Session.AUTO_ACKNOWLEDGE);
+//            ProvenMessage pm = ProvenMessage.message("hello world").buildHW();
+//            //ProvenMessage pm = ProvenMessage.message("hello world").build();
+//            ObjectMessage m1 = sess.createObjectMessage();	
+//    		m1.setObject(pm);
+//            sess.createProducer(topic).send(m1);
+//        } catch (JMSException ex) {
+//            Logger.getLogger(SendTestMessage.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
 }

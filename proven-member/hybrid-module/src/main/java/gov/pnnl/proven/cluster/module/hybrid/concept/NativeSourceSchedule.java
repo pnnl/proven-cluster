@@ -78,23 +78,46 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.xml.bind.annotation.XmlRootElement;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * 
+ * Represents a schedule for NativeSource harvesting.  
+ *
+ */
+@Iri(NATIVE_SOURCE_SCHEDULE_CLASS)
+@XmlRootElement
+public class NativeSourceSchedule extends Schedule {
+
+	private final Logger log = LoggerFactory.getLogger(NativeSourceSchedule.class);
+
+	@Iri(HAS_NATIVE_SOURCE_PROP)
+	private NativeSource nativeSource;
+
+	public NativeSourceSchedule() {
 	}
+
+	public NativeSourceSchedule(String name, String timerSchedule, NativeSource nativeSource) {
+		super(name, timerSchedule);
+		this.nativeSource = nativeSource;
+		log.debug("NativeSourceSchedule concept " + getName() + " created.");
+	}
+
+	public NativeSource getNativeSource() {
+		return nativeSource;
+	}
+
+	public void setNativeSource(NativeSource nativeSource) {
+		this.nativeSource = nativeSource;
+	}
+
 }

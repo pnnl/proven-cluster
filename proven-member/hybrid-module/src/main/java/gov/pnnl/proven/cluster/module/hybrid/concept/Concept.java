@@ -78,23 +78,65 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ConceptUtil.*;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.HashSet;
+import java.util.Set;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlID;
+
+import org.openrdf.annotations.Iri;
+import org.openrdf.model.Resource;
+import org.openrdf.repository.object.ObjectConnection;
+import org.openrdf.repository.object.RDFObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *  Root concept class, all ProvEn concepts must extend this class.
+ */
+public abstract class Concept implements RDFObject {	
+
+	private final Logger log = LoggerFactory.getLogger(Concept.class);
+	
+	private String id;
+	
+	@Iri(HAS_REPRESENTATION_PROP)
+	protected Set<Representation> representations = new HashSet<Representation>();
+		
+	@Override
+	public Resource getResource() {
+		Resource ret = toResource(genConceptId(this));
+		assignId(ret.toString());
+		return ret;	
+	};
+	
+	private void assignId(String id) {
+		this.id = id;
 	}
+	
+	@Override
+	public ObjectConnection getObjectConnection() {
+		return null;
+	}
+	
+	@Iri(HAS_CONCEPT_ID_PROP)
+	@XmlAttribute()
+	@XmlID
+	public String getConceptId() {
+		return id;
+	}
+
+	public Set<Representation> getRepresentations() {
+		return representations;
+	}
+
+	public void setRepresentations(Set<Representation> representations) {
+		this.representations = representations;
+	}
+	
 }

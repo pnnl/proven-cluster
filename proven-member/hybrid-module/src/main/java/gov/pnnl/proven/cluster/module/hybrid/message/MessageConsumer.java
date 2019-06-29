@@ -78,23 +78,101 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.message;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Resource;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.ObjectMessage;
+import javax.jms.Session;
+import javax.jms.Topic;
+import javax.resource.AdministeredObjectDefinition;
+import javax.resource.ConnectionFactoryDefinition;
+import org.openrdf.model.Statement;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMeasurement;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenStatement;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
+import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.*;
+
+//@formatter:off
+//
+//@ConnectionFactoryDefinition(
+//		name = JNDI_CONNECTION, 
+//		interfaceName = "javax.jms.ConnectionFactory", 
+////		interfaceName = "org.apache.activemq.ActiveMQConnectionFactory",		
+//		resourceAdapter = JMS_MQ_ADAPTER,
+//		properties = {"UserName=" + JMS_MQ_USER_NAME, 
+//				      "Password=" + JMS_MQ_PASSWORD, 
+//				      "ServerUrl=" + JMS_MQ_CONNECTION_URL })
+////				      "brokerURL=" + JMS_MQ_CONNECTION_URL })
+//
+//@formatter:on
+abstract class MessageConsumer {
+
+	protected static String REQUEST_ID_MESSAGE_PROPERTY = "requestId";
+
+//	@Resource(lookup = JNDI_RESPONSE)
+//	Topic topic;
+//
+//	@Resource(lookup = JNDI_CONNECTION)
+//	ConnectionFactory factory;
+
+	abstract DisclosureResponse processMessage(ProvenMessageOriginal pm);
+
+	protected void sendResponse(DisclosureResponse pr, Message message) {
+
+		pr.setRequestId(getRequestId(message));
+
+//		try (Connection conn = factory.createConnection()) {
+//			Session sess = conn.createSession(true, Session.AUTO_ACKNOWLEDGE);
+//			ObjectMessage om = sess.createObjectMessage();
+//			om.setObject(pr);
+//			sess.createProducer(topic).send(om);
+//		} catch (JMSException ex) {
+//			Logger.getLogger(MessageConsumer.class.getName()).log(Level.SEVERE, "Sending response failed", ex);
+//		}
+
+	}
+
+	protected String getRequestId(Message message) {
+		String ret = null;
+		try {
+			message.getStringProperty(REQUEST_ID_MESSAGE_PROPERTY);
+		} catch (JMSException e) {
+			ret = null;
+		}
+		return ret;
+	}
+
+	protected void testOutput(ProvenMessageOriginal pm) {
+
+		if (null != pm.getStatements()) {
+			int stmts = pm.getStatements().size();
+			System.out.println("Nunmber of statements:" + stmts);
+			Consumer<ProvenStatement> consumerNames = name -> {
+				System.out.println(name);
+			};
+			pm.getStatements().forEach(consumerNames);
+		}
+
+		if (null != pm.getMeasurements()) {
+			int measurements = pm.getMeasurements().size();
+			System.out.println("Nunmber of measurements:" + measurements);
+			Consumer<ProvenMeasurement> consumerMeasurements = measurement -> {
+				System.out.println(measurement);
+			};
+			pm.getMeasurements().forEach(consumerMeasurements);
+		}
+
 	}
 }

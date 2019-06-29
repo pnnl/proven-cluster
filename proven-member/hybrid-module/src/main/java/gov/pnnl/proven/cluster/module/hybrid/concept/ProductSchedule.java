@@ -78,23 +78,45 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.xml.bind.annotation.XmlRootElement;
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+
+/**
+ * 
+ * Represents a schedule for Product generation.  
+ *
+ */
+@Iri(PRODUCT_SCHEDULE_CLASS)
+@XmlRootElement
+public class ProductSchedule extends Schedule {
+
+	private final Logger log = LoggerFactory.getLogger(ProductSchedule.class);
+
+	@Iri(HAS_PRODUCT_PROP)
+	private Product product;
+
+	public ProductSchedule() {
 	}
+
+	public ProductSchedule(String name, String timerSchedule, Product product) {
+		super(name, timerSchedule);
+		this.product = product;
+		log.debug("ProductSchedule concept " + getName() + " created.");
+	}
+
+	public Product getProduct() {
+		return product;
+	}
+
+	public void setProduct(Product product) {
+		this.product = product;
+	}
+
 }

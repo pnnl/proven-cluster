@@ -78,23 +78,110 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ConceptUtil.*;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.net.URI;
+import java.util.Date;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * A representation of a ProvEn concept instance. 
+ */
+@Iri(REPRESENTATION_CLASS)
+@XmlRootElement
+public class Representation extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(Representation.class);
+
+	@Iri(HAS_NAME_PROP)
+	String name;
+
+	@Iri(HAS_MEDIA_TYPE_PROP)
+	MediaType mediaType;
+
+	@Iri(HAS_LOCATION_PROP)
+	URI location;
+
+	@Iri(HAS_BLOB_KEY_PROP)
+	String blobKey;
+
+	@Iri(HAS_BLOB_STATUS_PROP)
+	BlobStatus blobStatus;
+
+	@Iri(HAS_CREATED_TIME_PROP)
+	Date createdTime;
+
+	
+	public Representation() {
 	}
+
+	public Representation(String name, MediaType mediaType, URI location) {
+		this.name = name;
+		this.mediaType = mediaType;
+		this.location = location;
+		this.blobKey = genBlobId();
+		this.blobStatus = BlobStatus.NONE;
+		this.createdTime = new Date();
+		log.debug("Representation concept " + getName() + " created.");
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
+	public MediaType getMediaType() {
+		return mediaType;
+	}
+
+	public void setMediaType(MediaType mediaType) {
+		this.mediaType = mediaType;
+	}
+
+	public URI getLocation() {
+		return location;
+	}
+
+	public void setLocation(URI location) {
+		this.location = location;
+	}
+
+	public String getBlobKey() {
+		return blobKey;
+	}
+
+	public void setBlobKey(String blobKey) {
+		this.blobKey = blobKey;
+	}
+
+	public BlobStatus getBlobStatus() {
+		return blobStatus;
+	}
+
+	public void setBlobStatus(BlobStatus blobStatus) {
+		this.blobStatus = blobStatus;
+	}
+
+	public Date getCreatedTime() {
+		return createdTime;
+	}
+
+	public void setCreatedTime(Date createdTime) {
+		this.createdTime = createdTime;
+	}
+
 }

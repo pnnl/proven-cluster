@@ -78,23 +78,229 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.service;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ConceptUtil.*;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.Collection;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
+import javax.interceptor.AroundInvoke;
+import javax.interceptor.InvocationContext;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.RepositoryResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.module.hybrid.concept.ConceptUtil;
+import gov.pnnl.proven.cluster.module.hybrid.manager.StoreManager;
+
+/**
+ * Session Bean implementation class ProvenanceService
+ * 
+ * Provides management and persistent services for provenance store.
+ * 
+ */
+@Stateless
+@LocalBean
+public class ProvenanceService {
+
+	private final Logger log = LoggerFactory.getLogger(ProvenanceService.class);
+
+	@EJB
+	private StoreManager sm;
+
+	private RepositoryConnection pCon = null;
+
+	// //////////////////////////////////////////////////////////
+	// Named queries
+
+	// @formatter:off
+	
+	private static final String findSingleByName = 
+			"SELECT ?s WHERE {?s " + toIri(HAS_NAME_PROP) + " ?name }";
+	
+	
+	private static final String findNativeSourcesByDomainName =
+			"SELECT ?s WHERE { ?s " + toIri(HAS_DOMAIN_MODEL_PROP) + " ?domain  . " +
+	        "                  ?domain " + toIri(HAS_NAME_PROP) + " ?name " +
+	        "                } ";
+
+	private static final String findNativeSourcesByDomainName2 =
+			"SELECT ?s WHERE {?s  ?p  ?o }";
+
+	
+	
+	// @formatter:on
+	// //////////////////////////////////////////////////////////
+
+	@PostConstruct
+	public void postConstruct() {
+
+		try {
+			log.debug("GETTING A NEW PROVENANCE STORE CONNECTION!!!");
+			//this.pCon = sm.getProvenanceStoreConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EJBException("Borrow connection failed in construction of ProvenanceService");
+		}
+		log.debug("ProvenanceService constructed ...");
+
 	}
+
+	@PreDestroy
+	public void preDestroy() {
+		try {
+			// TODO should uncommitted changes just be lost?
+			// force a close and commit changes
+			pCon.commit();
+			pCon.close();
+			log.debug("ProvenanceService destroyed ...");
+		} catch (RepositoryException e) {
+			// Swallow it, not need to throw an ejb exception at this point
+			e.printStackTrace();
+		}
+		log.debug("ProvenanceService destroyed ...");
+	}
+
+	/**
+	 * Commits all changes and creates a new connection to the repository
+	 * 
+	 * @throws Exception
+	 */
+	public void flush() {
+
+//		try {
+//			if (isValidConnection()) {
+//				pCon.commit();
+//				pCon.close();
+//			}
+//			pCon = sm.getProvenanceStoreConnection();
+//
+//		} catch (Exception e) {
+//			log.error("FLUSH FAILURE");
+//			e.printStackTrace();
+//		}
+	}
+
+	public void begin() {
+
+		try {
+			if (!pCon.isActive()) {
+				pCon.begin();
+			}
+
+		} catch (Exception e) {
+			log.error("BEGIN FAILURE");
+			e.printStackTrace();
+		}
+
+	}
+
+	public void commit() {
+
+		try {
+			if (pCon.isActive()) {
+				pCon.commit();
+			}
+
+		} catch (Exception e) {
+			log.error("COMMIT FAILURE");
+			e.printStackTrace();
+		}
+
+	}
+
+	public void rollback() {
+
+		try {
+			if (pCon.isActive()) {
+				pCon.rollback();
+			}
+
+		} catch (Exception e) {
+			log.error("ROLLBACK FAILURE");
+			e.printStackTrace();
+		}
+
+	}
+
+	public RepositoryConnection getProvenanceConnection() {
+		return pCon;
+	}
+
+
+	public void addStatements(Collection<Statement> statements, Resource... resources)
+			throws Exception {
+		pCon.add(statements, resources);
+	}
+
+	public RepositoryResult<Statement> getAllStatements() throws Exception {
+
+		RepositoryResult<Statement> ret = null;
+		ret = pCon.getStatements(null, null, null, false);
+		return ret;
+
+	}
+
+	public RepositoryResult<Statement> getDomainStatements(String domain) throws Exception {
+
+		RepositoryResult<Statement> ret = null;
+		ret = pCon.getStatements(null, null, null, false, ConceptUtil.toResource(domain));
+		return ret;
+	}
+	
+	
+	public void removeDomainContext(Resource context) throws RepositoryException {
+		pCon.clear(context);
+		pCon.commit();
+	}
+
+	public void removeAll() throws RepositoryException {
+		pCon.clear();
+		pCon.commit();
+	}
+
+	@AroundInvoke
+	public Object checkObjectConnection(InvocationContext ic) throws Exception {
+
+		try {
+			if (!isValidConnection()) {
+				log.debug("GETTING A NEW PROVENANCE STORE CONNECTION!!!");
+				//pCon = sm.getProvenanceStoreConnection();
+			}
+		} catch (Exception e) {
+			throw new EJBException("Return/Borrow new provenance store connection failed");
+		}
+
+		return ic.proceed();
+	}
+
+	private boolean isValidConnection() {
+
+		boolean ret = true;
+
+//		try {
+//
+//			if ((!pCon.getRepository().isInitialized()) || (!pCon.isOpen())) {
+//				ret = false;
+//				// Force a close, may cause an exception.
+//				pCon.close();
+//			}
+//		} catch (Exception e) {
+//			ret = false;
+//		}
+//
+		return ret;
+	}
+
 }

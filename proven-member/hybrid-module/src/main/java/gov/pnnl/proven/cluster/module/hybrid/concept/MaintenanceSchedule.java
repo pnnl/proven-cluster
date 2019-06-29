@@ -78,23 +78,103 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.Date;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Represents a scheduled maintenance service, for the ProvEn server, exchange, or both.
+ */
+@Iri(MAINTENANCE_SCHEDULE_CLASS)
+@XmlRootElement
+public class MaintenanceSchedule extends Schedule {
+
+	private final Logger log = LoggerFactory.getLogger(MaintenanceSchedule.class);
+
+	@Iri(HAS_MAINTENANCE_STATUS_PROP)
+	private String status;
+
+	@Iri(HAS_SCHEDULED_ATTEMPTS_PROP)
+	private int scheduledAttempts;
+
+	/**
+	 * Indicates time of last completion or failure of a maintenance schedule. Used to calculate
+	 * interval to determine next startup.
+	 */
+	@Iri(HAS_MAINTENANCE_STATUS_TIME_PROP)
+	private Date statusTime;
+
+	@Iri(HAS_COMPONENT_SERVICE_PROP)
+	private ComponentService componentService;
+
+	@Iri(IS_SERVER_MAINTENANCE_PROP)
+	private Boolean isServerMAintenance;
+
+	@Iri(IS_EXCHANGE_MAINTENANCE_PROP)
+	private Boolean isExchangeMaintenance;
+
+	public MaintenanceSchedule() {
 	}
+
+	public MaintenanceSchedule(String name, String timerSchedule) {
+		super(name, timerSchedule);
+		log.debug("ProductSchedule concept " + getName() + " created.");
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public int getScheduledAttempts() {
+		return scheduledAttempts;
+	}
+
+	public void setScheduledAttempts(int scheduledAttempts) {
+		this.scheduledAttempts = scheduledAttempts;
+	}
+
+	public Date getStatusTime() {
+		return statusTime;
+	}
+
+	public void setStatusTime(Date statusTime) {
+		this.statusTime = statusTime;
+	}
+
+	public ComponentService getComponentService() {
+		return componentService;
+	}
+
+	public void setComponentService(ComponentService componentService) {
+		this.componentService = componentService;
+	}
+
+	public Boolean getIsServerMAintenance() {
+		return isServerMAintenance;
+	}
+
+	public void setIsServerMAintenance(Boolean isServerMAintenance) {
+		this.isServerMAintenance = isServerMAintenance;
+	}
+
+	public Boolean getIsExchangeMaintenance() {
+		return isExchangeMaintenance;
+	}
+
+	public void setIsExchangeMaintenance(Boolean isExchangeMaintenance) {
+		this.isExchangeMaintenance = isExchangeMaintenance;
+	}
+
 }

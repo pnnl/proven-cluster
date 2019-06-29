@@ -78,23 +78,58 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.resource.filter;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import java.io.IOException;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.annotation.Resource;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import gov.pnnl.proven.hybrid.util.ProvenConfig;
+import gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp;
+
+/**
+ * Redirect Swagger UI requests to use the configured swagger host/port, if it
+ * is not directly provided via "url" query parameter
+ */
+@WebFilter("/api/index.html")
+public class SwaggerApi implements Filter {
+
+	ProvenConfig provenConfig = ProvenConfig.getB2SConfig();
+	
+	@Resource(lookup="java:module/ModuleName")
+	private String moduleName;
+
+	public SwaggerApi() {
 	}
+
+	public void destroy() {
+	}
+
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+			throws IOException, ServletException {
+
+		HttpServletRequest request = (HttpServletRequest) req;
+		HttpServletResponse response = (HttpServletResponse) res;
+
+		if (null == request.getParameter("url")) {
+			String swaggerUrlParam = "?url=http://" + provenConfig.getPropValue(ProvenEnvProp.PROVEN_SWAGGER_HOST_PORT)
+					+ "/" + moduleName + "/rest/swagger.json";
+			response.sendRedirect(swaggerUrlParam);
+		} else {
+			chain.doFilter(request, response);
+		}
+	}
+
+	public void init(FilterConfig fConfig) throws ServletException {
+	}
+
 }

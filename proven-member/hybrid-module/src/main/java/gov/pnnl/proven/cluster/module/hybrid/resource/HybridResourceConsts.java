@@ -78,23 +78,60 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.resource;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+public class HybridResourceConsts {
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+	// Resource package
+	public static final String RESOURCE_PACKAGE = "gov.pnnl.proven.cluster.module.hybrid.resource";
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
-	}
+	// Service versions
+	public static final String RESOURCE_VERSION_1 = "v1";
+	public static final String RESOURCE_CURRENT_VERSION = RESOURCE_VERSION_1;
+
+	// RR_ -> Root Resources
+	public static final String RR_EXCHANGE_SESSION = "exchangeSession";
+	public static final String RR_EXCHANGE_SESSION_PATH = "/" + RESOURCE_CURRENT_VERSION + "/" + RR_EXCHANGE_SESSION
+			+ "/";
+	public static final String RR_REPOSITORY = "repository";
+	public static final String RR_REPOSITORY_PATH = "/" + RESOURCE_CURRENT_VERSION + "/" + RR_REPOSITORY + "/";
+	public static final String RR_MODEL = "model";
+	public static final String RR_MODEL_PATH = "/" + RESOURCE_CURRENT_VERSION + "/" + RR_MODEL + "/";
+	public static final String RR_REPRESENTATION = "representation";
+	public static final String RR_REPRESENTATION_PATH = "/" + RESOURCE_CURRENT_VERSION + "/" + RR_REPRESENTATION + "/";
+	public static final String RR_DOMAIN = "domain";
+	public static final String RR_DOMAIN_PATH = "/" + RESOURCE_CURRENT_VERSION + "/" + RR_DOMAIN + "/";
+
+	// R_ -> Resources
+	public static final String R_REPOSITORY_STATE = "state";
+	public static final String R_REPOSITORY_STATES = "states";
+	public static final String R_REPOSITORY_STATE_ENABLED = "enabled";
+	public static final String R_REPOSITORY_STATE_DISABLED = "disabled";
+	public static final String R_STATEMENT = "statement";
+	public static final String R_STATEMENTS = "statements";
+	public static final String R_KM = "km";
+	public static final String R_KMS = "kms";
+	public static final String R_DM = "dm";
+	public static final String R_DMS = "dms";
+	public static final String R_FM = "fm";
+	public static final String R_FMS = "fms";
+	public static final String R_ONTOLOGY = "ontology";
+	public static final String R_ONTOLOGIES = "ontologies";
+	public static final String R_CONTENT = "content";
+	public static final String R_STRUCTURE = "structure";
+	public static final String R_NATIVE_SOURCE = "nativeSource";
+	public static final String R_NATIVE_SOURCES = "nativeSources";
+	public static final String R_REPRESENTATION = "representation";
+	public static final String R_REPRESENTATIONS = "representations";
+
+	public static final String R_CONCEPT = "concept";
+	public static final String R_CONCEPTS = "concepts";
+	public static final String R_MESSAGE = "message";
+	public static final String R_MESSAGES = "messages";
+
+	public static final String R_PROVEN_MESSAGE = "provenMessage";
+	public static final String R_PROVEN_MESSAGES = "messages";
+
+	public static final String APPLICATION_SPARQL_RESULTS = "application/sparql-results+json";
+
 }

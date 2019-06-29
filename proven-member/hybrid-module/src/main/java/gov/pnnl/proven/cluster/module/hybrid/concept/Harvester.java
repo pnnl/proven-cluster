@@ -78,23 +78,67 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.Set;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * A Native source harvester responsible for extracting provenance and representation generation.
+ *
+ */
+@Iri(HARVESTER_CLASS)
+@XmlRootElement
+public class Harvester extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(Harvester.class);
+
+	@Iri(HAS_NAME_PROP)
+	private String name;
+
+	@Iri(HAS_DESCRIPTION_PROP)
+	private String description;
+
+	@Iri(HAS_COMPONENT_SERVICE_PROP)
+	private Set<ComponentService> componentServices;
+
+	public Harvester() {
 	}
+
+	public Harvester(String name) {
+		this.name = name;
+		log.debug("Harvester concept " + name + "  created");
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public Set<ComponentService> getComponentServices() {
+		return componentServices;
+	}
+
+	public void setComponentServices(Set<ComponentService> componentServices) {
+		this.componentServices = componentServices;
+	}
+
 }

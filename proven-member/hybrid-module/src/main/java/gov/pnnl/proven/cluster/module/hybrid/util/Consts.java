@@ -78,23 +78,121 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.util;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import gov.pnnl.proven.hybrid.util.ProvenConfig;
+import gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+public class Consts {
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Proven constants
+	public static final String FILE_SEP = System.getProperty("file.separator");
+	public static final String NL = System.getProperty("line.separator");
+	public final static String PSEP = System.getProperty("path.separator");
+	public static final String PROVEN_MODULE_NAME = "ProvEn";
+	public static final String PROVEN_VERSION = "0.1";
+	public static final String PROVEN_OBJECT_REPO_ID = "ProvEnObjectStore";
+	public static final String PROVEN_PROVENANCE_REPO_ID = "ProvEnProvenanceStore";
+	public static final String PROVEN_OBJECT_REPO_TITLE = "ProvEn Object Repository";
+	public static final String PROVEN_PROVENANCE_REPO_TITLE = "ProvEn Provenance Repository";
+	public static final String PROVEN_PROVENANCE_REPO_JOURNAL = "provenance.jnl";
+	public static final String PROVEN_PROVENANCE_REPO_PROPERTIES = "provenanceStore.properties";
+	public static final String PROVEN_REPO_MANAGER_DIR = "PROVEN";
+	public static final String PROVEN_REPO_MANAGER_REPO_DIR = "repositories";
+	public static final String PROVEN_PREFIX = "proven";
+	public static final String PROVEN_NS = "http://provenance.pnnl.gov/ns/proven#";
+	public static final String PROVEN_BLOB_NS = "http://provenance.pnnl.gov/ns/provenBlob#";
+	public static final String PROVEN_CONTEXT = PROVEN_NS + "provenContext";
+	public static final String PROVEN_DEFAULT_BASE_DIR = System.getProperty("user.home");
+	public static final String PROVEN_RESOURCE_DIR = "/META-INF/resources";
+	public static final String PROVEN_FO_DIR = PROVEN_RESOURCE_DIR + "/foundation_ontologies";
+	public static final String PROVEN_DO_DIR = PROVEN_RESOURCE_DIR + "/domain_ontologies";
+	public static final String PROVEN_PROVENANCE_REPO_PROPERTIES_DIR = PROVEN_RESOURCE_DIR + FILE_SEP + PROVEN_PROVENANCE_REPO_PROPERTIES;
+	public static final String PROVEN_JSON_LD_CONTEXT_DIR = PROVEN_RESOURCE_DIR
+			+ "/META-INF/json-ld-contexts";
+	public static final String PROVEN_BLOBSTORE_DIR = "BLOBSTORE";
+	public static final String OPENRDF_SYSTEM_REPO_DIR = "SYSTEM";
+	
+	// ///////////////////////////////////////////////////////////////////	
+	// HTTP 
+	public static final String HTTP_CACHE_CONTROL_HEADER = "Cache-Control";
+	public static final String HTTP_CACHE_CONTROL_VALUE = "public, max-age=600";
+	public static final String HTTP_VARY_HEADER = "Vary";
+	public static final String HTTP_VARY_VALUE = "Accept";
+	public static final String HTTP_ACCEPT_HEADER = "Accept";
+	public static final String HTTP_ACCEPT_VALUE = "application/json, application/xml";
+	public static final String HTTP_ACCESS_CONTROL_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
+	public static final String HTTP_ACCESS_CONTROL_ALLOW_ORIGIN_VALUE = "*";
+	public static final String HTTP_ACCESS_CONTROL_ALLOW_METHODS_HEADER = "Access-Control-Allow-Methods";
+	public static final String HTTP_ACCESS_CONTROL_ALLOW_METHODS_VALUE = "GET, PUT, OPTIONS, HEAD, POST, DELETE";
+	public static final String HTTP_ACCESS_CONTROL_ALLOW_HEADERS_HEADER = "Access-Control-Allow-Headers";
+	public static final String HTTP_ACCESS_CONTROL_ALLOW_HEADERS_VALUE = "Accept, Content-Type, Authorization";
+	
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+	// ///////////////////////////////////////////////////////////////////	
+	// JMS-MQ
+	public static final String JNDI_CONNECTION = "java:global/jms/disclosureJMS";
+	//public static final String JMS_MQ_CONNECTION_URL = "tcp://127.0.0.1:61616"; 
+	public static final String JMS_MQ_CONNECTION_URL = "tcp://provdev1:61616";
+	public static final String JMS_MQ_ADAPTER = "activemq-rar-5.11.2";
+	
+	public static final String JMS_MQ_USER_NAME = "admin";
+	public static final String JMS_MQ_PASSWORD = "admin";
+	
+	//public static final String JMS_MQ_USER_NAME = "system";
+	//public static final String JMS_MQ_PASSWORD = "manager";
+	
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Proven TS Constants
+	public static final String PROVENANCE_METRICS = "hasProvenanceMetric";
+	public static final String MEASUREMENT_NAME = "measurementName";
+	public static final String METRIC_NAME = "metricName";
+	public static final String IS_METADATA = "isMetadata";
+	
+
+	/**
+	 * Timeout in minutes for the response to each JMX client request. If the timeout is exceeded
+	 * the connection will be terminated. This is the JMX environment parameter
+	 * jmx.remote.x.request.waiting.timeout
+	 */
+	public static final int MAX_REQUEST_TIMEOUT_MINUTES = 30;
+
+	/**
+	 * Scheduled maintenance status values
+	 */
+	public enum MaintenanceStatus {
+		ON, OFF, FAIL, COMPLETE;
 	}
+
+	public static final int MAX_SCHEDULED_MAINTENANCE_ATTEMPTS = 5;
+	public static final int MAX_MAINTENANCE_INTERVAL_HOURS = 2;
+
+
+	// ///////////////////////////////////////////////////////////////////
+	// Foundation and Domain Model
+	public static final String PROVEN_FM_NAME = "provenFM";
+	public static final String PROVEN_FM_NS = "http://provenance.pnnl.gov/ns/provenFoundationModel#";
+	public static final String PROVEN_DM_NS = "http://provenance.pnnl.gov/ns/provenDomainModel#";
+	public static final String PROVEN_FM_PROV_O = PROVEN_RESOURCE_DIR
+			+ "/ontology/prov-20120724.owl";
+
+	// ///////////////////////////////////////////////////////////////////
+	// Object connection pool Settings
+	public static final int POOL_MAX_ACTIVE = -1;
+	public static final int POOL_MAX_IDLE = -1;
+	public static final int POOL_MIN_IDLE = 0;
+	public static final boolean POOL_TEST_ON_BORROW = true;
+	public static final boolean POOL_TEST_ON_RETURN = true;
+	public static final int POOL_WHEN_EXHAUSTED_ACTION = 0;
+
+	// ///////////////////////////////////////////////////////////////////
+	// Repository Config
+	public static final String NATIVE_TRIPLE_INDEXES = "spoc,posc";
+	public static final boolean KEYWORD_ENABLED = true;
+	public static final boolean OPTIMISTIC_READ_SNAPSHOT = true;
+	public static final boolean OPTIMISTIC_SERIALIZABLE = false;
+	public static final boolean OPTIMISTIC_SNAPSHOT = false;
+
 }

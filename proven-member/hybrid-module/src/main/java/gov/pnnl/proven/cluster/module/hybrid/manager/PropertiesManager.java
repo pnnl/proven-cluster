@@ -78,23 +78,122 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.manager;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import java.util.ArrayList;
+import java.util.List;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.ejb.EJB;
+import javax.ejb.LocalBean;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
+import javax.ejb.Singleton;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.module.hybrid.concept.Property;
+import gov.pnnl.proven.cluster.module.hybrid.service.ConceptService;
+
+/**
+ * Properties and internal state information for ProvEn services. By default
+ * this singleton allows simultaneous access (i.e READ lock). Properties are
+ * first read from ProvEn's property file on startup, any properties in the
+ * store from a previous session will override property values from the file.
+ * <p>
+ * Note: Any method modifying internal state must establish a WRITE lock.
+ * 
+ */
+@Singleton
+@LocalBean
+@Lock(LockType.READ)
+public class PropertiesManager {
+
+	private final Logger log = LoggerFactory.getLogger(PropertiesManager.class);
+
+	@EJB
+	private ConceptService cs;
+
+	// ////////////////////////////////////
+	// Properties
+	// TODO - should there be a "type"?
+	//
+	private static final String STORE_BASE_DIR_PROP = "provenBaseDir";
+	private static final String STORE_AUDITING_PROP = "False";
+	//
+	// ////////////////////////////////////
+
+	/**
+	 * Complete list of ProvEn properties.
+	 */
+	private List<Property> props = new ArrayList<Property>();
+
+	/**
+	 * Initialization method for PropertiesManager. It will perform an initial
+	 * load of all managed data.
+	 */
+	@PostConstruct
+	public void postConstruct() {
+		initProps();
+		log.debug("PropertiesManager initialized...");
 	}
+
+	/**
+	 * Cleanup method for PropertiesManager. It will persist current property
+	 * information back to store. TODO
+	 */
+	@PreDestroy
+	public void preDestroy() {
+		log.debug("PropertiesManager cleanup...");
+	}
+
+	// TODO
+	private void initProps() {
+		// Load properties from store
+	}
+
+	public List<Property> getProps() {
+		return props;
+	}
+
+	@Lock(LockType.WRITE)
+	public void setProps(List<Property> props) {
+		this.props = props;
+	}
+
+	/**
+	 * Gets value of a property, by name.
+	 * 
+	 * @param key
+	 *            the property name
+	 * @return the prop value, null if not found
+	 */
+	private String getPropVal(String key) {
+
+		String ret = null;
+
+		for (Property prop : props) {
+			if (prop.getKey().equals(key)) {
+				ret = prop.getVal();
+				break;
+			}
+		}
+		return ret;
+	}
+
+	// ///////////////////////////////////////
+	//
+	// Convenience methods to for retrieving the application properties values
+
+	public String getStoreBaseDir() {
+		return getPropVal(STORE_BASE_DIR_PROP);
+	}
+
+	public Boolean isAuditingStore() {
+		return Boolean.valueOf(getPropVal(STORE_AUDITING_PROP));
+	}
+	// ///////////////////////////////////////
+
 }

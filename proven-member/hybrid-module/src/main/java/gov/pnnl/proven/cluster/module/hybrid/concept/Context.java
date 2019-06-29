@@ -78,23 +78,46 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ConceptUtil.*;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.xml.bind.annotation.XmlRootElement;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * Context class representing a ProvEn named graph.
+ */
+// TODO Access control should be provided at context level
+@Iri(CONTEXT_CLASS)
+@XmlRootElement
+public class Context extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(Context.class);
+
+	@Iri(HAS_CONTEXT_URI_PROP)
+	String contextUri;
+
+	public Context() {
 	}
+
+	public Context(String name, ConceptUtil.ContextType ct) {
+		String contextName = name + "_" + ct.toString();
+		contextUri = genContextId(contextName, this);
+		log.debug("Context " + contextName + "  created");
+	}
+
+	public String getContextUri() {
+		return contextUri;
+	}
+
+	public void setContextUri(String contextUri) {
+		this.contextUri = contextUri;
+	}
+
 }

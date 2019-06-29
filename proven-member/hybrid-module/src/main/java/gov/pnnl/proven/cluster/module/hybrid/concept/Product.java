@@ -78,23 +78,78 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.Set;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Represents a domain product and the component service(s) used to generate it. The generated
+ * products are stored locally as Representation resources.  
+ */
+@Iri(PRODUCT_CLASS)
+@XmlRootElement
+public class Product extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(Product.class);
+
+	@Iri(HAS_NAME_PROP)
+	String name;
+
+	@Iri(HAS_DESCRIPTION_PROP)
+	String description;
+
+	@Iri(HAS_DOMAIN_MODEL_PROP)
+	private DomainModel domainModel;
+
+	@Iri(HAS_COMPONENT_SERVICE_PROP)
+	Set<ComponentService> componentServices;
+
+	public Product() {
 	}
+
+	public Product(String name) {
+		this.name = name;
+		log.debug("Product concept " + getName() + " created.");
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public DomainModel getDomainModel() {
+		return domainModel;
+	}
+
+	public void setDomainModel(DomainModel domainModel) {
+		this.domainModel = domainModel;
+	}
+
+	public Set<ComponentService> getComponentServices() {
+		return componentServices;
+	}
+
+	public void setComponentServices(Set<ComponentService> componentServices) {
+		this.componentServices = componentServices;
+	}
+
 }

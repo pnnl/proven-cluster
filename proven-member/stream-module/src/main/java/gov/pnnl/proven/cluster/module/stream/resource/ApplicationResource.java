@@ -86,7 +86,6 @@ import static gov.pnnl.proven.cluster.module.stream.resource.StreamResourceConst
 import javax.naming.NamingException;
 import javax.ws.rs.ApplicationPath;
 import org.glassfish.jersey.server.ResourceConfig;
-import gov.pnnl.proven.cluster.lib.module.resource.CorsFilter;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 
 @ApplicationPath(M_APP_PATH)
@@ -96,7 +95,7 @@ public class ApplicationResource extends ResourceConfig {
 		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
 		register(OpenApiResource.class);
 		register(ApiMetadata.class);
-		register(CorsFilter.class);
+		//register(CorsFilter.class);
 	}
 
 }

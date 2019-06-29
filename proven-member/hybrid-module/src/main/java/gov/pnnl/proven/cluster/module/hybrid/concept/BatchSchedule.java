@@ -78,23 +78,44 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.xml.bind.annotation.XmlRootElement;
+import org.openrdf.annotations.Iri;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+/**
+ * 
+ * Represents a scheduled Java EE batch processing job (JSR 352). 
+ *
+ */
+@Iri(BATCH_SCHEDULE_CLASS)
+@XmlRootElement
+public class BatchSchedule extends Schedule {
+
+	private final Logger log = LoggerFactory.getLogger(BatchSchedule.class);
+
+	@Iri(HAS_BATCH_JOB_XML_NAME_PROP)
+	private String batchJobXmlName;
+
+	public BatchSchedule() {
 	}
+
+	public BatchSchedule(String name, String timerSchedule, String batchJobXmlName) {
+		super(name, timerSchedule);
+		this.batchJobXmlName = batchJobXmlName;
+		log.debug("BatchSchedule concept " + getName() + " created.");
+	}
+
+	public String getBatchJobXmlName() {
+		return batchJobXmlName;
+	}
+
+	public void setBatchJobXmlName(String batchJobXmlName) {
+		this.batchJobXmlName = batchJobXmlName;
+	}
+
 }

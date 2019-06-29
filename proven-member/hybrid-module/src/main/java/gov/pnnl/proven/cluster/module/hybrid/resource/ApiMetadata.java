@@ -37,85 +37,20 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.resource;
+package gov.pnnl.proven.cluster.module.hybrid.resource;
 
-import java.io.IOException;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.ext.Provider;
-import java.util.List;
-import javax.ws.rs.core.MultivaluedMap;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.servers.Server;
+
+//@formatter:off
+@OpenAPIDefinition(info = @Info(title = "Proven API", 
+                                version = "2.0", 
+                                description = "Hybrid module services"), 
+                   servers = { @Server(url = "/hybrid") })
+//@formatter:on
 @Provider
-public class CorsFilter implements ContainerResponseFilter {
-
-	// Original CORS Support
-	// @Override
-	// public void filter(ContainerRequestContext requestContext,
-	// ContainerResponseContext responseContext) throws IOException {
-	// responseContext.getHeaders().add(
-	// "Access-Control-Allow-Origin", "*");
-	// responseContext.getHeaders().add(
-	// "Access-Control-Allow-Credentials", "true");
-	// responseContext.getHeaders().add(
-	// "Access-Control-Allow-Headers",
-	// "Origin, Content-Type, Accept, Authorization");
-	// responseContext.getHeaders().add(
-	// "Access-Control-Allow-Methods",
-	// "GET, POST, PUT, DELETE, OPTIONS, HEAD");
-	// }
-
-	public static final String ALLOWED_METHODS = "GET, POST, PUT, DELETE, OPTIONS, HEAD";
-	public final static int MAX_AGE = 42 * 60 * 60;
-	public final static String DEFAULT_ALLOWED_HEADERS = "origin,accept,content-type";
-	public final static String DEFAULT_EXPOSED_HEADERS = "location,info";
-
-	// TODO Fix multiple CorsFilter's in filter chain? This is reason for
-	// checking if header was already added into response.
-	@Override
-	public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
-			throws IOException {
-		final MultivaluedMap<String, Object> headers = responseContext.getHeaders();
-
-		if (!headers.containsKey("Access-Control-Allow-Origin"))
-			headers.add("Access-Control-Allow-Origin", "*");
-		if (!headers.containsKey("Access-Control-Allow-Headers"))
-			headers.add("Access-Control-Allow-Headers", getRequestedAllowedHeaders(requestContext));
-		if (!headers.containsKey("Access-Control-Expose-Headers"))
-			headers.add("Access-Control-Expose-Headers", getRequestedExposedHeaders(requestContext));
-		if (!headers.containsKey("Access-Control-Allow-Credentials"))
-			headers.add("Access-Control-Allow-Credentials", "true");
-		if (!headers.containsKey("Access-Control-Allow-Methods"))
-			headers.add("Access-Control-Allow-Methods", ALLOWED_METHODS);
-		if (!headers.containsKey("Access-Control-Max-Age"))
-			headers.add("Access-Control-Max-Age", MAX_AGE);
-		if (!headers.containsKey("x-responded-by"))
-			headers.add("x-responded-by", "cors-response-filter");
-	}
-
-	String getRequestedAllowedHeaders(ContainerRequestContext responseContext) {
-		List<String> headers = responseContext.getHeaders().get("Access-Control-Allow-Headers");
-		return createHeaderList(headers, DEFAULT_ALLOWED_HEADERS);
-	}
-
-	String getRequestedExposedHeaders(ContainerRequestContext responseContext) {
-		List<String> headers = responseContext.getHeaders().get("Access-Control-Expose-Headers");
-		return createHeaderList(headers, DEFAULT_EXPOSED_HEADERS);
-	}
-
-	String createHeaderList(List<String> headers, String defaultHeaders) {
-		if (headers == null || headers.isEmpty()) {
-			return defaultHeaders;
-		}
-		StringBuilder retVal = new StringBuilder();
-		for (int i = 0; i < headers.size(); i++) {
-			String header = (String) headers.get(i);
-			retVal.append(header);
-			retVal.append(',');
-		}
-		retVal.append(defaultHeaders);
-		return retVal.toString();
-	}
-
+public class ApiMetadata {
 }

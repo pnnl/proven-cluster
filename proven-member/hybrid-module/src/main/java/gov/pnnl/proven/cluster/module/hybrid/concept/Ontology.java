@@ -78,23 +78,86 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.net.URI;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.openrdf.annotations.Iri;
+import org.openrdf.rio.RDFFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Identifies explicit structure information for either a domain or foundation model.
+ */
+@Iri(ONTOLOGY_CLASS)
+@XmlRootElement
+public class Ontology extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(Ontology.class);
+
+	@Iri(HAS_NAME_PROP)
+	private String name;
+
+	@Iri(HAS_LOCATION_PROP)
+	private URI location;
+
+	@Iri(HAS_RDF_FORMAT_PROP)
+	private RDFFormat rdfFormat;
+
+	@Iri(HAS_EXPLICIT_STRUCTURE_PROP)
+	private Context explicitStructure;
+
+	public Ontology() {
+	};
+
+	public Ontology(String name, URI location, RDFFormat rdfFormat) {
+		this.name = name;
+		this.location = location;
+		this.rdfFormat = rdfFormat;
+		this.explicitStructure = new Context(name, ConceptUtil.ContextType.ES);
+		log.debug("Ontology concept " + getName() + " created.");
 	}
+
+	public Ontology(String name, URI location, RDFFormat rdfFormat, Representation rep) {
+		this(name, location, rdfFormat);
+		this.getRepresentations().add(rep);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public URI getLocation() {
+		return location;
+	}
+
+	public void setLocation(URI location) {
+		this.location = location;
+	}
+
+	public RDFFormat getRdfFormat() {
+		return rdfFormat;
+	}
+
+	public void setRdfFormat(RDFFormat rdfFormat) {
+		this.rdfFormat = rdfFormat;
+	}
+
+	public Context getContext() {
+		return explicitStructure;
+	}
+
+	public void setContext(Context context) {
+		this.explicitStructure = context;
+	}
+
 }

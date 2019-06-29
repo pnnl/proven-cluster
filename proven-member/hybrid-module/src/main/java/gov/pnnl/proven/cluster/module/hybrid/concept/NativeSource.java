@@ -78,23 +78,115 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.concept;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import org.openrdf.annotations.Iri;
+import org.openrdf.model.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Represents a native source artifact for a particular domain. Extraction of provenance information
+ * and its resource representations are created by the associate harvester.
+ */
+@Iri(NATIVE_SOURCE_CLASS)
+@XmlRootElement
+public class NativeSource extends Concept {
+
+	private final Logger log = LoggerFactory.getLogger(NativeSource.class);
+
+	@Iri(HAS_NAME_PROP)
+	private String name;
+
+	@Iri(HAS_DESCRIPTION_PROP)
+	private String description;
+
+	@Iri(HAS_LOCATION_PROP)
+	private URI location;
+
+	@Iri(HAS_MEDIA_TYPE_PROP)
+	private MediaType mediaType;
+
+	@Iri(HAS_RETAIN_LOCAL_COPY_PROP)
+	private Boolean isRetainLocalCopy;
+
+	@Iri(HAS_DOMAIN_MODEL_PROP)
+	private DomainModel domainModel;
+
+	@Iri(HAS_HARVESTER_PROP)
+	private Harvester harvester;
+
+	public NativeSource() {
+	};
+
+	public NativeSource(String name, URI location, DomainModel domainModel) {
+		this.name = name;
+		this.location = location;
+		this.domainModel = domainModel;
+		log.debug("NativeSource concept " + getName() + " created.");
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public URI getLocation() {
+		return location;
+	}
+
+	public void setLocation(URI location) {
+		this.location = location;
+	}
+
+	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
+	public MediaType getMediaType() {
+		return mediaType;
+	}
+
+	public void setMediaType(MediaType mediaType) {
+		this.mediaType = mediaType;
+	}
+
+	public Boolean getIsRetainLocalCopy() {
+		return isRetainLocalCopy;
+	}
+
+	public void setIsRetainLocalCopy(Boolean isRetainLocalCopy) {
+		this.isRetainLocalCopy = isRetainLocalCopy;
+	}
+
+	public DomainModel getDomainModel() {
+		return domainModel;
+	}
+
+	public void setDomainModel(DomainModel domainModel) {
+		this.domainModel = domainModel;
+	}
+
+	public Harvester getHarvester() {
+		return harvester;
+	}
+
+	public void setHarvester(Harvester harvester) {
+		this.harvester = harvester;
+	}
+
 }

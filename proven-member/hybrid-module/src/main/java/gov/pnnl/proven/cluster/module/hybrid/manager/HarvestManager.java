@@ -78,23 +78,74 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.manager;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+//import javax.batch.runtime.BatchRuntime;
+import javax.ejb.EJB;
+import javax.ejb.LocalBean;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
+import javax.ejb.Singleton;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import gov.pnnl.proven.cluster.module.hybrid.concept.Schedule;
+import gov.pnnl.proven.cluster.module.hybrid.service.ConceptService;
+
+/**
+ * Session Bean implementation class HarvestManager
+ */
+@Singleton
+@LocalBean
+@Lock(LockType.WRITE)
+public class HarvestManager {
+
+	private final Logger log = LoggerFactory.getLogger(HarvestManager.class);
+
+	@EJB
+	PropertiesManager pm;
+
+	@EJB
+	ScheduleManager sm;
+
+	@EJB
+	ConceptService cs;
+
+	@PostConstruct
+	public void postConstruct() {
+		log.debug("Harvest manager constructed");
+	}
+
+	@PreDestroy
+	public void preDestroy() {
+		log.debug("Harvest manager destroyed");
+	}
+
+	public void startSchedule(Schedule schedule) {
+		
+		assert schedule != null;
+		
+		try {
+
+			cs.begin();
+			
+			// Schedule concept needs to be managed by object connection
+			Schedule managedSchedule = cs.findConceptById(Schedule.class, schedule.getConceptId());
+
+			if (null == managedSchedule) {
+				log.warn("Schedule not found for " + schedule.getConceptId());
+			}
+
+			// TODO
+			// Invoke component service (if any) based on schedule type
+
+			cs.commit();
+
+		} catch (Exception e) {
+			cs.rollback();
+		}
 	}
 }

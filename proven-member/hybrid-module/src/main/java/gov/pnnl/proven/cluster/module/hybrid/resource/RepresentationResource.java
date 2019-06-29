@@ -78,23 +78,118 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.resource;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.resource.HybridResourceConsts.*;
+import static javax.ws.rs.core.MediaType.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.ejb.EJB;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.module.hybrid.concept.Representation;
+import gov.pnnl.proven.cluster.module.hybrid.service.ConceptService;
+
+/**
+ * Session Bean implementation class RepositoryResource
+ * 
+ * Services supporting administration of ProvEn's repositories.
+ */
+@Stateless
+@LocalBean
+@Path(RR_REPRESENTATION_PATH)
+public class RepresentationResource {
+
+	private final Logger log = LoggerFactory
+			.getLogger(RepresentationResource.class);
+
+	@EJB 
+	private ConceptService cs;
+		
+	
+	@GET
+	@Produces(APPLICATION_XML)
+	public Response getRepresentation(String key) throws URISyntaxException {
+		
+		Response ret;
+		
+		// Define a new representations
+		Representation rep1 = new Representation();
+		rep1.setLocation(new URI("file:///scratch/dev/cssef/docs/proven_tasks.txt"));
+		rep1.setBlobKey("http://rep_blob_key_123");
+		rep1.setMediaType(TEXT_PLAIN_TYPE);
+
+
+		Representation rep2 = new Representation();
+		rep2.setLocation(new URI("file:///scratch/dev/cssef/docs/proven_tasks.txt"));
+		rep2.setBlobKey("http://rep_blob_key_123");
+		rep2.setMediaType(TEXT_PLAIN_TYPE);
+
+		//rep1.setRep(rep2);
+		//rep2.setRep(rep1);
+		
+		Set<Representation> reps = new HashSet<Representation>();
+		reps.add(rep2);
+		rep1.setRepresentations(reps);
+		
+		
+		
+		// Go ahead and add it
+		try {
+			cs.addConcept(rep1);
+			//cs.addBlob(rep1);
+			ret = Response.created(new URI(rep1.getBlobKey())).entity(rep1).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret = Response.serverError().build();
+		}
+		
+		return ret;
 	}
+	
+	
+	@GET
+	@Path("all")
+	@Produces(APPLICATION_XML)
+	public Response getRepresentations() throws URISyntaxException {
+		
+		List<Representation> reps;
+		Response ret;
+				
+		// Go ahead and add it
+		try {
+			
+			reps = cs.getConcepts(Representation.class);
+			for (Representation rep : reps) {
+				log.debug("CONCEPT_ID :: " + rep.getConceptId());
+				log.debug("LOCATION :: " + rep.getLocation());
+				log.debug("BLOB_KEY :: " + rep.getBlobKey());
+				rep.setBlobKey("http://new.blob.key/hello_world");
+			}
+			ret = Response.ok().entity(reps).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret = Response.serverError().build();
+		}
+		
+		return ret;
+	}
+	
+	
+	
+
+
 }

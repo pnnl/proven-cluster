@@ -78,23 +78,41 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.hybrid.resource.filter;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.*;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.io.IOException;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
-		//register(CorsFilter.class);
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+
+@Priority(Priorities.HEADER_DECORATOR)
+public class RestResponseFilter implements ContainerResponseFilter {
+
+	@Override
+	public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+			throws IOException {
+
+		responseContext.getHeaders().add("X-Powered-By", "Semantic Matter :-)");
+		// Squid proxy support; caching and multi-format
+		responseContext.getHeaders().add("X-Powered-By", "Dark Matter :-)");
+
+		// Swagger CORS support
+		responseContext.getHeaders().add(HTTP_ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
+				HTTP_ACCESS_CONTROL_ALLOW_ORIGIN_VALUE);
+		responseContext.getHeaders().add(HTTP_ACCESS_CONTROL_ALLOW_METHODS_HEADER,
+				HTTP_ACCESS_CONTROL_ALLOW_METHODS_VALUE);
+		responseContext.getHeaders().add(HTTP_ACCESS_CONTROL_ALLOW_HEADERS_HEADER,
+				HTTP_ACCESS_CONTROL_ALLOW_HEADERS_VALUE);		
+
+//		if (HttpMethod.GET.equals(requestContext.getMethod())) {
+//			responseContext.getHeaders().add(HTTP_ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
+//					HTTP_ACCESS_CONTROL_ALLOW_ORIGIN_VALUE);
+//		}
+
 	}
 }
