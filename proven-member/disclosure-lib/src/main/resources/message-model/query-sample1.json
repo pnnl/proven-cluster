@@ -1,0 +1,23 @@
+{
+	"authToken": "1234",
+	"domain": "gridappsd.pnnl.gov",
+	"name": "OutputQuery",
+	"content": "query",
+	"queryType": "timeseries",
+	"queryLanguage": "PredicateBuilder",
+	"disclosureId": "abc244",
+	"requestorId": "xyx456",
+	"isStatic": true,
+	"isTransient": true,
+	"message": {
+		"startTime": "1530628305",
+		"endTime": "1530628305",
+		"hasMrid": "_1b86ce14-6254-4d8f-9cc0-b067d8d38b66",
+		"hasSimulationId": "757820688",
+		"hasSimulationMessageType": "OUTPUT",
+		"hasAngle": -123.456,
+		"hasMagnitude": 3410.456
+
+	},
+	"message-schema": {}
+}

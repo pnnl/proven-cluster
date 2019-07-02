@@ -46,6 +46,11 @@ import javax.json.JsonObject;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.loader.SchemaLoader;
+import org.everit.json.schema.ValidationException;
 
 /**
  * Abstract class for disclosure messages. Disclosure messages represent the
@@ -79,15 +84,20 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 	 * True, if the disclosed content is {@code MessageContent#Measurement}.
 	 */
 	boolean hasMeasurements;
+	
+	/**
+	 * mimeType can be application/json or application/jsonld.
+	 */
+	String mimeType;
 
 	public DisclosureMessage() {
 	}
 
-	public DisclosureMessage(JsonObject message) {
+	public DisclosureMessage(JsonObject message) throws Exception {
 		this(message, null);
 	}
 
-	public DisclosureMessage(JsonObject message, JsonObject schema) {
+	public DisclosureMessage(JsonObject message, JsonObject schema) throws Exception {
 		super(message, schema);
 
 		// TODO these are assumed default characteristics of the disclosed
@@ -95,10 +105,50 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 		// measurement data). Need to add internal methods to examine the JSON
 		// to set the member properties based on the actual content of the
 		// message.
-		this.disclosedContent = MessageContent.Explicit;
+		
+		MessageModel mm = MessageModel.getInstance();
+		try {
+			String jsonApi = mm.getModelFile("proven-schema.json");
+			//System.out.println(jsonApi);
+			JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
+			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
+			//System.out.println(message.toString());
+			jsonSchema.validate(new JSONObject(message.toString()));	
+			System.out.println("Valid JSON Data");
+			} catch (ValidationException e) {
+				e.printStackTrace();
+				System.out.println(e.getCausingExceptions());
+				System.out.println(e.getAllMessages());
+				System.out.println("Invalid JSON Data");
+
+			}
+		//this.domain = new DisclosureDomain(message.get("domain").toString());
+		this.name = message.getJsonString("name").getString();
+		this.authToken = message.getJsonString("authToken").getString();
+		this.requester =  message.getJsonString("requestorId").getString();
+		this.isStatic = message.get("isStatic") != null;
+		this.isTransient = message.get("isTransient") != null;
+		this.disclosureId = message.getJsonString("disclosureId").getString();
+		String content_type = message.getJsonString("content").getString();
+		if(content_type.equalsIgnoreCase("explicit")) {
+			this.disclosedContent = MessageContent.Explicit;
+			this.isRequest = false;
+			this.isKnowledge = true;
+			this.hasMeasurements = true;
+			this.mimeType = message.getJsonString("mimeType").getString();
+		}
+
+		else if (content_type.equalsIgnoreCase("query")) {
+			this.disclosedContent = MessageContent.Query;
+			this.isRequest = true;
+			this.isKnowledge = false;
+			this.hasMeasurements = false;
+		}
+		this.message = (JsonObject) message.get("message");
+		/*this.disclosedContent = MessageContent.Explicit;
 		this.isRequest = false;
 		this.isKnowledge = true;
-		this.hasMeasurements = true;
+		this.hasMeasurements = true;*/
 	}
 
 	/**

@@ -72,7 +72,7 @@ public class TestSSEResponse {
 
 	@PUT
 	@Path("/test/response/{count}")
-	public Response addResponses(@PathParam("count") int count) throws InterruptedException {
+	public Response addResponses(@PathParam("count") int count) throws Exception {
 
 		Response ret = Response.ok().build();
 

@@ -136,7 +136,7 @@ public enum DisclosureEntryType {
 	 * 
 	 * @return the {@code DisclosureEntryType}
 	 */
-	public static DisclosureMessage getDisclosureMessage(String entry) throws UnsupportedDisclosureEntryType {
+	public static DisclosureMessage getDisclosureMessage(String entry) throws UnsupportedDisclosureEntryType, JsonParsingException, Exception {
 
 		DisclosureMessage ret = null;
 
