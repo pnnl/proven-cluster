@@ -213,17 +213,12 @@ public class ConceptService {
 
 	// @formatter:off
 
-	private static final String findSingleByName = 
-			"SELECT ?s WHERE {?s " + toIri(HAS_NAME_PROP) + " ?name }";
+	private static final String findSingleByName = "SELECT ?s WHERE {?s " + toIri(HAS_NAME_PROP) + " ?name }";
 
+	private static final String findNativeSourcesByDomainName = "SELECT ?s WHERE { ?s " + toIri(HAS_DOMAIN_MODEL_PROP)
+			+ " ?domain  . " + "                  ?domain " + toIri(HAS_NAME_PROP) + " ?name " + "                } ";
 
-	private static final String findNativeSourcesByDomainName =
-			"SELECT ?s WHERE { ?s " + toIri(HAS_DOMAIN_MODEL_PROP) + " ?domain  . " +
-					"                  ?domain " + toIri(HAS_NAME_PROP) + " ?name " +
-					"                } ";
-
-	private static final String findNativeSourcesByDomainName2 =
-			"SELECT ?s WHERE {?s  ?p  ?o }";
+	private static final String findNativeSourcesByDomainName2 = "SELECT ?s WHERE {?s  ?p  ?o }";
 
 	// @formatter:on
 	// //////////////////////////////////////////////////////////
@@ -622,7 +617,8 @@ public class ConceptService {
 						if (cell != null) {
 							if (colNames.get(cellIndex).contains("time") && colNames.get(cellIndex).length() == 4) {
 								//
-								// Influx returns epoch time in a double format.  Needs to be converted to Long
+								// Influx returns epoch time in a double format.
+								// Needs to be converted to Long
 								//
 								Double val = new Double(cell.toString());
 								Long lval = val.longValue();
@@ -630,7 +626,8 @@ public class ConceptService {
 							} else {
 								String buff = cell.toString();
 								//
-								// If a cell is a quoted string, remove the surrounding double quotes.
+								// If a cell is a quoted string, remove the
+								// surrounding double quotes.
 								//
 								buff = buff.replaceAll("\"", "");
 								point.putRow(colNames.get(cellIndex), buff);
@@ -711,7 +708,8 @@ public class ConceptService {
 			// dbName);
 			Query query = new Query(queryString, dbName);
 			//
-			// Unless TimeUnit parameter is used in query, Epoch time will not be returned.
+			// Unless TimeUnit parameter is used in query, Epoch time will not
+			// be returned.
 			//
 			QueryResult qr = influxDB.query(query, TimeUnit.MILLISECONDS);
 			if (qr.hasError()) {
@@ -727,10 +725,10 @@ public class ConceptService {
 	}
 
 	//
-	// Utility used to pad an epoch number string with zeros  
+	// Utility used to pad an epoch number string with zeros
 	//
 	public static String padRightZeros(String s, int n) {
-		String.format("%1$-" + n + "s", s);  
+		String.format("%1$-" + n + "s", s);
 		s = s.replace(' ', '0');
 		return s;
 	}
@@ -742,18 +740,18 @@ public class ConceptService {
 		try {
 			// TODO remove hard coded nanosecond - should provide a converter
 			// source format -> ts format
-			//statement = val + "000000";
+			// statement = val + "000000";
 			//
-			//Replaced hardcoded buffer with right pad
-			//Assumption will be to use nanosecond precision
-			//Nanoseconds - 16 digits
+			// Replaced hardcoded buffer with right pad
+			// Assumption will be to use nanosecond precision
+			// Nanoseconds - 16 digits
 			//
 			// Microseconds - 10 digits
 			//
 			// Seconds - 7 digits
 
-			//16 digit nanosecond padding
-			statement = padRightZeros(val,16);
+			// 16 digit nanosecond padding
+			statement = padRightZeros(val, 16);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -796,7 +794,17 @@ public class ConceptService {
 				//
 				// Set up filter
 				//
-				filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
+
+				if (filter.getDatatype().equals(MetricValueType.Integer.toString())) {
+					filter_statement = filter.getField() + space + eq + Integer.parseInt(filter.getValue());
+				} else if (filter.getDatatype().equals(MetricValueType.Long.toString())) {
+					filter_statement = filter.getField() + space + eq + Long.parseLong(filter.getValue());
+				} else if (filter.getDatatype().equals(MetricValueType.Float.toString())) {
+					filter_statement = filter.getField() + space + eq + Float.parseFloat(filter.getValue());
+				} else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
+					filter_statement = filter.getField() + space + eq + Double.parseDouble(filter.getValue());
+				} else
+					filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
 
 				//
 				// If time oriented, override filter with StartTime and EndTime
@@ -833,7 +841,8 @@ public class ConceptService {
 			// dbName);
 			Query influxQuery = new Query(queryStatement, dbName);
 			//
-			// Unless TimeUnit parameter is used in query, Epoch time will not be returned.
+			// Unless TimeUnit parameter is used in query, Epoch time will not
+			// be returned.
 			//
 			QueryResult qr = influxDB.query(influxQuery, TimeUnit.MILLISECONDS);
 			if (qr.hasError()) {
@@ -968,13 +977,13 @@ public class ConceptService {
 	}
 
 	public ProvenMessageResponse influxWriteBulkOutputMeasurement() {
-          ProvenMessageResponse pmr = null;
-          
-    return pmr;
+		ProvenMessageResponse pmr = null;
+
+		return pmr;
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	public char detectObjectType (JSONObject message) {
+	public char detectObjectType(JSONObject message) {
 		char type = 0;
 		JSONObject object = (JSONObject) message.get("message");
 		if (object != null) {
@@ -983,168 +992,43 @@ public class ConceptService {
 			object = (JSONObject) message.get("input");
 			if (object != null) {
 				type = 'I';
-			} 
+			}
 		}
 
 		return type;
-		
-		
+
 	}
-	
-	private ProvenMessageResponse influxWriteBulkSimulationInput(JSONObject commandObject, InfluxDB influxDB) {
-		   ProvenMessageResponse ret = null;
-		   Long timestamp = (long) -1;
-           String differenceMrid = null;
-           JSONArray forwardDifferenceArray = null;
-           JSONArray reverseDifferenceArray = null;
-            JSONObject inputObject = (JSONObject) commandObject.get("input");
-			String simulationid = inputObject.get("simulation_id").toString();
-			JSONObject object = (JSONObject) inputObject.get("message");
-			@SuppressWarnings("unchecked")
-			Set<String> keys = object.keySet();
-			Iterator<String> it = keys.iterator();               
-			while (it.hasNext()) {
-				String key = it.next(); 
-				if (key.equalsIgnoreCase("timestamp")) {
-					timestamp = (Long) object.get("timestamp");
 
-				}
-				if (key.equalsIgnoreCase("difference_mrid")) {
-					differenceMrid = (String) object.get(key);
-				}
-				if (object.get(key) instanceof JSONArray && (key.equalsIgnoreCase("forward_differences"))) {
-					forwardDifferenceArray = (JSONArray) object.get(key);
-				}   		
-				if (object.get(key) instanceof JSONArray && (key.equalsIgnoreCase("reverse_differences"))) {
-					reverseDifferenceArray = (JSONArray) object.get(key);
-				} 				
-                 		
-			}
-
-
-
-			if ((timestamp == -1) || (simulationid.equalsIgnoreCase(""))) {
-				ret = new ProvenMessageResponse();
-				ret.setStatus(Status.BAD_REQUEST);
-				ret.setReason("Invalid or missing message content type.  Measurement timestamp or simulation id missing.");
-				ret.setCode(Status.BAD_REQUEST.getStatusCode());
-				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-				return ret;
-			}  	
-
-
-			if ((forwardDifferenceArray == null) && (reverseDifferenceArray == null)) {
-				ret = new ProvenMessageResponse();
-				ret.setStatus(Status.BAD_REQUEST);
-				ret.setReason("Invalid or missing message content type.  Measurements missing.");
-				ret.setCode(Status.BAD_REQUEST.getStatusCode());
-				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-				return ret;
-			}  					
-			
-			@SuppressWarnings("unchecked")
-			Iterator<JSONObject> fditerator = forwardDifferenceArray.iterator();
-			while (fditerator.hasNext()) {
-				JSONObject fdobject = (JSONObject) fditerator.next();
-				Set<String> fdkeys = fdobject.keySet();
-				Iterator<String> fdit = fdkeys.iterator();
-				Point.Builder builder = Point.measurement("PROVEN_MEASUREMENT")
-						.time(timestamp, TimeUnit.MILLISECONDS);
-				builder.tag("simulation_id", simulationid);
-				builder.tag("difference_mrid", differenceMrid);
-			while (fdit.hasNext()) {
-				String fdkey = fdit.next();
-				if (fdobject.get(fdkey) instanceof String) {
-								if (fdobject.get(fdkey) instanceof String) {
-								    builder.addField(fdkey,(String)fdobject.get(fdkey));		
-							} else if (fdobject.get(fdkey) instanceof Integer) {
-								builder.addField(fdkey,Integer.valueOf((Integer)fdobject.get(fdkey)));
-							} else if ( fdobject.get(fdkey) instanceof Long) {
-								builder.addField(fdkey,Long.valueOf((Long)fdobject.get(fdkey)));
-							} else if (fdobject.get(fdkey) instanceof Float) {
-								builder.addField(fdkey,Float.valueOf((Float)fdobject.get(fdkey)));
-							} else if (fdobject.get(fdkey) instanceof Double) {
-								builder.addField(fdkey,Double.valueOf((Double)fdobject.get(fdkey)));
-
-							}
-						}
-						influxDB.write(idbDB, idbRP, builder.build());
-						ret = new ProvenMessageResponse();
-						ret.setReason("success");
-						ret.setStatus(Status.CREATED);
-						ret.setCode(Status.CREATED.getStatusCode());
-						ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
-
-					}
-				}
-			@SuppressWarnings("unchecked")
-			Iterator<JSONObject> rditerator = reverseDifferenceArray.iterator();
-			while (rditerator.hasNext()) {
-				JSONObject rdobject = (JSONObject) rditerator.next();
-				Set<String> rdkeys = rdobject.keySet();
-				Iterator<String> rdit = rdkeys.iterator();
-				Point.Builder builder = Point.measurement("PROVEN_MEASUREMENT")
-						.time(timestamp, TimeUnit.MILLISECONDS);
-				builder.tag("simulation_id", simulationid);
-				builder.tag("difference_mrid", differenceMrid);
-			while (rdit.hasNext()) {
-				String rdkey = rdit.next();
-				if (rdobject.get(rdkey) instanceof String) {
-								if (rdobject.get(rdkey) instanceof String) {
-								    builder.addField(rdkey,(String)rdobject.get(rdkey));
-								
-							} else if (rdobject.get(rdkey) instanceof Integer) {
-								builder.addField(rdkey,Integer.valueOf((Integer)rdobject.get(rdkey)));
-							} else if ( rdobject.get(rdkey) instanceof Long) {
-								builder.addField(rdkey,Long.valueOf((Long)rdobject.get(rdkey)));
-							} else if (rdobject.get(rdkey) instanceof Float) {
-								builder.addField(rdkey,Float.valueOf((Float)rdobject.get(rdkey)));
-							} else if (rdobject.get(rdkey) instanceof Double) {
-								builder.addField(rdkey,Double.valueOf((Double)rdobject.get(rdkey)));
-
-							}
-						}
-						influxDB.write(idbDB, idbRP, builder.build());
-						ret = new ProvenMessageResponse();
-						ret.setReason("success");
-						ret.setStatus(Status.CREATED);
-						ret.setCode(Status.CREATED.getStatusCode());
-						ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
-
-					}
-				}
-			return ret;
-			}
-		   
-			
-	
-	private ProvenMessageResponse influxWriteBulkSimulationOutput(JSONObject messageObject, InfluxDB influxDB) {
-	   ProvenMessageResponse ret = null;
-	   Long timestamp = (long) -1;
-		boolean hasMeasurementObject = false;
-		boolean hasMeasurementArray = false;
-		String measurementArrayKey = null;
-		String simulationid = messageObject.get("simulation_id").toString();
-		JSONObject timestepObject = (JSONObject) messageObject.get("message");
+	private ProvenMessageResponse influxWriteBulkSimulationInput(JSONObject commandObject, InfluxDB influxDB,
+			String measurementName, String instanceId) {
+		ProvenMessageResponse ret = null;
+		Long timestamp = (long) -1;
+		String differenceMrid = null;
+		JSONArray forwardDifferenceArray = null;
+		JSONArray reverseDifferenceArray = null;
+		JSONObject inputObject = (JSONObject) commandObject.get("input");
+		String simulationid = inputObject.get("simulation_id").toString();
+		JSONObject object = (JSONObject) inputObject.get("message");
 		@SuppressWarnings("unchecked")
-		Set<String> timestep_keys = timestepObject.keySet();
-		Iterator<String> timestep_it = timestep_keys.iterator();               
-		while (timestep_it.hasNext()) {
-			String key = timestep_it.next(); 
+		Set<String> keys = object.keySet();
+		Iterator<String> it = keys.iterator();
+		while (it.hasNext()) {
+			String key = it.next();
 			if (key.equalsIgnoreCase("timestamp")) {
-				timestamp = (Long) timestepObject.get("timestamp");
+				timestamp = (Long) object.get("timestamp");
 
 			}
-			if (timestepObject.get(key) instanceof JSONObject ) {
-				hasMeasurementObject = true;
-			}   		
-			if (timestepObject.get(key) instanceof JSONArray ) {
-				hasMeasurementArray = true;
-				measurementArrayKey = key;
-			}                  		
+			if (key.equalsIgnoreCase("difference_mrid")) {
+				differenceMrid = (String) object.get(key);
+			}
+			if (object.get(key) instanceof JSONArray && (key.equalsIgnoreCase("forward_differences"))) {
+				forwardDifferenceArray = (JSONArray) object.get(key);
+			}
+			if (object.get(key) instanceof JSONArray && (key.equalsIgnoreCase("reverse_differences"))) {
+				reverseDifferenceArray = (JSONArray) object.get(key);
+			}
+
 		}
-
-
 
 		if ((timestamp == -1) || (simulationid.equalsIgnoreCase(""))) {
 			ret = new ProvenMessageResponse();
@@ -1153,8 +1037,137 @@ public class ConceptService {
 			ret.setCode(Status.BAD_REQUEST.getStatusCode());
 			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 			return ret;
-		}  	
+		}
 
+		if ((forwardDifferenceArray == null) && (reverseDifferenceArray == null)) {
+			ret = new ProvenMessageResponse();
+			ret.setStatus(Status.BAD_REQUEST);
+			ret.setReason("Invalid or missing message content type.  Measurements missing.");
+			ret.setCode(Status.BAD_REQUEST.getStatusCode());
+			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			return ret;
+		}
+
+		@SuppressWarnings("unchecked")
+		Iterator<JSONObject> fditerator = forwardDifferenceArray.iterator();
+		while (fditerator.hasNext()) {
+			JSONObject fdobject = (JSONObject) fditerator.next();
+			Set<String> fdkeys = fdobject.keySet();
+			Iterator<String> fdit = fdkeys.iterator();
+			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
+			builder.tag("simulation_id", simulationid);
+			builder.tag("difference_mrid", differenceMrid);
+
+			// Add OUTPUT tag
+			builder.tag("hasSimulationMessageType", "INPUT");
+
+			builder.tag("hasMeasurementDifference", "FORWARD");
+
+			while (fdit.hasNext()) {
+				String fdkey = fdit.next();
+				// if (fdobject.get(fdkey) instanceof String) {
+				if (fdobject.get(fdkey) instanceof String) {
+					builder.tag(fdkey, (String) fdobject.get(fdkey));
+				} else if (fdobject.get(fdkey) instanceof Integer) {
+					builder.addField(fdkey, Integer.valueOf((Integer) fdobject.get(fdkey)));
+				} else if (fdobject.get(fdkey) instanceof Long) {
+					builder.addField(fdkey, Long.valueOf((Long) fdobject.get(fdkey)));
+				} else if (fdobject.get(fdkey) instanceof Float) {
+					builder.addField(fdkey, Float.valueOf((Float) fdobject.get(fdkey)));
+				} else if (fdobject.get(fdkey) instanceof Double) {
+					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
+
+				}
+
+			}
+			influxDB.write(idbDB, idbRP, builder.build());
+			ret = new ProvenMessageResponse();
+			ret.setReason("success");
+			ret.setStatus(Status.CREATED);
+			ret.setCode(Status.CREATED.getStatusCode());
+			ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
+
+		}
+
+		@SuppressWarnings("unchecked")
+		Iterator<JSONObject> rditerator = reverseDifferenceArray.iterator();
+		while (rditerator.hasNext()) {
+			JSONObject rdobject = (JSONObject) rditerator.next();
+			Set<String> rdkeys = rdobject.keySet();
+			Iterator<String> rdit = rdkeys.iterator();
+			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
+			builder.tag("simulation_id", simulationid);
+			builder.tag("difference_mrid", differenceMrid);
+
+			// Add OUTPUT tag
+			builder.tag("hasSimulationMessageType", "INPUT");
+
+			// Add DIFFERENCE tag
+			builder.tag("hasMeasurementDifference", "REVERSE");
+
+			while (rdit.hasNext()) {
+				String rdkey = rdit.next();
+				// if (rdobject.get(rdkey) instanceof String) {
+				if (rdobject.get(rdkey) instanceof String) {
+					builder.tag(rdkey, (String) rdobject.get(rdkey));
+				} else if (rdobject.get(rdkey) instanceof Integer) {
+					builder.addField(rdkey, Integer.valueOf((Integer) rdobject.get(rdkey)));
+				} else if (rdobject.get(rdkey) instanceof Long) {
+					builder.addField(rdkey, Long.valueOf((Long) rdobject.get(rdkey)));
+				} else if (rdobject.get(rdkey) instanceof Float) {
+					builder.addField(rdkey, Float.valueOf((Float) rdobject.get(rdkey)));
+				} else if (rdobject.get(rdkey) instanceof Double) {
+					builder.addField(rdkey, Double.valueOf((Double) rdobject.get(rdkey)));
+				}
+
+			}
+			influxDB.write(idbDB, idbRP, builder.build());
+			ret = new ProvenMessageResponse();
+			ret.setReason("success");
+			ret.setStatus(Status.CREATED);
+			ret.setCode(Status.CREATED.getStatusCode());
+			ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
+
+		}
+		return ret;
+	}
+
+	private ProvenMessageResponse influxWriteBulkSimulationOutput(JSONObject messageObject, InfluxDB influxDB,
+			String measurementName, String instanceId) {
+
+		ProvenMessageResponse ret = null;
+		Long timestamp = (long) -1;
+		boolean hasMeasurementObject = false;
+		boolean hasMeasurementArray = false;
+		String measurementArrayKey = null;
+		String simulationid = messageObject.get("simulation_id").toString();
+		JSONObject timestepObject = (JSONObject) messageObject.get("message");
+		@SuppressWarnings("unchecked")
+		Set<String> timestep_keys = timestepObject.keySet();
+		Iterator<String> timestep_it = timestep_keys.iterator();
+		while (timestep_it.hasNext()) {
+			String key = timestep_it.next();
+			if (key.equalsIgnoreCase("timestamp")) {
+				timestamp = (Long) timestepObject.get("timestamp");
+
+			}
+			if (timestepObject.get(key) instanceof JSONObject) {
+				hasMeasurementObject = true;
+			}
+			if (timestepObject.get(key) instanceof JSONArray) {
+				hasMeasurementArray = true;
+				measurementArrayKey = key;
+			}
+		}
+
+		if ((timestamp == -1) || (simulationid.equalsIgnoreCase(""))) {
+			ret = new ProvenMessageResponse();
+			ret.setStatus(Status.BAD_REQUEST);
+			ret.setReason("Invalid or missing message content type.  Measurement timestamp or simulation id missing.");
+			ret.setCode(Status.BAD_REQUEST.getStatusCode());
+			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			return ret;
+		}
 
 		if ((hasMeasurementArray == false) && (hasMeasurementObject == false)) {
 			ret = new ProvenMessageResponse();
@@ -1163,40 +1176,45 @@ public class ConceptService {
 			ret.setCode(Status.BAD_REQUEST.getStatusCode());
 			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 			return ret;
-		}  					
-
-
+		}
 
 		@SuppressWarnings("unchecked")
 		Set<String> point_keys = timestepObject.keySet();
 		Iterator<String> point_it = point_keys.iterator();
 		while (point_it.hasNext()) {
 			String key = point_it.next();
-			if (timestepObject.get(key) instanceof JSONObject ) {
-				JSONObject object = (JSONObject)timestepObject.get(key);
+			if (timestepObject.get(key) instanceof JSONObject) {
+				JSONObject object = (JSONObject) timestepObject.get(key);
 				Set<String> okeys = object.keySet();
 				Iterator<String> oit = okeys.iterator();
-				Point.Builder builder = Point.measurement("PROVEN_MEASUREMENT")
-						.time(timestamp, TimeUnit.MILLISECONDS);
+				Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
 				builder.tag("simulation_id", simulationid);
+
+				// Add instanceId tag, if any
+				if (null != instanceId) {
+					builder.tag("instance_id", instanceId);
+				}
+
+				// Add OUTPUT tag
+				builder.tag("hasSimulationMessageType", "OUTPUT");
+
 				while (oit.hasNext()) {
 					String okey = oit.next();
 					if (object.get(okey) instanceof String) {
 						if (okey.equalsIgnoreCase("measurement_mrid")) {
-							builder.tag(okey,(String)object.get(okey));
+							builder.tag(okey, (String) object.get(okey));
 						} else {
-						    builder.addField(okey,(String)object.get(okey));
+							builder.tag(okey, (String) object.get(okey));
 						}
 					} else if (object.get(okey) instanceof Integer) {
-						builder.addField(okey,Integer.valueOf((Integer)object.get(okey)));
+						builder.addField(okey, Integer.valueOf((Integer) object.get(okey)));
 					} else if (object.get(okey) instanceof Long) {
-						builder.addField(okey,Long.valueOf((Long)object.get(okey)));
+						builder.addField(okey, Long.valueOf((Long) object.get(okey)));
 					} else if (object.get(okey) instanceof Float) {
-						builder.addField(okey,Float.valueOf((Float)object.get(okey)));
+						builder.addField(okey, Float.valueOf((Float) object.get(okey)));
 					} else if (object.get(okey) instanceof Double) {
-						builder.addField(okey,Double.valueOf((Double)object.get(okey)));
+						builder.addField(okey, Double.valueOf((Double) object.get(okey)));
 					}
-
 
 				}
 				influxDB.write(idbDB, idbRP, builder.build());
@@ -1205,7 +1223,6 @@ public class ConceptService {
 				ret.setStatus(Status.CREATED);
 				ret.setCode(Status.CREATED.getStatusCode());
 				ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
-
 
 			}
 			if (hasMeasurementArray) {
@@ -1216,26 +1233,34 @@ public class ConceptService {
 					JSONObject arrayObject = (JSONObject) iterator.next();
 					Set<String> aokeys = arrayObject.keySet();
 					Iterator<String> aoit = aokeys.iterator();
-					Point.Builder builder = Point.measurement("PROVEN_MEASUREMENT")
-							.time(timestamp, TimeUnit.MILLISECONDS);
+					Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
 					builder.tag("simulation_id", simulationid);
+
+					// Add instanceId tag, if any
+					if (null != instanceId) {
+						builder.tag("instance_id", instanceId);
+					}
+
+					// Add OUTPUT tag
+					builder.tag("hasSimulationMessageType", "OUTPUT");
+
 					while (aoit.hasNext()) {
 
 						String aokey = aoit.next();
 						if (arrayObject.get(aokey) instanceof String) {
 							if (aokey.equalsIgnoreCase("measurement_mrid")) {
-								builder.tag(aokey,(String)arrayObject.get(aokey));
+								builder.tag(aokey, (String) arrayObject.get(aokey));
 							} else {
-							    builder.addField(aokey,(String)arrayObject.get(aokey));
+								builder.tag(aokey, (String) arrayObject.get(aokey));
 							}
 						} else if (arrayObject.get(aokey) instanceof Integer) {
-							builder.addField(aokey,Integer.valueOf((Integer)arrayObject.get(aokey)));
-						} else if ( arrayObject.get(aokey) instanceof Long) {
-							builder.addField(aokey,Long.valueOf((Long)arrayObject.get(aokey)));
+							builder.addField(aokey, Integer.valueOf((Integer) arrayObject.get(aokey)));
+						} else if (arrayObject.get(aokey) instanceof Long) {
+							builder.addField(aokey, Long.valueOf((Long) arrayObject.get(aokey)));
 						} else if (arrayObject.get(aokey) instanceof Float) {
-							builder.addField(aokey,Float.valueOf((Float)arrayObject.get(aokey)));
+							builder.addField(aokey, Float.valueOf((Float) arrayObject.get(aokey)));
 						} else if (arrayObject.get(aokey) instanceof Double) {
-							builder.addField(aokey,Double.valueOf((Double)arrayObject.get(aokey)));
+							builder.addField(aokey, Double.valueOf((Double) arrayObject.get(aokey)));
 
 						}
 					}
@@ -1249,18 +1274,20 @@ public class ConceptService {
 				}
 			}
 		}
-	   
-	   
-	   return ret;
-		
+
+		return ret;
+
 	}
+
 	//
 	// New write measurement routine
 	//
-	public ProvenMessageResponse influxWriteBulkMeasurement(String measurements, String measurement_type) {
-		   DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
-		   LocalDateTime now = LocalDateTime.now();  
-		   System.out.println(dtf.format(now));  
+	public ProvenMessageResponse influxWriteBulkMeasurement(String measurements, String measurement_type,
+			String measurementName, String instanceId) {
+
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+		LocalDateTime now = LocalDateTime.now();
+		System.out.println(dtf.format(now));
 		ProvenMessageResponse ret = null;
 		if (!useIdb) {
 
@@ -1276,7 +1303,6 @@ public class ConceptService {
 		influxDB.enableBatch(20000, 20, TimeUnit.SECONDS);
 		JSONParser parser = new JSONParser();
 
-
 		JSONObject messageObject = null;
 		try {
 			messageObject = (JSONObject) parser.parse(measurements);
@@ -1284,31 +1310,28 @@ public class ConceptService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		char type = detectObjectType(messageObject);
-		
-		if (type == 'O')
-		{
-			ret = influxWriteBulkSimulationOutput(messageObject, influxDB);
+
+		if (type == 'O') {
+			ret = influxWriteBulkSimulationOutput(messageObject, influxDB, measurementName, instanceId);
 		} else if (type == 'I') {
-			ret = influxWriteBulkSimulationInput(messageObject, influxDB);
+			ret = influxWriteBulkSimulationInput(messageObject, influxDB, measurementName, instanceId);
 		} else {
-				ret = new ProvenMessageResponse();
-				ret.setStatus(Status.BAD_REQUEST);
-				ret.setReason("Invalid or missing message content type.  Simulation data irregular or not detected.");
-				ret.setCode(Status.BAD_REQUEST.getStatusCode());
-				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-				return ret;
+			ret = new ProvenMessageResponse();
+			ret.setStatus(Status.BAD_REQUEST);
+			ret.setReason("Invalid or missing message content type.  Simulation data irregular or not detected.");
+			ret.setCode(Status.BAD_REQUEST.getStatusCode());
+			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			return ret;
 		}
 
-		   now = LocalDateTime.now();  
-		   System.out.println(dtf.format(now));  
-		   influxDB.close();
+		now = LocalDateTime.now();
+		System.out.println(dtf.format(now));
+		influxDB.close();
 		return ret;
 
 	}
-
-
 
 	public void influxWriteMeasurements(Map<String, Set<ProvenanceMetric>> measurements) {
 

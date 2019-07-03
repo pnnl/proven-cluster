@@ -218,14 +218,11 @@ public class RepositoryResource {
 	}
 
 	private final static String SPARQL_EXAMPLE =
-	//@formatter:off
-			"SELECT ?subject ?predicate ?object  " 
-    		+ Consts.NL + "WHERE {  "
-			+ Consts.NL + "  GRAPH <http://provenance.pnnl.gov/ns/proven#provenTesting>  " + Consts.NL 
-			            + "  {  "
-			+ Consts.NL + "    ?subject ?predicate ?object  " + Consts.NL + "  }  " 
-			            + Consts.NL + "}  ";
-	//@formatter:on
+			// @formatter:off
+			"SELECT ?subject ?predicate ?object  " + Consts.NL + "WHERE {  " + Consts.NL
+					+ "  GRAPH <http://provenance.pnnl.gov/ns/proven#provenTesting>  " + Consts.NL + "  {  " + Consts.NL
+					+ "    ?subject ?predicate ?object  " + Consts.NL + "  }  " + Consts.NL + "}  ";
+	// @formatter:on
 
 	@EJB
 	private StoreManager sm;
@@ -239,13 +236,10 @@ public class RepositoryResource {
 	@GET
 	@Path(R_REPOSITORY_STATE)
 	@Produces(APPLICATION_JSON)
-	//@formatter:off
-	@ApiOperation(value="State of Proven hybrid store",
-	              notes = "Checks if Object Repository has been enabled and is currently "
-	                    + "accepting conections.",
-	              response = ProvenState.class,
-			      hidden=false)
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "State of Proven hybrid store", notes = "Checks if Object Repository has been enabled and is currently "
+			+ "accepting conections.", response = ProvenState.class, hidden = false)
+	// @formatter:on
 	public Response getRepositoryState() {
 
 		Response response;
@@ -271,16 +265,14 @@ public class RepositoryResource {
 	@GET
 	@Path(R_CONCEPTS + "/type/{domain}")
 	@Produces(APPLICATION_SPARQL_RESULTS)
-	//@formatter:off
-	@ApiOperation(value="Domain concept types and count of instances by domain" ,
-	              notes= "<i><b> \"" + APPLICATION_SPARQL_RESULTS + "\"</i></b>" 
-	                     + " MIME type result is produced by the service, " 
-	            		 + "projected variables in bindings array, include: <br><br>" 
-	                     + "<b>Concept</b> - the concept type <br>"  
-	            		 + "<b>Count</b> - the number of instances for the type <br><br>",
-			      hidden=false)
-	//@ApiResponses( value = { @ApiResponse(code = 200, message = "Successfull operation")})
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Domain concept types and count of instances by domain", notes = "<i><b> \""
+			+ APPLICATION_SPARQL_RESULTS + "\"</i></b>" + " MIME type result is produced by the service, "
+			+ "projected variables in bindings array, include: <br><br>" + "<b>Concept</b> - the concept type <br>"
+			+ "<b>Count</b> - the number of instances for the type <br><br>", hidden = false)
+	// @ApiResponses( value = { @ApiResponse(code = 200, message = "Successfull
+	// operation")})
+	// @formatter:on
 	public Response getDomainConceptTypes(
 			@ApiParam(value = "Name of domain context") @PathParam("domain") String domain) {
 
@@ -294,19 +286,15 @@ public class RepositoryResource {
 			if (dm != null) {
 				String dGraph = toIri(dm.getExplicitContent().getContextUri()).toString();
 
-				//@formatter:off
-				String sQuery =
-				" PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>  " +
-				//" PREFIX proven:<http://provenance.pnnl.gov/ns/proven#>  " +
-                " PREFIX dGraph:" + dGraph +
-				" SELECT ?Concept (count(distinct ?ConceptId) as ?Count)  " +
-				"  WHERE {    " +
-				//"  GRAPH proven:" + domain + "  {  " +
-                "  GRAPH dGraph:  {  " +				
-				"    ?ConceptId rdf:type ?Concept .  " +
-				"  }  " +
-				" } GROUP BY ?Concept ";
-				//@formatter:on
+				// @formatter:off
+				String sQuery = " PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>  " +
+				// " PREFIX proven:<http://provenance.pnnl.gov/ns/proven#> " +
+						" PREFIX dGraph:" + dGraph + " SELECT ?Concept (count(distinct ?ConceptId) as ?Count)  "
+						+ "  WHERE {    " +
+						// " GRAPH proven:" + domain + " { " +
+						"  GRAPH dGraph:  {  " + "    ?ConceptId rdf:type ?Concept .  " + "  }  "
+						+ " } GROUP BY ?Concept ";
+				// @formatter:on
 
 				log.debug(sQuery);
 				result = cs.sparqlQuery(sQuery);
@@ -330,20 +318,16 @@ public class RepositoryResource {
 	@Path(R_CONCEPTS + "/{domain}" + "/{pattern}")
 	// @Produces(APPLICATION_JSON)
 	@Produces(APPLICATION_SPARQL_RESULTS)
-	//@formatter:off
-	@ApiOperation(value="Domain concepts for a specified regex search pattern" ,
-	              notes= "<i><b> \"" + APPLICATION_SPARQL_RESULTS + "\"</i></b>" + " MIME type result is produced by the service, " +
-	                     "projected variables in bindings array, include: <br><br>" +
-	            		 "<b>ConceptId</b> - the concept identifier (i.e. class instance) <br>"  +
-	            		 "<b>Concept</b> - the rdf type (i.e. class) <br>"  +
-	            		 "<b>Term</b> - the predicate <br>"  +
-	            		 "<b>Value</b> - the value <br><br>"  +
-	                     "Search pattern is case-insensitve, and a limit value less then or equal to 0 will return all results.",
-	    	      response = String.class, 
-	    	      produces = APPLICATION_SPARQL_RESULTS,
-			      hidden=false)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation")})
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Domain concepts for a specified regex search pattern", notes = "<i><b> \""
+			+ APPLICATION_SPARQL_RESULTS + "\"</i></b>" + " MIME type result is produced by the service, "
+			+ "projected variables in bindings array, include: <br><br>"
+			+ "<b>ConceptId</b> - the concept identifier (i.e. class instance) <br>"
+			+ "<b>Concept</b> - the rdf type (i.e. class) <br>" + "<b>Term</b> - the predicate <br>"
+			+ "<b>Value</b> - the value <br><br>"
+			+ "Search pattern is case-insensitve, and a limit value less then or equal to 0 will return all results.", response = String.class, produces = APPLICATION_SPARQL_RESULTS, hidden = false)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") })
+	// @formatter:on
 	public Response getDomainConcepts(@ApiParam(value = "Name of domain context") @PathParam("domain") String domain,
 			@ApiParam(value = "Search pattern") @PathParam("pattern") String pattern,
 			@ApiParam(value = "limit number of results") @QueryParam("limit") Integer limit) {
@@ -359,24 +343,18 @@ public class RepositoryResource {
 
 				String dGraph = toIri(dm.getExplicitContent().getContextUri()).toString();
 
-				//@formatter:off
-				String sQuery =
-				" PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>  " +
-//				" PREFIX proven:<http://provenance.pnnl.gov/ns/proven#>  " +
-                " PREFIX dGraph:" + dGraph +						
-				" SELECT ?ConceptId ?Concept ?Term ?Value  " +
-				"  WHERE {    " +
-//				"  GRAPH proven:" + domain + "  {  " +
-                "  GRAPH dGraph:  {  " +				
-				"    ?ConceptId rdf:type ?Concept .  " +
-				"    ?ConceptId ?Term ?Value .  " +
-				"    filter( regex(str(?Concept), " + "\"" + pattern + "\"," + " \"i\" ) ||  " +
-				"            regex(str(?ConceptId), " + "\"" + pattern + "\"," + " \"i\" ) ||  " +
-				"            regex(str(?Term), " + "\"" + pattern + "\"," + " \"i\" ) ||  " +
-				"            regex(str(?Value), " + "\"" + pattern + "\"," + " \"i\" ) ) .  " +			
-				"  }  " + 
-				" } " ;
-				//@formatter:on
+				// @formatter:off
+				String sQuery = " PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>  " +
+				// " PREFIX proven:<http://provenance.pnnl.gov/ns/proven#> " +
+						" PREFIX dGraph:" + dGraph + " SELECT ?ConceptId ?Concept ?Term ?Value  " + "  WHERE {    " +
+						// " GRAPH proven:" + domain + " { " +
+						"  GRAPH dGraph:  {  " + "    ?ConceptId rdf:type ?Concept .  "
+						+ "    ?ConceptId ?Term ?Value .  " + "    filter( regex(str(?Concept), " + "\"" + pattern
+						+ "\"," + " \"i\" ) ||  " + "            regex(str(?ConceptId), " + "\"" + pattern + "\","
+						+ " \"i\" ) ||  " + "            regex(str(?Term), " + "\"" + pattern + "\"," + " \"i\" ) ||  "
+						+ "            regex(str(?Value), " + "\"" + pattern + "\"," + " \"i\" ) ) .  " + "  }  "
+						+ " } ";
+				// @formatter:on
 
 				if ((null != limit) && (limit > 0)) {
 					sQuery += " LIMIT " + limit.toString();
@@ -405,20 +383,15 @@ public class RepositoryResource {
 	@GET
 	@Path(R_MESSAGES + "/{domain}" + "/{conceptId}")
 	@Produces(APPLICATION_SPARQL_RESULTS)
-	//@formatter:off
-	@ApiOperation(value="Message(s) data containing provided concept identifier" ,
-            notes= "<i><b> \"" + APPLICATION_SPARQL_RESULTS + "\"</b></i>" + " MIME type result is produced by the service, " +
-                    "projected variables in bindings array, include: <br><br>" +
-           		 "<b>MessageId</b> - the message identifier <br>"  +
-           		 "<b>Subject</b><br>"  +
-           		 "<b>Predicate</b><br>"  +
-           		 "<b>Object</b><br><br>"  +
-                    "Provides a triple-listing (S,P,O) of the message(s) that contains the provided concept identifier.",
-	    	      response = String.class, 
-	    	      produces = APPLICATION_SPARQL_RESULTS,
-			      hidden=false)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation")})
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Message(s) data containing provided concept identifier", notes = "<i><b> \""
+			+ APPLICATION_SPARQL_RESULTS + "\"</b></i>" + " MIME type result is produced by the service, "
+			+ "projected variables in bindings array, include: <br><br>"
+			+ "<b>MessageId</b> - the message identifier <br>" + "<b>Subject</b><br>" + "<b>Predicate</b><br>"
+			+ "<b>Object</b><br><br>"
+			+ "Provides a triple-listing (S,P,O) of the message(s) that contains the provided concept identifier.", response = String.class, produces = APPLICATION_SPARQL_RESULTS, hidden = false)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") })
+	// @formatter:on
 	public Response getDomainMessagesForConceptId(
 			@ApiParam(value = "Name of domain context") @PathParam("domain") String domain,
 			@ApiParam(value = "Concept Identifier (IRI format)") @PathParam("conceptId") String conceptId) {
@@ -434,21 +407,17 @@ public class RepositoryResource {
 
 				String dGraph = toIri(dm.getExplicitContent().getContextUri()).toString();
 
-				//@formatter:off
-				String sQuery =
-				" PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>  " +
-				" PREFIX proven:<http://provenance.pnnl.gov/ns/proven#>  " +
-						
-				" SELECT ?MessageId ?Subject ?Predicate ?Object  " +
-				"  WHERE {    " +
-				"  GRAPH proven:" + domain + "  {  " +
-				
-				"   " + conceptId  + " proven:partOfProvenMessage ?MessageId .  " +
-				"   ?Subject proven:partOfProvenMessage ?MessageId .  " +
-				"   ?Subject ?Predicate ?Object .  " +		
-				"  }  " + 
-				" } " ;
-				//@formatter:on
+				// @formatter:off
+				String sQuery = " PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>  "
+						+ " PREFIX proven:<http://provenance.pnnl.gov/ns/proven#>  " +
+
+						" SELECT ?MessageId ?Subject ?Predicate ?Object  " + "  WHERE {    " + "  GRAPH proven:"
+						+ domain + "  {  " +
+
+						"   " + conceptId + " proven:partOfProvenMessage ?MessageId .  "
+						+ "   ?Subject proven:partOfProvenMessage ?MessageId .  " + "   ?Subject ?Predicate ?Object .  "
+						+ "  }  " + " } ";
+				// @formatter:on
 
 				log.debug(sQuery);
 
@@ -472,10 +441,9 @@ public class RepositoryResource {
 
 	@PUT
 	@Path(R_REPOSITORY_STATE + "/" + R_REPOSITORY_STATE_ENABLED)
-	//@formatter:off
-	@ApiOperation(value="Enables Proven Hybrid Store",
-			      hidden=true)
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Enables Proven Hybrid Store", hidden = true)
+	// @formatter:on
 	public Response enableRepository() {
 
 		Response response = Response.noContent().build();
@@ -494,10 +462,9 @@ public class RepositoryResource {
 
 	@PUT
 	@Path(R_REPOSITORY_STATE + "/" + R_REPOSITORY_STATE_DISABLED)
-	//@formatter:off
-	@ApiOperation(value="Disables Proven Hybrid Store",
-			      hidden=true)
-	//@formatter:on		
+	// @formatter:off
+	@ApiOperation(value = "Disables Proven Hybrid Store", hidden = true)
+	// @formatter:on
 	public Response disableRepository() {
 
 		Response response = Response.noContent().build();
@@ -516,10 +483,9 @@ public class RepositoryResource {
 
 	@DELETE
 	@Path(R_STATEMENTS)
-	//@formatter:off
-	@ApiOperation(value="Removes all statement triples from Proven Semantic store",
-			      hidden=true)
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Removes all statement triples from Proven Semantic store", hidden = true)
+	// @formatter:on
 	public Response removeAllStatements() {
 
 		Response response = Response.noContent().build();
@@ -539,12 +505,10 @@ public class RepositoryResource {
 
 	@DELETE
 	@Path(R_STATEMENTS + "/{domain}")
-	//@formatter:off
-	@ApiOperation(value="Removes all statement triples from provided domain",
-			      hidden=true,
-			      notes="Cannot be undone; use with caution")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") })
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Removes all statement triples from provided domain", hidden = true, notes = "Cannot be undone; use with caution")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") })
+	// @formatter:on
 	public Response removeDomainStatements(
 			@ApiParam(required = true, value = "Name of domain context") @PathParam("domain") String domain) {
 
@@ -569,13 +533,10 @@ public class RepositoryResource {
 	@GET
 	@Path(R_STATEMENTS)
 	@Produces(TEXT_PLAIN)
-	//@formatter:off
-	@ApiOperation(value="Simple view of all semantic statments",
-			      hidden=false,
-            	  notes = "The semantic statments are listed in SPOC (Subject:Predicate:Object:Context) order")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") 
-    })
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Simple view of all semantic statments", hidden = false, notes = "The semantic statments are listed in SPOC (Subject:Predicate:Object:Context) order")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") })
+	// @formatter:on
 	public Response getAllStatements() {
 
 		Response response;
@@ -610,15 +571,10 @@ public class RepositoryResource {
 	@GET
 	@Path(R_STATEMENTS + "/{domain}")
 	@Produces(TEXT_PLAIN)
-	//@formatter:off
-	@ApiOperation(value = "Simple view of all semantic statments for a given domain (content + structure)", 
-	              hidden = false, 
-	              notes = "The semantic statments are listed in SPOC (Subject:Predicate:Object:Context) order", 
-	              response = String.class, 
-	              produces = "text/plain")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") 
-			              })
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Simple view of all semantic statments for a given domain (content + structure)", hidden = false, notes = "The semantic statments are listed in SPOC (Subject:Predicate:Object:Context) order", response = String.class, produces = "text/plain")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") })
+	// @formatter:on
 	// public Response getDomainStatements(
 	public String getDomainStatements(
 			@ApiParam(required = true, value = "Name of domain context") @PathParam("domain") String domain) {
@@ -657,17 +613,15 @@ public class RepositoryResource {
 	@Path(R_MESSAGE + "/client" + "/{domain}" + "/{messageName}")
 	// @Consumes(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
-	//@formatter:off
-	@ApiOperation(value = "Adds provenance message to domain context", 
-	              notes = "Provided provenance mesage must be valid <a href='https://www.w3.org/TR/json-ld/'>JSON-LD.</a>  "
-			            + "Object identifiers for Subject/Object statement values are responsibility of caller.  "
-	            		+ "Proven's Describe Anything Provenance Interface (DAPI) library, if used, will manage identifiers for the user.  "
-	            		+ "Default insert behavior is overwrite for identical triple statements.  "
-	            		+ "Any Provenance Metrics specified in message will be added to time-series store, if enabled.  "
-	            		+ "Invalid JSON-LD will return error and message will not be added to store.")
-	@ApiResponses(value = { @ApiResponse(code = 204, message = "Successfull operation") 
-		                  })
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Adds provenance message to domain context", notes = "Provided provenance mesage must be valid <a href='https://www.w3.org/TR/json-ld/'>JSON-LD.</a>  "
+			+ "Object identifiers for Subject/Object statement values are responsibility of caller.  "
+			+ "Proven's Describe Anything Provenance Interface (DAPI) library, if used, will manage identifiers for the user.  "
+			+ "Default insert behavior is overwrite for identical triple statements.  "
+			+ "Any Provenance Metrics specified in message will be added to time-series store, if enabled.  "
+			+ "Invalid JSON-LD will return error and message will not be added to store.")
+	@ApiResponses(value = { @ApiResponse(code = 204, message = "Successfull operation") })
+	// @formatter:on
 	public Response addClientMessage(String jsonLd,
 			@ApiParam(value = "Name of domain context") @PathParam("domain") String domain,
 			@ApiParam(value = "Name of provenance message") @PathParam("messageName") String messageName) {
@@ -876,24 +830,20 @@ public class RepositoryResource {
 		return response;
 
 	}
-	
-	
+
 	@POST
 	@Path("sparql")
 	@Consumes(TEXT_PLAIN)
 	// @Produces(APPLICATION_JSON)
 	@Produces(TEXT_PLAIN)
-	//@formatter:off
-	@ApiOperation(value = "Query semantic store using sparql query language", 
-	              hidden = false, 
-	              notes = "Provided sparql query will be submited to semantic store.  "
-	                    + "Format of query results is in JSON, and is described here  "
-	                    + "<a href='https://www.w3.org/TR/sparql11-results-json/'> SPARQL Results Format </a>.  "
-	            		+ "Sparql query laguage is described here  "
-	                    + "<a href='https://www.w3.org/TR/sparql11-query/'> SPARQL Language Reference </a>.  ")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") 
-                          })
-	//@formatter:on
+	// @formatter:off
+	@ApiOperation(value = "Query semantic store using sparql query language", hidden = false, notes = "Provided sparql query will be submited to semantic store.  "
+			+ "Format of query results is in JSON, and is described here  "
+			+ "<a href='https://www.w3.org/TR/sparql11-results-json/'> SPARQL Results Format </a>.  "
+			+ "Sparql query laguage is described here  "
+			+ "<a href='https://www.w3.org/TR/sparql11-query/'> SPARQL Language Reference </a>.  ")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation") })
+	// @formatter:on
 	public Response getSparql(String queryString) {
 		Response response;
 		String ret = cs.sparqlQuery(queryString);
@@ -906,16 +856,15 @@ public class RepositoryResource {
 	@Path("influxql")
 	@Consumes(TEXT_PLAIN)
 	@Produces(TEXT_PLAIN)
-	//@formatter:off
-	@ApiOperation(value = "Query influxDB time-series store using InfluxQL", 
-	              hidden = false, 
-	              notes = "If enabled, provided query will be submited to InfluxDB time-series store.  "
-	                    + "Format of query results are in JSON, described here  "
-	                    + "<a href='https://docs.influxdata.com/influxdb/v1.2/guides/querying_data/'> InfluxQL Results Format </a>.  "
-	            		+ "InfluxQL query laguage is described here  "
-	                    + "<a href='https://docs.influxdata.com/influxdb/v1.2/query_language/spec/'> InfluxQL Language Reference </a>.  ")
-    //@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull operation")})
-	//@formatter:on	
+	// @formatter:off
+	@ApiOperation(value = "Query influxDB time-series store using InfluxQL", hidden = false, notes = "If enabled, provided query will be submited to InfluxDB time-series store.  "
+			+ "Format of query results are in JSON, described here  "
+			+ "<a href='https://docs.influxdata.com/influxdb/v1.2/guides/querying_data/'> InfluxQL Results Format </a>.  "
+			+ "InfluxQL query laguage is described here  "
+			+ "<a href='https://docs.influxdata.com/influxdb/v1.2/query_language/spec/'> InfluxQL Language Reference </a>.  ")
+	// @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull
+	// operation")})
+	// @formatter:on
 	public Response getInflux(String queryString) {
 		Response response;
 		String ret = cs.influxQuery(queryString);
@@ -927,56 +876,51 @@ public class RepositoryResource {
 	@Path(R_PROVEN_MESSAGE)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	//@formatter:off
-	@ApiOperation(value = "Adds a provenance message", 
-	              notes = "Provided provenance mesage must be valid \"ProvenMessage\" object")
-	@ApiResponses(value =  { @ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
-			                 @ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),	
-			                 @ApiResponse(code = 403, message = "Invalid or missing message content",response = ProvenMessageResponse.class),
-			                 @ApiResponse(code = 500, message = "Internal server error.")})		                  
-	//@formatter:on
-	
-	
+	// @formatter:off
+	@ApiOperation(value = "Adds a provenance message", notes = "Provided provenance mesage must be valid \"ProvenMessage\" object")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 403, message = "Invalid or missing message content", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 500, message = "Internal server error.") })
+	// @formatter:on
+
 	public ProvenMessageResponse addProvenMessage(ProvenMessage pm) {
 
 		ProvenMessageResponse pmr = null;
 
-		try {	
+		try {
 			cs.begin();
-		
+
 			// Add proven message to stream
 			// TODO Implement MapStore
 			String key = pm.getMessageKey();
 			pm.getMessageProperties().setDisclosure(new Date().getTime());
-			String stream = pm.getMessageContent().getStream(); 
+			String stream = pm.getMessageContent().getStream();
 			if (null != hzMemberInstance) {
 				log.warn("HZ cluster instance could not be found");
 				IMap<String, ProvenMessage> pms = hzMemberInstance.getMap(stream);
 				pms.set(key, pm);
-			}		
+			}
 
 			// Add statements to T3 store
 			Resource[] contexts = {};
 			Collection<Statement> statements = ConceptUtil.getSesameStatements(pm.getStatements());
 			cs.addStatements(statements, contexts);
 
-			
 			// Query or Add measurements to TS store
-			
+
 			// Query
 			if (stream.equals(MessageContent.Query.getStream())) {
 
 				pmr = cs.influxQuery(pm);
-			} 
+			}
 
-			
-			
 			// Explicit
-			     if  (stream.equals(MessageContent.Explicit.getStream())) {
-				    pmr = cs.influxWriteMeasurements(pm.getMeasurements());
-			    }
+			if (stream.equals(MessageContent.Explicit.getStream())) {
+				pmr = cs.influxWriteMeasurements(pm.getMeasurements());
+			}
 
-			
 			// Invalid message content
 			if (null == pmr) {
 				pmr = new ProvenMessageResponse();
@@ -986,9 +930,9 @@ public class RepositoryResource {
 				pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 
 				cs.rollback();
-				
+
 			} else {
-				
+
 				cs.commit();
 			}
 
@@ -1009,36 +953,38 @@ public class RepositoryResource {
 	@Path("addBulkTimeSeries")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	//@formatter:off
-	@ApiOperation(value = "Adds a bulk simulation message", 
-	              notes = "Provided provenance mesage must be valid \"FNCS Bridge Simulation JSON\" object")
-	@ApiResponses(value =  { @ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
-			                 @ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),	
-			                 @ApiResponse(code = 403, message = "Invalid or missing message content",response = ProvenMessageResponse.class),
-			                 @ApiResponse(code = 500, message = "Internal server error.")})		                  
-	//@formatter:on
-	
-	
-	public ProvenMessageResponse addBulkTimeSeries(String pm) {
-	
-		ProvenMessageResponse pmr = null;
-	    String measurement_type = "input";
-		try {	
-			cs.begin();
-		
+	// @formatter:off
+	@ApiOperation(value = "Adds a bulk simulation message", notes = "Provided provenance mesage must be valid \"FNCS Bridge Simulation JSON\" object")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 403, message = "Invalid or missing message content", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 500, message = "Internal server error.") })
+	// @formatter:on
+	public ProvenMessageResponse addBulkTimeSeries(String pm, @QueryParam("measurementName") String measurementName,
+			@QueryParam("instanceId") String instanceId) {
 
+		ProvenMessageResponse pmr = null;
+		String measurement_type = "input";
+		try {
+			cs.begin();
+
+			// Measurement name is required
+			if (null == measurementName) {
+				throw new Exception("Measurement Name is missing.");
+			}
+			
 			// Explicit
 			//
-			// Hack 
+			// Hack
 			//
-			   if (pm.contains("measurement") || pm.contains("MEASUREMENT")  ) {
-				   
-				   measurement_type = "output";
-			   }
-	
-				pmr = cs.influxWriteBulkMeasurement(pm, measurement_type);
-	
-			
+			if (pm.contains("measurement") || pm.contains("MEASUREMENT")) {
+
+				measurement_type = "output";
+			}
+
+			pmr = cs.influxWriteBulkMeasurement(pm, measurement_type, measurementName, instanceId);
+
 			// Invalid message content
 			if (null == pmr) {
 				pmr = new ProvenMessageResponse();
@@ -1046,14 +992,14 @@ public class RepositoryResource {
 				pmr.setReason("Invalid or missing message content type.");
 				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
 				pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-	
+
 				cs.rollback();
-				
+
 			} else {
-				
+
 				cs.commit();
 			}
-	
+
 		} catch (Exception e) {
 			cs.rollback();
 			pmr = new ProvenMessageResponse();
@@ -1063,7 +1009,7 @@ public class RepositoryResource {
 			pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 			e.printStackTrace();
 		}
-	
+
 		return pmr;
 	}
 
