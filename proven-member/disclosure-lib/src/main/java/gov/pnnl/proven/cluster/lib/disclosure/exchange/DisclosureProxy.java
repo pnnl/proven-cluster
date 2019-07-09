@@ -111,7 +111,7 @@ public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable
 		return jsonEntry;
 	}
 
-	public DisclosureMessage getDisclosureMessage() throws UnsupportedDisclosureEntryType {
+	public DisclosureMessage getDisclosureMessage() throws UnsupportedDisclosureEntryType, JsonParsingException, Exception {
 		return new DisclosureMessage(jsonEntry);
 	}
 

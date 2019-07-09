@@ -157,6 +157,10 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 					} catch (UnsupportedMessageContentException | UnsupportedDisclosureEntryType | JsonParsingException
 							| InvalidDisclosureDomainException | CsvParsingException e) {
 						log.error("Failed to create and add new disclosure message to stream", e);
+					
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				});
 				break;

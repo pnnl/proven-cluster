@@ -1,0 +1,17 @@
+{
+
+	"content": "query",
+	"queryType": "timeseries",
+	"queryLanguage": "PredicateBuilder",
+	"message": {
+		"startTime": "1530628305",
+		"endTime": "1530628305",
+		"hasMrid": "_1b86ce14-6254-4d8f-9cc0-b067d8d38b66",
+		"hasSimulationId": "757820688",
+		"hasSimulationMessageType": "INPUT",
+		"hasMeasurementDifference": "FORWARD",
+		"hasDifferenceAttribute": "ShuntCompensator.sections",
+		"hasObject": "_A5866105-A527-F682-C982-69807C0E088B",
+		"hasValue": 0
+	}
+}
