@@ -41,13 +41,22 @@ package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Map.Entry;
 import java.util.Optional;
 import javax.json.JsonObject;
+import javax.json.JsonValue;
+import javax.json.JsonValue.ValueType;
+
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
+
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.everit.json.schema.ValidationException;
@@ -64,6 +73,7 @@ import org.everit.json.schema.ValidationException;
 public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSerializable, Serializable{
 
 	private static final long serialVersionUID = 1L;
+	private static Logger log = LoggerFactory.getLogger(DisclosureMessage.class);
 
 	/**
 	 * This represents the message content type of the disclosed content itself.
@@ -97,32 +107,22 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 		this(message, null);
 	}
 
-	public DisclosureMessage(JsonObject message, JsonObject schema) throws Exception {
+	public DisclosureMessage(JsonObject message, JsonObject schema) throws JSONDataValidationException, Exception {
 		super(message, schema);
-
-		// TODO these are assumed default characteristics of the disclosed
-		// message for an initial implementation (i.e. explicit disclosure of
-		// measurement data). Need to add internal methods to examine the JSON
-		// to set the member properties based on the actual content of the
-		// message.
-		
+	
 		MessageModel mm = MessageModel.getInstance();
 		try {
-			String jsonApi = mm.getModelFile("proven-schema.json");
+			String jsonApi = mm.getApiSchema();
 			//System.out.println(jsonApi);
 			JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
 			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
 			//System.out.println(message.toString());
 			jsonSchema.validate(new JSONObject(message.toString()));	
-			System.out.println("Valid JSON Data");
-			} catch (ValidationException e) {
-				e.printStackTrace();
-				System.out.println(e.getCausingExceptions());
-				System.out.println(e.getAllMessages());
-				System.out.println("Invalid JSON Data");
-
+			log.info("Valid JSON Data");
+			} catch (ValidationException e) {		
+				throw new JSONDataValidationException("Invalid JSON Data: " + e.getAllMessages(), e);
 			}
-		//this.domain = new DisclosureDomain(message.get("domain").toString());
+
 		this.name = message.getJsonString("name").getString();
 		this.authToken = message.getJsonString("authToken").getString();
 		this.requester =  message.getJsonString("requestorId").getString();
@@ -134,7 +134,7 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 			this.disclosedContent = MessageContent.Explicit;
 			this.isRequest = false;
 			this.isKnowledge = true;
-			this.hasMeasurements = true;
+			//this.hasMeasurements = true;
 			this.mimeType = message.getJsonString("mimeType").getString();
 		}
 
@@ -144,13 +144,32 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 			this.isKnowledge = false;
 			this.hasMeasurements = false;
 		}
+
 		this.message = (JsonObject) message.get("message");
-		/*this.disclosedContent = MessageContent.Explicit;
-		this.isRequest = false;
-		this.isKnowledge = true;
-		this.hasMeasurements = true;*/
+		if(hasMeasurements(this.message)) {
+			this.hasMeasurements = true;
+		}
+		
 	}
 
+	public boolean hasMeasurements(JsonObject json){
+		boolean hasMeasurementskey = false;
+		if(json.containsKey("measurements")) {
+			 hasMeasurementskey = true;
+		}
+		else if(json.getValueType() == ValueType.OBJECT ) {
+			for (Entry<String, JsonValue> entry: json.entrySet()) {				
+				JsonValue val = entry.getValue();
+			    if(val.getValueType() == ValueType.OBJECT) {			    	
+					if(hasMeasurements(val.asJsonObject())) {
+						hasMeasurementskey = true;
+						break;
+					}
+			    }
+		}
+		}
+		return hasMeasurementskey;		
+	}
 	/**
 	 * TODO Implement.  Provides a new KnowledgeMessage based on the the disclosed
 	 * message; only if the disclosed content type is in

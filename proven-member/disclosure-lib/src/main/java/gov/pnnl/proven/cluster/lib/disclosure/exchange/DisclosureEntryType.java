@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParseException;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.CsvDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
@@ -136,7 +137,7 @@ public enum DisclosureEntryType {
 	 * 
 	 * @return the {@code DisclosureEntryType}
 	 */
-	public static DisclosureMessage getDisclosureMessage(String entry) throws UnsupportedDisclosureEntryType, JsonParsingException, Exception {
+	public static DisclosureMessage getDisclosureMessage(String entry) throws UnsupportedDisclosureEntryType, JsonParsingException, CsvParsingException, JSONDataValidationException, Exception {
 
 		DisclosureMessage ret = null;
 
