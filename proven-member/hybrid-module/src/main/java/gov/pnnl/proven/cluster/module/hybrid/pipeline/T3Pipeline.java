@@ -41,40 +41,55 @@ package gov.pnnl.proven.cluster.module.hybrid.pipeline;
 
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
+import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.pipeline.ContextFactory;
+import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
+import com.hazelcast.nio.Address;
 
+import gov.pnnl.cluster.lib.pipeline.T3Service;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.message.KnowledgeMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
+import gov.pnnl.proven.cluster.module.hybrid.util.Consts;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static java.util.Arrays.asList;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.AbstractMap;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-@Dependent
-public class T3Pipeline  implements Serializable {
-
+public class T3Pipeline implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	@Inject
+	protected HazelcastInstance hzi;
 
 	@PostConstruct
 	public void init() {
@@ -84,33 +99,51 @@ public class T3Pipeline  implements Serializable {
 	public T3Pipeline() {
 	}
 
-	public void submit(MessageStreamProxy mspRunTime) {
+	public void submit(MessageStreamProxy sourceMsp, MessageStreamProxy sinkMsp) {
 
-		//System.setProperty("hazelcast.logging.type", "log4j");
+		// System.setProperty("hazelcast.logging.type", "log4j");
 		System.out.println("START CLIENT:: " + Calendar.getInstance().getTime().toString());
-	
-		ClientConfig config = new ClientConfig();
-		ClientNetworkConfig networkConfig = config.getNetworkConfig();
-		networkConfig.addAddress("127.0.0.1:4701", "127.0.0.1:4702", "127.0.0.1:4703");
-		GroupConfig gconfig = config.getGroupConfig();
-		gconfig.setName("jet");
-		gconfig.setPassword("jet-pass");
 
-		// Create the specification of the computation pipeline. Note
-		// it's a pure POJO: no instance of Jet needed to create it.
+		// Jet client config
+		ClientConfig jetConfig = new ClientConfig();
+		jetConfig.getNetworkConfig().addAddress("127.0.0.1:4701", "127.0.0.1:4702", "127.0.0.1:4703");
+		jetConfig.getGroupConfig().setName("jet");
+
+		// Remote HZ config
+		Address address = hzi.getCluster().getLocalMember().getAddress();
+		String addressStr = address.getHost() + ":" + address.getPort();
+		ClientConfig hzClientConfig = new ClientConfig();
+		hzClientConfig.getNetworkConfig().addAddress(addressStr);
+		hzClientConfig.setGroupConfig(hzi.getConfig().getGroupConfig());
+		hzClientConfig.getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
+				ProvenMessageIDSFactory.class);
+
+		// T3 Storage Pipeline
+		// For each Knowledge message, if non-measurement content, store in T3.
+		// TODO - Give measurements their own stream and message content group
 		Pipeline p = Pipeline.create();
-		
-		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-		.filter(word -> !word.isEmpty()).groupingKey((s2) -> {return s2;}).aggregate(counting())
-		.drainTo(Sinks.map("counts"));
+		p.drawFrom(Sources.<String, KnowledgeMessage>remoteMapJournal(sourceMsp.getStreamName(), hzClientConfig,
+				START_FROM_OLDEST)).withoutTimestamps()
+
+				// STORE IN T3 - only if non-measurement
+				.mapUsingContext(t3Service(), (t3s, km) -> {
+
+					Map.Entry<String, ResponseMessage> ret = null;
+					ProvenMessage sourceMessage = km.getValue();
+					if (sourceMessage.getMessageContent() != MessageContent.Measurement) {
+						ResponseMessage response = t3s.add(sourceMessage);
+						ret = new AbstractMap.SimpleEntry<String, ResponseMessage>(response.getMessageKey(), response);
+					}
+					return ret;
+				})
+
+				// Drain
+				.drainTo(Sinks.<String, ResponseMessage>remoteMap(sinkMsp.getStreamName(), hzClientConfig));
 
 		// Start Jet, populate the input list
-		JetInstance jet = Jet.newJetClient(config);
+		JetInstance jet = Jet.newJetClient(jetConfig);
 
 		try {
-			List<String> text = jet.getList("text");
-			text.add("hello world hello hello world");
-			text.add("world world hello world");
 
 			// Perform the computation
 			JobConfig jobConfig = new JobConfig();
@@ -119,72 +152,14 @@ public class T3Pipeline  implements Serializable {
 			// Perform the computation
 			jet.newJob(p, jobConfig).join();
 
-			// Check the results
-			Map<String, Long> counts = jet.getMap("counts");
-			System.out.println("Count of hello: " + counts.get("hello"));
-			System.out.println("Count of world: " + counts.get("world"));
-			System.out.println("MSP Stream: " + mspRunTime.getStreamName());
-
 		} finally {
 			jet.shutdown();
 		}
 	}
 
-}	
-	
-	
-	
-//	public static void main(String[] args) {
-//
-//    	System.setProperty("hazelcast.logging.type", "log4j");
-//
-//        var jet = Jet.newJetClient(config);
-//        try {
-//            var input = jet.<String>getList("input");
-//            input.addAll(asList("j", "e", "t"));
-//            var output = jet.<Tuple2<String, String>>getList("output");
-//
-//            var p = Pipeline.create();
-//            p.drawFrom(Sources.list(input))
-//             .mapUsingContext(httpClient(), (httpc, item) -> {
-//                 String response = httpc
-//                    .send(GET("http://localhost:8008/" + item), 
-//                          BodyHandlers.ofLines())
-//                    .body().findFirst().orElse("");
-//                 return tuple2(item, response);
-//             })
-//             .drainTo(Sinks.list(output));
-//
-//            jet.newJob(p).join();
-//            output.forEach(System.out::println);
-//        } finally {
-//            Jet.shutdownAll();
-//            mockServer.stop();
-//        }
-//    }
-//
-//    private static ContextFactory<HttpClient> httpClient() {
-//        return ContextFactory
-//                .withCreateFn(x -> HttpClient.newHttpClient())
-//                .nonCooperative()
-//                .shareLocally();
-//    }
-//
-//    private static HttpRequest GET(String uri) {
-//        return HttpRequest.newBuilder().uri(URI.create(uri)).build();
-//    }
-//
-//    private static Undertow mockHttpServer() {
-//        return Undertow.builder()
-//                       .addHttpListener(8008, "localhost")
-//                       .setHandler(HttpEnrichment::handleRequest)
-//                       .build();
-//    }
-//
-//    private static void handleRequest(HttpServerExchange exchange) {
-//        exchange.getResponseHeaders().put(CONTENT_TYPE, "text/plain");
-//        String requestPath = exchange.getRequestPath();
-//        exchange.getResponseSender().send(
-//            String.valueOf(requestPath.charAt(1) - 'a' + 1));
-//    }
-//}
+	private static ContextFactory<T3Service> t3Service() {
+		File dataDir = new File(Consts.PROVEN_DEFAULT_BASE_DIR);
+		return ContextFactory.withCreateFn(x -> T3Service.newT3Service(dataDir)).toNonCooperative().withLocalSharing();
+	}
+}
+

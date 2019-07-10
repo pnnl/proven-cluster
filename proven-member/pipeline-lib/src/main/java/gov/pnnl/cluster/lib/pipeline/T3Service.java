@@ -37,9 +37,13 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.hybrid.pipeline;
+package gov.pnnl.cluster.lib.pipeline;
 
 import java.io.File;
+import java.util.Map;
+
+import javax.json.JsonObject;
+import javax.ws.rs.core.Response;
 
 import org.apache.jena.riot.RDFFormat;
 import org.openrdf.model.Resource;
@@ -48,13 +52,11 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.sail.nativerdf.NativeStore;
-
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.module.hybrid.util.Consts;
-import info.aduna.io.ResourceUtil;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 
 /**
- * Provides serives to local triple store.
+ * Provides services to local triple store (T3).
  * 
  * @author d3j766
  *
@@ -63,43 +65,28 @@ public class T3Service  {
 	
 	RepositoryConnection rc; 
 	RDFFormat format = RDFFormat.JSONLD;
-	//Resource defaultContext = DomainProvider.getProvenDisclosureDomain());
 	
 	/**
 	 * Creates a new T3Service with default settings.
 	 * @throws RepositoryException 
 	 */
-	public static T3Service newT3Service() throws RepositoryException {
-		T3Service t3s = newT3Service();
+	public static T3Service newT3Service(File dataDir) throws RepositoryException {
+		T3Service t3s = new T3Service(dataDir);
 		return t3s;
 	}	
 	
-	private T3Service() throws RepositoryException {
-		File dataDir = new File(Consts.PROVEN_DEFAULT_BASE_DIR);
+	private T3Service(File dataDir) throws RepositoryException {
+		//File dataDir = new File(Consts.PROVEN_DEFAULT_BASE_DIR);
 		String indexes = "spoc,posc,cosp";
 		Repository repo = new SailRepository(new NativeStore(dataDir, indexes));
 		repo.initialize();	 
 		rc = repo.getConnection();
 	}
 
-	public void add(String message) {
-		
-		//return add(message, , Resource... contexts )
-		
+	public ResponseMessage add(ProvenMessage sourceMessage) {
+		// TODO - Store message in sesame and return response message
+		Response.Status status = Response.Status.OK;
+		return new ResponseMessage(status, sourceMessage, sourceMessage.getMessage());	
 	}
 	
-	
-	public void add(String message, Resource... contexts ) {
-		
-	}
-	
-	public void add(String message, String baseUri, Resource... contexts ) {
-		
-	}
-	
-	private void connect() {
-		
-	}
-	
-
 }

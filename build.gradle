@@ -111,6 +111,10 @@ project('proven-member:hybrid-lib') {
 	dependencies {  compile project(':proven-member:disclosure-lib') }
 }
 
+project('proven-member:pipeline-lib') {
+	dependencies {  compile project(':proven-member:disclosure-lib') }
+}
+
 project('proven-member:disclosure-module') {
 	dependencies { 
 		compile project(':proven-member:module-lib')	
@@ -126,6 +130,7 @@ project('proven-member:stream-module') {
 project('proven-member:hybrid-module') {
 	dependencies {
 		compile project(':proven-member:hybrid-lib')
+		compile project(':proven-member:pipeline-lib')
 		compile project(':proven-member:module-lib')
 	}
 }

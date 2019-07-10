@@ -115,10 +115,14 @@ public class T3PipelineResource {
 
 			DisclosureDomain dd = new DisclosureDomain(domain);
 
-			// Runtime message stream access
-			MessageStreamProxy mspRunTime = sm.getMessageStreamProxy(dd, MessageStreamType.Knowledge);
+			// Knowledge source stream access
+			MessageStreamProxy sourceMsp = sm.getMessageStreamProxy(dd, MessageStreamType.Knowledge);
+			
+			// Response sink stream
+			MessageStreamProxy sinkMsp = sm.getMessageStreamProxy(dd, MessageStreamType.Response);
+			
 
-			t3p.submit(mspRunTime);
+			t3p.submit(sourceMsp, sinkMsp);
 			response = Response.ok().build();
 
 		} catch (Exception e) {
