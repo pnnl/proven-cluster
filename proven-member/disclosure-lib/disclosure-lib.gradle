@@ -48,6 +48,7 @@ dependencies {
 	compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}" 
 	compile group: 'org.topbraid', name: 'shacl', version: '1.1.0'
 	compile group: 'org.apache.commons', name: 'commons-csv', version: '1.6'
+	compile group: 'com.github.everit-org.json-schema', name: 'org.everit.json.schema', version: '1.11.1'
 }
 
 test { systemProperties 'property': 'value'   }

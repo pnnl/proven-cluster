@@ -1,0 +1,171 @@
+{
+	"definitions": {},
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "http://proven.pnnl.gov/proven-schema.json",
+	"type": "object",
+	"title": "The Proven Message Schema",
+	"properties": {
+		"authToken": {
+			"$id": "#/properties/authToken",
+			"type": "string",
+			"title": "The Authtoken Schema",
+			"default": "",
+			"examples": [
+				"token-value"
+			],
+			"pattern": "^(.*)$"
+		},
+		"domain": {
+			"$id": "#/properties/domain",
+			"type": "string",
+			"title": "The Domain Schema",
+			"default": "",
+			"examples": [
+				"gridappsd.pnnl.gov"
+			],
+			"pattern": "^(.*)$"
+		},
+		"name": {
+			"$id": "#/properties/name",
+			"type": "string",
+			"title": "The Name Schema",
+			"default": "",
+			"examples": [
+				"SimulationOutput"
+			],
+			"pattern": "^(.*)$"
+		},
+		"content": {
+			"$id": "#/properties/content",
+			"type": "string",
+			"enum": ["explicit", "query"],
+			"title": "The Content Schema",
+			"default": "",
+			"examples": [
+				"Explicit"
+			],
+			"pattern": "^(.*)$"
+		},
+		"disclosureId": {
+			"$id": "#/properties/disclosureId",
+			"type": "string",
+			"title": "The Disclosureid Schema",
+			"default": "",
+			"examples": [
+				"abc12434"
+			],
+			"pattern": "^(.*)$"
+		},
+		"requestorId": {
+			"$id": "#/properties/requestorId",
+			"type": "string",
+			"title": "The Requestorid Schema",
+			"default": "",
+			"examples": [
+				"xyz356436"
+			],
+			"pattern": "^(.*)$"
+		},
+		"isStatic": {
+			"$id": "#/properties/isStatic",
+			"type": "boolean",
+			"title": "The Isstatic Schema",
+			"default": false,
+			"examples": [
+				true
+			]
+		},
+		"isTransient": {
+			"$id": "#/properties/isTransient",
+			"type": "boolean",
+			"title": "The Istransient Schema",
+			"default": false,
+			"examples": [
+				true
+			]
+		},
+
+		"message": {
+			"$id": "#/properties/message",
+			"type": "object",
+			"title": "The Message Schema"
+
+		},
+		"message-schema": {
+			"$id": "#/properties/message-schema",
+			"type": "object",
+			"title": "The Message-schema Schema",
+			"default": null
+		}
+	},
+	"allOf": [{
+			"if": {
+				"properties": {
+					"content": {
+						"const": "explicit"
+					}
+				}
+			},
+			"then": {
+				"properties": {
+					"mimeType": {
+						"$id": "#/properties/mimeType",
+						"type": "string",
+						"title": "The Mimetype Schema",
+						"default": "",
+						"examples": [
+							"application/json"
+						],
+						"pattern": "^(.*)$"
+					}
+				},
+				"required": [
+					"mimeType"
+				]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"content": {
+						"const": "query"
+					}
+				}
+			},
+			"then": {
+				"properties": {
+					"queryType": {
+						"$id": "#/properties/queryType",
+						"type": "string",
+						"enum": ["hybrid", "stream", "timeseries", "semantic"],
+					    "title": "The queryType Schema",
+						"default": "",
+						"examples": [
+							"timeseries"
+						],
+						"pattern": "^(.*)$"
+					},
+					"queryLanguage": {
+						"$id": "#/properties/queryLanguage",
+						"type": "string",
+						"enum": ["sparql", "influxql", "PredicateBuilder", "StreamQuery"],
+						"title": "The queryLanguage Schema",
+						"default": "",
+						"examples": [
+							"influxql"
+						],
+						"pattern": "^(.*)$"
+					}
+				},
+				"required": [
+					"queryType",
+					"queryLanguage"
+				]
+			}
+		}
+	],
+	"required": [
+		"content",
+		"message"
+	]
+}

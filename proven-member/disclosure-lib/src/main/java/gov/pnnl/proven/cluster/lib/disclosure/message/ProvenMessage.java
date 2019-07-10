@@ -108,6 +108,13 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 		return ret;
 	}
 
+	
+	String authToken;
+	
+	/**
+	* Name of the message.
+	*/
+	String name;
 	/**
 	 * Epoch time of message creation.
 	 */

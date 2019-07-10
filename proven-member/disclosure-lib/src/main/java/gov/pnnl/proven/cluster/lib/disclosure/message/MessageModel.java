@@ -80,6 +80,7 @@ public class MessageModel {
 	private static Logger log = LoggerFactory.getLogger(MessageModel.class);
 
 	public static final String MESSAGE_MODEL_PATH = "message-model/";
+	public static final String API_SCHEMA = "proven-schema.json";
 
 	private static MessageModel instance;
 
@@ -157,6 +158,11 @@ public class MessageModel {
 		return shapesModel;
 	}
 
+	public String getApiSchema() throws Exception {
+		
+		return getModelFile(API_SCHEMA);
+		
+	}
 	public String getModelFile(String resourceName) throws Exception {
 
 		String ret = null;

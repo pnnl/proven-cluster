@@ -41,11 +41,25 @@ package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Map.Entry;
 import java.util.Optional;
 import javax.json.JsonObject;
+import javax.json.JsonValue;
+import javax.json.JsonValue.ValueType;
+
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.loader.SchemaLoader;
+import org.everit.json.schema.ValidationException;
 
 /**
  * Abstract class for disclosure messages. Disclosure messages represent the
@@ -59,6 +73,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSerializable, Serializable{
 
 	private static final long serialVersionUID = 1L;
+	private static Logger log = LoggerFactory.getLogger(DisclosureMessage.class);
 
 	/**
 	 * This represents the message content type of the disclosed content itself.
@@ -79,28 +94,82 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 	 * True, if the disclosed content is {@code MessageContent#Measurement}.
 	 */
 	boolean hasMeasurements;
+	
+	/**
+	 * mimeType can be application/json or application/jsonld.
+	 */
+	String mimeType;
 
 	public DisclosureMessage() {
 	}
 
-	public DisclosureMessage(JsonObject message) {
+	public DisclosureMessage(JsonObject message) throws Exception {
 		this(message, null);
 	}
 
-	public DisclosureMessage(JsonObject message, JsonObject schema) {
+	public DisclosureMessage(JsonObject message, JsonObject schema) throws JSONDataValidationException, Exception {
 		super(message, schema);
+	
+		MessageModel mm = MessageModel.getInstance();
+		try {
+			String jsonApi = mm.getApiSchema();
+			//System.out.println(jsonApi);
+			JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
+			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
+			//System.out.println(message.toString());
+			jsonSchema.validate(new JSONObject(message.toString()));	
+			log.info("Valid JSON Data");
+			} catch (ValidationException e) {		
+				throw new JSONDataValidationException("Invalid JSON Data: " + e.getAllMessages(), e);
+			}
 
-		// TODO these are assumed default characteristics of the disclosed
-		// message for an initial implementation (i.e. explicit disclosure of
-		// measurement data). Need to add internal methods to examine the JSON
-		// to set the member properties based on the actual content of the
-		// message.
-		this.disclosedContent = MessageContent.Explicit;
-		this.isRequest = false;
-		this.isKnowledge = true;
-		this.hasMeasurements = true;
+		this.name = message.getJsonString("name").getString();
+		this.authToken = message.getJsonString("authToken").getString();
+		this.requester =  message.getJsonString("requestorId").getString();
+		this.isStatic = message.get("isStatic") != null;
+		this.isTransient = message.get("isTransient") != null;
+		this.disclosureId = message.getJsonString("disclosureId").getString();
+		String content_type = message.getJsonString("content").getString();
+		if(content_type.equalsIgnoreCase("explicit")) {
+			this.disclosedContent = MessageContent.Explicit;
+			this.isRequest = false;
+			this.isKnowledge = true;
+			//this.hasMeasurements = true;
+			this.mimeType = message.getJsonString("mimeType").getString();
+		}
+
+		else if (content_type.equalsIgnoreCase("query")) {
+			this.disclosedContent = MessageContent.Query;
+			this.isRequest = true;
+			this.isKnowledge = false;
+			this.hasMeasurements = false;
+		}
+
+		this.message = (JsonObject) message.get("message");
+		if(hasMeasurements(this.message)) {
+			this.hasMeasurements = true;
+		}
+		
 	}
 
+	public boolean hasMeasurements(JsonObject json){
+		boolean hasMeasurementskey = false;
+		if(json.containsKey("measurements")) {
+			 hasMeasurementskey = true;
+		}
+		else if(json.getValueType() == ValueType.OBJECT ) {
+			for (Entry<String, JsonValue> entry: json.entrySet()) {				
+				JsonValue val = entry.getValue();
+			    if(val.getValueType() == ValueType.OBJECT) {			    	
+					if(hasMeasurements(val.asJsonObject())) {
+						hasMeasurementskey = true;
+						break;
+					}
+			    }
+		}
+		}
+		return hasMeasurementskey;		
+	}
 	/**
 	 * TODO Implement.  Provides a new KnowledgeMessage based on the the disclosed
 	 * message; only if the disclosed content type is in
