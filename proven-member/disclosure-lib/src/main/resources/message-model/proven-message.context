@@ -1,0 +1,18 @@
+  "@context" : {
+    "@vocab" : "http://proven.pnnl.gov/proven-message#",
+    "proven" : "http://proven.pnnl.gov/proven#",
+    "pm" : "http://proven.pnnl.gov/proven-message#",
+    "timestamp": {
+       "@id": "pm:hasTimestamp",
+       "@type": "xsd:long" },
+    "value": {
+       "@id": "pm:hasValue",
+       "@type": "pm:TimeSeriesField::Derive" },     
+    "message" : "pm:hasMeasurementMessage", 
+    "measurement": "pm:hasMeasurement",
+    "measurements": "pm:hasMeasurement",
+    "queryType": "pm:hasQueryType",
+    "queryMeasurement": "pm:hasQueryMeasurement",
+    "queryFilter": "pm:hasQueryFilter"    
+  },
+  

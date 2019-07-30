@@ -51,6 +51,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 
 import org.json.JSONObject;
@@ -110,7 +112,7 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 	public DisclosureMessage(JsonObject message, JsonObject schema) throws JSONDataValidationException, Exception {
 		super(message, schema);
 	
-		MessageModel mm = MessageModel.getInstance();
+		MessageModel mm = MessageModel.getInstance(new DisclosureDomain(DomainProvider.PROVEN_DOMAIN));
 		try {
 			String jsonApi = mm.getApiSchema();
 			//System.out.println(jsonApi);

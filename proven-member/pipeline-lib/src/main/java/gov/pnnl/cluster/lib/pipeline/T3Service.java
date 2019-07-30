@@ -40,53 +40,193 @@
 package gov.pnnl.cluster.lib.pipeline;
 
 import java.io.File;
-import java.util.Map;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.Serializable;
+import java.io.StringReader;
 
+import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
 import javax.ws.rs.core.Response;
 
-import org.apache.jena.riot.RDFFormat;
-import org.openrdf.model.Resource;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.system.JenaSystem;
+import org.openrdf.model.URI;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.sail.nativerdf.NativeStore;
+import org.openrdf.rio.RDFFormat;
+
+import com.bigdata.rdf.sail.webapp.client.RemoteRepository;
+import com.bigdata.rdf.sail.webapp.client.RemoteRepositoryManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 
 /**
- * Provides services to local triple store (T3).
+ * Provides services to triple store (T3).
  * 
  * @author d3j766
  *
  */
-public class T3Service  {
-	
-	RepositoryConnection rc; 
-	RDFFormat format = RDFFormat.JSONLD;
-	
+public class T3Service {
+
+	private static Logger log = LoggerFactory.getLogger(T3Service.class);
+
+	private RemoteRepositoryManager repoManager;
+	private RemoteRepository repo;
+	private final RDFFormat addFormat = RDFFormat.RDFXML;
+	private Jsonb jsonb = JsonbBuilder.create();
+
 	/**
-	 * Creates a new T3Service with default settings.
-	 * @throws RepositoryException 
+	 * Summary response information for a T3 storage request. This is included
+	 * in a {@code ResponseMessage} as it's message content.
+	 * 
+	 * @author d3j766
+	 *
 	 */
-	public static T3Service newT3Service(File dataDir) throws RepositoryException {
-		T3Service t3s = new T3Service(dataDir);
-		return t3s;
-	}	
-	
-	private T3Service(File dataDir) throws RepositoryException {
-		//File dataDir = new File(Consts.PROVEN_DEFAULT_BASE_DIR);
-		String indexes = "spoc,posc,cosp";
-		Repository repo = new SailRepository(new NativeStore(dataDir, indexes));
-		repo.initialize();	 
-		rc = repo.getConnection();
+	private class T3Response implements Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		int statusCode;
+		String statusReason;
+		long count;
+		String message;
+
+		T3Response() {
+		}
+
+		T3Response(Response.Status status, long count) {
+			this.statusCode = status.getStatusCode();
+			this.statusReason = status.getReasonPhrase();
+			this.count = count;
+			this.message = "";
+		}
 	}
 
-	public ResponseMessage add(ProvenMessage sourceMessage) {
-		// TODO - Store message in sesame and return response message
-		Response.Status status = Response.Status.OK;
-		return new ResponseMessage(status, sourceMessage, sourceMessage.getMessage());	
+	/**
+	 * Creates a new T3Service with default settings.
+	 * 
+	 * @param serviceUrl
+	 *            identifies SPARQL endpoint
+	 * 
+	 * @throws RepositoryException
+	 */
+	public static T3Service newT3Service(String serviceUrl) throws RepositoryException {
+		T3Service t3s = new T3Service(serviceUrl);
+		return t3s;
 	}
+
+	private T3Service(String serviceUrl) throws RepositoryException {
+		repoManager = new RemoteRepositoryManager(serviceUrl, false);
+		repo = repoManager.getRepositoryForDefaultNamespace();
+	}
+
+	// @Override
+	public ResponseMessage add(ProvenMessage sourceMessage) {
+
+		ResponseMessage ret = null;
+		T3Response loadResponse = null;
+
+		try {
 	
+			// Construct initial data model
+			String message = MessageUtils.prependContext(sourceMessage.getDomain(),
+					sourceMessage.getMessage().toString());
+			Model dataModel = MessageUtils.createMessageDataModel(sourceMessage, message);
+
+			// SHACL rule processing to produce final message data model
+			dataModel = MessageUtils.addShaclRuleResults(sourceMessage.getDomain(), dataModel);
+
+			// Load message into T3 store and return response
+			loadResponse = loadMessageData(dataModel, sourceMessage);
+			JsonReader reader = Json.createReader(new StringReader(jsonb.toJson(loadResponse)));
+			//JsonReader reader = Json.createReader(new StringReader(""));
+			JsonObject loadResponseObject = reader.readObject();
+			ret = new ResponseMessage(Response.Status.fromStatusCode(loadResponse.statusCode), sourceMessage,
+					loadResponseObject);
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+
+			// Create an error response message based on T3Resposne
+			if (null != loadResponse) {
+				ret = createResponseMessage(loadResponse, sourceMessage);
+
+			}
+			// Create a general error response
+			else {
+				T3Response errorResponse = new T3Response(Response.Status.INTERNAL_SERVER_ERROR, 0);
+				errorResponse.message = "T3 storage failure : " + ex.getMessage();
+				ret = createResponseMessage(errorResponse, sourceMessage);
+			}
+		}
+		return ret;
+	}
+
+	private ResponseMessage createResponseMessage(T3Response t3Response, ProvenMessage sourceMessage) {
+		JsonReader reader = Json.createReader(new StringReader(jsonb.toJson(t3Response)));
+		//JsonReader reader = Json.createReader(new StringReader(""));
+		JsonObject loadResponseObject = reader.readObject();
+		return new ResponseMessage(Response.Status.fromStatusCode(t3Response.statusCode), sourceMessage,
+				loadResponseObject);
+	}
+
+	/*
+	 * Load/Store T3 data
+	 */
+	private T3Response loadMessageData(Model dataModel, ProvenMessage sourceMessage) throws Exception {
+
+		T3Response ret = null;
+
+		// Data streams
+		PipedOutputStream pos = new PipedOutputStream();
+		PipedInputStream pis = new PipedInputStream();
+		pis.connect(pos);
+		
+		try {
+			// Push data to output stream Thread will terminate when run()
+			// completes (i.e. after message is pushed to output pipe)
+			new Thread(new Runnable() {
+				public void run() {
+					//dataModel.write(pos, jenaFormat.toString());
+					dataModel.write(pos);
+					try {
+						pos.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}).start();
+			ValueFactoryImpl vf = ValueFactoryImpl.getInstance();
+			URI context = vf.createURI("http://" + sourceMessage.getDomain().getDomain());
+			RemoteRepository.AddOp operation = new RemoteRepository.AddOp(pis, addFormat);
+			operation.setContext(context);
+			long t3Count = repo.add(operation);
+			pis.close();
+
+			// Create OK response
+			ret = new T3Response(Response.Status.OK, t3Count);
+
+		} catch (Exception ex) {
+			log.error("T3 add failure:");
+			ex.printStackTrace();
+			// Create error response
+			ret = new T3Response(Response.Status.INTERNAL_SERVER_ERROR, 0);
+			ret.message = ex.getMessage();
+		} finally {
+			pos.close();
+			pis.close();
+		}
+
+		return ret;
+	}
 }

@@ -553,7 +553,7 @@ public class ProvenMessageOriginal implements IdentifiedDataSerializable, Serial
 //				Model dataModel = MessageUtils.createMessageDataModel(pm, message);
 //
 //				// TODO determine how/if should utilize OWL reasoning
-//				// dataModel = MessageUtils.addHierarchies(dataModel);
+				//dataModel = MessageUtils.addHierarchies(dataModel);
 //
 //				// SHACL rule processing to produce final message data model
 //				dataModel = MessageUtils.addShaclRuleResults(dataModel);

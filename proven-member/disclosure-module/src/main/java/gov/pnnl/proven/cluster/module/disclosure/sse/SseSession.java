@@ -53,7 +53,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.*;
 
 /**
- * Represents an SSE session. SSS Sessions are created by the resource class
+ * Represents an SSE session. SSE Sessions are created by the resource class
  * {@code SseSessionResource} and registered with a {@code SseSessionManager}.
  * Each session is for a specific {@code SseEvent} type. The SSE event data is
  * filtered based on configuration information before being pushed to client.

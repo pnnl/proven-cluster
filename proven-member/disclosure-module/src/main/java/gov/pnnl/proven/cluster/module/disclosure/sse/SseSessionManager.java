@@ -60,6 +60,8 @@ import javax.ws.rs.sse.SseEventSink;
 
 import org.slf4j.Logger;
 import com.hazelcast.core.EntryEvent;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
@@ -99,6 +101,9 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
 
+	@Inject 
+	HazelcastInstance hzi;
+	
 	@Inject
 	StreamManager sm;
 
@@ -445,9 +450,9 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 						}
 					}
 				}
-			} catch (Throwable t) {
-				t.printStackTrace();
-				throw t;
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				throw ex;
 			}
 
 		}, mes).exceptionally(this::entryException);

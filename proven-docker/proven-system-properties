@@ -1,4 +1,12 @@
+# Hazelcast
 proven.hazelcast.members=127.0.0.1
 proven.hazelcast.member.port=5701
+
+# Payara 
 fish.payara.classloading.delegate=false
+
+# Proven 
+
+# Hybrid Module
+proven.hybrid.t3.serviceUrl=http://localhost:8889/bigdata
 

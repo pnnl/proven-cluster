@@ -95,6 +95,5 @@ public class ApplicationResource extends ResourceConfig {
 		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
 		register(OpenApiResource.class);
 		register(ApiMetadata.class);
-		//register(CorsFilter.class);
 	}
 }

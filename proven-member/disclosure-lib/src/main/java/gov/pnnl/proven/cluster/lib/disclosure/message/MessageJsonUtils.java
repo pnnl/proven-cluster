@@ -56,7 +56,9 @@ import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
 
+
 public class MessageJsonUtils {
+		
 
 	public static JsonObject jsonIn(byte[] content) throws IOException {
 

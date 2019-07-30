@@ -46,6 +46,7 @@ import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.pipeline.ContextFactory;
@@ -74,6 +75,8 @@ import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.AbstractMap;
 import java.util.Calendar;
 import java.util.List;
@@ -142,14 +145,24 @@ public class T3Pipeline implements Serializable {
 
 		// Start Jet, populate the input list
 		JetInstance jet = Jet.newJetClient(jetConfig);
+		JobConfig jobConfig = new JobConfig();
+		jobConfig.addClass(T3Pipeline.class, T3Service.class, MessageStreamProxy.class);
+		
+// TESTING
+// For local development/testing
+//		JetConfig config = new JetConfig();
+//		config.getHazelcastConfig().getNetworkConfig().setPort(4701);
+//		config.getHazelcastConfig().getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
+//				ProvenMessageIDSFactory.class);
+//		jobConfig.addJar(new File("/home/d3j766/edev/payara-resources/blazegraph-jar-2.1.4.jar"));
+//		jobConfig.addJar(new File("/home/d3j766/edev/payara-resources/pipeline-lib-0.1-all.jar"));
+//		JetInstance jet = Jet.newJetInstance(config);
+// TESTING
 
+		// Run pipeline
 		try {
-
 			// Perform the computation
-			JobConfig jobConfig = new JobConfig();
-			jobConfig.addClass(T3Pipeline.class, MessageStreamProxy.class);
-
-			// Perform the computation
+			// TESTING jet.newJob(p, jobConfig).join();
 			jet.newJob(p, jobConfig).join();
 
 		} finally {
@@ -159,7 +172,8 @@ public class T3Pipeline implements Serializable {
 
 	private static ContextFactory<T3Service> t3Service() {
 		File dataDir = new File(Consts.PROVEN_DEFAULT_BASE_DIR);
-		return ContextFactory.withCreateFn(x -> T3Service.newT3Service(dataDir)).toNonCooperative().withLocalSharing();
+		String serviceUrl = System.getProperty("proven.hybrid.t3.serviceUrl");
+		return ContextFactory.withCreateFn(x -> T3Service.newT3Service(serviceUrl)).toNonCooperative().withLocalSharing();
 	}
 }
 

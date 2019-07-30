@@ -59,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.topbraid.shacl.util.SHACLSystemModel;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.MissingMessageModelContextException;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.MissingMessageModelOntologyException;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.MissingMessageModelShapesException;
@@ -68,7 +69,7 @@ import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageModelFile.Mo
 
 /**
  * Provides access to the message model, used to construct and validate a
- * {@code ProvenMessage}. The message model provides a JSON-LD context mapping
+ * {@code ProvenMessage}. The message model provides a JSON-LD context, mapping
  * terms to model concepts, ontology files describing class concept structures,
  * and SHACL Shapes files providing validation and inference rules.
  * 
@@ -82,20 +83,29 @@ public class MessageModel {
 	public static final String MESSAGE_MODEL_PATH = "message-model/";
 	public static final String API_SCHEMA = "proven-schema.json";
 
-	private static MessageModel instance;
+	private static Map<DisclosureDomain, MessageModel> instances = new HashMap<>();
 
-	private MessageModel() {
+	private MessageModel(DisclosureDomain domain) {
 		log.debug("Loading message model...");
-		loadMessageModel();
+		loadMessageModel(domain);
 	}
+	
+	public static MessageModel getInstance(DisclosureDomain domain) {
 
-	static {
 		try {
-			instance = new MessageModel();
+
+			MessageModel instance = instances.get(domain);
+			if (null == instance) {
+				instance = new MessageModel(domain);
+			}
+			
+			return instance;
+			
 		} catch (MessageModelInstanceException ex) {
 			throw ex;
 		}
 	}
+	
 
 	/**
 	 * Raw model files. See the different {@link MessageModelFile} types. Each
@@ -104,9 +114,9 @@ public class MessageModel {
 	 * single resource folder contains all model files making the resource name
 	 * unique and why it is used as the key.
 	 */
-	private Map<String, String> rawModelFiles = new HashMap<String, String>();
+	private Map<String, String> rawModelFiles = new HashMap<>();
 
-	/**
+	/**pipeline-lib-0.1-all-in-one.ja
 	 * JSON-LD context definition used to describe/map term values to IRI's
 	 */
 	private String context;
@@ -141,10 +151,6 @@ public class MessageModel {
 		}
 	}
 
-	public static MessageModel getInstance() {
-		return instance;
-	}
-
 	public String getContext() {
 		return context;
 
@@ -159,10 +165,11 @@ public class MessageModel {
 	}
 
 	public String getApiSchema() throws Exception {
-		
+
 		return getModelFile(API_SCHEMA);
-		
+
 	}
+
 	public String getModelFile(String resourceName) throws Exception {
 
 		String ret = null;
@@ -187,8 +194,8 @@ public class MessageModel {
 		return ret;
 	}
 
-	private void loadMessageModel() {
-		loadRawModelFiles();
+	private void loadMessageModel(DisclosureDomain domain) {
+		loadRawModelFiles(domain);
 		loadContext();
 		loadModels();
 	}
@@ -197,12 +204,14 @@ public class MessageModel {
 	 * Loads files identified in registry file. A model must have exactly one
 	 * context file and at least one shapes file.
 	 */
-	private void loadRawModelFiles() {
+	private void loadRawModelFiles(DisclosureDomain domain) {
 
-		String resourcePath = getModelResourcePath(MODEL_REGISTRY_FILE);
+		String resourcePath = getModelResourcePath(MODEL_REGISTRY_FILE + "-" + domain.getDomain());
 
 		try (InputStream resourceIn = this.getClass().getClassLoader().getResourceAsStream(resourcePath)) {
 
+			log.debug("RESOURCE PATH:: " + resourcePath );
+			System.out.print("RESOURCE PATH:: " + resourcePath);
 			// Read file list from registry
 			List<String> resources = IOUtils.readLines(resourceIn, Charset.defaultCharset());
 

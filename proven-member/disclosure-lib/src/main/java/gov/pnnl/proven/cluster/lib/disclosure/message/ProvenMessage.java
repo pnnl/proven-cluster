@@ -61,6 +61,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
 
 /**
  * General messaging construct used by Proven to communicate data between Proven
@@ -108,12 +109,11 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 		return ret;
 	}
 
-	
 	String authToken;
-	
+
 	/**
-	* Name of the message.
-	*/
+	 * Name of the message.
+	 */
 	String name;
 	/**
 	 * Epoch time of message creation.
@@ -206,9 +206,15 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 
 		// messageContent must be provided in a getter by the concrete class
 
-		// TODO - determine field value from the message. Using Proven's domain
-		// by default.
-		this.domain = DomainProvider.getProvenDisclosureDomain();
+		// Disclosure domain, will default to Poven's disclosure domain if not
+		// provided or is invalid
+		DisclosureDomain dd;
+		try {
+			dd = new DisclosureDomain(message.getString("domain"));
+		} catch (NullPointerException | InvalidDisclosureDomainException ex) {
+			dd = DomainProvider.getProvenDisclosureDomain();
+		}
+		this.domain = dd;
 
 		// TODO - determine field value from the message
 		this.isTransient = false;
@@ -287,21 +293,20 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	public JsonObject getMessage() {
 		return message;
 	}
-	
+
 	public String getMessageStr(boolean pretty) {
-		
+
 		String ret;
-		
+
 		if (pretty) {
 			ret = MessageJsonUtils.prettyPrint(message);
-		}
-		else {
+		} else {
 			ret = message.toString();
 		}
-		
+
 		return ret;
 	}
-	
+
 	public UUID getMessageId() {
 		return messageId;
 	}

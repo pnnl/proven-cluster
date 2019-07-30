@@ -77,6 +77,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.topbraid.shacl.rules.RuleUtil;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMeasurementException;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenQueryException;
@@ -117,8 +118,6 @@ public class MessageUtils {
 	public static final Property nameProp = ResourceFactory.createProperty(NAME_PROP);
 	public static final Property timestampProp = ResourceFactory.createProperty(TIMESTAMP_PROP);
 
-	private final static MessageModel messageModel = MessageModel.getInstance();
-
 	/**
 	 * Prepends context file to a json message. The context provides a mapping
 	 * of terms to IRI's allowing the json message to be used as json-ld.
@@ -128,8 +127,8 @@ public class MessageUtils {
 	 * 
 	 * @return the json message with context prepended.
 	 */
-	public static String prependContext(String jsonMessage) {
-		String context = messageModel.getContext();
+	public static String prependContext(DisclosureDomain domain, String jsonMessage) {
+		String context = MessageModel.getInstance(domain).getContext();
 		String ret = jsonMessage.replaceFirst("\\{", "{" + context);
 		return ret;
 	}
@@ -329,10 +328,12 @@ public class MessageUtils {
 		return null;
 	}
 
-	public static Model addShaclRuleResults(Model dataModel) {
+	public static Model addShaclRuleResults(DisclosureDomain domain, Model dataModel) {
 
-		Model shapesModel = messageModel.getShapesModel();
-		Model ontologyModel = messageModel.getOntologyModel();
+		MessageModel mm = MessageModel.getInstance(domain);
+		
+		Model shapesModel = mm.getShapesModel();
+		Model ontologyModel = mm.getOntologyModel();
 		Model dataAndOntologyModel = dataModel.union(ontologyModel);
 
 		Model results = RuleUtil.executeRules(dataModel, shapesModel, null, null);
