@@ -216,7 +216,7 @@ public class ConceptService {
 	private static final String findSingleByName = "SELECT ?s WHERE {?s " + toIri(HAS_NAME_PROP) + " ?name }";
 
 	private static final String findNativeSourcesByDomainName = "SELECT ?s WHERE { ?s " + toIri(HAS_DOMAIN_MODEL_PROP)
-			+ " ?domain  . " + "                  ?domain " + toIri(HAS_NAME_PROP) + " ?name " + "                } ";
+	+ " ?domain  . " + "                  ?domain " + toIri(HAS_NAME_PROP) + " ?name " + "                } ";
 
 	private static final String findNativeSourcesByDomainName2 = "SELECT ?s WHERE {?s  ?p  ?o }";
 
@@ -571,11 +571,17 @@ public class ConceptService {
 
 	}
 
-	public String convertResults2Json(QueryResult qr) {
 
+	
+	
+	public String convertResults2Json(QueryResult qr) {
+ 
 		//
 		// Declare Json Objects to be built
 		//
+		JSONObject rootObj = new JSONObject();
+	    JSONArray  measurementArray = new JSONArray();
+	    rootObj.put("measurements", measurementArray );
 		String jsonresults = "";
 		Mpoint point = new Mpoint();
 		Measurement measurement = new Measurement();
@@ -602,6 +608,8 @@ public class ConceptService {
 				List<List<Object>> table = series.getValues();
 
 				int rowIndex = 0;
+//				rowResults = new HashMap<String, String>();
+				JSONObject rowObject = new JSONObject();
 
 				//
 				// Process Rows for a given Series
@@ -622,15 +630,23 @@ public class ConceptService {
 								//
 								Double val = new Double(cell.toString());
 								Long lval = val.longValue();
-								point.putRow(colNames.get(cellIndex), lval.toString());
-							} else {
+//								point.putRow(colNames.get(cellIndex), lval.toString());
+//							    rowResults.put(colNames.get(cellIndex), lval.toString());
+							    rowObject.put(colNames.get(cellIndex), lval);
+							} else if (cell instanceof Integer) {
+							    rowObject.put(colNames.get(cellIndex), (Integer)cell);						    
+							} else if (cell instanceof Double) {
+							    rowObject.put(colNames.get(cellIndex), (Double)cell);						    
+							}else {
 								String buff = cell.toString();
 								//
 								// If a cell is a quoted string, remove the
 								// surrounding double quotes.
 								//
 								buff = buff.replaceAll("\"", "");
-								point.putRow(colNames.get(cellIndex), buff);
+//								point.putRow(colNames.get(cellIndex), buff);
+//							    rowResults.put(colNames.get(cellIndex), buff);
+							    rowObject.put(colNames.get(cellIndex), buff);
 							}
 
 							//
@@ -641,6 +657,8 @@ public class ConceptService {
 
 					} // end adding to row
 					measurement.addPoint(point);
+//					tableResults.put(rowIndex, rowResults);
+//					measurementArray.add(rowObject);
 					rowIndex++;
 
 					//
@@ -654,45 +672,46 @@ public class ConceptService {
 			resultIndex++;
 		}
 		; // end adding results
-		results.addMeasurement(measurement);
-
+//		results.addMeasurement(measurement);
+        rootObj.put("data", measurementArray);
 		// Create a JaxBContext
-		try {
-
-			// Set properties
-			Map<String, Object> properties = new HashMap<>();
-			properties.put(JAXBContextProperties.MEDIA_TYPE, "application/json");
-			properties.put(JAXBContextProperties.JSON_INCLUDE_ROOT, false);
-			properties.put(JAXBMarshaller.JAXB_FORMATTED_OUTPUT, true);
-
-			// Create a Context using the properties
-			JAXBContext jaxbContext = JAXBContextFactory
-					.createContext(new Class[] { Results.class, ObjectFactory.class }, properties);
-			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-			// JAXBContext jc = JAXBContext.newInstance(Results.class);
-			// Create the Marshaller Object using the JaxB Context
-			// Marshaller marshaller = jc.createMarshaller();
-			// Set the Marshaller media type to JSON or XML
-			// marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,
-			// "application/json");
-			// Set it to true if you need to include the JSON root element in
-			// the JSON output
-			// marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT,
-			// true);
-			// Set it to true if you need the JSON output to formatted
-			// marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-			// Marshal the employee object to JSON and print the output to
-			// console
-
-			StringWriter sw = new StringWriter();
-			jaxbMarshaller.marshal(results, sw);
-			jsonresults = sw.toString();
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+//		try {
+//
+//			// Set properties
+//			Map<String, Object> properties = new HashMap<>();
+//			properties.put(JAXBContextProperties.MEDIA_TYPE, "application/json");
+//			properties.put(JAXBContextProperties.JSON_INCLUDE_ROOT, false);
+//			properties.put(JAXBMarshaller.JAXB_FORMATTED_OUTPUT, true);
+//
+//			// Create a Context using the properties
+//			JAXBContext jaxbContext = JAXBContextFactory
+//					.createContext(new Class[] { Results.class, ObjectFactory.class }, properties);
+//			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+//
+//			// JAXBContext jc = JAXBContext.newInstance(Results.class);
+//			// Create the Marshaller Object using the JaxB Context
+//			// Marshaller marshaller = jc.createMarshaller();
+//			// Set the Marshaller media type to JSON or XML
+//			// marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,
+//			// "application/json");
+//			// Set it to true if you need to include the JSON root element in
+//			// the JSON output
+//			// marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT,
+//			// true);
+//			// Set it to true if you need the JSON output to formatted
+//			// marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+//			// Marshal the employee object to JSON and print the output to
+//			// console
+//
+//			StringWriter sw = new StringWriter();
+//			jaxbMarshaller.marshal(results, sw);
+//			jsonresults = sw.toString();
+			jsonresults = rootObj.toJSONString();
+//		} catch (JAXBException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+        System.out.println (jsonresults);
 		return jsonresults;
 
 	}
@@ -794,18 +813,23 @@ public class ConceptService {
 				//
 				// Set up filter
 				//
+				if (filter.getDatatype() == null) {
 
-				if (filter.getDatatype().equals(MetricValueType.Integer.toString())) {
-					filter_statement = filter.getField() + space + eq + Integer.parseInt(filter.getValue());
-				} else if (filter.getDatatype().equals(MetricValueType.Long.toString())) {
-					filter_statement = filter.getField() + space + eq + Long.parseLong(filter.getValue());
-				} else if (filter.getDatatype().equals(MetricValueType.Float.toString())) {
-					filter_statement = filter.getField() + space + eq + Float.parseFloat(filter.getValue());
-				} else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
-					filter_statement = filter.getField() + space + eq + Double.parseDouble(filter.getValue());
-				} else
 					filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
-
+				} else {
+					if (filter.getDatatype().equals(MetricValueType.Integer.toString())) {
+						filter_statement = filter.getField() + space + eq + Integer.parseInt(filter.getValue());
+					} else if (filter.getDatatype().equals(MetricValueType.Long.toString())) {
+						filter_statement = filter.getField() + space + eq + Long.parseLong(filter.getValue());
+					} else if (filter.getDatatype().equals(MetricValueType.Float.toString())) {
+						filter_statement = filter.getField() + space + eq + Float.parseFloat(filter.getValue());
+					} else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
+						filter_statement = filter.getField() + space + eq + Double.parseDouble(filter.getValue());
+					} else
+						filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
+				}
+		
+			
 				//
 				// If time oriented, override filter with StartTime and EndTime
 				// are special fields used to filter the InfluxDB time.
@@ -998,9 +1022,43 @@ public class ConceptService {
 		return type;
 
 	}
+	
+	//
+	//  Warning we are using a recursive method to process the JSON object.
+	//
+	
+	private Point.Builder processNestedObject (JSONObject iObject, String key, Point.Builder builder  ) {
+		Point.Builder ret = builder;
+		Set<String> iokeys = iObject.keySet();
+		Iterator<String> ioit = iokeys.iterator();
+
+
+		while (ioit.hasNext()) 	{
+			String iokey = ioit.next();
+
+			if (iObject.get(iokey) instanceof String) {
+				ret.tag(iokey, (String) iObject.get(iokey));
+			} else if (iObject.get(iokey) instanceof Integer) {
+				ret.addField(iokey, Integer.valueOf((Integer) iObject.get(iokey)));
+			} else if (iObject.get(iokey) instanceof Long) {
+				ret.addField(iokey, Long.valueOf((Long) iObject.get(iokey)));
+			} else if (iObject.get(iokey) instanceof Float) {
+				ret.addField(iokey, Float.valueOf((Float) iObject.get(iokey)));
+			} else if (iObject.get(iokey) instanceof Double) {
+				ret.addField(iokey, Double.valueOf((Double) iObject.get(iokey)));
+			} else 	if  (iObject.get(iokey) instanceof JSONObject) {
+				JSONObject i2Object = (JSONObject) iObject.get(iokey);
+                ret = processNestedObject (i2Object, iokey, ret);
+			}
+		}
+		
+		return ret;
+		
+	}
+	
 
 	private ProvenMessageResponse influxWriteBulkSimulationInput(JSONObject commandObject, InfluxDB influxDB,
-			String measurementName, String instanceId) {
+		String measurementName, String instanceId) {
 		ProvenMessageResponse ret = null;
 		Long timestamp = (long) -1;
 		String differenceMrid = null;
@@ -1060,12 +1118,11 @@ public class ConceptService {
 
 			// Add OUTPUT tag
 			builder.tag("hasSimulationMessageType", "INPUT");
-
 			builder.tag("hasMeasurementDifference", "FORWARD");
 
 			while (fdit.hasNext()) {
 				String fdkey = fdit.next();
-				// if (fdobject.get(fdkey) instanceof String) {
+
 				if (fdobject.get(fdkey) instanceof String) {
 					builder.tag(fdkey, (String) fdobject.get(fdkey));
 				} else if (fdobject.get(fdkey) instanceof Integer) {
@@ -1076,6 +1133,10 @@ public class ConceptService {
 					builder.addField(fdkey, Float.valueOf((Float) fdobject.get(fdkey)));
 				} else if (fdobject.get(fdkey) instanceof Double) {
 					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
+				} else 	if  (fdobject.get(fdkey) instanceof JSONObject) {
+					
+					JSONObject iObject = (JSONObject)fdobject.get(fdkey);
+					builder = processNestedObject(iObject, fdkey,  builder);
 
 				}
 
@@ -1118,7 +1179,13 @@ public class ConceptService {
 					builder.addField(rdkey, Float.valueOf((Float) rdobject.get(rdkey)));
 				} else if (rdobject.get(rdkey) instanceof Double) {
 					builder.addField(rdkey, Double.valueOf((Double) rdobject.get(rdkey)));
-				}
+					
+				} else 	if  (rdobject.get(rdkey) instanceof JSONObject) {
+					JSONObject iObject = (JSONObject)rdobject.get(rdkey);
+					builder = processNestedObject(iObject, rdkey,  builder);					
+								
+						
+				}			
 
 			}
 			influxDB.write(idbDB, idbRP, builder.build());
@@ -1285,9 +1352,9 @@ public class ConceptService {
 	public ProvenMessageResponse influxWriteBulkMeasurement(String measurements, String measurement_type,
 			String measurementName, String instanceId) {
 
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-		LocalDateTime now = LocalDateTime.now();
-		System.out.println(dtf.format(now));
+		//		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+		//		LocalDateTime now = LocalDateTime.now();
+		//		System.out.println(dtf.format(now));
 		ProvenMessageResponse ret = null;
 		if (!useIdb) {
 
@@ -1326,8 +1393,8 @@ public class ConceptService {
 			return ret;
 		}
 
-		now = LocalDateTime.now();
-		System.out.println(dtf.format(now));
+		//		now = LocalDateTime.now();
+		//		System.out.println(dtf.format(now));
 		influxDB.close();
 		return ret;
 
