@@ -127,6 +127,7 @@ public class ResourceConsts {
 	public static final String R_MESSAGES = "messages";
 	
 	public static final String R_PROVEN_MESSAGE = "provenMessage";
+	public static final String R_PROVEN_MESSAGE_CSV = "provenMessage/csv";
 	public static final String R_PROVEN_MESSAGES = "messages";
 
 	

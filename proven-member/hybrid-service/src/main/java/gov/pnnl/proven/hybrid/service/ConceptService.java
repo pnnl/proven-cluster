@@ -123,6 +123,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.eclipse.persistence.jaxb.JAXBContextProperties;
 import org.eclipse.persistence.jaxb.JAXBMarshaller;
@@ -658,7 +659,7 @@ public class ConceptService {
 					} // end adding to row
 					measurement.addPoint(point);
 //					tableResults.put(rowIndex, rowResults);
-//					measurementArray.add(rowObject);
+					measurementArray.add(rowObject);
 					rowIndex++;
 
 					//
@@ -711,11 +712,141 @@ public class ConceptService {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
-        System.out.println (jsonresults);
+
 		return jsonresults;
 
 	}
 
+	public String convertResults2Csv(QueryResult qr) {
+		 
+		//
+		// Declare Json Objects to be built
+		//
+	    String csvMeasurements = "";
+	    String csvRow = "";
+	    String comma = ",";
+	    String newline = "\n";
+		Mpoint point = new Mpoint();
+		Measurement measurement = new Measurement();
+		Results results = new Results();
+
+		List<Result> resultList = qr.getResults();
+		qr.toString();
+		
+		int resultIndex = 0;
+
+		//
+		// Process Each Result
+		//
+		boolean topHeader = false;
+		for (Result result : resultList) {
+
+			List<Series> seriesList = ((null == result.getSeries()) ? (new ArrayList<Series>()) : result.getSeries());
+
+			int seriesIndex = 0;
+       
+			//
+			// Process Each Series
+			//
+			for (Series series : seriesList) {
+				String seriesName = series.getName();
+				List<String> colNames = series.getColumns();
+				List<List<Object>> table = series.getValues();
+				
+				
+				if (topHeader == false) {
+                for (String column : colNames) {
+                	csvRow = csvRow.concat(column);
+                	csvRow = csvRow.concat(",");
+                }
+                if (csvRow.endsWith(comma)) {
+                	csvRow = csvRow.substring(0, csvRow.length()-1);
+                	csvRow = csvRow.concat(newline);
+                }
+                topHeader = true;
+				}
+
+				int rowIndex = 0;
+//				rowResults = new HashMap<String, String>();
+//				JSONObject rowObject = new JSONObject();
+
+				//
+				// Process Rows for a given Series
+				//
+				for (List<Object> row : table) {
+
+					int cellIndex = 0;
+					row.toString();
+					//
+					// Process Cells for a given Row
+					//
+					point = new Mpoint();
+					for (Object cell : row) {
+						if (cell != null) {
+							if (colNames.get(cellIndex).contains("time") && colNames.get(cellIndex).length() == 4) {
+								//
+								// Influx returns epoch time in a double format.
+								// Needs to be converted to Long
+								//
+								Double val = new Double(cell.toString());
+								Long lval = val.longValue();
+							    csvRow = csvRow.concat(lval.toString()).concat(comma);
+							} else if (cell instanceof Integer) {
+								csvRow = csvRow.concat(cell.toString()).concat(comma);
+							} else if (cell instanceof Double) {	
+								csvRow = csvRow.concat(cell.toString()).concat(comma);
+							}else {
+								String buff = cell.toString();
+								//
+								// If a cell is a quoted string, remove the
+								// surrounding double quotes.
+								//
+								buff = buff.replaceAll("\"", "");
+							    csvRow = csvRow.concat(buff).concat(comma);
+							}
+
+							//
+							// Add each cell Json Object to a row Object.
+							//
+						} else {
+							 
+							csvRow = csvRow.concat(comma);
+							
+						}
+						cellIndex++;
+
+					} // end adding to row
+	                if (csvRow.endsWith(comma)) {
+	                	csvRow = csvRow.substring(0, csvRow.length()-1);
+	                	csvRow = csvRow.concat(newline);
+	                }
+	                csvMeasurements = csvMeasurements.concat(csvRow);
+                    csvRow = "";
+					rowIndex++;
+ //                   System.out.println(rowIndex + " " + csvMeasurements.length());
+					//
+					// Add each row O
+					//
+				} // end adding to table
+				seriesIndex++;
+			} // end adding series
+
+			resultIndex++;
+		}
+		; // end adding results
+//		results.addMeasurement(measurement);
+//       rootObj.put("data", measurementArray);
+
+//			jsonresults = rootObj.toJSONString();
+//		} catch (JAXBException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//        System.out.println (csvMeasurements);
+		return csvMeasurements;
+
+	}
+	
 	public String influxQuery(String queryString) {
 
 		String ret = "";
@@ -785,7 +916,17 @@ public class ConceptService {
 
 	}
 
+	
 	public ProvenMessageResponse influxQuery(ProvenMessage query) throws InvalidProvenMessageException {
+	    
+		ProvenMessageResponse pmr = influxQuery(query, false);
+		return pmr;
+	
+	}
+	
+	
+	
+	public ProvenMessageResponse influxQuery(ProvenMessage query, boolean returnCsvFlag) throws InvalidProvenMessageException {
 		ProvenMessageResponse ret = null;
 		String space = " ";
 		String eq = "=";
@@ -881,7 +1022,12 @@ public class ConceptService {
 				ret.setReason("Success");
 				ret.setStatus(Status.OK);
 				ret.setCode(Status.OK.getStatusCode());
-				ret.setResponse(convertResults2Json(qr));
+				if (returnCsvFlag) {
+					ret.setResponse(convertResults2Csv(qr));
+				} else {
+					ret.setResponse(convertResults2Json(qr));					
+				}
+
 
 			}
 		} else {
