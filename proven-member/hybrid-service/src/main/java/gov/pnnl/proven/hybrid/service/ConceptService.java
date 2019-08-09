@@ -89,17 +89,21 @@ import static gov.pnnl.proven.message.ProvenMetric.MetricFragmentIdentifier.*;
 
 import gov.pnnl.proven.message.*;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -109,6 +113,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.lang.Long;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -181,6 +189,13 @@ import gov.pnnl.proven.message.ProvenQueryFilter;
 import gov.pnnl.proven.message.ProvenQueryTimeSeries;
 import gov.pnnl.proven.message.MessageUtils;
 import gov.pnnl.proven.message.exception.InvalidProvenMessageException;
+
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.IOException;
 
 /**
  * Session Bean implementation class ConcepService
@@ -717,7 +732,7 @@ public class ConceptService {
 
 	}
 
-	public String convertResults2Csv(QueryResult qr) {
+	public String convertResults2Csv2(QueryResult qr) {
 		 
 		//
 		// Declare Json Objects to be built
@@ -729,12 +744,33 @@ public class ConceptService {
 		Mpoint point = new Mpoint();
 		Measurement measurement = new Measurement();
 		Results results = new Results();
+        File tempFile = null;
+        Writer writer = null;
+        CSVWriter csvWriter = null;
+
+		String[] headerRecord = null;
+		try {
+			tempFile = File.createTempFile("proven", ".influx2csv");
+			tempFile.deleteOnExit();
+	        writer = Files.newBufferedWriter(Paths.get(tempFile.getPath()));
+	        csvWriter = new CSVWriter(writer,
+	                CSVWriter.DEFAULT_SEPARATOR,
+	                CSVWriter.NO_QUOTE_CHARACTER,
+	                CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+	                CSVWriter.DEFAULT_LINE_END);
+
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 
 		List<Result> resultList = qr.getResults();
 		qr.toString();
 		
 		int resultIndex = 0;
-
+        
 		//
 		// Process Each Result
 		//
@@ -753,17 +789,22 @@ public class ConceptService {
 				List<String> colNames = series.getColumns();
 				List<List<Object>> table = series.getValues();
 				
-				
+				 
 				if (topHeader == false) {
+				headerRecord = new String[colNames.size()];
+				int colIndex = 0;
                 for (String column : colNames) {
-                	csvRow = csvRow.concat(column);
-                	csvRow = csvRow.concat(",");
+//                	csvRow = csvRow.concat(column);
+//                 	csvRow = csvRow.concat(",");
+                	headerRecord[colIndex] = column;
+                	colIndex++;
                 }
-                if (csvRow.endsWith(comma)) {
-                	csvRow = csvRow.substring(0, csvRow.length()-1);
-                	csvRow = csvRow.concat(newline);
-                }
+//                if (csvRow.endsWith(comma)) {
+//                	csvRow = csvRow.substring(0, csvRow.length()-1);
+//                	csvRow = csvRow.concat(newline);
+//                }
                 topHeader = true;
+                csvWriter.writeNext(headerRecord);
 				}
 
 				int rowIndex = 0;
@@ -776,12 +817,13 @@ public class ConceptService {
 				for (List<Object> row : table) {
 
 					int cellIndex = 0;
-					row.toString();
+					String[] rowCsv = new String[colNames.size()];
 					//
 					// Process Cells for a given Row
 					//
 					point = new Mpoint();
 					for (Object cell : row) {
+						
 						if (cell != null) {
 							if (colNames.get(cellIndex).contains("time") && colNames.get(cellIndex).length() == 4) {
 								//
@@ -790,19 +832,24 @@ public class ConceptService {
 								//
 								Double val = new Double(cell.toString());
 								Long lval = val.longValue();
-							    csvRow = csvRow.concat(lval.toString()).concat(comma);
+//							    csvRow = csvRow.concat(lval.toString()).concat(comma);
+							    rowCsv[cellIndex] = lval.toString();
 							} else if (cell instanceof Integer) {
-								csvRow = csvRow.concat(cell.toString()).concat(comma);
+//								csvRow = csvRow.concat(cell.toString()).concat(comma);
+								rowCsv[cellIndex] = cell.toString();
 							} else if (cell instanceof Double) {	
-								csvRow = csvRow.concat(cell.toString()).concat(comma);
+//								csvRow = csvRow.concat(cell.toString()).concat(comma);
+								rowCsv[cellIndex] = cell.toString();
 							}else {
 								String buff = cell.toString();
+
 								//
 								// If a cell is a quoted string, remove the
 								// surrounding double quotes.
 								//
 								buff = buff.replaceAll("\"", "");
-							    csvRow = csvRow.concat(buff).concat(comma);
+//							    csvRow = csvRow.concat(buff).concat(comma);
+								rowCsv[cellIndex] = buff;
 							}
 
 							//
@@ -810,18 +857,19 @@ public class ConceptService {
 							//
 						} else {
 							 
-							csvRow = csvRow.concat(comma);
-							
+//							csvRow = csvRow.concat(comma);
+
 						}
 						cellIndex++;
 
 					} // end adding to row
-	                if (csvRow.endsWith(comma)) {
-	                	csvRow = csvRow.substring(0, csvRow.length()-1);
-	                	csvRow = csvRow.concat(newline);
-	                }
-	                csvMeasurements = csvMeasurements.concat(csvRow);
-                    csvRow = "";
+					 csvWriter.writeNext(rowCsv);
+//	                if (csvRow.endsWith(comma)) {
+//	                	csvRow = csvRow.substring(0, csvRow.length()-1);
+//	                	csvRow = csvRow.concat(newline);
+//	                }
+//	                csvMeasurements = csvMeasurements.concat(csvRow);
+//                    csvRow = "";
 					rowIndex++;
  //                   System.out.println(rowIndex + " " + csvMeasurements.length());
 					//
@@ -833,16 +881,24 @@ public class ConceptService {
 
 			resultIndex++;
 		}
-		; // end adding results
-//		results.addMeasurement(measurement);
-//       rootObj.put("data", measurementArray);
 
-//			jsonresults = rootObj.toJSONString();
-//		} catch (JAXBException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//        System.out.println (csvMeasurements);
+	
+		
+		
+		try {
+			writer.close();
+			FileInputStream fis = new FileInputStream(tempFile);
+			byte[] data = new byte[(int) tempFile.length()];
+			fis.read(data);
+			fis.close();
+
+			csvMeasurements = new String(data, "UTF-8");
+        	         
+        	
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return csvMeasurements;
 
 	}
@@ -1023,7 +1079,7 @@ public class ConceptService {
 				ret.setStatus(Status.OK);
 				ret.setCode(Status.OK.getStatusCode());
 				if (returnCsvFlag) {
-					ret.setResponse(convertResults2Csv(qr));
+					ret.setResponse(convertResults2Csv2(qr));
 				} else {
 					ret.setResponse(convertResults2Json(qr));					
 				}
@@ -1627,5 +1683,135 @@ public class ConceptService {
 
 		return ret;
 	}
+
+	public String convertResults2Csv(QueryResult qr) {
+			 
+			//
+			// Declare Json Objects to be built
+			//
+		    String csvMeasurements = "";
+		    String csvRow = "";
+		    String comma = ",";
+		    String newline = "\n";
+			Mpoint point = new Mpoint();
+			Measurement measurement = new Measurement();
+			Results results = new Results();
+	
+			List<Result> resultList = qr.getResults();
+			qr.toString();
+			
+			int resultIndex = 0;
+	
+			//
+			// Process Each Result
+			//
+			boolean topHeader = false;
+			for (Result result : resultList) {
+	
+				List<Series> seriesList = ((null == result.getSeries()) ? (new ArrayList<Series>()) : result.getSeries());
+	
+				int seriesIndex = 0;
+	       
+				//
+				// Process Each Series
+				//
+				for (Series series : seriesList) {
+					String seriesName = series.getName();
+					List<String> colNames = series.getColumns();
+					List<List<Object>> table = series.getValues();
+					
+					
+					if (topHeader == false) {
+	                for (String column : colNames) {
+	                	csvRow = csvRow.concat(column);
+	                	csvRow = csvRow.concat(",");
+	                }
+	                if (csvRow.endsWith(comma)) {
+	                	csvRow = csvRow.substring(0, csvRow.length()-1);
+	                	csvRow = csvRow.concat(newline);
+	                }
+	                topHeader = true;
+					}
+	
+					int rowIndex = 0;
+	//				rowResults = new HashMap<String, String>();
+	//				JSONObject rowObject = new JSONObject();
+	
+					//
+					// Process Rows for a given Series
+					//
+					for (List<Object> row : table) {
+	
+						int cellIndex = 0;
+						row.toString();
+						//
+						// Process Cells for a given Row
+						//
+						point = new Mpoint();
+						for (Object cell : row) {
+							if (cell != null) {
+								if (colNames.get(cellIndex).contains("time") && colNames.get(cellIndex).length() == 4) {
+									//
+									// Influx returns epoch time in a double format.
+									// Needs to be converted to Long
+									//
+									Double val = new Double(cell.toString());
+									Long lval = val.longValue();
+								    csvRow = csvRow.concat(lval.toString()).concat(comma);
+								} else if (cell instanceof Integer) {
+									csvRow = csvRow.concat(cell.toString()).concat(comma);
+								} else if (cell instanceof Double) {	
+									csvRow = csvRow.concat(cell.toString()).concat(comma);
+								}else {
+									String buff = cell.toString();
+									//
+									// If a cell is a quoted string, remove the
+									// surrounding double quotes.
+									//
+									buff = buff.replaceAll("\"", "");
+								    csvRow = csvRow.concat(buff).concat(comma);
+								}
+	
+								//
+								// Add each cell Json Object to a row Object.
+								//
+							} else {
+								 
+								csvRow = csvRow.concat(comma);
+								
+							}
+							cellIndex++;
+	
+						} // end adding to row
+		                if (csvRow.endsWith(comma)) {
+		                	csvRow = csvRow.substring(0, csvRow.length()-1);
+		                	csvRow = csvRow.concat(newline);
+		                }
+		                csvMeasurements = csvMeasurements.concat(csvRow);
+	                    csvRow = "";
+						rowIndex++;
+	 //                   System.out.println(rowIndex + " " + csvMeasurements.length());
+						//
+						// Add each row O
+						//
+					} // end adding to table
+					seriesIndex++;
+				} // end adding series
+	
+				resultIndex++;
+			}
+			; // end adding results
+	//		results.addMeasurement(measurement);
+	//       rootObj.put("data", measurementArray);
+	
+	//			jsonresults = rootObj.toJSONString();
+	//		} catch (JAXBException e) {
+	//			// TODO Auto-generated catch block
+	//			e.printStackTrace();
+	//		}
+	//        System.out.println (csvMeasurements);
+			return csvMeasurements;
+	
+		}
 
 }
