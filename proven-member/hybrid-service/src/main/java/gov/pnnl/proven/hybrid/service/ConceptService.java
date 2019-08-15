@@ -595,10 +595,8 @@ public class ConceptService {
 		//
 		// Declare Json Objects to be built
 		//
-		JSONObject rootObj = new JSONObject();
 	    JSONArray  measurementArray = new JSONArray();
-	    rootObj.put("measurements", measurementArray );
-		String jsonresults = "";
+	    String jsonresults = "";
 		Mpoint point = new Mpoint();
 		Measurement measurement = new Measurement();
 		Results results = new Results();
@@ -675,6 +673,7 @@ public class ConceptService {
 					measurement.addPoint(point);
 //					tableResults.put(rowIndex, rowResults);
 					measurementArray.add(rowObject);
+					rowObject = new JSONObject();
 					rowIndex++;
 
 					//
@@ -688,46 +687,7 @@ public class ConceptService {
 			resultIndex++;
 		}
 		; // end adding results
-//		results.addMeasurement(measurement);
-        rootObj.put("data", measurementArray);
-		// Create a JaxBContext
-//		try {
-//
-//			// Set properties
-//			Map<String, Object> properties = new HashMap<>();
-//			properties.put(JAXBContextProperties.MEDIA_TYPE, "application/json");
-//			properties.put(JAXBContextProperties.JSON_INCLUDE_ROOT, false);
-//			properties.put(JAXBMarshaller.JAXB_FORMATTED_OUTPUT, true);
-//
-//			// Create a Context using the properties
-//			JAXBContext jaxbContext = JAXBContextFactory
-//					.createContext(new Class[] { Results.class, ObjectFactory.class }, properties);
-//			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-//
-//			// JAXBContext jc = JAXBContext.newInstance(Results.class);
-//			// Create the Marshaller Object using the JaxB Context
-//			// Marshaller marshaller = jc.createMarshaller();
-//			// Set the Marshaller media type to JSON or XML
-//			// marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,
-//			// "application/json");
-//			// Set it to true if you need to include the JSON root element in
-//			// the JSON output
-//			// marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT,
-//			// true);
-//			// Set it to true if you need the JSON output to formatted
-//			// marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-//			// Marshal the employee object to JSON and print the output to
-//			// console
-//
-//			StringWriter sw = new StringWriter();
-//			jaxbMarshaller.marshal(results, sw);
-//			jsonresults = sw.toString();
-			jsonresults = rootObj.toJSONString();
-//		} catch (JAXBException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
+		jsonresults = measurementArray.toJSONString();
 		return jsonresults;
 
 	}
@@ -1060,6 +1020,11 @@ public class ConceptService {
 
 			// // Query query = new Query("select time_idle from cpu limit 10",
 			// dbName);
+			//
+			//*******DEBUG statement
+			queryStatement = queryStatement + " limit 10";
+			//*******DEBUG statement
+			//
 			Query influxQuery = new Query(queryStatement, dbName);
 			//
 			// Unless TimeUnit parameter is used in query, Epoch time will not
