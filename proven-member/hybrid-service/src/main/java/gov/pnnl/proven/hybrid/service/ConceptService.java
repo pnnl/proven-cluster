@@ -1021,8 +1021,8 @@ public class ConceptService {
 			// // Query query = new Query("select time_idle from cpu limit 10",
 			// dbName);
 			//
-			//*******DEBUG statement
-			queryStatement = queryStatement + " limit 10";
+			//*******DEBUG statement to shorten query results.  Remove before checking in.
+			//queryStatement = queryStatement + " limit 10";
 			//*******DEBUG statement
 			//
 			Query influxQuery = new Query(queryStatement, dbName);
