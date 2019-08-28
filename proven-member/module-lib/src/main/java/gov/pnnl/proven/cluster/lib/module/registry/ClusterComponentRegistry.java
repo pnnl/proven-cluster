@@ -53,7 +53,7 @@ import fish.payara.cluster.Clustered;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
- * Provides a Component Registry at the Member level.
+ * Provides a Component Registry at the Cluster level.
  * 
  * @author d3j766
  *

@@ -57,7 +57,7 @@ import javax.interceptor.InterceptorBinding;
 /**
  * Identifies the bean as a managed component type. Meaning, the component's
  * creation and destruction must be performed through a {@code ComponentManager}
- * or another {@ManagedComponentType} that can be traced back to a
+ * or another {@code ManagedComponentType} that can be traced back to a
  * {@code ComponentManager}. This may be further restricted by the use of
  * {@code ManagedBy} to identify specific {@code ComponentManager}(s).
  * 

@@ -42,7 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.component.event;
 import gov.pnnl.proven.cluster.lib.module.registry.RegistryComponent;
 
 /**
- * Provides information related to the status of a {@code ProvenComponent}.
+ * Provides information related to the health of a {@code ProvenComponent}.
  * 
  * @author d3j766
  *

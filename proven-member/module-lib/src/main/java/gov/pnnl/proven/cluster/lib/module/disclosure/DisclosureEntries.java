@@ -174,6 +174,8 @@ public class DisclosureEntries extends DisclosureComponent {
 
 			List<DisclosureProxy> entries;
 
+			// TODO this should be changed to a registry request for an
+			// available disclosure buffer (registry will give preference to local)
 			// Should not continue if local disclosure has no free space - the
 			// entries will be lost
 			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(BufferedItemState.New))) {
