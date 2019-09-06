@@ -121,6 +121,9 @@ public class T3Pipeline implements Serializable {
 		hzClientConfig.getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
 				ProvenMessageIDSFactory.class);
 
+		
+		ContextFactory<T3Service> t3Service = T3Service.t3Service();
+		
 		// T3 Storage Pipeline
 		// For each Knowledge message, if non-measurement content, store in T3.
 		// TODO - Give measurements their own stream and message content group
@@ -129,7 +132,7 @@ public class T3Pipeline implements Serializable {
 				START_FROM_OLDEST)).withoutTimestamps()
 
 				// STORE IN T3 - only if non-measurement
-				.mapUsingContext(t3Service(), (t3s, km) -> {
+				.mapUsingContext(t3Service, (t3s, km) -> {
 
 					Map.Entry<String, ResponseMessage> ret = null;
 					ProvenMessage sourceMessage = km.getValue();
@@ -144,19 +147,20 @@ public class T3Pipeline implements Serializable {
 				.drainTo(Sinks.<String, ResponseMessage>remoteMap(sinkMsp.getStreamName(), hzClientConfig));
 
 		// Start Jet, populate the input list
-		JetInstance jet = Jet.newJetClient(jetConfig);
+//		JetInstance jet = Jet.newJetClient(jetConfig);
 		JobConfig jobConfig = new JobConfig();
-		jobConfig.addClass(T3Pipeline.class, T3Service.class, MessageStreamProxy.class);
+		//jobConfig.addClass(T3Pipeline.class, T3Service.class, MessageStreamProxy.class);
+		jobConfig.addClass(this.getClass(), T3Service.class, MessageStreamProxy.class);
 		
 // TESTING
 // For local development/testing
-//		JetConfig config = new JetConfig();
-//		config.getHazelcastConfig().getNetworkConfig().setPort(4701);
-//		config.getHazelcastConfig().getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
-//				ProvenMessageIDSFactory.class);
-//		jobConfig.addJar(new File("/home/d3j766/edev/payara-resources/blazegraph-jar-2.1.4.jar"));
-//		jobConfig.addJar(new File("/home/d3j766/edev/payara-resources/pipeline-lib-0.1-all.jar"));
-//		JetInstance jet = Jet.newJetInstance(config);
+		JetConfig config = new JetConfig();
+		config.getHazelcastConfig().getNetworkConfig().setPort(4701);
+		config.getHazelcastConfig().getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
+				ProvenMessageIDSFactory.class);
+		jobConfig.addJar(new File("/home/d3j766/edev/payara-resources/blazegraph-jar-2.1.4.jar"));
+		jobConfig.addJar(new File("/home/d3j766/edev/payara-resources/pipeline-lib-0.1-all.jar"));
+		JetInstance jet = Jet.newJetInstance(config);
 // TESTING
 
 		// Run pipeline
@@ -170,10 +174,12 @@ public class T3Pipeline implements Serializable {
 		}
 	}
 
-	private static ContextFactory<T3Service> t3Service() {
-		File dataDir = new File(Consts.PROVEN_DEFAULT_BASE_DIR);
-		String serviceUrl = System.getProperty("proven.hybrid.t3.serviceUrl");
-		return ContextFactory.withCreateFn(x -> T3Service.newT3Service(serviceUrl)).toNonCooperative().withLocalSharing();
-	}
+//	private static ContextFactory<T3Service> t3Service() {
+//		File dataDir = new File(Consts.PROVEN_DEFAULT_BASE_DIR);
+//		String serviceUrl = System.getProperty("proven.hybrid.t3.serviceUrl");
+//		return ContextFactory.withCreateFn(x -> T3Service.newT3Service(serviceUrl)).toNonCooperative().withLocalSharing();
+//	}
+	
+	
 }
 

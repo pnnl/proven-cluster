@@ -62,12 +62,15 @@ import org.openrdf.rio.RDFFormat;
 
 import com.bigdata.rdf.sail.webapp.client.RemoteRepository;
 import com.bigdata.rdf.sail.webapp.client.RemoteRepositoryManager;
+import com.hazelcast.jet.pipeline.ContextFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+
 
 /**
  * Provides services to triple store (T3).
@@ -111,6 +114,18 @@ public class T3Service {
 		}
 	}
 
+
+	/**
+	 * Returns {@code ContextFactory} for Jet processing pipelines that require T3 services.
+	 * 
+	 * @return {@link ContextFactory}
+	 */
+	public static ContextFactory<T3Service> t3Service() {
+		String serviceUrl = System.getProperty("proven.hybrid.t3.serviceUrl");
+		return ContextFactory.withCreateFn(x -> T3Service.newT3Service(serviceUrl)).toNonCooperative().withLocalSharing();
+	}
+
+		
 	/**
 	 * Creates a new T3Service with default settings.
 	 * 

@@ -48,7 +48,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
  * 
- * Represents a component that performs mesage stream activities to support the operation of a
+ * Represents a component that performs message stream activities to support the operation of a
  * the Proven module.
  * 
  * @author d3j766
