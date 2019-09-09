@@ -41,7 +41,6 @@ package gov.pnnl.proven.cluster.lib.module.component;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
@@ -62,7 +61,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 public abstract class ManagedComponent extends ModuleComponent implements StatusReporter {
 
 	static Logger log = LoggerFactory.getLogger(ManagedComponent.class);
-
+	
 	protected ComponentStatus status;
 
 	public ManagedComponent() {
@@ -70,7 +69,7 @@ public abstract class ManagedComponent extends ModuleComponent implements Status
 		group.add(ComponentGroup.Managed);
 		status = ComponentStatus.Offline;
 	}
-
+	
 	public ComponentStatus getStatus() {
 		return status;
 	}

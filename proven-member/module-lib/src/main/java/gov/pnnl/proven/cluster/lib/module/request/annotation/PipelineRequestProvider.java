@@ -37,44 +37,28 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.request.annotation;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import javax.inject.Qualifier;
+
 
 /**
- * Listing of module component types.
+ * Identifies annotated type as a {@code PipelineRequest} provider and informs
+ * the {@code PipelineManager} to load the pipeline request at startup for
+ * management.
  * 
  * @author d3j766
  *
  */
-public enum ComponentType {
+@Documented
+@Qualifier
+@Retention(RUNTIME)
+@Target({ TYPE })
+public @interface PipelineRequestProvider {
 
-	// Registry
-	RegistryComponent,
-	ClusterComponentRegistry,
-	ClusterRequestRegistry,
-	MemberComponentRegistry,
-	MemberRequestRegistry,
-	ScheduledEventRegistry,
-
-	// Manager
-	ExchangeManager,
-	RequestManager,
-	StreamManager,
-	PipelineManager,
-
-	// Disclosure
-	DisclosureEntries,
-
-	// Exchange
-	RequestExchange,
-	DisclosureBuffer,
-	RequestBuffer,
-	ServiceBuffer,
-
-	// Request
-	RegisteredRequest,
-	PipelineRequest,
-	PipelineJob,
-
-	// Stream
-	MessageStream;
 }

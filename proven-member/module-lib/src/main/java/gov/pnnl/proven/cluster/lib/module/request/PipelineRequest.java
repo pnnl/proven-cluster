@@ -37,44 +37,77 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.request;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
- * Listing of module component types.
+ * Represents a Hazelcast Jet Pipeline processing workflow. Pipeline invocations
+ * result in a {@code PipelineJob}(s). A Pipeline maintains its associated jobs and
+ * will start, suspend, cancel, or restart a job if redirected by its
+ * {@code PipelineManager} to do so.
  * 
  * @author d3j766
+ * 
+ * @see PipelineJob, PipelineManager
  *
  */
-public enum ComponentType {
+public abstract class PipelineRequest extends RequestComponent {
 
-	// Registry
-	RegistryComponent,
-	ClusterComponentRegistry,
-	ClusterRequestRegistry,
-	MemberComponentRegistry,
-	MemberRequestRegistry,
-	ScheduledEventRegistry,
+	static Logger log = LoggerFactory.getLogger(PipelineRequest.class);
 
-	// Manager
-	ExchangeManager,
-	RequestManager,
-	StreamManager,
-	PipelineManager,
+	public static final String PR_EXECUTOR_SERVICE = "concurrent/PipelineRequest";
 
-	// Disclosure
-	DisclosureEntries,
+	@PostConstruct
+	void init() {
+		log.debug("Post construct for PipelineRequest");
+	}
 
-	// Exchange
-	RequestExchange,
-	DisclosureBuffer,
-	RequestBuffer,
-	ServiceBuffer,
+	public PipelineRequest() {
+		super();
+		log.debug("DefaultConstructer for PipelineRequest");
+	}
 
-	// Request
-	RegisteredRequest,
-	PipelineRequest,
-	PipelineJob,
+	@PreDestroy
+	void destroy() {
+	}
 
-	// Stream
-	MessageStream;
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
+
+	}
+
+	@Override
+	public ComponentStatus getStatus() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

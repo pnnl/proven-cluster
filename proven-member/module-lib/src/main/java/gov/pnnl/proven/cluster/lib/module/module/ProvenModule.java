@@ -52,6 +52,7 @@ import org.apache.logging.log4j.Logger;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleShutdown;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
+import gov.pnnl.proven.cluster.lib.module.manager.PipelineManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleEventObserver;
 
@@ -67,6 +68,10 @@ public abstract class ProvenModule implements ModuleEventObserver {
 	@Inject
 	private ExchangeManager em;
 	
+	@Inject 
+	private PipelineManager pm;
+	
+	
 	// Module identifier
 	private static UUID moduleId;
 	
@@ -78,6 +83,7 @@ public abstract class ProvenModule implements ModuleEventObserver {
 		// Activate managers
 		sm.ping();
 		em.ping();
+		pm.ping();
 		
 		
 		// Log startup message

@@ -37,44 +37,60 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+
+package gov.pnnl.proven.cluster.lib.module.manager;
+
+import java.lang.annotation.Annotation;
+import java.util.Set;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
+import javax.enterprise.context.spi.CreationalContext;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
+import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
+
+import javax.enterprise.inject.literal.QualifierLiteral;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.util.AnnotationLiteral;
 
 /**
- * Listing of module component types.
+ * A component manager responsible for managing a set of {@code PipelineRequest}
+ * components that support domain based stream processing. 
  * 
  * @author d3j766
+ * 
+ * @see ComponentManager, PipelineRequest
  *
  */
-public enum ComponentType {
+@ApplicationScoped
+public class PipelineManager extends ManagerComponent implements ComponentManager {
 
-	// Registry
-	RegistryComponent,
-	ClusterComponentRegistry,
-	ClusterRequestRegistry,
-	MemberComponentRegistry,
-	MemberRequestRegistry,
-	ScheduledEventRegistry,
+	static Logger log = LoggerFactory.getLogger(PipelineManager.class);
 
-	// Manager
-	ExchangeManager,
-	RequestManager,
-	StreamManager,
-	PipelineManager,
+	@PostConstruct
+	public void initialize() {
+		
+		// Load the pipeline requests for management. 
+		loadQualifiedManagedComponents(new AnnotationLiteral<PipelineRequestProvider>() {});
+		log.info(managedComponents.size() + " PipelineRequests loaded");
 
-	// Disclosure
-	DisclosureEntries,
+	}
 
-	// Exchange
-	RequestExchange,
-	DisclosureBuffer,
-	RequestBuffer,
-	ServiceBuffer,
+	@Inject
+	public PipelineManager() {
+		super();
+	}
 
-	// Request
-	RegisteredRequest,
-	PipelineRequest,
-	PipelineJob,
-
-	// Stream
-	MessageStream;
+	/**
+	 * Force bean activation.
+	 */
+	public void ping() {
+		log.debug("Activating ExchangeManager");
+	}
+	
 }

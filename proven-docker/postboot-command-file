@@ -1,3 +1,4 @@
 # Managed Executor Service for request exchange
 create-managed-executor-service --corepoolsize=100 concurrent/RequestExchange
-create-managed-executor-service --corepoolsize=50 concurrent/SSE
+create-managed-executor-service --corepoolsize=100 concurrent/SSE
+create-managed-executor-service --corepoolsize=100 concurrent/PipelineRequest

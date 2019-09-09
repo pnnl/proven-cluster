@@ -63,6 +63,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
+import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
@@ -87,7 +89,8 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-public class T3Pipeline implements Serializable {
+@PipelineRequestProvider
+public class T3Pipeline extends PipelineRequest implements Serializable  {
 
 	private static final long serialVersionUID = 1L;
 
@@ -99,6 +102,7 @@ public class T3Pipeline implements Serializable {
 		System.out.println("T3Pipeline post construct");
 	}
 
+	@Inject
 	public T3Pipeline() {
 	}
 

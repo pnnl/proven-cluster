@@ -39,9 +39,17 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.manager;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.util.AnnotationLiteral;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
@@ -49,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 /**
  * 
  * These components are responsible for managing (creation and removal) of
- * {@code ManagedComponents}.  
+ * {@code ManagedComponents}.
  * 
  * @author d3j766
  *
@@ -60,19 +68,44 @@ public abstract class ManagerComponent extends ModuleComponent {
 
 	static Logger log = LoggerFactory.getLogger(ManagerComponent.class);
 
+	@Inject
+	BeanManager beanManager;
+
+	/**
+	 * The components being managed. The Map contains the components ID as the
+	 * key and object as value.
+	 */
+	protected Map<UUID, ManagedComponent> managedComponents;
+
 	public ManagerComponent() {
 		super();
 		group.add(ComponentGroup.Manager);
+		managedComponents = new HashMap<>();
 	}
+
 	
-	/** 
+	public <T extends ManagedComponent> void loadQualifiedManagedComponents(AnnotationLiteral<?> annotationLiteral) {
+
+		Set<Bean<?>> beans = beanManager.getBeans(Object.class, annotationLiteral);
+		for (Bean<?> bean : beans) {
+
+			if ((null != bean) && (ManagedComponent.class.isAssignableFrom(bean.getBeanClass()))) {
+				System.out.println(bean.getBeanClass().getName());
+				CreationalContext<?> ctx = beanManager.createCreationalContext(bean);
+				ManagedComponent mc = (ManagedComponent) beanManager.getReference(bean, bean.getBeanClass(), ctx);
+				managedComponents.put(mc.getId(), mc);
+			}
+		}
+	}
+
+	/**
 	 * Add a new managed component
 	 */
 	public <T extends ManagedComponent> void add(T component) {
 		component.setManagerId(id.toString());
 	}
 
-	/** 
+	/**
 	 * Remove managed component
 	 */
 	public <T extends ManagedComponent> void remove(T component) {

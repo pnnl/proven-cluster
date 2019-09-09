@@ -37,44 +37,73 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.request;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
- * Listing of module component types.
+ * The result of a {@code PipelineRequest} invocation. 
  * 
  * @author d3j766
+ * 
+ * @see PipelineRequest 
  *
  */
-public enum ComponentType {
+public class PipelineJob extends RequestComponent {
 
-	// Registry
-	RegistryComponent,
-	ClusterComponentRegistry,
-	ClusterRequestRegistry,
-	MemberComponentRegistry,
-	MemberRequestRegistry,
-	ScheduledEventRegistry,
+	static Logger log = LoggerFactory.getLogger(PipelineJob.class);
 
-	// Manager
-	ExchangeManager,
-	RequestManager,
-	StreamManager,
-	PipelineManager,
+	@PostConstruct
+	void init() {
+		log.debug("Post construct for PipelineJob");		
+	}
+	
+	@Inject
+	public PipelineJob(InjectionPoint ip) {
+		super();
+		log.debug("DefaultConstructer for PipelineJob");
+	}
 
-	// Disclosure
-	DisclosureEntries,
+	@PreDestroy
+	void destroy() {
+	}
 
-	// Exchange
-	RequestExchange,
-	DisclosureBuffer,
-	RequestBuffer,
-	ServiceBuffer,
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
 
-	// Request
-	RegisteredRequest,
-	PipelineRequest,
-	PipelineJob,
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
+	}
 
-	// Stream
-	MessageStream;
+	@Override
+	public StatusReport getStatusReport() {
+		return null;
+		
+	}
+
+	@Override
+	public ComponentStatus getStatus() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 }
