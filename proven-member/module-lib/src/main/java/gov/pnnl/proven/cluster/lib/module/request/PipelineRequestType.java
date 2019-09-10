@@ -37,61 +37,56 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-
-package gov.pnnl.proven.cluster.lib.module.manager;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
-
-import javax.enterprise.util.AnnotationLiteral;
+package gov.pnnl.proven.cluster.lib.module.request;
 
 /**
- * A component manager responsible for managing a set of {@code PipelineRequest}
- * components that support domain based stream processing.
+ * Identifies possible {@code PipelineRequest} types.
  * 
  * @author d3j766
  * 
- * @see ComponentManager, PipelineRequest
+ * @see PipelineRequest
+ * @since
  *
  */
-@ApplicationScoped
-public class PipelineManager extends ManagerComponent implements ComponentManager {
-
-	static Logger log = LoggerFactory.getLogger(PipelineManager.class);
-
-	@PostConstruct
-	public void initialize() {
-
-		// Load the pipeline requests for management.
-		loadQualifiedManagedComponents(new AnnotationLiteral<PipelineRequestProvider>() {
-		});
-		log.info(managedComponents.size() + " PipelineRequests loaded");
-		
-		/**
-		 * TODO
-		 * For each loaded pipeline request, process any metadata provided by
-		 * the {@code PipelineRequestProvider} annotation.
-		 */
-		
-		// Activate all loaded pipeline requests
-		managedComponents.forEach((k, v) -> v.activate());
-
-	}
-
-	@Inject
-	public PipelineManager() {
-		super();
-	}
+public enum PipelineRequestType {
 
 	/**
-	 * Force bean activation.
+	 * Pipeline is meant to operate in all domain stream environments. Meaning
+	 * there will be a pipeline invocation (i.e. Job) for each domain's
+	 * streaming environment. Defined source(s) and sink(s) for this pipeline
+	 * type must access a single domain.
 	 */
-	public void ping() {
-		log.debug("Activating PipelineManager");
+	Domain(PipelineRequestTypeName.DOMAIN),
+
+	/**
+	 * Pipeline operates on the Proven domain only. A single job will be
+	 * produced for this pipeline type.
+	 */
+	Proven(PipelineRequestTypeName.PROVEN),
+
+	/**
+	 * Pipeline may operate on multiple domain stream environments.  A single job will be
+	 * produced for this pipeline type.  
+	 */
+	Custom(PipelineRequestTypeName.CUSTOM);
+
+	public class PipelineRequestTypeName {
+		public static final String DOMAIN = "domain";
+		public static final String PROVEN = "proven";
+		public static final String CUSTOM = "custom";
 	}
+
+	private String name;
+
+	PipelineRequestType() {
+	}
+
+	PipelineRequestType(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	};
 
 }

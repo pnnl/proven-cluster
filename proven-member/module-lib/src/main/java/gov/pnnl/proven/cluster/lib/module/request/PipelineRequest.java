@@ -39,20 +39,26 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.request;
 
+import java.util.List;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.jet.pipeline.Pipeline;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
 /**
  * Represents a Hazelcast Jet Pipeline processing workflow. Pipeline invocations
- * result in a {@code PipelineJob}(s). A Pipeline maintains its associated jobs and
- * will start, suspend, cancel, or restart a job if redirected by its
+ * result in a {@code PipelineJob}(s). A Pipeline maintains its associated jobs
+ * and will start, suspend, cancel, or restart a job if redirected by its
  * {@code PipelineManager} to do so.
  * 
  * @author d3j766
@@ -66,11 +72,62 @@ public abstract class PipelineRequest extends RequestComponent {
 
 	public static final String PR_EXECUTOR_SERVICE = "concurrent/PipelineRequest";
 
+	@Inject
+	protected HazelcastInstance hzi;
+
+	@Inject
+	protected StreamManager sm;
+
+	/**
+	 * Represents a client connection from the pipeline's job to Proven's
+	 * IMDG environment, used by source and sink stages of the job's pipeline to draw
+	 * from and drain to respectively.
+	 */
+	protected ClientConfig clientConfig;
+
+	/**
+	 * Identifies type of pipeline.
+	 * 
+	 * @see PipelineRequestType
+	 */
+	private PipelineRequestType pipelineType;
+
+	/*
+	 * List of class resources, if any, that will be added to the pipeline's job
+	 * configuration. By default, the {@code PipelineRequest} implementation
+	 * class is added along with resources defined in the pipeline-lib library.
+	 */
+	private List<Class<?>> pipelineResources;
+
+	/**
+	 * Contains the {@code PipelineJob}s for this {@code PipelineRequest}
+	 */
+	private Set<PipelineJob> jobs;
+
+	/**
+	 * Creates and returns a new {@code Pipeline} instance for the provided
+	 * domain. If {@code #pipelineType} is {@code PipelineRequestType#Custom},
+	 * domain value will not be provided in call. Meaning, implementation is
+	 * responsible for domain selection and use for this case.
+	 * {@code PipelineRequestType} is set in {@code PipelineRequestProvider}
+	 * annotation, which identifies implementation classes of the
+	 * {@code PipelineRequest}.
+	 * 
+	 * @param domain
+	 *            {@DisclosureDomian} value.
+	 * @return a new {@code Pipeline}
+	 * 
+	 * @see PipelineType, PipelineRequestProvider
+	 * 
+	 */
+	public abstract Pipeline createPipeline(DisclosureDomain domain);
+
 	@PostConstruct
 	void init() {
 		log.debug("Post construct for PipelineRequest");
 	}
 
+	@Inject
 	public PipelineRequest() {
 		super();
 		log.debug("DefaultConstructer for PipelineRequest");

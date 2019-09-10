@@ -45,12 +45,13 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import javax.inject.Qualifier;
-
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
 
 /**
  * Identifies annotated type as a {@code PipelineRequest} provider and informs
- * the {@code PipelineManager} to load the pipeline request at startup for
- * management.
+ * the {@code PipelineManager} to load pipeline request at startup for
+ * management purposes.
  * 
  * @author d3j766
  *
@@ -60,5 +61,28 @@ import javax.inject.Qualifier;
 @Retention(RUNTIME)
 @Target({ TYPE })
 public @interface PipelineRequestProvider {
+
+	/**
+	 * (Optional) The type of pipeline request
+	 * 
+	 * @see PipelineRequestType
+	 * 
+	 */
+	PipelineRequestType pipelineType() default PipelineRequestType.Domain;
+
+	/**
+	 * (Optional) Provides a list of class resources that will be added to the
+	 * associated {@code PipelineRequest}'s job configuration.
+	 * 
+	 * @see PipelineRequest
+	 * 
+	 */
+	Class<?>[] resources() default {};
+
+	/**
+	 * (Optional) Indicates if the pipeline should run on an internal Jet
+	 * instance for testing and debugging purposes.
+	 */
+	boolean isTest() default false;
 
 }
