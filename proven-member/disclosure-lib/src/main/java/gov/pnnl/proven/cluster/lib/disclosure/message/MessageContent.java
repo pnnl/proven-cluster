@@ -100,7 +100,7 @@ public enum MessageContent {
 	 * returned to caller if requested.
 	 */
 	Query(MessageContentName.QUERY),
-	
+
 	/**
 	 * Continuous Query message content. Queries to run over a cluster member's
 	 * ProvenMessage data name for a configured frequency, in order to detect
@@ -109,6 +109,18 @@ public enum MessageContent {
 	 * requester, but instead is installed on server for processing.
 	 */
 	ContinuousQuery(MessageContentName.CONTINUOUS_QUERY),
+
+	/**
+	 * Represents a pipeline processing request. Contains reference information
+	 * regarding a pipeline request, used for management purposes.
+	 */
+	PipelineRequest(MessageContentName.PIPELINE_REQUEST),
+
+	/**
+	 * Represents a module processing request. Contains reference information regarding a
+	 * module request, used for management purposes.  
+	 */
+	ModuleRequest(MessageContentName.MODULE_REQUEST),
 
 	/**
 	 * Cluster administrative message content. Contains directives to configure
@@ -141,6 +153,8 @@ public enum MessageContent {
 		public static final String STRUCTURE = "structure";
 		public static final String QUERY = "query";
 		public static final String CONTINUOUS_QUERY = "continuous";
+		public static final String PIPELINE_REQUEST = "pipeline";
+		public static final String MODULE_REQUEST = "module";
 		public static final String ADMINISTRATIVE = "administrative";
 		public static final String MEASUREMENT = "measurement";
 		public static final String RESPONSE = "response";
@@ -174,9 +188,9 @@ public enum MessageContent {
 	public String getName() {
 		return name;
 	}
-	
+
 	public static MessageContent getValue(String name) {
-		
+
 		MessageContent ret = null;
 		for (MessageContent mc : values()) {
 			if (name.equals(mc.getName())) {
@@ -184,7 +198,7 @@ public enum MessageContent {
 				break;
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -214,5 +228,4 @@ public enum MessageContent {
 		return ret;
 	}
 
-	
 }

@@ -56,8 +56,8 @@ import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
  * 
- * These components are responsible for managing (creation and removal) of
- * {@code ManagedComponents}.
+ * These components are responsible for managing (creation, activation,
+ * deactivation, and monitoring) of {@code ManagedComponents}.
  * 
  * @author d3j766
  *
@@ -83,16 +83,18 @@ public abstract class ManagerComponent extends ModuleComponent {
 		managedComponents = new HashMap<>();
 	}
 
-	
+	// <T extends ManagedComponent>
 	public <T extends ManagedComponent> void loadQualifiedManagedComponents(AnnotationLiteral<?> annotationLiteral) {
 
 		Set<Bean<?>> beans = beanManager.getBeans(Object.class, annotationLiteral);
 		for (Bean<?> bean : beans) {
 
 			if ((null != bean) && (ManagedComponent.class.isAssignableFrom(bean.getBeanClass()))) {
-				System.out.println(bean.getBeanClass().getName());
-				CreationalContext<?> ctx = beanManager.createCreationalContext(bean);
-				ManagedComponent mc = (ManagedComponent) beanManager.getReference(bean, bean.getBeanClass(), ctx);
+				Bean<T> mcBean = (Bean<T>) bean;
+				Class<T> mcBeanClass = (Class<T>) bean.getBeanClass();
+				System.out.println(mcBean.getBeanClass().getName());
+				CreationalContext<T> ctx = beanManager.createCreationalContext(mcBean);
+				T mc = (T) beanManager.getReference(mcBean, mcBeanClass, ctx);
 				managedComponents.put(mc.getId(), mc);
 			}
 		}

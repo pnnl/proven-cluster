@@ -73,6 +73,8 @@ public enum MessageContentGroup {
 			GroupLabel.REQUEST_GROUP,
 			MessageContent.Administrative,
 			MessageContent.ContinuousQuery,
+			MessageContent.PipelineRequest,
+			MessageContent.ModuleRequest,
 			MessageContent.Query),
 
 	Response(GroupLabel.RESPONSE_GROUP, MessageContent.Response);

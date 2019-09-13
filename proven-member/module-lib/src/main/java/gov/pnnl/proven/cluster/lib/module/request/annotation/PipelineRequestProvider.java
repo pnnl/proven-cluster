@@ -44,7 +44,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import javax.enterprise.util.AnnotationLiteral;
+import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
 
@@ -56,11 +61,13 @@ import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
  * @author d3j766
  *
  */
-@Documented
 @Qualifier
 @Retention(RUNTIME)
 @Target({ TYPE })
+@Documented
 public @interface PipelineRequestProvider {
+	
+	static Logger log = LoggerFactory.getLogger(PipelineRequestProvider.class);
 
 	/**
 	 * (Optional) The type of pipeline request
@@ -68,7 +75,8 @@ public @interface PipelineRequestProvider {
 	 * @see PipelineRequestType
 	 * 
 	 */
-	PipelineRequestType pipelineType() default PipelineRequestType.Domain;
+	@Nonbinding
+	PipelineRequestType pipelineType() default PipelineRequestType.Domain; 
 
 	/**
 	 * (Optional) Provides a list of class resources that will be added to the
@@ -77,12 +85,42 @@ public @interface PipelineRequestProvider {
 	 * @see PipelineRequest
 	 * 
 	 */
+	@Nonbinding
 	Class<?>[] resources() default {};
 
 	/**
 	 * (Optional) Indicates if the pipeline should run on an internal Jet
 	 * instance for testing and debugging purposes.
 	 */
+	@Nonbinding
 	boolean isTest() default false;
+	
+
+	/*
+	 * Supports instantiation
+	 */
+	public static final class Literal extends AnnotationLiteral<PipelineRequestProvider>
+			implements PipelineRequestProvider {
+
+		public static final Literal INSTANCE = new Literal();
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public PipelineRequestType pipelineType() {
+			return null;
+		}
+
+		@Override
+		public Class<?>[] resources() {
+			return null;
+		}
+
+		@Override
+		public boolean isTest() {
+			return false;
+		}
+
+	}
 
 }

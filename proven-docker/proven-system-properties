@@ -2,10 +2,18 @@
 proven.hazelcast.members=127.0.0.1
 proven.hazelcast.member.port=5701
 
+# Jet
+proven.jet.instance.network.addresses=127.0.0.1:4701,127.0.0.1:4702,127.0.0.1:4703
+proven.jet.instance.test.port=6701
+proven.jet.config.group=jet
+
+
 # Payara 
 fish.payara.classloading.delegate=false
 
+
 # Proven 
+
 
 # Hybrid Module
 proven.hybrid.t3.serviceUrl=http://localhost:8889/bigdata

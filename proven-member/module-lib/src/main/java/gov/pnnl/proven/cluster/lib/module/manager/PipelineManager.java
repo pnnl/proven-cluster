@@ -40,11 +40,17 @@
 
 package gov.pnnl.proven.cluster.lib.module.manager;
 
+import java.lang.annotation.Annotation;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 
 import javax.enterprise.util.AnnotationLiteral;
@@ -62,22 +68,22 @@ import javax.enterprise.util.AnnotationLiteral;
 public class PipelineManager extends ManagerComponent implements ComponentManager {
 
 	static Logger log = LoggerFactory.getLogger(PipelineManager.class);
-
+	
+	
 	@PostConstruct
 	public void initialize() {
 
-		// Load the pipeline requests for management.
-		loadQualifiedManagedComponents(new AnnotationLiteral<PipelineRequestProvider>() {
-		});
+		// Load PipelineRequest implementations as managed components		
+		loadQualifiedManagedComponents(PipelineRequestProvider.Literal.INSTANCE);
 		log.info(managedComponents.size() + " PipelineRequests loaded");
-		
-		/**
-		 * TODO
-		 * For each loaded pipeline request, process any metadata provided by
-		 * the {@code PipelineRequestProvider} annotation.
+
+		/*
+		 * Now activate all the loaded pipeline requests
+		 * 
+		 * TODO Remove and replace with observer of its managed component status
+		 * reports. If {@code ComponentStatus#Offline }, then activate the
+		 * component.
 		 */
-		
-		// Activate all loaded pipeline requests
 		managedComponents.forEach((k, v) -> v.activate());
 
 	}
@@ -86,6 +92,8 @@ public class PipelineManager extends ManagerComponent implements ComponentManage
 	public PipelineManager() {
 		super();
 	}
+
+	
 
 	/**
 	 * Force bean activation.

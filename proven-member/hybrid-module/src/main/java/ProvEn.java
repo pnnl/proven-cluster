@@ -110,8 +110,9 @@ import gov.pnnl.proven.cluster.module.hybrid.util.Consts;
  */
 @Singleton
 @LocalBean
-@Startup
+//@Startup 
 @DependsOn(value = { "PropertiesManager" })
+@Deprecated // No longer used with new Proven module structure
 public class ProvEn implements ProvEnMXBean {
 	
 	private final Logger log = LoggerFactory.getLogger(ProvEn.class);
