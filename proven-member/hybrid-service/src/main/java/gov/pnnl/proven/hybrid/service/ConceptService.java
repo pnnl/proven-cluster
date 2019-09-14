@@ -588,15 +588,15 @@ public class ConceptService {
 	}
 
 
-	
-	
+
+
 	public String convertResults2Json(QueryResult qr) {
- 
+
 		//
 		// Declare Json Objects to be built
 		//
-	    JSONArray  measurementArray = new JSONArray();
-	    String jsonresults = "";
+		JSONArray  measurementArray = new JSONArray();
+		String jsonresults = "";
 		Mpoint point = new Mpoint();
 		Measurement measurement = new Measurement();
 		Results results = new Results();
@@ -622,7 +622,7 @@ public class ConceptService {
 				List<List<Object>> table = series.getValues();
 
 				int rowIndex = 0;
-//				rowResults = new HashMap<String, String>();
+				//				rowResults = new HashMap<String, String>();
 				JSONObject rowObject = new JSONObject();
 
 				//
@@ -644,13 +644,13 @@ public class ConceptService {
 								//
 								Double val = new Double(cell.toString());
 								Long lval = val.longValue();
-//								point.putRow(colNames.get(cellIndex), lval.toString());
-//							    rowResults.put(colNames.get(cellIndex), lval.toString());
-							    rowObject.put(colNames.get(cellIndex), lval);
+								//								point.putRow(colNames.get(cellIndex), lval.toString());
+								//							    rowResults.put(colNames.get(cellIndex), lval.toString());
+								rowObject.put(colNames.get(cellIndex), lval);
 							} else if (cell instanceof Integer) {
-							    rowObject.put(colNames.get(cellIndex), (Integer)cell);						    
+								rowObject.put(colNames.get(cellIndex), (Integer)cell);						    
 							} else if (cell instanceof Double) {
-							    rowObject.put(colNames.get(cellIndex), (Double)cell);						    
+								rowObject.put(colNames.get(cellIndex), (Double)cell);						    
 							}else {
 								String buff = cell.toString();
 								//
@@ -658,9 +658,9 @@ public class ConceptService {
 								// surrounding double quotes.
 								//
 								buff = buff.replaceAll("\"", "");
-//								point.putRow(colNames.get(cellIndex), buff);
-//							    rowResults.put(colNames.get(cellIndex), buff);
-							    rowObject.put(colNames.get(cellIndex), buff);
+								//								point.putRow(colNames.get(cellIndex), buff);
+								//							    rowResults.put(colNames.get(cellIndex), buff);
+								rowObject.put(colNames.get(cellIndex), buff);
 							}
 
 							//
@@ -671,7 +671,7 @@ public class ConceptService {
 
 					} // end adding to row
 					measurement.addPoint(point);
-//					tableResults.put(rowIndex, rowResults);
+					//					tableResults.put(rowIndex, rowResults);
 					measurementArray.add(rowObject);
 					rowObject = new JSONObject();
 					rowIndex++;
@@ -693,33 +693,33 @@ public class ConceptService {
 	}
 
 	public String convertResults2Csv2(QueryResult qr) {
-		 
+
 		//
 		// Declare Json Objects to be built
 		//
-	    String csvMeasurements = "";
-	    String csvRow = "";
-	    String comma = ",";
-	    String newline = "\n";
+		String csvMeasurements = "";
+		String csvRow = "";
+		String comma = ",";
+		String newline = "\n";
 		Mpoint point = new Mpoint();
 		Measurement measurement = new Measurement();
 		Results results = new Results();
-        File tempFile = null;
-        Writer writer = null;
-        CSVWriter csvWriter = null;
+		File tempFile = null;
+		Writer writer = null;
+		CSVWriter csvWriter = null;
 
 		String[] headerRecord = null;
 		try {
 			tempFile = File.createTempFile("proven", ".influx2csv");
 			tempFile.deleteOnExit();
-	        writer = Files.newBufferedWriter(Paths.get(tempFile.getPath()));
-	        csvWriter = new CSVWriter(writer,
-	                CSVWriter.DEFAULT_SEPARATOR,
-	                CSVWriter.NO_QUOTE_CHARACTER,
-	                CSVWriter.DEFAULT_ESCAPE_CHARACTER,
-	                CSVWriter.DEFAULT_LINE_END);
+			writer = Files.newBufferedWriter(Paths.get(tempFile.getPath()));
+			csvWriter = new CSVWriter(writer,
+					CSVWriter.DEFAULT_SEPARATOR,
+					CSVWriter.NO_QUOTE_CHARACTER,
+					CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+					CSVWriter.DEFAULT_LINE_END);
 
-			
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -728,9 +728,9 @@ public class ConceptService {
 
 		List<Result> resultList = qr.getResults();
 		qr.toString();
-		
+
 		int resultIndex = 0;
-        
+
 		//
 		// Process Each Result
 		//
@@ -740,7 +740,7 @@ public class ConceptService {
 			List<Series> seriesList = ((null == result.getSeries()) ? (new ArrayList<Series>()) : result.getSeries());
 
 			int seriesIndex = 0;
-       
+
 			//
 			// Process Each Series
 			//
@@ -748,28 +748,28 @@ public class ConceptService {
 				String seriesName = series.getName();
 				List<String> colNames = series.getColumns();
 				List<List<Object>> table = series.getValues();
-				
-				 
+
+
 				if (topHeader == false) {
-				headerRecord = new String[colNames.size()];
-				int colIndex = 0;
-                for (String column : colNames) {
-//                	csvRow = csvRow.concat(column);
-//                 	csvRow = csvRow.concat(",");
-                	headerRecord[colIndex] = column;
-                	colIndex++;
-                }
-//                if (csvRow.endsWith(comma)) {
-//                	csvRow = csvRow.substring(0, csvRow.length()-1);
-//                	csvRow = csvRow.concat(newline);
-//                }
-                topHeader = true;
-                csvWriter.writeNext(headerRecord);
+					headerRecord = new String[colNames.size()];
+					int colIndex = 0;
+					for (String column : colNames) {
+						//                	csvRow = csvRow.concat(column);
+						//                 	csvRow = csvRow.concat(",");
+						headerRecord[colIndex] = column;
+						colIndex++;
+					}
+					//                if (csvRow.endsWith(comma)) {
+					//                	csvRow = csvRow.substring(0, csvRow.length()-1);
+					//                	csvRow = csvRow.concat(newline);
+					//                }
+					topHeader = true;
+					csvWriter.writeNext(headerRecord);
 				}
 
 				int rowIndex = 0;
-//				rowResults = new HashMap<String, String>();
-//				JSONObject rowObject = new JSONObject();
+				//				rowResults = new HashMap<String, String>();
+				//				JSONObject rowObject = new JSONObject();
 
 				//
 				// Process Rows for a given Series
@@ -783,7 +783,7 @@ public class ConceptService {
 					//
 					point = new Mpoint();
 					for (Object cell : row) {
-						
+
 						if (cell != null) {
 							if (colNames.get(cellIndex).contains("time") && colNames.get(cellIndex).length() == 4) {
 								//
@@ -792,13 +792,13 @@ public class ConceptService {
 								//
 								Double val = new Double(cell.toString());
 								Long lval = val.longValue();
-//							    csvRow = csvRow.concat(lval.toString()).concat(comma);
-							    rowCsv[cellIndex] = lval.toString();
+								//							    csvRow = csvRow.concat(lval.toString()).concat(comma);
+								rowCsv[cellIndex] = lval.toString();
 							} else if (cell instanceof Integer) {
-//								csvRow = csvRow.concat(cell.toString()).concat(comma);
+								//								csvRow = csvRow.concat(cell.toString()).concat(comma);
 								rowCsv[cellIndex] = cell.toString();
 							} else if (cell instanceof Double) {	
-//								csvRow = csvRow.concat(cell.toString()).concat(comma);
+								//								csvRow = csvRow.concat(cell.toString()).concat(comma);
 								rowCsv[cellIndex] = cell.toString();
 							}else {
 								String buff = cell.toString();
@@ -808,7 +808,7 @@ public class ConceptService {
 								// surrounding double quotes.
 								//
 								buff = buff.replaceAll("\"", "");
-//							    csvRow = csvRow.concat(buff).concat(comma);
+								//							    csvRow = csvRow.concat(buff).concat(comma);
 								rowCsv[cellIndex] = buff;
 							}
 
@@ -816,22 +816,22 @@ public class ConceptService {
 							// Add each cell Json Object to a row Object.
 							//
 						} else {
-							 
-//							csvRow = csvRow.concat(comma);
+
+							//							csvRow = csvRow.concat(comma);
 
 						}
 						cellIndex++;
 
 					} // end adding to row
-					 csvWriter.writeNext(rowCsv);
-//	                if (csvRow.endsWith(comma)) {
-//	                	csvRow = csvRow.substring(0, csvRow.length()-1);
-//	                	csvRow = csvRow.concat(newline);
-//	                }
-//	                csvMeasurements = csvMeasurements.concat(csvRow);
-//                    csvRow = "";
+					csvWriter.writeNext(rowCsv);
+					//	                if (csvRow.endsWith(comma)) {
+					//	                	csvRow = csvRow.substring(0, csvRow.length()-1);
+					//	                	csvRow = csvRow.concat(newline);
+					//	                }
+					//	                csvMeasurements = csvMeasurements.concat(csvRow);
+					//                    csvRow = "";
 					rowIndex++;
- //                   System.out.println(rowIndex + " " + csvMeasurements.length());
+					//                   System.out.println(rowIndex + " " + csvMeasurements.length());
 					//
 					// Add each row O
 					//
@@ -842,9 +842,9 @@ public class ConceptService {
 			resultIndex++;
 		}
 
-	
-		
-		
+
+
+
 		try {
 			writer.close();
 			FileInputStream fis = new FileInputStream(tempFile);
@@ -853,8 +853,8 @@ public class ConceptService {
 			fis.close();
 
 			csvMeasurements = new String(data, "UTF-8");
-        	         
-        	
+
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -862,7 +862,7 @@ public class ConceptService {
 		return csvMeasurements;
 
 	}
-	
+
 	public String influxQuery(String queryString) {
 
 		String ret = "";
@@ -877,7 +877,7 @@ public class ConceptService {
 			// Unless TimeUnit parameter is used in query, Epoch time will not
 			// be returned.
 			//
-			QueryResult qr = influxDB.query(query, TimeUnit.MILLISECONDS);
+			QueryResult qr = influxDB.query(query, TimeUnit.SECONDS);
 			if (qr.hasError()) {
 				ret = qr.getError();
 			} else {
@@ -932,16 +932,16 @@ public class ConceptService {
 
 	}
 
-	
+
 	public ProvenMessageResponse influxQuery(ProvenMessage query) throws InvalidProvenMessageException {
-	    
+
 		ProvenMessageResponse pmr = influxQuery(query, false);
 		return pmr;
-	
+
 	}
-	
-	
-	
+
+
+
 	public ProvenMessageResponse influxQuery(ProvenMessage query, boolean returnCsvFlag) throws InvalidProvenMessageException {
 		ProvenMessageResponse ret = null;
 		String space = " ";
@@ -985,8 +985,8 @@ public class ConceptService {
 					} else
 						filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
 				}
-		
-			
+
+
 				//
 				// If time oriented, override filter with StartTime and EndTime
 				// are special fields used to filter the InfluxDB time.
@@ -1030,7 +1030,7 @@ public class ConceptService {
 			// Unless TimeUnit parameter is used in query, Epoch time will not
 			// be returned.
 			//
-			QueryResult qr = influxDB.query(influxQuery, TimeUnit.MILLISECONDS);
+			QueryResult qr = influxDB.query(influxQuery, TimeUnit.SECONDS);
 			if (qr.hasError()) {
 				ret = new ProvenMessageResponse();
 				ret.setReason("Invalid or missing content.");
@@ -1090,7 +1090,7 @@ public class ConceptService {
 					return ret;
 				}
 				Point.Builder builder = Point.measurement(measurement.getMeasurementName())
-						.time(measurement.getTimestamp(), TimeUnit.MILLISECONDS);
+						.time(measurement.getTimestamp(), TimeUnit.SECONDS);
 
 				for (ProvenMetric pm : pms) {
 
@@ -1189,11 +1189,11 @@ public class ConceptService {
 		return type;
 
 	}
-	
+
 	//
 	//  Warning we are using a recursive method to process the JSON object.
 	//
-	
+
 	private Point.Builder processNestedObject (JSONObject iObject, String key, Point.Builder builder  ) {
 		Point.Builder ret = builder;
 		Set<String> iokeys = iObject.keySet();
@@ -1215,17 +1215,17 @@ public class ConceptService {
 				ret.addField(iokey, Double.valueOf((Double) iObject.get(iokey)));
 			} else 	if  (iObject.get(iokey) instanceof JSONObject) {
 				JSONObject i2Object = (JSONObject) iObject.get(iokey);
-                ret = processNestedObject (i2Object, iokey, ret);
+				ret = processNestedObject (i2Object, iokey, ret);
 			}
 		}
-		
+
 		return ret;
-		
+
 	}
-	
+
 
 	private ProvenMessageResponse influxWriteBulkSimulationInput(JSONObject commandObject, InfluxDB influxDB,
-		String measurementName, String instanceId) {
+			String measurementName, String instanceId) {
 		ProvenMessageResponse ret = null;
 		Long timestamp = (long) -1;
 		String differenceMrid = null;
@@ -1279,7 +1279,7 @@ public class ConceptService {
 			JSONObject fdobject = (JSONObject) fditerator.next();
 			Set<String> fdkeys = fdobject.keySet();
 			Iterator<String> fdit = fdkeys.iterator();
-			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
+			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
 			builder.tag("simulation_id", simulationid);
 			builder.tag("difference_mrid", differenceMrid);
 
@@ -1301,7 +1301,7 @@ public class ConceptService {
 				} else if (fdobject.get(fdkey) instanceof Double) {
 					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
 				} else 	if  (fdobject.get(fdkey) instanceof JSONObject) {
-					
+
 					JSONObject iObject = (JSONObject)fdobject.get(fdkey);
 					builder = processNestedObject(iObject, fdkey,  builder);
 
@@ -1323,7 +1323,7 @@ public class ConceptService {
 			JSONObject rdobject = (JSONObject) rditerator.next();
 			Set<String> rdkeys = rdobject.keySet();
 			Iterator<String> rdit = rdkeys.iterator();
-			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
+			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
 			builder.tag("simulation_id", simulationid);
 			builder.tag("difference_mrid", differenceMrid);
 
@@ -1346,12 +1346,11 @@ public class ConceptService {
 					builder.addField(rdkey, Float.valueOf((Float) rdobject.get(rdkey)));
 				} else if (rdobject.get(rdkey) instanceof Double) {
 					builder.addField(rdkey, Double.valueOf((Double) rdobject.get(rdkey)));
-					
+
 				} else 	if  (rdobject.get(rdkey) instanceof JSONObject) {
 					JSONObject iObject = (JSONObject)rdobject.get(rdkey);
 					builder = processNestedObject(iObject, rdkey,  builder);					
-								
-						
+
 				}			
 
 			}
@@ -1372,27 +1371,15 @@ public class ConceptService {
 		ProvenMessageResponse ret = null;
 		Long timestamp = (long) -1;
 		boolean hasMeasurementObject = false;
-		boolean hasMeasurementArray = false;
+		//		boolean hasMeasurementArray = false;
 		String measurementArrayKey = null;
 		String simulationid = messageObject.get("simulation_id").toString();
-		JSONObject timestepObject = (JSONObject) messageObject.get("message");
+		JSONObject messageContentsObject = (JSONObject) messageObject.get("message");
 		@SuppressWarnings("unchecked")
-		Set<String> timestep_keys = timestepObject.keySet();
-		Iterator<String> timestep_it = timestep_keys.iterator();
-		while (timestep_it.hasNext()) {
-			String key = timestep_it.next();
-			if (key.equalsIgnoreCase("timestamp")) {
-				timestamp = (Long) timestepObject.get("timestamp");
+		Set<String> messageContent_keys = messageContentsObject.keySet();
+		timestamp = (Long) messageContentsObject.get("timestamp");
 
-			}
-			if (timestepObject.get(key) instanceof JSONObject) {
-				hasMeasurementObject = true;
-			}
-			if (timestepObject.get(key) instanceof JSONArray) {
-				hasMeasurementArray = true;
-				measurementArrayKey = key;
-			}
-		}
+
 
 		if ((timestamp == -1) || (simulationid.equalsIgnoreCase(""))) {
 			ret = new ProvenMessageResponse();
@@ -1403,25 +1390,19 @@ public class ConceptService {
 			return ret;
 		}
 
-		if ((hasMeasurementArray == false) && (hasMeasurementObject == false)) {
-			ret = new ProvenMessageResponse();
-			ret.setStatus(Status.BAD_REQUEST);
-			ret.setReason("Invalid or missing message content type.  Measurements missing.");
-			ret.setCode(Status.BAD_REQUEST.getStatusCode());
-			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-			return ret;
-		}
 
 		@SuppressWarnings("unchecked")
-		Set<String> point_keys = timestepObject.keySet();
-		Iterator<String> point_it = point_keys.iterator();
-		while (point_it.hasNext()) {
-			String key = point_it.next();
-			if (timestepObject.get(key) instanceof JSONObject) {
-				JSONObject object = (JSONObject) timestepObject.get(key);
-				Set<String> okeys = object.keySet();
-				Iterator<String> oit = okeys.iterator();
-				Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
+
+		JSONObject measurements = (JSONObject) messageContentsObject.get("measurements");
+		Set<String> measurement_keys = measurements.keySet();
+		Iterator<String> measurement_it = measurement_keys.iterator();
+		while (measurement_it.hasNext()) {
+			String measurement_key = measurement_it.next();
+			if (measurements.get(measurement_key) instanceof JSONObject) {
+				JSONObject record = (JSONObject)   measurements.get(measurement_key);
+				Set<String> record_keys = record.keySet();
+				Iterator<String> record_it = record_keys.iterator();
+				Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
 				builder.tag("simulation_id", simulationid);
 
 				// Add instanceId tag, if any
@@ -1432,25 +1413,26 @@ public class ConceptService {
 				// Add OUTPUT tag
 				builder.tag("hasSimulationMessageType", "OUTPUT");
 
-				while (oit.hasNext()) {
-					String okey = oit.next();
-					if (object.get(okey) instanceof String) {
-						if (okey.equalsIgnoreCase("measurement_mrid")) {
-							builder.tag(okey, (String) object.get(okey));
-						} else {
-							builder.tag(okey, (String) object.get(okey));
-						}
-					} else if (object.get(okey) instanceof Integer) {
-						builder.addField(okey, Integer.valueOf((Integer) object.get(okey)));
-					} else if (object.get(okey) instanceof Long) {
-						builder.addField(okey, Long.valueOf((Long) object.get(okey)));
-					} else if (object.get(okey) instanceof Float) {
-						builder.addField(okey, Float.valueOf((Float) object.get(okey)));
-					} else if (object.get(okey) instanceof Double) {
-						builder.addField(okey, Double.valueOf((Double) object.get(okey)));
-					}
+				while (record_it.hasNext()) {
+					String record_key = record_it.next();
 
+					if (record.get(record_key) instanceof String) {
+						if (record_key.equalsIgnoreCase("measurement_mrid")) {
+							builder.tag(record_key, (String) record.get(record_key));
+						} else {
+							builder.tag(record_key, (String) record.get(record_key));
+						}
+					} else if (record.get(record_key) instanceof Integer) {
+						builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
+					} else if (record.get(record_key) instanceof Long) {
+						builder.addField(record_key, Long.valueOf((Long) record.get(record_key)));
+					} else if (record.get(record_key) instanceof Float) {
+						builder.addField(record_key, Float.valueOf((Float) record.get(record_key)));
+					} else if (record.get(record_key) instanceof Double) {
+						builder.addField(record_key, Double.valueOf((Double) record.get(record_key)));
+					}
 				}
+
 				influxDB.write(idbDB, idbRP, builder.build());
 				ret = new ProvenMessageResponse();
 				ret.setReason("success");
@@ -1459,56 +1441,7 @@ public class ConceptService {
 				ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
 
 			}
-			if (hasMeasurementArray) {
-				JSONArray measurementsArray = (JSONArray) timestepObject.get(measurementArrayKey);
-				@SuppressWarnings("unchecked")
-				Iterator<JSONObject> iterator = measurementsArray.iterator();
-				while (iterator.hasNext()) {
-					JSONObject arrayObject = (JSONObject) iterator.next();
-					Set<String> aokeys = arrayObject.keySet();
-					Iterator<String> aoit = aokeys.iterator();
-					Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.MILLISECONDS);
-					builder.tag("simulation_id", simulationid);
-
-					// Add instanceId tag, if any
-					if (null != instanceId) {
-						builder.tag("instance_id", instanceId);
-					}
-
-					// Add OUTPUT tag
-					builder.tag("hasSimulationMessageType", "OUTPUT");
-
-					while (aoit.hasNext()) {
-
-						String aokey = aoit.next();
-						if (arrayObject.get(aokey) instanceof String) {
-							if (aokey.equalsIgnoreCase("measurement_mrid")) {
-								builder.tag(aokey, (String) arrayObject.get(aokey));
-							} else {
-								builder.tag(aokey, (String) arrayObject.get(aokey));
-							}
-						} else if (arrayObject.get(aokey) instanceof Integer) {
-							builder.addField(aokey, Integer.valueOf((Integer) arrayObject.get(aokey)));
-						} else if (arrayObject.get(aokey) instanceof Long) {
-							builder.addField(aokey, Long.valueOf((Long) arrayObject.get(aokey)));
-						} else if (arrayObject.get(aokey) instanceof Float) {
-							builder.addField(aokey, Float.valueOf((Float) arrayObject.get(aokey)));
-						} else if (arrayObject.get(aokey) instanceof Double) {
-							builder.addField(aokey, Double.valueOf((Double) arrayObject.get(aokey)));
-
-						}
-					}
-					influxDB.write(idbDB, idbRP, builder.build());
-					ret = new ProvenMessageResponse();
-					ret.setReason("success");
-					ret.setStatus(Status.CREATED);
-					ret.setCode(Status.CREATED.getStatusCode());
-					ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
-
-				}
-			}
 		}
-
 		return ret;
 
 	}
@@ -1578,7 +1511,7 @@ public class ConceptService {
 
 				Set<ProvenanceMetric> pms = measurements.get(measurement);
 
-				Point.Builder builder = Point.measurement(measurement).time(startTime, TimeUnit.MILLISECONDS);
+				Point.Builder builder = Point.measurement(measurement).time(startTime, TimeUnit.SECONDS);
 
 				for (ProvenanceMetric pm : pms) {
 
@@ -1650,133 +1583,133 @@ public class ConceptService {
 	}
 
 	public String convertResults2Csv(QueryResult qr) {
-			 
+
+		//
+		// Declare Json Objects to be built
+		//
+		String csvMeasurements = "";
+		String csvRow = "";
+		String comma = ",";
+		String newline = "\n";
+		Mpoint point = new Mpoint();
+		Measurement measurement = new Measurement();
+		Results results = new Results();
+
+		List<Result> resultList = qr.getResults();
+		qr.toString();
+
+		int resultIndex = 0;
+
+		//
+		// Process Each Result
+		//
+		boolean topHeader = false;
+		for (Result result : resultList) {
+
+			List<Series> seriesList = ((null == result.getSeries()) ? (new ArrayList<Series>()) : result.getSeries());
+
+			int seriesIndex = 0;
+
 			//
-			// Declare Json Objects to be built
+			// Process Each Series
 			//
-		    String csvMeasurements = "";
-		    String csvRow = "";
-		    String comma = ",";
-		    String newline = "\n";
-			Mpoint point = new Mpoint();
-			Measurement measurement = new Measurement();
-			Results results = new Results();
-	
-			List<Result> resultList = qr.getResults();
-			qr.toString();
-			
-			int resultIndex = 0;
-	
-			//
-			// Process Each Result
-			//
-			boolean topHeader = false;
-			for (Result result : resultList) {
-	
-				List<Series> seriesList = ((null == result.getSeries()) ? (new ArrayList<Series>()) : result.getSeries());
-	
-				int seriesIndex = 0;
-	       
-				//
-				// Process Each Series
-				//
-				for (Series series : seriesList) {
-					String seriesName = series.getName();
-					List<String> colNames = series.getColumns();
-					List<List<Object>> table = series.getValues();
-					
-					
-					if (topHeader == false) {
-	                for (String column : colNames) {
-	                	csvRow = csvRow.concat(column);
-	                	csvRow = csvRow.concat(",");
-	                }
-	                if (csvRow.endsWith(comma)) {
-	                	csvRow = csvRow.substring(0, csvRow.length()-1);
-	                	csvRow = csvRow.concat(newline);
-	                }
-	                topHeader = true;
+			for (Series series : seriesList) {
+				String seriesName = series.getName();
+				List<String> colNames = series.getColumns();
+				List<List<Object>> table = series.getValues();
+
+
+				if (topHeader == false) {
+					for (String column : colNames) {
+						csvRow = csvRow.concat(column);
+						csvRow = csvRow.concat(",");
 					}
-	
-					int rowIndex = 0;
-	//				rowResults = new HashMap<String, String>();
-	//				JSONObject rowObject = new JSONObject();
-	
+					if (csvRow.endsWith(comma)) {
+						csvRow = csvRow.substring(0, csvRow.length()-1);
+						csvRow = csvRow.concat(newline);
+					}
+					topHeader = true;
+				}
+
+				int rowIndex = 0;
+				//				rowResults = new HashMap<String, String>();
+				//				JSONObject rowObject = new JSONObject();
+
+				//
+				// Process Rows for a given Series
+				//
+				for (List<Object> row : table) {
+
+					int cellIndex = 0;
+					row.toString();
 					//
-					// Process Rows for a given Series
+					// Process Cells for a given Row
 					//
-					for (List<Object> row : table) {
-	
-						int cellIndex = 0;
-						row.toString();
-						//
-						// Process Cells for a given Row
-						//
-						point = new Mpoint();
-						for (Object cell : row) {
-							if (cell != null) {
-								if (colNames.get(cellIndex).contains("time") && colNames.get(cellIndex).length() == 4) {
-									//
-									// Influx returns epoch time in a double format.
-									// Needs to be converted to Long
-									//
-									Double val = new Double(cell.toString());
-									Long lval = val.longValue();
-								    csvRow = csvRow.concat(lval.toString()).concat(comma);
-								} else if (cell instanceof Integer) {
-									csvRow = csvRow.concat(cell.toString()).concat(comma);
-								} else if (cell instanceof Double) {	
-									csvRow = csvRow.concat(cell.toString()).concat(comma);
-								}else {
-									String buff = cell.toString();
-									//
-									// If a cell is a quoted string, remove the
-									// surrounding double quotes.
-									//
-									buff = buff.replaceAll("\"", "");
-								    csvRow = csvRow.concat(buff).concat(comma);
-								}
-	
+					point = new Mpoint();
+					for (Object cell : row) {
+						if (cell != null) {
+							if (colNames.get(cellIndex).contains("time") && colNames.get(cellIndex).length() == 4) {
 								//
-								// Add each cell Json Object to a row Object.
+								// Influx returns epoch time in a double format.
+								// Needs to be converted to Long
 								//
-							} else {
-								 
-								csvRow = csvRow.concat(comma);
-								
+								Double val = new Double(cell.toString());
+								Long lval = val.longValue();
+								csvRow = csvRow.concat(lval.toString()).concat(comma);
+							} else if (cell instanceof Integer) {
+								csvRow = csvRow.concat(cell.toString()).concat(comma);
+							} else if (cell instanceof Double) {	
+								csvRow = csvRow.concat(cell.toString()).concat(comma);
+							}else {
+								String buff = cell.toString();
+								//
+								// If a cell is a quoted string, remove the
+								// surrounding double quotes.
+								//
+								buff = buff.replaceAll("\"", "");
+								csvRow = csvRow.concat(buff).concat(comma);
 							}
-							cellIndex++;
-	
-						} // end adding to row
-		                if (csvRow.endsWith(comma)) {
-		                	csvRow = csvRow.substring(0, csvRow.length()-1);
-		                	csvRow = csvRow.concat(newline);
-		                }
-		                csvMeasurements = csvMeasurements.concat(csvRow);
-	                    csvRow = "";
-						rowIndex++;
-	 //                   System.out.println(rowIndex + " " + csvMeasurements.length());
-						//
-						// Add each row O
-						//
-					} // end adding to table
-					seriesIndex++;
-				} // end adding series
-	
-				resultIndex++;
-			}
-			; // end adding results
-	//		results.addMeasurement(measurement);
-	//       rootObj.put("data", measurementArray);
-	
-	//			jsonresults = rootObj.toJSONString();
-	//		} catch (JAXBException e) {
-	//			// TODO Auto-generated catch block
-	//			e.printStackTrace();
-	//		}
-	//        System.out.println (csvMeasurements);
-			return csvMeasurements;
-	
+
+							//
+							// Add each cell Json Object to a row Object.
+							//
+						} else {
+
+							csvRow = csvRow.concat(comma);
+
+						}
+						cellIndex++;
+
+					} // end adding to row
+					if (csvRow.endsWith(comma)) {
+						csvRow = csvRow.substring(0, csvRow.length()-1);
+						csvRow = csvRow.concat(newline);
+					}
+					csvMeasurements = csvMeasurements.concat(csvRow);
+					csvRow = "";
+					rowIndex++;
+					//                   System.out.println(rowIndex + " " + csvMeasurements.length());
+					//
+					// Add each row O
+					//
+				} // end adding to table
+				seriesIndex++;
+			} // end adding series
+
+			resultIndex++;
 		}
+		; // end adding results
+		//		results.addMeasurement(measurement);
+		//       rootObj.put("data", measurementArray);
+
+		//			jsonresults = rootObj.toJSONString();
+		//		} catch (JAXBException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
+		//        System.out.println (csvMeasurements);
+		return csvMeasurements;
+
+	}
 
 }
