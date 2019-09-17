@@ -146,6 +146,12 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 			this.isKnowledge = false;
 			this.hasMeasurements = false;
 		}
+		else if (content_type.equalsIgnoreCase("measurement")) {
+			this.disclosedContent = MessageContent.Measurement;
+			this.isRequest = false;
+			this.isKnowledge = true;
+			//this.hasMeasurements = true;
+		}
 
 		this.message = (JsonObject) message.get("message");
 		if(hasMeasurements(this.message)) {

@@ -1,30 +1,52 @@
 {
-  "authToken": "1234",
-  "domain": "proven",
-  "name": "SimulationOutput",
-  "content": "explicit",
-  "disclosureId": "abc244",
-  "requestorId": "xyx456",
-  "isStatic": true,
-  "isTransient": true,
-  "mimeType": "application/json",
-  "message": {
-    "simulation_id": "757820688",
-    "message": {
-      "timestamp": 1248159608,
-      "measurements": [
-        {
-          "magnitude": 45357.49851832529,
-          "angle": 141.75229645812516,
-          "measurement_mrid": "_9d4a3436-c5b1-4d87-a406-84c0fce22ac6"
-        },
-        {
-          "magnitude": 44165.63958105733,
-          "angle": 26.11346532163188,
-          "measurement_mrid": "_1b86ce14-6254-4d8f-9cc0-b067d8d38b66"
-        }
-      ]
-    }
-  },
-  "message-schema": {}
+	"authToken": "1234",
+	"domain": "proven",
+	"name": "SimulationOutput",
+	"content": "explicit",
+	"disclosureId": "abc244",
+	"requestorId": "xyx456",
+	"isStatic": true,
+	"isTransient": true,
+	"mimeType": "application/json",
+	"message": {
+		"simulation": {
+			"hasSimulationName": "simulationName1",
+			"hasGitHash": "16418erf2",
+			"hasResolution": "ne30",
+			"hasCompiler": "intel",
+			"hasCompset": "fe1",
+			"hadActivity": {
+				"simulationStart": {
+					"startedAtTime": "1256678899"
+				}
+			},
+			"wasStartedBy": {
+				"author": {
+					"hasName": "author1"
+				}
+			},
+			"hasRunE3SMScript": {
+				"location": "path/to/script"
+			},
+			"hasMachine": {
+				"Machine": {
+					"hasMachineName": "Edsion"
+				}
+			},
+			"hasNamelistFiles": {
+				"NamelistFiles": [{
+					"name": "***.in",
+					"type": "namelist",
+					"hasLocation": "path/to/files"
+				}]
+			},
+			"hasXMLFiles": {
+				"XMLFiles": {
+					"hasLocation": "path/to/files"
+				}
+			}
+		}
+
+	},
+	"message-schema": {}
 }

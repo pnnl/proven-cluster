@@ -38,7 +38,7 @@
 		"content": {
 			"$id": "#/properties/content",
 			"type": "string",
-			"enum": ["explicit", "query"],
+			"enum": ["explicit", "implicit", "measurement", "static","structure", "administrative", "continuousquery", "PipelineRequest", "ModuleRequest", "query"],
 			"title": "The Content Schema",
 			"default": "",
 			"examples": [
@@ -72,7 +72,7 @@
 			"title": "The Isstatic Schema",
 			"default": false,
 			"examples": [
-				true
+				true, false
 			]
 		},
 		"isTransient": {
@@ -81,7 +81,7 @@
 			"title": "The Istransient Schema",
 			"default": false,
 			"examples": [
-				true
+				true, false
 			]
 		},
 
