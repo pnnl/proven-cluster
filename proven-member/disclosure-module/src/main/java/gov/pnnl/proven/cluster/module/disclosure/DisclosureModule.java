@@ -131,24 +131,24 @@ public class DisclosureModule extends ProvenModule {
 		// DisclosureBuffer
 		// reports itself as part of its construction. Placed here for now to
 		// support moving message-lib processing to cluster.
-		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
-		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
-		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
-		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
-		String responseUrl = buildResponseUrl();
-		clientResponseMap.put(responseUrl, true);
+//		disclosureBuffer = hzInstance.getRingbuffer(DISCLOSURE_BUFFER);
+//		clientDisclosureMap = hzInstance.getMap(new ClientDisclosureMap().getDisclosureMapName());
+//		clientDisclosureMap.put(DISCLOSURE_BUFFER, true);
+//		clientResponseMap = hzInstance.getMap(new ClientResponseMap().getResponseMapName());
+//		String responseUrl = buildResponseUrl();
+//		clientResponseMap.put(responseUrl, true);
 		// testPipeline();
 		log.debug("DisclossureModule constructed");
 	}
 
-	private String buildResponseUrl() {
-		String ret;
-		Member member = hzInstance.getCluster().getLocalMember();
-		String host = member.getAddress().getHost();
-		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
-		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
-		ret = ret.replace(PORT_TAG, port);
-		return ret;
-	}
+//	private String buildResponseUrl() {
+//		String ret;
+//		Member member = hzInstance.getCluster().getLocalMember();
+//		String host = member.getAddress().getHost();
+//		String port = PayaraMicro.getInstance().getRuntime().getLocalDescriptor().getHttpPorts().get(0).toString();
+//		ret = RESPONSE_URL_TEMPLATE.replace(HOST_TAG, host);
+//		ret = ret.replace(PORT_TAG, port);
+//		return ret;
+//	}
 
 }

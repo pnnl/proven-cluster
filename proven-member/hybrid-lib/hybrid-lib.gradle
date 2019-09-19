@@ -1,32 +1,6 @@
- apply plugin: 'java'
- apply plugin: 'eclipse'
- apply plugin: 'maven-publish'
- 
-  
- sourceCompatibility = 1.8
- version = '0.1'
-  
- 
- repositories {
-	 mavenCentral()
-	 mavenLocal()
- }
- 
- dependencies {
+
+dependencies {
   	 compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}" 
  	 compile group: 'org.influxdb', name: 'influxdb-java', version: "${influxDbLibVersion}"
  	 
  }
- 
- test {
-	 systemProperties 'property': 'value'
- }
- 
- uploadArchives {
-	 repositories {
-		flatDir {
-			dirs 'repos'
-		}
-	 }
- }
- 
