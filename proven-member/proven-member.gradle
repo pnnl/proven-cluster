@@ -1,0 +1,67 @@
+/*
+
+
+
+*/
+
+jar.enabled = false
+
+configurations {
+
+	deployDeps
+	deployDeps.transitive = false
+	
+	payaraDeps
+	payaraDeps.transitive = false
+	
+	pipelineDeps
+    pipelineDeps.transitive = false
+    
+    moduleDeps
+    moduleDeps.transitive = false    
+    
+}
+
+dependencies { 
+
+	pipelineDeps group: 'com.blazegraph', name: 'blazegraph-jar', version: '2.1.5'
+	pipelineDeps project(path: 'pipeline-lib', configuration: 'shadow')
+	deployDeps project(path: 'disclosure-module', configuration: 'war')
+	deployDeps project(path: 'hybrid-module', configuration: 'war')
+	deployDeps project(path: 'member-module', configuration: 'war')
+	deployDeps project(path: 'stream-module', configuration: 'war')
+	payaraDeps project(path: 'member-lib', configuration: 'shadow')
+
+}
+
+
+task copyDistributionResources(type: Copy) {
+
+	//outputs.upToDateWhen { false }
+	
+	into('src/main/resources/PROVEN-INF/')
+	
+	println "COPY DISTRIBUTION RESOURCES"
+	
+	into('deploy') {
+		from configurations.deployDeps
+	}
+	
+	into('lib/payara-micro') {
+		from configurations.payaraDeps
+	}
+	
+	into('lib/pipeline-request') {
+		from configurations.pipelineDeps
+	}
+
+}
+
+
+build {
+  subprojects.each { dependsOn("$it.name:build") }
+  dependsOn(['pipeline-lib:shadowJar'])
+  dependsOn(['member-lib:shadowJar'])
+}
+build.finalizedBy copyDistributionResources
+

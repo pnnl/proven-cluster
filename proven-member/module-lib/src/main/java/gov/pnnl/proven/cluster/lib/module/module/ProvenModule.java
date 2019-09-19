@@ -75,6 +75,9 @@ public abstract class ProvenModule implements ModuleEventObserver {
 	// Module identifier
 	private static UUID moduleId;
 	
+	// Module name
+	private static String moduleName;
+	
 	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
 
 		logger.debug("ProvenModule startup message observed");

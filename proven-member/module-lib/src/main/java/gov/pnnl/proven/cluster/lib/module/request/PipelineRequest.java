@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -174,9 +175,14 @@ public abstract class PipelineRequest extends RequestComponent {
 	 */
 	public abstract Pipeline createPipeline(DisclosureDomain domain);
 
+
 	@PostConstruct
 	void init() {
 
+		// Get root runtime directory
+		URI rootDir = PayaraMicro.getInstance().getRootDir().toURI();
+		log.debug("ROOT DIR :: " + rootDir.toString());
+		
 		// Extract provide metadata and add to class
 		addPipelineRequestProviderMetadata();
 

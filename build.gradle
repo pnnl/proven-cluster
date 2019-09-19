@@ -1,16 +1,24 @@
 
 allprojects {
-	task gradleVersion { doLast { println "Gradle version $gradle.gradleVersion"
-		} }
+
+	version = '2.0.0-SNAPSHOT'
+	group = 'gov.pnnl.proven.cluster'
+
+	task gradleVersion {
+		doLast {  println "Gradle version $gradle.gradleVersion" }
+	}
+
+	task provenVersion {
+		doLast {
+			println "$version"
+			println "$name"
+		}
+	}
 }
 
 buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
-    }
+	repositories { jcenter() }
+	dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0' }
 }
 
 subprojects {
@@ -29,27 +37,80 @@ subprojects {
 	ext.jsonbApiVersion = "1.0"
 	ext.jsonbYassonApiVersion = "1.0.4"
 	ext.moduleLibProject = 'module-lib'
-	ext.isModuleProject = ((project.name.endsWith("${moduleProjectSuffix}")) || (project.name == "${moduleLibProject}"))
+	ext.isModuleProject = (project.name.endsWith("${moduleProjectSuffix}"))
 
-    apply plugin: 'com.github.johnrengelman.shadow'
+	apply plugin: 'com.github.johnrengelman.shadow'
 	apply plugin: 'java'
 	apply plugin: 'eclipse'
- 
- 
-    shadowJar {
-	   mergeServiceFiles()
-    }
- 
+	apply plugin: 'maven-publish'
+
+	task javadocJar(type: Jar) {
+		from javadoc
+		classifier 'javadoc'
+	}
+
+	task sourcesJar(type: Jar) {
+		from sourceSets.main.allJava
+		classifier 'sources'
+	}
+
+	shadowJar { mergeServiceFiles() }
+
 	if (isModuleProject) {
+
 		apply plugin: 'war'
 		apply plugin: 'eclipse-wtp'
-		
+
+		jar.enabled = false
+
+		publishing {
+			publications {
+				mavenWeb(MavenPublication) { from components.web }
+			}
+		}
+
+		eclipse {
+			wtp {
+				facet {
+					facet name: 'jst.web', version: '3.1'
+					facet name: 'jst.java', version: '1.8'
+				}
+			}
+		}
+
 		war {
+			archiveName = project.name - '-module' + "-$version" + '.war'
 			webXml = null
 		}
+
+		configurations { 
+			war {}
+			shadow {} 
+		}
+
+		artifacts { 
+			war tasks.war
+			shadow tasks.shadowJar
+		}
 	}
-	
-	
+
+	// non-module projects
+	else {
+
+		publishing {
+			publications {
+				mavenJava(MavenPublication) {
+					groupId group
+					artifactId artifactId
+					from components.java
+				}
+			}
+		}
+
+
+
+	}
+
 	sourceCompatibility = 1.8
 
 	repositories {
@@ -58,42 +119,28 @@ subprojects {
 		maven { url 'https://jitpack.io' }
 		jcenter()
 	}
-	
-	jar {
-		onlyIf { !sourceSets.main.allSource.files.isEmpty() }
-	}
 
 	dependencies {
 
 		// All subprojects
 		testCompile 'junit:junit:4.8.2'
+
+		compileOnly group: 'javax', name: 'javaee-web-api', version: "${javaEEVersion}"
+		compileOnly group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
+		compileOnly group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"
+		compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
+		compileOnly group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"
 		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 		compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
 		compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
 		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
 		compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
 		compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
-		
-		//compileOnly group: 'javax.xml.bind', name: 'jaxb-api', version: "${jaxbApiVersion}"
-		//compileOnly group:'org.eclipse.persistence', name: 'org.eclipse.persistence.moxy', version: "${eclipseMoxyVersion}"
-		//compileOnly group: 'javax.json.bind', name: 'javax.json.bind-api', version: "${jsonbApiVersion}"
-		//compileOnly group: 'org.eclipse', name: 'yasson', version: "${jsonbYassonApiVersion}"
-		
 
-		// Module subprojects (assumes WAR plugin for dependencies)
+		// Module subprojects
 		if (isModuleProject) {
-			providedCompile group: 'javax', name: 'javaee-web-api', version: "${javaEEVersion}"
-			providedCompile group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
-			providedCompile group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"
-			providedCompile group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
-			providedCompile group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"
 			compile (group: 'io.swagger.core.v3', name: 'swagger-jaxrs2', version: "${swaggerVersion}")
 			compile (group: 'io.swagger.core.v3', name: 'swagger-jaxrs2-servlet-initializer', version: "${swaggerVersion}")
-			compile group: 'com.hazelcast', name: 'hazelcast-client', version: "${payaraHazelcastVersion}"
-			compile (group: 'com.hazelcast.jet', name: 'hazelcast-jet-core', version: "${jetVersion}")
-			// Do not include IMDG from Jet.  Versions for IMDG and Client must match.
-			// Which in this case, is the Payara IMDG version
-			{ exclude group: 'com.hazelcast' }
 		}
 	}
 }
@@ -105,8 +152,8 @@ subprojects {
 // Contains libraries are used by the the Hazelcast member.
 // This is simple a library container project, and other Proven
 // projects should not depend on this library directly.
-// TODO - Remove this library.  Use the contained libraries directly as 
-//        part of application server deployment. 
+// TODO - Remove this library.  Use the contained libraries directly as
+//        part of application server deployment.
 project('proven-member:member-lib') {
 	dependencies {
 		compile project(':proven-member:hybrid-lib')
@@ -138,15 +185,11 @@ project('proven-member:pipeline-lib') {
 }
 
 project('proven-member:disclosure-module') {
-	dependencies { 
-		compile project(':proven-member:module-lib')	
-	}
+	dependencies {  compile project(':proven-member:module-lib')	 }
 }
 
 project('proven-member:stream-module') {
-	dependencies { 
-		compile project(':proven-member:module-lib') 
-	}
+	dependencies {  compile project(':proven-member:module-lib')  }
 }
 
 project('proven-member:hybrid-module') {
@@ -162,7 +205,5 @@ project('proven-member:member-module') {
 }
 
 project('proven-client') {
-	dependencies {
-		compile project(':proven-member:disclosure-lib')
-	}
+	dependencies { compile project(':proven-member:disclosure-lib') }
 }
