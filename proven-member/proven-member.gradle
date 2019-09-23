@@ -4,7 +4,10 @@
 
 */
 
-jar.enabled = false
+jar.enabled = true
+jar {
+	exclude('PROVEN-INF')
+}
 
 configurations {
 
@@ -24,13 +27,13 @@ configurations {
 
 dependencies { 
 
+	payaraDeps project(path: 'module-lib', configuration: 'shadow')
 	pipelineDeps group: 'com.blazegraph', name: 'blazegraph-jar', version: '2.1.5'
 	pipelineDeps project(path: 'pipeline-lib', configuration: 'shadow')
 	deployDeps project(path: 'disclosure-module', configuration: 'war')
 	deployDeps project(path: 'hybrid-module', configuration: 'war')
 	deployDeps project(path: 'member-module', configuration: 'war')
 	deployDeps project(path: 'stream-module', configuration: 'war')
-	payaraDeps project(path: 'member-lib', configuration: 'shadow')
 
 }
 
@@ -61,7 +64,7 @@ task copyDistributionResources(type: Copy) {
 build {
   subprojects.each { dependsOn("$it.name:build") }
   dependsOn(['pipeline-lib:shadowJar'])
-  dependsOn(['member-lib:shadowJar'])
+  dependsOn(['module-lib:shadowJar'])
 }
 build.finalizedBy copyDistributionResources
 

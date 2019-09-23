@@ -37,72 +37,10 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.module;
+package gov.pnnl.proven.lib.member;
 
-import java.util.Set;
-import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.enterprise.event.Event;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.ObserverMethod;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class MemberProperties {
 
-import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
-import gov.pnnl.proven.cluster.lib.module.module.exception.ModuleStartupException;
-import gov.pnnl.proven.cluster.lib.module.module.exception.MultipleModuleImplementationException;
-import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementationException;
-
-/**
- * Startup bean for a web module application. On application startup, a startup
- * message is sent to the {@link ProvenModule} implementation. Only a single
- * {@code ProvenModule} implementation per application is supported. The module
- * is required to observe this startup message for module activation to take
- * place. An unsuccessful startup will be logged to the container.
- * 
- * @author d3j766
- *
- */
-@Singleton
-@Startup
-@DependsOn({"MemberProperties"})
-public class ModuleManager {
-
-	static Logger logger = LoggerFactory.getLogger(ModuleManager.class);
-	
-	@Inject
-	BeanManager beanManager;
-
-	@Inject
-	Event<ModuleStartup> mse;
-
-	@PostConstruct
-	public void initialize() throws ModuleStartupException {
-		
-		
-		
-
-		logger.info("Enter PostConstruct for " + this.getClass().getSimpleName());
-		sendStartupMessage();
-		logger.info("Leave PostConstruct for " + this.getClass().getSimpleName());
-	}
-
-	public void sendStartupMessage() throws ModuleStartupException {
-		
-		ModuleStartup ms = new ModuleStartup();
-		Set<ObserverMethod<? super ModuleStartup>> observers = beanManager.resolveObserverMethods(ms);
-		if (observers.isEmpty()) {
-			logger.info("Module implementation was not provided");
-			throw new NoModuleImplementationException();
-		} else if (observers.size() > 1) {
-			logger.info("Multiple module implementations provided");
-			throw new MultipleModuleImplementationException();
-		} else {
-			mse.fire(ms);
-		}
-	}
-
+	// Proven properties
+	public static final String INSTALL_ROOT = System.getProperty("proven.member.install.root");
 }

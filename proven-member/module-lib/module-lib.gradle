@@ -1,5 +1,4 @@
 
-
 dependencies {
     compile group: 'com.hazelcast', name: 'hazelcast-client', version: "${payaraHazelcastVersion}"
 	compile (group: 'com.hazelcast.jet', name: 'hazelcast-jet-core', version: "${jetVersion}")

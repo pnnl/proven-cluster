@@ -1,20 +1,23 @@
-# Hazelcast
+##
+#  These represent the set of configurable properties for a Proven cluster member.  This can be
+#  used as a template to provide property settings at startup.   
+#
+#  proven.member.install.root property value must be provided at startup.  
+##
+
+# member
+#proven.member.install.root=
+
+# hazelcast
 proven.hazelcast.members=127.0.0.1
 proven.hazelcast.member.port=5701
 
-# Jet
-proven.jet.instance.network.addresses=127.0.0.1:4701,127.0.0.1:4702,127.0.0.1:4703
+
+# hazelcast jet
+proven.jet.instance.network.addresses=127.0.0.1:4701,127.0.0.1:4701 
 proven.jet.instance.test.port=6701
 proven.jet.config.group=jet
 
-
-# Payara 
-#fish.payara.classloading.delegate=false
-
-
-# Proven 
-
-
-# Hybrid Module
+# hybrid module
 proven.hybrid.t3.serviceUrl=http://localhost:8889/bigdata
 

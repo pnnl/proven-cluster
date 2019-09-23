@@ -82,6 +82,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
+import gov.pnnl.proven.cluster.member.MemberProperties;
 
 /**
  * Represents a Hazelcast Jet Pipeline processing workflow. Pipeline invocations
@@ -97,11 +98,11 @@ import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 public abstract class PipelineRequest extends RequestComponent {
 
 	static Logger log = LoggerFactory.getLogger(PipelineRequest.class);
-
+	
 	public static final String PR_EXECUTOR_SERVICE = "concurrent/PipelineRequest";
-	public static final int JET_INSTANCE_TEST_PORT = Integer
-			.valueOf(System.getProperty("proven.jet.instance.test.port"));
-
+	
+	@Inject 
+	MemberProperties mp;
 	
 	@Inject
 	protected HazelcastInstance hzi;
@@ -178,10 +179,8 @@ public abstract class PipelineRequest extends RequestComponent {
 
 	@PostConstruct
 	void init() {
-
-		// Get root runtime directory
-		URI rootDir = PayaraMicro.getInstance().getRootDir().toURI();
-		log.debug("ROOT DIR :: " + rootDir.toString());
+		
+		log.debug("INSTALL ROOT:: " + mp.getInstallRootDir());
 		
 		// Extract provide metadata and add to class
 		addPipelineRequestProviderMetadata();
@@ -281,7 +280,7 @@ public abstract class PipelineRequest extends RequestComponent {
 
 		JetInstance ret;
 
-		if (!isTest) {
+		if (isTest) {
 
 //			JetConfig config = new JetConfig();
 //			config.getHazelcastConfig().getNetworkConfig().setPort(JET_INSTANCE_TEST_PORT);
@@ -294,17 +293,17 @@ public abstract class PipelineRequest extends RequestComponent {
 
 		} else {
 
-//			// Jet client config
-//			ClientConfig jetConfig = new ClientConfig();
-//			jetConfig.getNetworkConfig().addAddress("127.0.0.1:4701", "127.0.0.1:4702", "127.0.0.1:4703");
-//			jetConfig.getGroupConfig().setName("jet");
-//
-//			// Start Jet, populate the input list
-//			JetInstance jet = Jet.newJetClient(jetConfig);
-//			JobConfig jobConfig = new JobConfig();
-//			// jobConfig.addClass(T3Pipeline.class, T3Service.class,
-//			// MessageStreamProxy.class);
-//			jobConfig.addClass(this.getClass(), T3Service.class, MessageStreamProxy.class);
+			// Jet client config
+			ClientConfig jetConfig = new ClientConfig();
+			jetConfig.getNetworkConfig().addAddress("127.0.0.1:4701", "127.0.0.1:4702", "127.0.0.1:4703");
+			jetConfig.getGroupConfig().setName("jet");
+
+			// Start Jet, populate the input list
+			JetInstance jet = Jet.newJetClient(jetConfig);
+			JobConfig jobConfig = new JobConfig();
+			// jobConfig.addClass(T3Pipeline.class, T3Service.class,
+			// MessageStreamProxy.class);
+			jobConfig.addClass(this.getClass(), T3Service.class, MessageStreamProxy.class);
 			
 		}
 
