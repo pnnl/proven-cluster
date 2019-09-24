@@ -86,7 +86,7 @@ import gov.pnnl.proven.cluster.member.MemberProperties;
 
 /**
  * Represents a Hazelcast Jet Pipeline processing workflow. Pipeline invocations
- * result in a {@code PipelineJob}(s). A Pipeline maintains its associated jobs
+ * result in a {@code PipelineJob}. A Pipeline maintains its associated jobs
  * and will start, suspend, cancel, or restart a job if redirected by its
  * {@code PipelineManager} to do so.
  * 
@@ -98,12 +98,12 @@ import gov.pnnl.proven.cluster.member.MemberProperties;
 public abstract class PipelineRequest extends RequestComponent {
 
 	static Logger log = LoggerFactory.getLogger(PipelineRequest.class);
-	
+
 	public static final String PR_EXECUTOR_SERVICE = "concurrent/PipelineRequest";
-	
-	@Inject 
+
+	@Inject
 	MemberProperties mp;
-	
+
 	@Inject
 	protected HazelcastInstance hzi;
 
@@ -111,25 +111,39 @@ public abstract class PipelineRequest extends RequestComponent {
 	protected StreamManager sm;
 
 	/**
-	 * Represents a client connection from the pipeline's job to Proven's IMDG
-	 * environment, used by source and sink stages of the job's pipeline to draw
-	 * from and drain to respectively.
+	 * Represents a Hazelcast client connection used by the pipeline's job to
+	 * connect to Proven's IMDG environment. Source and sink stages of the job's
+	 * pipeline use this connection to draw from and drain to Proven's IMDG,
+	 * respectively.
 	 */
-	protected ClientConfig clientConfig;
+	protected ClientConfig imdgClientConfig;
 
 	/**
-	 * Represents either an internal Jet server node instance or a Jet client
-	 * that connects to an external Jet cluster. Default is a Jet Client. if
-	 * {@link #isTest} is true an internal node will be used. The referenced
-	 * {@code #computeCluster} processes the pipeline request.
+	 * Represents either an internal Jet server node or a Jet client that
+	 * connects to an external Jet cluster. Default is a Jet Client. If
+	 * {@link #isTest} is true an internal Jet server node will be used. The
+	 * referenced {@code #computeCluster} is responsible for processing a
+	 * pipeline request.
 	 * 
-	 * @see #isTest
+	 * @see {@link #isTest},{@link #internalConfig}, {@link #externalConfig}
 	 */
 	protected JetInstance computeCluster;
 
 	/**
-	 * Represents
+	 * Represents the Jet {{@link #computeCluster} configuration for an
+	 * internal/embedded Jet server node. This configuration is used when
+	 * {@code #isTest} is set to true. This will be null if {@code #isTest} is
+	 * false.
 	 */
+	protected JetConfig internalConfig;
+
+	/**
+	 * Represents the Jet {{@link #computeCluster} configuration for an external
+	 * Jet Client connection to a remote Jet cluster. This configuration is used
+	 * when {@code #isTest} is set to false. This will be null if
+	 * {@code #isTest} is true.
+	 */
+	protected ClientConfig externalConfig;
 
 	/**
 	 * Identifies type of pipeline.
@@ -176,22 +190,19 @@ public abstract class PipelineRequest extends RequestComponent {
 	 */
 	public abstract Pipeline createPipeline(DisclosureDomain domain);
 
-
 	@PostConstruct
 	void init() {
-		
-		log.debug("INSTALL ROOT:: " + mp.getInstallRootDir());
-		
-		// Extract provide metadata and add to class
+
+		// Extract provided metadata and add to class
 		addPipelineRequestProviderMetadata();
 
 		// Create a new client configuration allowing Jet compute nodes to
 		// connect to Proven IMDG source/sink streams.
-		clientConfig = createClientConfiguration();
+		imdgClientConfig = createClientConfiguration();
 
-		// Create Jet compute cluster reference
+		// Get the Jet compute cluster reference
 		// Must be completed after provide metadata extraction
-		computeCluster = createComputeCluster();
+		computeCluster = getComputeCluster();
 
 	}
 
@@ -214,36 +225,6 @@ public abstract class PipelineRequest extends RequestComponent {
 
 	public boolean isTest() {
 		return isTest;
-	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public StatusReport getStatusReport() {
-		return null;
-
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setStatus(ComponentStatus status) {
-		// TODO Auto-generated method stub
-
 	}
 
 	private void addPipelineRequestProviderMetadata() {
@@ -276,38 +257,93 @@ public abstract class PipelineRequest extends RequestComponent {
 
 	}
 
-	private JetInstance createComputeCluster() {
+	private JetInstance getComputeCluster() {
 
-		JetInstance ret;
+		JetInstance ret = null;
 
+		// INTERNAL
 		if (isTest) {
 
-//			JetConfig config = new JetConfig();
-//			config.getHazelcastConfig().getNetworkConfig().setPort(JET_INSTANCE_TEST_PORT);
-//			config.getHazelcastConfig().getSerializationConfig()
-//					.addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID, ProvenMessageIDSFactory.class);
-//			JobConfig jobConfig = new JobConfig();
-//			jobConfig.addJar(new File("/home/d3j766/edev/payara-resources/blazegraph-jar-2.1.4.jar"));
-//			jobConfig.addJar(new File("/home/d3j766/edev/payara-resources/pipeline-lib-0.1-all.jar"));
-//			JetInstance jet = Jet.newJetInstance(config);
+			// Create internal configuration for Jet server node instance
+			internalConfig = new JetConfig();
+			internalConfig.getHazelcastConfig().getNetworkConfig().setPort(mp.getJetInstanceTestPort());
+			internalConfig.getHazelcastConfig().getSerializationConfig()
+					.addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID, ProvenMessageIDSFactory.class);
 
+			internalConfig.setProperty("jet.home", "/tmp/internal-jet");
+			
+			// Create job configuration for internal Jet
+			JobConfig jobConfig = new JobConfig();
+			File pipelineDeps = mp.getPipelineRequestLibsDir();
+			for (String jarFile : pipelineDeps.list()) {
+				if (jarFile.endsWith(".jar")) {
+					jobConfig.addJar(new File(jarFile));
+				}
+			}
+
+			// Create the new Jet server node instance
+			ret = Jet.newJetInstance(internalConfig);
+
+			// Set external to null, not used
+			externalConfig = null;
+
+		// EXTERNAL
 		} else {
 
 			// Jet client config
-			ClientConfig jetConfig = new ClientConfig();
-			jetConfig.getNetworkConfig().addAddress("127.0.0.1:4701", "127.0.0.1:4702", "127.0.0.1:4703");
-			jetConfig.getGroupConfig().setName("jet");
+			externalConfig = new ClientConfig();
+			externalConfig.getNetworkConfig().setAddresses(mp.getHazelcastMembers());
+			externalConfig.getGroupConfig().setName(mp.getJetConfigGroup());
 
-			// Start Jet, populate the input list
-			JetInstance jet = Jet.newJetClient(jetConfig);
+			// Create Jet instance and job configuration for external jet
+			// compute cluster cluster
+			ret = Jet.newJetClient(externalConfig);
 			JobConfig jobConfig = new JobConfig();
-			// jobConfig.addClass(T3Pipeline.class, T3Service.class,
-			// MessageStreamProxy.class);
-			jobConfig.addClass(this.getClass(), T3Service.class, MessageStreamProxy.class);
-			
+
+			// Add class resources to job configuration
+			// Assumption is other dependencies not specific or referred by the
+			// pipeline implementation have already been added to external Jet
+			// compute cluster.
+			jobConfig.addClass(this.getClass());
+			Class<?>[] resourceArray = new Class<?>[pipelineResources.size()];
+			jobConfig.addClass(pipelineResources.toArray(resourceArray));
+
+			// Set internal to null, not used
+			internalConfig = null;
 		}
 
+		return ret;
+
+	}
+
+	
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public StatusReport getStatusReport() {
 		return null;
+
+	}
+
+	@Override
+	public ComponentStatus getStatus() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setStatus(ComponentStatus status) {
+		// TODO Auto-generated method stub
 
 	}
 

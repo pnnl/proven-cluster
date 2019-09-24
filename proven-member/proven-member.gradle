@@ -1,14 +1,11 @@
-/*
 
-
-
-*/
-
+// TODO create a distribution task that creates Proven's executable jar.
 jar.enabled = true
 jar {
 	exclude('PROVEN-INF')
 }
 
+// Dependency configurations
 configurations {
 
 	deployDeps
@@ -40,8 +37,6 @@ dependencies {
 
 task copyDistributionResources(type: Copy) {
 
-	//outputs.upToDateWhen { false }
-	
 	into('src/main/resources/PROVEN-INF/')
 	
 	println "COPY DISTRIBUTION RESOURCES"

@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.module.hybrid.pipeline;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.ContextFactory;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
@@ -103,7 +104,7 @@ public class T3Pipeline extends PipelineRequest implements Serializable {
 		// For each Knowledge message, if non-measurement content, store in T3.
 		// TODO - Give measurements their own stream and message content group
 		Pipeline p = Pipeline.create();
-		p.drawFrom(Sources.<String, KnowledgeMessage>remoteMapJournal(sourceMsp.getStreamName(), clientConfig,
+		p.drawFrom(Sources.<String, KnowledgeMessage>remoteMapJournal(sourceMsp.getStreamName(), imdgClientConfig,
 				START_FROM_OLDEST)).withoutTimestamps()
 
 				// STORE IN T3 - only if non-measurement
@@ -119,7 +120,7 @@ public class T3Pipeline extends PipelineRequest implements Serializable {
 				})
 
 				// Drain
-				.drainTo(Sinks.<String, ResponseMessage>remoteMap(sinkMsp.getStreamName(), clientConfig));
+				.drainTo(Sinks.<String, ResponseMessage>remoteMap(sinkMsp.getStreamName(), imdgClientConfig));
 
 		return p;
 	}
@@ -184,16 +185,16 @@ public class T3Pipeline extends PipelineRequest implements Serializable {
 
 		// TESTING
 		// For local development/testing
-		// JetConfig config = new JetConfig();
-		// config.getHazelcastConfig().getNetworkConfig().setPort(4701);
-		// config.getHazelcastConfig().getSerializationConfig()
-		// .addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
-		// ProvenMessageIDSFactory.class);
-		// jobConfig.addJar(new
-		// File("/home/d3j766/edev/payara-resources/blazegraph-jar-2.1.4.jar"));
-		// jobConfig.addJar(new
-		// File("/home/d3j766/edev/payara-resources/pipeline-lib-0.1-all.jar"));
-		// JetInstance jet = Jet.newJetInstance(config);
+//		 JetConfig config = new JetConfig();
+//		 config.getHazelcastConfig().getNetworkConfig().setPort(4701);
+//		 config.getHazelcastConfig().getSerializationConfig()
+//		 .addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
+//		 ProvenMessageIDSFactory.class);
+//		 jobConfig.addJar(new
+//		 File("/home/d3j766/edev/payara-resources/blazegraph-jar-2.1.4.jar"));
+//		 jobConfig.addJar(new
+//		 File("/home/d3j766/edev/payara-resources/pipeline-lib-0.1-all.jar"));
+//		 JetInstance jet = Jet.newJetInstance(config);
 		// TESTING
 
 		// Run pipeline
