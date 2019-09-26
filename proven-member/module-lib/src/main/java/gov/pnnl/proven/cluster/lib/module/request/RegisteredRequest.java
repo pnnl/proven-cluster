@@ -39,16 +39,23 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.request;
 
+import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 public class RegisteredRequest extends RequestComponent {
 
 	@Inject
-	public RegisteredRequest() {
+	public RegisteredRequest(InjectionPoint ip) {
 		super();
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.RegisteredRequest;
 	}
 
 	@Override

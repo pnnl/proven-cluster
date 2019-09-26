@@ -42,7 +42,6 @@ package gov.pnnl.proven.cluster.module.hybrid.pipeline;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
-import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.ContextFactory;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
@@ -70,16 +69,14 @@ import java.util.AbstractMap;
 import java.util.Calendar;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.inject.Default;
+import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @PipelineRequestProvider(pipelineType = Domain, resources = { MessageStreamProxy.class,
-		DisclosureDomain.class }, isTest = true)
+		DisclosureDomain.class }, isTest = true, activateOnStartup = true)
 public class T3Pipeline extends PipelineRequest implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -87,7 +84,8 @@ public class T3Pipeline extends PipelineRequest implements Serializable {
 	static Logger log = LoggerFactory.getLogger(T3Pipeline.class);
 
 	@Inject
-	public T3Pipeline() {
+	public T3Pipeline(InjectionPoint ip) {
+		super();
 	}
 
 	@Override
@@ -126,8 +124,9 @@ public class T3Pipeline extends PipelineRequest implements Serializable {
 	}
 
 	/**
-	 * Replaced by {code {@link #createPipeline(DisclosureDomain)}method. PipelineRequest superclass now
-	 * takes care of cluster connections and pipeline submissions. 
+	 * Replaced by {code {@link #createPipeline(DisclosureDomain)}method.
+	 * PipelineRequest superclass now takes care of cluster connections and
+	 * pipeline submissions.
 	 * 
 	 * TODO - remove
 	 */
@@ -185,16 +184,16 @@ public class T3Pipeline extends PipelineRequest implements Serializable {
 
 		// TESTING
 		// For local development/testing
-//		 JetConfig config = new JetConfig();
-//		 config.getHazelcastConfig().getNetworkConfig().setPort(4701);
-//		 config.getHazelcastConfig().getSerializationConfig()
-//		 .addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
-//		 ProvenMessageIDSFactory.class);
-//		 jobConfig.addJar(new
-//		 File("/home/d3j766/edev/payara-resources/blazegraph-jar-2.1.4.jar"));
-//		 jobConfig.addJar(new
-//		 File("/home/d3j766/edev/payara-resources/pipeline-lib-0.1-all.jar"));
-//		 JetInstance jet = Jet.newJetInstance(config);
+		// JetConfig config = new JetConfig();
+		// config.getHazelcastConfig().getNetworkConfig().setPort(4701);
+		// config.getHazelcastConfig().getSerializationConfig()
+		// .addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
+		// ProvenMessageIDSFactory.class);
+		// jobConfig.addJar(new
+		// File("/home/d3j766/edev/payara-resources/blazegraph-jar-2.1.4.jar"));
+		// jobConfig.addJar(new
+		// File("/home/d3j766/edev/payara-resources/pipeline-lib-0.1-all.jar"));
+		// JetInstance jet = Jet.newJetInstance(config);
 		// TESTING
 
 		// Run pipeline

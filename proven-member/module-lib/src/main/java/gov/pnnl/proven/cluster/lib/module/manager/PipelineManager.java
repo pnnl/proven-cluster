@@ -41,14 +41,23 @@
 package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
+import javax.persistence.PersistenceProperty;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
@@ -65,17 +74,16 @@ import javax.enterprise.util.AnnotationLiteral;
  *
  */
 @ApplicationScoped
-public class PipelineManager extends ManagerComponent implements ComponentManager {
+public class PipelineManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(PipelineManager.class);
-	
 	
 	@PostConstruct
 	public void initialize() {
 
 		// Load PipelineRequest implementations as managed components		
-		loadQualifiedManagedComponents(PipelineRequestProvider.Literal.INSTANCE);
-		log.info(managedComponents.size() + " PipelineRequests loaded");
+		List<PipelineRequest> prs = getComponents(PipelineRequest.class, PipelineRequestProvider.Literal.INSTANCE);
+		log.info(prs.size() + " PipelineRequests loaded");
 
 		/*
 		 * Now activate all the loaded pipeline requests
@@ -84,22 +92,31 @@ public class PipelineManager extends ManagerComponent implements ComponentManage
 		 * reports. If {@code ComponentStatus#Offline }, then activate the
 		 * component.
 		 */
-		managedComponents.forEach((k, v) -> v.activate());
+		createdComponents.forEach((k, v) -> v.activate());
 
-	}
-
-	@Inject
-	public PipelineManager() {
-		super();
 	}
 
 	
+	public PipelineManager() {
+		super();
+	}
+	
 
-	/**
-	 * Force bean activation.
-	 */
-	public void ping() {
-		log.debug("Activating PipelineManager");
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.PipelineManager;
+	}
+
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

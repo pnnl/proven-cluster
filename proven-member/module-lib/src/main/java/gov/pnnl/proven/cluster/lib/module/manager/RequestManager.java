@@ -42,12 +42,18 @@ package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.lang.reflect.Method;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Inject;
 
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.request.ModuleRequest;
 
 @ApplicationScoped
-public class RequestManager extends ManagerComponent implements ComponentManager {
+public class RequestManager extends ManagerComponent {
 
+	public RequestManager() {	
+	}	
+		
 	public <T> void registerRequest(Class<T> mr) {
 		
 		System.out.println(mr.getName());
@@ -63,7 +69,21 @@ public class RequestManager extends ManagerComponent implements ComponentManager
 	}
 	
 	@Override
-	public void ping() {
+	public ComponentType getComponentType() {
+		return ComponentType.RequestManager;
+	}
+
+
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

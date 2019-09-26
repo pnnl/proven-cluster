@@ -94,11 +94,12 @@ public class MemberProperties {
 	// hazelcast
 	private static final String HAZELCAST_MEMBERS_PROP = "proven.hazelcast.members";
 	private static final String HAZELCAST_MEMBER_PORT_PROP = "proven.hazelcast.member.port";
+	private static final String HAZELCAST_GROUP_NAME = "proven.hazelcast.group.name";
 
 	// hazelcast jet
 	private static final String JET_INSTANCE_NETWORK_ADDRESSES = "proven.jet.instance.network.addresses";
 	private static final String JET_INSTANCE_TEST_PORT = "proven.jet.instance.test.port";
-	private static final String JET_CONFIG_GROUP = "proven.jet.config.group";
+	private static final String JET_GROUP_NAME = "proven.jet.group.name";
 
 	// hybrid
 	private static final String HYBRID_T3_SERVICE_URL = "proven.hybrid.t3.serviceUrl";
@@ -224,6 +225,10 @@ public class MemberProperties {
 	public List<String> getHazelcastMembers() {
 		return getPropertyValues(HAZELCAST_MEMBERS_PROP, String.class);
 	}
+	
+	public String getHazelcastGroupName() {
+		return getPropertyValue(HAZELCAST_GROUP_NAME, String.class);
+	}
 
 	public Integer getHazelcastMemberPort() {
 		return getPropertyValue(HAZELCAST_MEMBER_PORT_PROP, Integer.class);
@@ -238,8 +243,8 @@ public class MemberProperties {
 		return getPropertyValue(JET_INSTANCE_TEST_PORT, Integer.class);
 	}
 
-	public String getJetConfigGroup() {
-		return getPropertyValue(JET_CONFIG_GROUP, String.class);
+	public String getJetGroupName() {
+		return getPropertyValue(JET_GROUP_NAME, String.class);
 	}
 
 	// Hybrid module property methods

@@ -50,6 +50,7 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +80,9 @@ public abstract class ModuleComponent {
 
 	private static final String BASE_NAME = "component.proven.pnnl.gov";
 
+	@Inject 
+	protected BeanManager bm;
+	
 	@Resource(lookup = "java:module/ModuleName")
 	protected String moduleName;
 
@@ -101,16 +105,10 @@ public abstract class ModuleComponent {
 	@PostConstruct
 	public void mcInit() {
 
+		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().toString();		
 		clusterGroup = hzi.getConfig().getGroupConfig().getName();
 		host = hzi.getCluster().getLocalMember().getAddress().getHost();
 		memberId = hzi.getCluster().getLocalMember().getUuid();
-		
-		log.debug("MODULE-COMPONENT CONSTRUCTED");
-		log.debug("\tID: " + id);
-		log.debug("\tMANAGER-ID: " + managerId);
-		log.debug("\tTYPE: " + type);
-		log.debug("\tDO-NAME: " + doId);
-
 	}
 
 	protected String clusterGroup;
@@ -123,28 +121,21 @@ public abstract class ModuleComponent {
 
 	protected String moduleId;
 
-	protected String managerId;
-
 	protected UUID id;
 
 	protected Set<ComponentGroup> group;
 
-	protected ComponentType type;
+	//protected ComponentType type;
 
 	protected String doId;
 
 	protected Boolean isManaged;
-
+	
 	public ModuleComponent() {
-		
 		containerName = PayaraMicro.getInstance().getInstanceName();
 		moduleId = ProvenModule.getModuleId().toString();
 		id = UUID.randomUUID();
-		group = new HashSet<>();
-		type = ComponentType.valueOf(this.getClass().getSuperclass().getSimpleName());
-		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + type.toString();
-
-		
+		group = new HashSet<>();		
 	}
 
 	public String getClusterGroup() {
@@ -167,14 +158,6 @@ public abstract class ModuleComponent {
 		return moduleId;
 	}
 
-	public String getManagerId() {
-		return managerId;
-	}
-
-	public void setManagerId(String managerId) {
-		this.managerId = managerId;
-	}
-
 	public UUID getId() {
 		return id;
 	}
@@ -183,9 +166,7 @@ public abstract class ModuleComponent {
 		return group;
 	}
 
-	public ComponentType getComponentType() {
-		return type;
-	}
+	public abstract ComponentType getComponentType();
 
 	public String getDoId() {
 		return doId;

@@ -40,10 +40,13 @@
 package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.New;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.AnnotationLiteral;
@@ -53,6 +56,10 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 
 /**
  * 
@@ -64,54 +71,15 @@ import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
  * @see ComponentManager
  *
  */
-public abstract class ManagerComponent extends ModuleComponent {
+public abstract class ManagerComponent extends ManagedComponent {
 
 	static Logger log = LoggerFactory.getLogger(ManagerComponent.class);
-
-	@Inject
-	BeanManager beanManager;
-
-	/**
-	 * The components being managed. The Map contains the components ID as the
-	 * key and object as value.
-	 */
-	protected Map<UUID, ManagedComponent> managedComponents;
-
+			
 	public ManagerComponent() {
 		super();
 		group.add(ComponentGroup.Manager);
-		managedComponents = new HashMap<>();
+		setManagerId(ProvenModule.getModuleId());
+		setCreatorId(ProvenModule.getModuleId());
 	}
-
-	// <T extends ManagedComponent>
-	public <T extends ManagedComponent> void loadQualifiedManagedComponents(AnnotationLiteral<?> annotationLiteral) {
-
-		Set<Bean<?>> beans = beanManager.getBeans(Object.class, annotationLiteral);
-		for (Bean<?> bean : beans) {
-
-			if ((null != bean) && (ManagedComponent.class.isAssignableFrom(bean.getBeanClass()))) {
-				Bean<T> mcBean = (Bean<T>) bean;
-				Class<T> mcBeanClass = (Class<T>) bean.getBeanClass();
-				System.out.println(mcBean.getBeanClass().getName());
-				CreationalContext<T> ctx = beanManager.createCreationalContext(mcBean);
-				T mc = (T) beanManager.getReference(mcBean, mcBeanClass, ctx);
-				managedComponents.put(mc.getId(), mc);
-			}
-		}
-	}
-
-	/**
-	 * Add a new managed component
-	 */
-	public <T extends ManagedComponent> void add(T component) {
-		component.setManagerId(id.toString());
-	}
-
-	/**
-	 * Remove managed component
-	 */
-	public <T extends ManagedComponent> void remove(T component) {
-		component.setManagerId(null);
-	}
-
+	
 }

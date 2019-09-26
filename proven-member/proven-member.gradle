@@ -39,8 +39,6 @@ task copyDistributionResources(type: Copy) {
 
 	into('src/main/resources/PROVEN-INF/')
 	
-	println "COPY DISTRIBUTION RESOURCES"
-	
 	into('deploy') {
 		from configurations.deployDeps
 	}

@@ -46,6 +46,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
@@ -70,6 +71,11 @@ public class PipelineJob extends RequestComponent {
 	public PipelineJob(InjectionPoint ip) {
 		super();
 		log.debug("DefaultConstructer for PipelineJob");
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.PipelineJob;
 	}
 
 	@PreDestroy

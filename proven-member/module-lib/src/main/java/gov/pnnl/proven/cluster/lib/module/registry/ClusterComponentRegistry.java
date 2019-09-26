@@ -50,6 +50,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
 
 import fish.payara.cluster.Clustered;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
@@ -77,6 +78,14 @@ public class ClusterComponentRegistry extends RegistryComponent implements Seria
 
 	@PostConstruct
 	public void initialize() { 
+	}
+	
+	public ClusterComponentRegistry() {
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.ClusterComponentRegistry;
 	}
 
 }

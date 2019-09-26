@@ -39,6 +39,17 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
@@ -47,9 +58,9 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * 
- * Represents managed components. These components are managed by a
- * {@code ComponentManager} and report their {@code ComponentStatus} to a
- * {@code MemberComponentRegistry}.
+ * Represents managed components. These components are {@code ComponentManager}s
+ * or are managed by a {@code ComponentManager} and all report their
+ * {@code ComponentStatus} to a {@code MemberComponentRegistry}.
  * 
  * @author d3j766
  *
@@ -61,15 +72,67 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 public abstract class ManagedComponent extends ModuleComponent implements StatusReporter {
 
 	static Logger log = LoggerFactory.getLogger(ManagedComponent.class);
-	
+
 	protected ComponentStatus status;
+
+	protected UUID managerId;
+
+	protected UUID creatorId;
+
+	@Inject
+	@ManagedComponentType
+	protected Instance<ManagedComponent> instanceProvider;
+
+	/**
+	 * Created components. The Map contains the component's ID as the key and
+	 * object as value.
+	 */
+	protected Map<UUID, ManagedComponent> createdComponents;
 
 	public ManagedComponent() {
 		super();
 		group.add(ComponentGroup.Managed);
 		status = ComponentStatus.Offline;
+		createdComponents = new HashMap<>();
 	}
-	
+
+	protected <T extends ManagedComponent> T getComponent(Class<T> subtype, Annotation... qualifiers) {
+		T mc = instanceProvider.select(subtype, qualifiers).get();
+		mc.setManagerId(getManagerId());
+		mc.setCreatorId(getCreatorId());
+		createdComponents.put(mc.getId(), mc);
+		return mc;
+	}
+
+	protected <T extends ManagedComponent> List<T> getComponents(Class<T> subtype, Annotation... qualifiers) {
+		List<T> ret = new ArrayList<>();
+		Iterator<T> mcItr = instanceProvider.select(subtype, qualifiers).iterator();
+		while (mcItr.hasNext()) {
+			T mc = mcItr.next();
+			mc.setManagerId(getManagerId());
+			mc.setCreatorId(getCreatorId());
+			createdComponents.put(mc.getId(), mc);
+			ret.add(mc);
+		}
+		return ret;
+	}
+
+	public UUID getManagerId() {
+		return managerId;
+	}
+
+	public void setManagerId(UUID managerId) {
+		this.managerId = managerId;
+	}
+
+	public UUID getCreatorId() {
+		return creatorId;
+	}
+
+	public void setCreatorId(UUID creatorId) {
+		this.creatorId = creatorId;
+	}
+
 	public ComponentStatus getStatus() {
 		return status;
 	}

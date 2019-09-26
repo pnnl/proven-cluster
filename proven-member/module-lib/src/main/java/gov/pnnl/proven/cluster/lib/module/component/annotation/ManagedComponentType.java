@@ -51,8 +51,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Stereotype;
+import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Qualifier;
 import javax.interceptor.InterceptorBinding;
+
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
+import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
+import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider.Literal;
 
 /**
  * Identifies the bean as a managed component type. Meaning, the component's
@@ -70,9 +75,21 @@ import javax.interceptor.InterceptorBinding;
 @Inherited
 @Stereotype
 @Qualifier
-@Dependent
+//@Dependent
 @InterceptorBinding
 @Retention(RUNTIME)
 @Target({ TYPE, FIELD })
 public @interface ManagedComponentType {
+	
+	/*
+	 * Supports instantiation
+	 */
+	public static final class Literal extends AnnotationLiteral<ManagedComponentType>
+			implements ManagedComponentType {
+
+		public static final Literal INSTANCE = new Literal();
+
+		private static final long serialVersionUID = 1L;
+
+	}
 }

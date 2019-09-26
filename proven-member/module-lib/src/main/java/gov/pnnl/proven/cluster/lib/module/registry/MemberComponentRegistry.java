@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
 
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
@@ -74,6 +75,14 @@ public class MemberComponentRegistry extends RegistryComponent {
 	@PostConstruct
 	public void initialize() {
 		//components = 
+	}
+	
+	public MemberComponentRegistry() {
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.MemberComponentRegistry;
 	}
 	
 }

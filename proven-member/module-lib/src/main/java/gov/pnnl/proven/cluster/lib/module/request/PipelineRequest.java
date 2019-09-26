@@ -56,6 +56,7 @@ import java.util.jar.JarInputStream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 
@@ -63,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.internal.management.request.GetMemberSystemPropertiesRequest;
 import com.hazelcast.jet.Jet;
@@ -78,6 +80,8 @@ import gov.pnnl.cluster.lib.pipeline.T3Service;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
@@ -108,13 +112,13 @@ public abstract class PipelineRequest extends RequestComponent {
 	protected HazelcastInstance hzi;
 
 	@Inject
+	@ManagedComponentType
 	protected StreamManager sm;
 
 	/**
 	 * Represents a Hazelcast client connection used by the pipeline's job to
 	 * connect to Proven's IMDG environment. Source and sink stages of the job's
-	 * pipeline use this connection to draw from and drain to Proven's IMDG,
-	 * respectively.
+	 * pipeline use this connection to draw from and drain to Proven's IMDG.
 	 */
 	protected ClientConfig imdgClientConfig;
 
@@ -198,7 +202,7 @@ public abstract class PipelineRequest extends RequestComponent {
 
 		// Create a new client configuration allowing Jet compute nodes to
 		// connect to Proven IMDG source/sink streams.
-		imdgClientConfig = createClientConfiguration();
+		imdgClientConfig = createImdgClientConfiguration();
 
 		// Get the Jet compute cluster reference
 		// Must be completed after provide metadata extraction
@@ -208,7 +212,11 @@ public abstract class PipelineRequest extends RequestComponent {
 
 	@Inject
 	public PipelineRequest() {
-		super();
+		super();		
+	}
+
+	public ComponentType getComponentType() {
+		return ComponentType.PipelineRequest;
 	}
 
 	@PreDestroy
@@ -228,7 +236,7 @@ public abstract class PipelineRequest extends RequestComponent {
 	}
 
 	private void addPipelineRequestProviderMetadata() {
-
+		
 		Class<?> clazz = this.getClass();
 		if (clazz.isAnnotationPresent(PipelineRequestProvider.class)) {
 			PipelineRequestProvider prp = clazz.getAnnotation(PipelineRequestProvider.class);
@@ -238,11 +246,11 @@ public abstract class PipelineRequest extends RequestComponent {
 		}
 	}
 
-	private ClientConfig createClientConfiguration() {
+	private ClientConfig createImdgClientConfiguration() {
 		Address address = hzi.getCluster().getLocalMember().getAddress();
 		String addressStr = address.getHost() + ":" + address.getPort();
 		ClientConfig hzClientConfig = new ClientConfig();
-		hzClientConfig.getNetworkConfig().addAddress(addressStr);
+		hzClientConfig.getNetworkConfig().addAddress(addressStr);	
 		hzClientConfig.setGroupConfig(hzi.getConfig().getGroupConfig());
 		hzClientConfig.getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
 				ProvenMessageIDSFactory.class);
@@ -269,8 +277,7 @@ public abstract class PipelineRequest extends RequestComponent {
 			internalConfig.getHazelcastConfig().getNetworkConfig().setPort(mp.getJetInstanceTestPort());
 			internalConfig.getHazelcastConfig().getSerializationConfig()
 					.addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID, ProvenMessageIDSFactory.class);
-
-			internalConfig.setProperty("jet.home", "/tmp/internal-jet");
+			internalConfig.getHazelcastConfig().getGroupConfig().setName(mp.getJetGroupName());
 			
 			// Create job configuration for internal Jet
 			JobConfig jobConfig = new JobConfig();
@@ -293,7 +300,7 @@ public abstract class PipelineRequest extends RequestComponent {
 			// Jet client config
 			externalConfig = new ClientConfig();
 			externalConfig.getNetworkConfig().setAddresses(mp.getHazelcastMembers());
-			externalConfig.getGroupConfig().setName(mp.getJetConfigGroup());
+			externalConfig.getGroupConfig().setName(mp.getJetGroupName());
 
 			// Create Jet instance and job configuration for external jet
 			// compute cluster cluster

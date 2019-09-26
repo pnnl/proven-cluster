@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.AnnotationLiteral;
 
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
 
@@ -30,6 +31,14 @@ public class ScheduledEventRegistry extends RegistryComponent {
 
 	@Resource
 	private BeanManager beanManager;
+
+	public ScheduledEventRegistry() {
+	}
+	
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.ScheduledEventRegistry;
+	}
 
 	public void register(ModuleComponent mc, Class<? extends ScheduledEvent> se,
 			Supplier<? extends ScheduledEvent> supplier, String schedule) {

@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
+import static gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType.Domain;
+
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -52,15 +54,18 @@ import org.slf4j.LoggerFactory;
 import com.hazelcast.core.DistributedObjectUtil;
 import com.hazelcast.ringbuffer.ReadResultSet;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageContentException;
@@ -86,20 +91,19 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	private RequestBuffer localExchange;
 	private CompletableFuture<Void> bufferSourceReader;
 
-	@Inject
-	BeanManager bm;
 
-	@Inject
-	@ManagedComponentType
 	DisclosureEntries de;
 
 	@Inject
+	@ManagedComponentType
 	StreamManager sm;
 
 	@PostConstruct
 	void init() {
 
 		log.debug("Post construct for DisclosureBuffer");
+		
+		de = getComponent(DisclosureEntries.class);
 
 		// Create buffer instance
 		buffer = hzi.getRingbuffer(getDoId());
@@ -126,6 +130,11 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	public DisclosureBuffer(InjectionPoint ip) {
 		super(SUPPORTED_ITEM_STATES);
 		log.debug("DefaultConstructer for DisclosureBuffer");
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.DisclosureBuffer;
 	}
 
 	@Override

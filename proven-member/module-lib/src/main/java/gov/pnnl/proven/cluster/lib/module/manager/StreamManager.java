@@ -56,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
@@ -71,13 +72,9 @@ import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
  *
  */
 @ApplicationScoped
-public class StreamManager extends ManagerComponent implements ComponentManager {
+public class StreamManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(StreamManager.class);
-
-	@Inject
-	@ManagedComponentType
-	Provider<MessageStream> msProvider;
 
 	/**
 	 * Set of managed message stream instances that provide access to the
@@ -94,16 +91,13 @@ public class StreamManager extends ManagerComponent implements ComponentManager 
 		createStreams(DomainProvider.getProvenDisclosureDomain());
 	}
 
-	@Inject
 	public StreamManager() {
 		super();
 	}
-
-	/**
-	 * Force bean activation.
-	 */
-	public void ping() {
-		log.debug("Activating StreamManager");
+	
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.StreamManager;
 	}
 
 	public MessageStreamProxy getMessageStreamProxy(DisclosureDomain domain, MessageStreamType streamType) {
@@ -194,7 +188,7 @@ public class StreamManager extends ManagerComponent implements ComponentManager 
 			if (!isManagedDomain(dd)) {
 				Set<MessageStream> messageStreams = new HashSet<MessageStream>();
 				for (MessageStreamType mst : MessageStreamType.values()) {
-					MessageStream ms = msProvider.get();
+					MessageStream ms = getComponent(MessageStream.class);
 					ms.configure(dd, mst);
 					messageStreams.add(ms);
 				}
@@ -205,6 +199,18 @@ public class StreamManager extends ManagerComponent implements ComponentManager 
 
 	private boolean isManagedDomain(DisclosureDomain dd) {
 		return (domainStreams.containsKey(dd));
+	}
+
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

@@ -101,6 +101,7 @@ public class T3PipelineResource {
 	private final Logger log = LoggerFactory.getLogger(T3PipelineResource.class);
 
 	@Inject
+	@ManagedComponentType
 	StreamManager sm;
 
 	@Inject

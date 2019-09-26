@@ -50,6 +50,7 @@ import com.hazelcast.ringbuffer.Ringbuffer;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.request.RequestProxy;
@@ -97,6 +98,11 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 	}
 	
 	
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.RequestBuffer;
+	}
 
 	public BufferedItemState[] itemStates() {
 		return SUPPORTED_ITEM_STATES;

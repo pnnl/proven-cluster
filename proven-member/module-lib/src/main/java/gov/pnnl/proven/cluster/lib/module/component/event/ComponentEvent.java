@@ -40,6 +40,7 @@
 package gov.pnnl.proven.cluster.lib.module.component.event;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
@@ -56,6 +57,7 @@ public abstract class ComponentEvent {
 	String containerName;
 	String moduleId;
 	String managerId;
+	String creatorId;
 	ComponentType componentType;
 	String componentId;
 	String doId;
@@ -66,7 +68,11 @@ public abstract class ComponentEvent {
 		memberId = mc.getMemberId();
 		containerName = mc.getContainerName();
 		moduleId = mc.getModuleId();
-		managerId = mc.getManagerId();
+		if (ManagedComponent.class.isAssignableFrom(mc.getClass())) {
+			ManagedComponent managed = (ManagedComponent) mc;
+			managerId = managed.getManagerId().toString();
+			creatorId = managed.getCreatorId().toString();
+		}
 		componentType = mc.getComponentType();
 		componentId = mc.getId().toString();
 		doId = mc.getDoId();

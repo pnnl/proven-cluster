@@ -88,6 +88,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
@@ -99,6 +100,7 @@ public class PipelineResource {
 	private final Logger log = LoggerFactory.getLogger(PipelineResource.class);
 
 	@Inject
+	@ManagedComponentType
 	StreamManager sm;
 
 	@Inject

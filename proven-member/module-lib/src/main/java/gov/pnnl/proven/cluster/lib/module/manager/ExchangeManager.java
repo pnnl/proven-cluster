@@ -44,11 +44,13 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 
@@ -62,15 +64,11 @@ import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
  *
  */
 @ApplicationScoped
-public class ExchangeManager extends ManagerComponent implements ComponentManager {
+public class ExchangeManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(ExchangeManager.class);
 
 	public static final int MIN_REQUEST_EXCHANGES = 4;
-
-	@Inject
-	@ManagedComponentType
-	Provider<RequestExchange> reProvider;
 
 	/**
 	 * Set of managed request exchange instances that provide access to
@@ -87,16 +85,13 @@ public class ExchangeManager extends ManagerComponent implements ComponentManage
 
 	}
 
-	@Inject
 	public ExchangeManager() {
 		super();
 	}
 
-	/**
-	 * Force bean activation.
-	 */
-	public void ping() {
-		log.debug("Activating ExchangeManager");
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.ExchangeManager;
 	}
 
 	/**
@@ -104,13 +99,23 @@ public class ExchangeManager extends ManagerComponent implements ComponentManage
 	 */
 	private void createExchange() {
 
-		synchronized (res) {
-
-			for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
-				RequestExchange re = reProvider.get();
-				res.add(re);
-			}
+		for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
+			// RequestExchange re = reProvider.get();
+			RequestExchange re = getComponent(RequestExchange.class);
+			res.add(re);
 		}
+	}
+
+	@Override
+	public void activate() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

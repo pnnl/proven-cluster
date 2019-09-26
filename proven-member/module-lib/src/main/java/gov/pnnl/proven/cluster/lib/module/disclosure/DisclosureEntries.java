@@ -64,6 +64,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.disclosure.exception.EntryParserException;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
@@ -124,6 +125,11 @@ public class DisclosureEntries extends DisclosureComponent {
 	public DisclosureEntries(InjectionPoint ip) {
 		super();
 		log.debug("DefaultConstructer for DisclosureBuffer");
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.DisclosureEntries;
 	}
 
 	private void startReader(boolean replace) {

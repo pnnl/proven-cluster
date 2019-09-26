@@ -46,6 +46,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
@@ -69,18 +70,17 @@ public class RequestExchange extends ExchangeComponent {
 	
 	public static final String RE_EXECUTOR_SERVICE = "concurrent/RequestExchange";
 
-	@Inject
-	@ManagedComponentType
 	private DisclosureBuffer db;
 
-	@Inject
-	@ManagedComponentType
 	private RequestBuffer rb;
 
 	@PostConstruct
 	void init() {
 		log.debug("Post construct for RequestExchange");
 
+		db = getComponent(DisclosureBuffer.class);
+		rb = getComponent(RequestBuffer.class);
+		
 		// Connect disclosure/exchange buffers supporting local transfers within
 		// a request exchange
 		db.addLocalExchange(rb);
@@ -92,6 +92,11 @@ public class RequestExchange extends ExchangeComponent {
 	public RequestExchange(InjectionPoint ip) {
 		super();
 		log.debug("DefaultConstructer for RequestExchange");
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.RequestExchange;
 	}
 
 	@PreDestroy

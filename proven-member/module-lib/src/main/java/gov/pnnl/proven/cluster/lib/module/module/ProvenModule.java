@@ -51,6 +51,7 @@ import org.apache.logging.log4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleShutdown;
 import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 import gov.pnnl.proven.cluster.lib.module.manager.PipelineManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
@@ -61,16 +62,19 @@ import gov.pnnl.proven.cluster.lib.module.module.event.ModuleEventObserver;
 public abstract class ProvenModule implements ModuleEventObserver {
 
 	private static Logger logger = LogManager.getLogger(ProvenModule.class);
-	
-	@Inject 
-	private StreamManager sm;
-	
+		
 	@Inject
+	@ManagedComponentType
 	private ExchangeManager em;
 	
-	@Inject 
+	@Inject
+	@ManagedComponentType
 	private PipelineManager pm;
 	
+	@Inject 
+	@ManagedComponentType
+	private StreamManager sm;
+
 	
 	// Module identifier
 	private static UUID moduleId;
@@ -84,9 +88,9 @@ public abstract class ProvenModule implements ModuleEventObserver {
 
 		// TODO - default managers to activate should be configurable per module
 		// Activate managers
-		sm.ping();
-		em.ping();
-		pm.ping();
+		em.activate();
+		pm.activate();
+		sm.activate();
 		
 		
 		// Log startup message
