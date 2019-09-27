@@ -917,7 +917,7 @@ public class ConceptService {
 			// Seconds - 7 digits
 
 			// 16 digit nanosecond padding
-			statement = padRightZeros(val, 16);
+		statement = padRightZeros(val, 7);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -1025,6 +1025,8 @@ public class ConceptService {
 			//queryStatement = queryStatement + " limit 10";
 			//*******DEBUG statement
 			//
+			
+
 			Query influxQuery = new Query(queryStatement, dbName);
 			//
 			// Unless TimeUnit parameter is used in query, Epoch time will not
