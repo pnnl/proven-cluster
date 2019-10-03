@@ -910,14 +910,15 @@ public class ConceptService {
 			//
 			// Replaced hardcoded buffer with right pad
 			// Assumption will be to use nanosecond precision
-			// Nanoseconds - 16 digits
+			// Nanoseconds - 19 digits
 			//
-			// Microseconds - 10 digits
+			// Microseconds - 13 digits
 			//
-			// Seconds - 7 digits
+			// Seconds - 10 digits
 
 			// 16 digit nanosecond padding
-		statement = padRightZeros(val, 7);
+//		statement = padRightZeros(val, 7);
+			statement = padRightZeros(val, 19);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -1032,6 +1033,7 @@ public class ConceptService {
 			// Unless TimeUnit parameter is used in query, Epoch time will not
 			// be returned.
 			//
+			System.out.println(influxQuery);
 			QueryResult qr = influxDB.query(influxQuery, TimeUnit.SECONDS);
 			if (qr.hasError()) {
 				ret = new ProvenMessageResponse();
