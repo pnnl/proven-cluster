@@ -894,7 +894,7 @@ public class ConceptService {
 	// Utility used to pad an epoch number string with zeros
 	//
 	public static String padRightZeros(String s, int n) {
-		String.format("%1$-" + n + "s", s);
+		s = String.format("%1$-" + n + "s", s);
 		s = s.replace(' ', '0');
 		return s;
 	}
