@@ -56,7 +56,7 @@ import gov.pnnl.proven.cluster.member.exception.MemberConfigurationException;
  * the member properties. These properties are defined in the
  * {@code proven-system-properties} file. Unsuccessful acquisition and/or
  * verification of these properties will short circuit a module's startup
- * process. 
+ * process.
  * 
  * Convenience methods are provided to get the property values.
  * 
@@ -101,8 +101,11 @@ public class MemberProperties {
 	private static final String JET_INSTANCE_TEST_PORT = "proven.jet.instance.test.port";
 	private static final String JET_GROUP_NAME = "proven.jet.group.name";
 
+	// module-lib
+	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed.component.max.retries";
+
 	// hybrid
-	private static final String HYBRID_T3_SERVICE_URL = "proven.hybrid.t3.serviceUrl";
+	private static final String HYBRID_T3_SERVICE_URL = "proven.module.hybrid.t3.serviceUrl";
 
 	private String installRoot;
 
@@ -225,7 +228,7 @@ public class MemberProperties {
 	public List<String> getHazelcastMembers() {
 		return getPropertyValues(HAZELCAST_MEMBERS_PROP, String.class);
 	}
-	
+
 	public String getHazelcastGroupName() {
 		return getPropertyValue(HAZELCAST_GROUP_NAME, String.class);
 	}
@@ -246,7 +249,12 @@ public class MemberProperties {
 	public String getJetGroupName() {
 		return getPropertyValue(JET_GROUP_NAME, String.class);
 	}
-
+	
+	// module-lib property methods
+	public Integer getManagedComponentMaxRetries() {
+		return getPropertyValue(MANAGED_COMPONENT_MAX_RETRIES, Integer.class);
+	}
+	
 	// Hybrid module property methods
 	public String getHybridT3ServiceUrl() {
 		return getPropertyValue(HYBRID_T3_SERVICE_URL, String.class);

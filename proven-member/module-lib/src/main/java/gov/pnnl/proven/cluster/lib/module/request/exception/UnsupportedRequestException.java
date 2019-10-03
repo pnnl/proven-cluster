@@ -47,4 +47,14 @@ public class UnsupportedRequestException extends Exception {
 	public UnsupportedRequestException() {
 		super();
 	}
+	
+	public UnsupportedRequestException(String message) {
+		super(message);
+	}
+
+	public UnsupportedRequestException(String message, Throwable e) {
+		super(message, e);
+	}
+
+	
 }

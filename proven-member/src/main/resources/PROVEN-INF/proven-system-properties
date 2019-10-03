@@ -13,12 +13,13 @@ proven.hazelcast.members=127.0.0.1
 proven.hazelcast.member.port=5701
 proven.hazelcast.group.name=proven
 
-
 # hazelcast jet
 proven.jet.instance.network.addresses=127.0.0.1:4701,127.0.0.1:4701 
 proven.jet.instance.test.port=0
 proven.jet.group.name=jet
 
-# hybrid module
-proven.hybrid.t3.serviceUrl=http://localhost:8889/bigdata
+# module-lib
+proven.lib.module.managed.component.max.retries=3
 
+# hybrid module
+proven.module.hybrid.t3.serviceUrl=http://localhost:8889/bigdata

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -55,12 +56,15 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 
 /**
  * 
- * Represents managed components. These components are {@code ComponentManager}s
- * or are managed by a {@code ComponentManager} and all report their
- * {@code ComponentStatus} to a {@code MemberComponentRegistry}.
+ * Represents managed components within a Proven module. They each perform
+ * specific tasks to support the operation of the platform. These components are
+ * registered with their {@code MemberComponentRegistry}, report their
+ * {@code ComponentStatus} to their registry, and report their
+ * {@code ComponentStatus} as well to their {@code ManagerComponent}.
  * 
  * @author d3j766
  *
@@ -69,11 +73,15 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  */
 @ScheduledEventReporter(event = StatusReport.class, schedule = StatusReport.STATUS_REPORT_SCHEDULE)
 @ManagedComponentType
-public abstract class ManagedComponent extends ModuleComponent implements StatusReporter {
+public abstract class ManagedComponent extends ModuleComponent implements Activator, StatusReporter {
 
 	static Logger log = LoggerFactory.getLogger(ManagedComponent.class);
 
 	protected ComponentStatus status;
+
+	protected ComponentStatus previousStatus;
+
+	protected int remainingRetries;
 
 	protected UUID managerId;
 
@@ -89,17 +97,23 @@ public abstract class ManagedComponent extends ModuleComponent implements Status
 	 */
 	protected Map<UUID, ManagedComponent> createdComponents;
 
+	@PostConstruct
+	public void managedComponentInit() {
+		remainingRetries = mp.getManagedComponentMaxRetries();
+	}
+
 	public ManagedComponent() {
 		super();
 		group.add(ComponentGroup.Managed);
 		status = ComponentStatus.Offline;
+		previousStatus = ComponentStatus.Offline;
 		createdComponents = new HashMap<>();
 	}
 
 	protected <T extends ManagedComponent> T getComponent(Class<T> subtype, Annotation... qualifiers) {
+		// Get component
 		T mc = instanceProvider.select(subtype, qualifiers).get();
-		mc.setManagerId(getManagerId());
-		mc.setCreatorId(getCreatorId());
+		addLineage(mc);
 		createdComponents.put(mc.getId(), mc);
 		return mc;
 	}
@@ -109,19 +123,85 @@ public abstract class ManagedComponent extends ModuleComponent implements Status
 		Iterator<T> mcItr = instanceProvider.select(subtype, qualifiers).iterator();
 		while (mcItr.hasNext()) {
 			T mc = mcItr.next();
-			mc.setManagerId(getManagerId());
-			mc.setCreatorId(getCreatorId());
+			addLineage(mc);
 			createdComponents.put(mc.getId(), mc);
 			ret.add(mc);
 		}
 		return ret;
 	}
 
+	private void addLineage(ManagedComponent mc) {
+		// If the caller is a manager component, then use its identifier,
+		// otherwise pass through the manager identifier for the caller to the
+		// new component.
+		if (ManagerComponent.class.isAssignableFrom(this.getClass())) {
+			mc.setManagerId(getId());
+		} else {
+			mc.setManagerId(getManagerId());
+		}
+
+		// Creator is always the caller's identifier
+		mc.setCreatorId(getCreatorId());
+	}
+
+	/**
+	 * All managed components must support their own activation.
+	 */
+	protected void activateCreated() {
+		for (ManagedComponent mc : createdComponents.values()) {
+			mc.activate();
+		}
+	}
+
+	/**
+	 * All managed components must support their own activation.
+	 */
+	protected void deactivateCreated() {
+		for (ManagedComponent mc : createdComponents.values()) {
+			mc.deactivate();
+		}
+	}
+
+	@Override
+	public <T extends ManagedComponent> void activateNew(Class<T> clazz, Annotation... qualifiers) {
+
+		boolean foundScaledComponent = false;
+		ManagedComponent deactivatedComponent = null;
+		for (ManagedComponent component : createdComponents.values()) {
+			if (component.getClass().equals(clazz)) {
+				foundScaledComponent = true;
+				if (component.getStatus() == ComponentStatus.Deactivated) {
+					deactivatedComponent = component;
+					break;
+				}
+			}
+		}
+
+		// Scaling only applies if adding another component of the same type
+		if (foundScaledComponent) {
+			// Recycle existing deactivated component, if possible.
+			if (null != deactivatedComponent) {
+				deactivatedComponent.activate();
+			} else {
+				T component = getComponent(clazz, qualifiers);
+				component.activate();
+			}
+		}
+	}
+
+	/**
+	 * Retry activating or deactivating a component having a FailedRetry status
+	 */
+	@Override
+	public void retry() {
+
+	}
+
 	public UUID getManagerId() {
 		return managerId;
 	}
 
-	public void setManagerId(UUID managerId) {
+	protected void setManagerId(UUID managerId) {
 		this.managerId = managerId;
 	}
 
@@ -129,21 +209,26 @@ public abstract class ManagedComponent extends ModuleComponent implements Status
 		return creatorId;
 	}
 
-	public void setCreatorId(UUID creatorId) {
+	protected void setCreatorId(UUID creatorId) {
 		this.creatorId = creatorId;
 	}
 
 	public ComponentStatus getStatus() {
-		return status;
+		synchronized (status) {
+			return status;
+		}
 	}
 
 	protected void setStatus(ComponentStatus status) {
-		this.status = status;
+		synchronized (status) {
+			this.status = status;
+		}
 	}
 
 	@Override
-	public StatusReport getStatusReport() {
-		return null;
+	public StatusReport reportStatus() {
+		updateStatus();
+		return new StatusReport(this);
 	}
 
 }

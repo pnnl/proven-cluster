@@ -61,13 +61,13 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  * 
  * @author d3j766
  * 
- * @see ExchangeBuffer, DisclosureBuffer, RequestBuffer 
+ * @see ExchangeBuffer, DisclosureBuffer, RequestBuffer
  *
  */
 public class RequestExchange extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(RequestExchange.class);
-	
+
 	public static final String RE_EXECUTOR_SERVICE = "concurrent/RequestExchange";
 
 	private DisclosureBuffer db;
@@ -80,16 +80,16 @@ public class RequestExchange extends ExchangeComponent {
 
 		db = getComponent(DisclosureBuffer.class);
 		rb = getComponent(RequestBuffer.class);
-		
+
 		// Connect disclosure/exchange buffers supporting local transfers within
 		// a request exchange
 		db.addLocalExchange(rb);
 		rb.addLocalDisclosure(db);
-		
+
 	}
-	
+
 	@Inject
-	public RequestExchange(InjectionPoint ip) {
+	public RequestExchange() {
 		super();
 		log.debug("DefaultConstructer for RequestExchange");
 	}
@@ -106,31 +106,19 @@ public class RequestExchange extends ExchangeComponent {
 	@Override
 	public void activate() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void deactivate() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public StatusReport getStatusReport() {
-		return null;
-		
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
+	public void updateStatus() {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
-	@Override
-	public void setStatus(ComponentStatus status) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 }

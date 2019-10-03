@@ -41,12 +41,9 @@ package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
 import java.util.Arrays;
 import java.util.List;
-
-import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.InjectionException;
 import javax.enterprise.inject.Intercepted;
 import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.interceptor.AroundConstruct;
@@ -54,19 +51,17 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
-import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
+
 
 /**
- * Verifies injection of a {@code ManagedComponent} is a {@code ProvenComponent}
- * and it's being requested by a {@code ComponentManager} or another
- * {@code ManagedComponent}. An {@code InjectionException} is thrown if this is
- * not the case.
+ * Verifies injection of a {@code ManagedComponent} is being injected by a
+ * {@code ManagerComponent} or another {@code ManagedComponent}. An
+ * {@code InjectionException} is thrown if this is not the case. Ensures correct
+ * utilization of {@code ManagedComponentType} annotation.
  * 
  * @author d3j766
  * 
@@ -81,31 +76,23 @@ public class ManagedComponentInterceptor {
 	@Intercepted
 	private Bean<?> intercepted;
 
+	@Inject
+	InjectionPoint ip;
+
 	@AroundConstruct
 	public Object verifyManagedComponent(InvocationContext ctx) throws Exception {
 
 		log.debug("ManagedComponentInterceptor - BEFORE construction.");
 		log.debug("Intercepted component :: " + intercepted.getBeanClass().getName());
 
+		Class<?> ic = intercepted.getBeanClass();
+
 		// If it is a ManagerComponent, then done - can proceed to construction
-		if (!ManagerComponent.class.isAssignableFrom(intercepted.getBeanClass())) {
+		if (!ManagerComponent.class.isAssignableFrom(ic)) {
 
-			// Determine if InjectionPoint has been provided. If not, throw
-			// exception.
-			InjectionPoint ip = null;
-			for (Object obj : ctx.getParameters()) {
-				if (obj instanceof InjectionPoint) {
-					ip = (InjectionPoint) obj;
-				}
-			}
-			if (null == ip) {
-				throw new InjectionException("Injection point missing in ManagedComponent constructor");
-			}
-
-			// Verify that it's is a module component
-			Class<?> clazz = Class.forName(ip.getType().getTypeName());
-			if (!ModuleComponent.class.isAssignableFrom(clazz)) {
-				throw new InjectionException("The managed component must be a ModuleComponent");
+			// Verify that it's is a managed component
+			if (!ManagedComponent.class.isAssignableFrom(ic)) {
+				throw new InjectionException("Intercepted bean must be managed component");
 			}
 
 			// Verify a ComponentManager is requesting the new managed
@@ -116,38 +103,36 @@ public class ManagedComponentInterceptor {
 				isIpManagerComponent = true;
 			}
 
-			// If not a component manager, verify it is a managed component
-			// performing the injection
+			// If not a component manager, verify it is another managed
+			// component performing the injection.
 			if (!isIpManagerComponent) {
 				ManagedComponentType mc = ipBean.getBeanClass().getAnnotation(ManagedComponentType.class);
 				if (null == mc) {
 					throw new InjectionException(
-							"Injection point for managed component is not from a ComponentManager or another managed component");
+							"Injection point for managed component is not a manager component or another managed component");
 				}
 			}
 
 			// So far so good - check if ManagedBy restriction is in place
-			// Class<?> clazz = Class.forName(ip.getType().getTypeName());
-			ManagedBy mb = clazz.getAnnotation(ManagedBy.class);
+			ManagedBy mb = ic.getAnnotation(ManagedBy.class);
 			if (null != mb) {
 				List<Class<?>> restrictions = Arrays.asList(mb.value());
 				if (!restrictions.isEmpty()) {
 					if (!restrictions.contains(ipBean.getBeanClass())) {
-						throw new InjectionException("Injection point for " + clazz.toString()
-								+ " not allowed due to ManagedBy restriction");
+						throw new InjectionException(
+								"Injection point for " + ic.toString() + " not allowed due to ManagedBy restriction");
 					}
 				}
 			}
-			
-			log.debug("ManagedComponent verified:: " + ip.getBean().getBeanClass().getSimpleName());
-		}
 
+			log.debug("ManagedComponent verified for:: " + ip.getBean().getBeanClass().getSimpleName());
+		}
 
 		// OK to proceed
 		Object result = ctx.proceed();
 
 		log.debug("ManagedComponentInterceptor - AFTER construction.");
-		
+
 		return result;
 	}
 

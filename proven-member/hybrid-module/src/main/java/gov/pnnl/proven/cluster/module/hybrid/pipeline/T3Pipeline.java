@@ -84,7 +84,7 @@ public class T3Pipeline extends PipelineRequest implements Serializable {
 	static Logger log = LoggerFactory.getLogger(T3Pipeline.class);
 
 	@Inject
-	public T3Pipeline(InjectionPoint ip) {
+	public T3Pipeline() {
 		super();
 	}
 

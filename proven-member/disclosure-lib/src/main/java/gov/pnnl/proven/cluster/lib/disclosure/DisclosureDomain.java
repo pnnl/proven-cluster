@@ -87,6 +87,10 @@ public class DisclosureDomain implements IdentifiedDataSerializable, Serializabl
 		this.domain = domain;
 	}
 	
+	public DisclosureDomain(DisclosureDomain dd) {
+		this.domain = dd.domain;
+	}
+	
 	public static boolean isValidDomain(String domain) {
 		return DomainValidator.getInstance().isValid(domain);
 	}

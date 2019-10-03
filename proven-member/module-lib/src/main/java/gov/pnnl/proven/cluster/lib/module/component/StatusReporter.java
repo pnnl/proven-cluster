@@ -43,11 +43,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 public interface StatusReporter {
 	
-	void activate();
-	
-	void deactivate();
-	
-	StatusReport getStatusReport();
+	StatusReport reportStatus();
 	
 }
 

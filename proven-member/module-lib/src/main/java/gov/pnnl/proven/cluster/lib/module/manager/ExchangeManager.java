@@ -118,4 +118,10 @@ public class ExchangeManager extends ManagerComponent {
 
 	}
 
+	@Override
+	public void updateStatus() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

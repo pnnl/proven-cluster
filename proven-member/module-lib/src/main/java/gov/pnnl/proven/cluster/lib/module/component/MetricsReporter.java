@@ -43,7 +43,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.MetricsReport;
 
 public interface MetricsReporter {
 	
-	MetricsReport getMetricsReport();
+	MetricsReport reportMetrics();
 	
 }
 

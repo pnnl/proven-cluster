@@ -40,18 +40,23 @@
 
 package gov.pnnl.proven.cluster.lib.module.manager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.validation.constraints.NotNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
@@ -138,6 +143,19 @@ public class StreamManager extends ManagerComponent {
 
 		return ret;
 	}
+	
+	public List<DisclosureDomain> getManagedDomains() {
+		
+		List<DisclosureDomain> ret = new ArrayList<>();
+		
+		synchronized (domainStreams) {
+			for (DisclosureDomain dd : domainStreams.keySet()) {
+				ret.add(new DisclosureDomain(dd));
+			}
+		}
+		
+		return ret;
+	}
 
 	/**
 	 * Produces a new proxy instance for a {@code MessageStream} managed
@@ -209,6 +227,12 @@ public class StreamManager extends ManagerComponent {
 
 	@Override
 	public void deactivate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void updateStatus() {
 		// TODO Auto-generated method stub
 		
 	}

@@ -40,10 +40,56 @@
 package gov.pnnl.proven.cluster.lib.module.component;
 
 public enum ComponentStatus {
+
+	/**
+	 * Initial status.
+	 */
 	Offline,
+
+	/**
+	 * Transition status
+	 */
+	Activating,
+
+	/**
+	 * Component has been activated and is performing its defined tasks.
+	 */
 	Online,
+
+	/**
+	 * Transition status
+	 */
+	CheckingStatus,
+
+	/**
+	 * Component is no longer accepting new tasks.
+	 */
 	Busy,
-	Unknown,
-	Removed,
-	InTransition;
+
+	/**
+	 * Transition status
+	 */
+	Deactivating,
+
+	/**
+	 * Component has been removed from service. Existing tasks will be
+	 * completed, new tasks will not be accepted.
+	 */
+	Deactivated,
+
+	/** 
+	 * Transition status
+	 */
+	Failing,
+
+	/**
+	 * Indicates component has failed, but will accept requests for retrying activation.
+	 */
+	FailedRetry,
+
+	/**
+	 * Indicates component has failed and will not accept activation retries.
+	 */
+	Failed;
+
 }

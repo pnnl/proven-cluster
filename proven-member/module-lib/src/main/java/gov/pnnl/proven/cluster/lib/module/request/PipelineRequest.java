@@ -40,33 +40,19 @@
 package gov.pnnl.proven.cluster.lib.module.request;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
-import javax.servlet.ServletContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.internal.management.request.GetMemberSystemPropertiesRequest;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JetConfig;
@@ -74,10 +60,8 @@ import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.nio.Address;
 
-import fish.payara.micro.PayaraMicro;
-import fish.payara.micro.boot.PayaraMicroBoot;
-import gov.pnnl.cluster.lib.pipeline.T3Service;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
@@ -85,13 +69,12 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentT
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.member.MemberProperties;
 
 /**
  * Represents a Hazelcast Jet Pipeline processing workflow. Pipeline invocations
- * result in a {@code PipelineJob}. A Pipeline maintains its associated jobs
- * and will start, suspend, cancel, or restart a job if redirected by its
+ * result in a {@code PipelineJob}. A Pipeline maintains its associated jobs and
+ * will start, suspend, cancel, or restart a job if redirected by its
  * {@code PipelineManager} to do so.
  * 
  * @author d3j766
@@ -150,6 +133,13 @@ public abstract class PipelineRequest extends RequestComponent {
 	protected ClientConfig externalConfig;
 
 	/**
+	 * Represents job configuration for job(s) submitted for this
+	 * PipelineRequest. This JobConfig provides general setup, and can be
+	 * amended by a request implementation.
+	 */
+	protected JobConfig jobConfig = new JobConfig();
+
+	/**
 	 * Identifies type of pipeline.
 	 * 
 	 * @see PipelineRequestType
@@ -204,23 +194,22 @@ public abstract class PipelineRequest extends RequestComponent {
 		// connect to Proven IMDG source/sink streams.
 		imdgClientConfig = createImdgClientConfiguration();
 
-		// Get the Jet compute cluster reference
+		// Creates the Jet compute cluster reference
 		// Must be completed after provide metadata extraction
-		computeCluster = getComputeCluster();
+		createComputeCluster();
 
-	}
-
-	@Inject
-	public PipelineRequest() {
-		super();		
-	}
-
-	public ComponentType getComponentType() {
-		return ComponentType.PipelineRequest;
 	}
 
 	@PreDestroy
 	void destroy() {
+	}
+
+	public PipelineRequest() {
+		super();
+	}
+
+	public ComponentType getComponentType() {
+		return ComponentType.PipelineRequest;
 	}
 
 	public PipelineRequestType getPipelineType() {
@@ -231,12 +220,16 @@ public abstract class PipelineRequest extends RequestComponent {
 		return pipelineResources;
 	}
 
+	public void addPipelineResource(Class<?> resource) {
+		pipelineResources.add(resource);
+	}
+
 	public boolean isTest() {
 		return isTest;
 	}
 
 	private void addPipelineRequestProviderMetadata() {
-		
+
 		Class<?> clazz = this.getClass();
 		if (clazz.isAnnotationPresent(PipelineRequestProvider.class)) {
 			PipelineRequestProvider prp = clazz.getAnnotation(PipelineRequestProvider.class);
@@ -250,106 +243,107 @@ public abstract class PipelineRequest extends RequestComponent {
 		Address address = hzi.getCluster().getLocalMember().getAddress();
 		String addressStr = address.getHost() + ":" + address.getPort();
 		ClientConfig hzClientConfig = new ClientConfig();
-		hzClientConfig.getNetworkConfig().addAddress(addressStr);	
+		hzClientConfig.getNetworkConfig().addAddress(addressStr);
 		hzClientConfig.setGroupConfig(hzi.getConfig().getGroupConfig());
 		hzClientConfig.getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
 				ProvenMessageIDSFactory.class);
 		return hzClientConfig;
 	}
 
-	private JobConfig createJobConfig() {
-
-		JobConfig ret = new JobConfig();
-
-		return ret;
-
+	protected JetInstance getComputeCluster() {
+		return computeCluster;
 	}
 
-	private JetInstance getComputeCluster() {
+	private void createComputeCluster() {
 
-		JetInstance ret = null;
+		// Creates a single instance for one or more jobs per request
+		if (null == computeCluster) {
 
-		// INTERNAL
-		if (isTest) {
+			if (isTest) {
 
-			// Create internal configuration for Jet server node instance
-			internalConfig = new JetConfig();
-			internalConfig.getHazelcastConfig().getNetworkConfig().setPort(mp.getJetInstanceTestPort());
-			internalConfig.getHazelcastConfig().getSerializationConfig()
-					.addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID, ProvenMessageIDSFactory.class);
-			internalConfig.getHazelcastConfig().getGroupConfig().setName(mp.getJetGroupName());
-			
-			// Create job configuration for internal Jet
-			JobConfig jobConfig = new JobConfig();
-			File pipelineDeps = mp.getPipelineRequestLibsDir();
-			for (String jarFile : pipelineDeps.list()) {
-				if (jarFile.endsWith(".jar")) {
-					jobConfig.addJar(new File(jarFile));
+				// Create internal configuration for Jet server node instance
+				internalConfig = new JetConfig();
+				internalConfig.getHazelcastConfig().getNetworkConfig().setPort(mp.getJetInstanceTestPort());
+				internalConfig.getHazelcastConfig().getSerializationConfig().addDataSerializableFactoryClass(
+						ProvenMessageIDSFactory.FACTORY_ID, ProvenMessageIDSFactory.class);
+				internalConfig.getHazelcastConfig().getGroupConfig().setName(mp.getJetGroupName());
+
+				// Create job configuration for internal Jet. Retrieve any
+				// pipeline jars from installation.
+				File pipelineDeps = mp.getPipelineRequestLibsDir();
+				for (String jarFile : pipelineDeps.list()) {
+					if (jarFile.endsWith(".jar")) {
+						jobConfig.addJar(new File(jarFile));
+					}
 				}
+
+				// Create the new Jet server node instance
+				computeCluster = Jet.newJetInstance(internalConfig);
+
+				// Set external to null, not used
+				externalConfig = null;
+
+			} else {
+
+				// Jet client config
+				externalConfig = new ClientConfig();
+				externalConfig.getNetworkConfig().setAddresses(mp.getHazelcastMembers());
+				externalConfig.getGroupConfig().setName(mp.getJetGroupName());
+
+				// Create Jet instance and job configuration for external jet
+				// compute cluster cluster
+				computeCluster = Jet.newJetClient(externalConfig);
+
+				// Add class resources to job configuration. Assumption is other
+				// dependencies not specific or referred by the pipeline
+				// implementation have already been added to external Jet
+				// compute cluster.
+				jobConfig.addClass(this.getClass());
+				Class<?>[] resourceArray = new Class<?>[pipelineResources.size()];
+				jobConfig.addClass(pipelineResources.toArray(resourceArray));
+
+				// Set internal to null, not used
+				internalConfig = null;
 			}
-
-			// Create the new Jet server node instance
-			ret = Jet.newJetInstance(internalConfig);
-
-			// Set external to null, not used
-			externalConfig = null;
-
-		// EXTERNAL
-		} else {
-
-			// Jet client config
-			externalConfig = new ClientConfig();
-			externalConfig.getNetworkConfig().setAddresses(mp.getHazelcastMembers());
-			externalConfig.getGroupConfig().setName(mp.getJetGroupName());
-
-			// Create Jet instance and job configuration for external jet
-			// compute cluster cluster
-			ret = Jet.newJetClient(externalConfig);
-			JobConfig jobConfig = new JobConfig();
-
-			// Add class resources to job configuration
-			// Assumption is other dependencies not specific or referred by the
-			// pipeline implementation have already been added to external Jet
-			// compute cluster.
-			jobConfig.addClass(this.getClass());
-			Class<?>[] resourceArray = new Class<?>[pipelineResources.size()];
-			jobConfig.addClass(pipelineResources.toArray(resourceArray));
-
-			// Set internal to null, not used
-			internalConfig = null;
 		}
-
-		return ret;
-
 	}
 
-	
+	private void createDomainJobs() {
+		List<DisclosureDomain> managedDomains = sm.getManagedDomains();
+		for (DisclosureDomain dd : managedDomains) {
+			PipelineJob pj = getComponent(PipelineJob.class);
+			pj.addRequest(this, dd);
+		}
+	}
+
+	private void createProvenJob() {
+		PipelineJob pj = getComponent(PipelineJob.class);
+		pj.addRequest(this, DomainProvider.getProvenDisclosureDomain());
+	}
+
+	private void createCustomJob() {
+		PipelineJob pj = getComponent(PipelineJob.class);
+		pj.addRequest(this, null);
+	}
+
 	@Override
 	public void activate() {
-		// TODO Auto-generated method stub
-
+		if (pipelineType == PipelineRequestType.Domain)
+			createDomainJobs();
+		if (pipelineType == PipelineRequestType.Proven)
+			createProvenJob();
+		if (pipelineType == PipelineRequestType.Custom)
+			createCustomJob();
+		activateCreated();
 	}
 
 	@Override
 	public void deactivate() {
-		// TODO Auto-generated method stub
-
+		deactivateCreated();
 	}
 
 	@Override
-	public StatusReport getStatusReport() {
-		return null;
-
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setStatus(ComponentStatus status) {
+	public void updateStatus() {
 		// TODO Auto-generated method stub
 
 	}

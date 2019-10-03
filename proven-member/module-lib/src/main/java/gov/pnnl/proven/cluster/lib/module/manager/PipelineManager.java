@@ -92,7 +92,9 @@ public class PipelineManager extends ManagerComponent {
 		 * reports. If {@code ComponentStatus#Offline }, then activate the
 		 * component.
 		 */
-		createdComponents.forEach((k, v) -> v.activate());
+		activateCreated();
+		
+		//createdComponents.forEach((k, v) -> v.activate());
 
 	}
 
@@ -110,11 +112,16 @@ public class PipelineManager extends ManagerComponent {
 	@Override
 	public void activate() {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void deactivate() {
+		// TODO Auto-generated method stub
+	}
+
+
+	@Override
+	public void updateStatus() {
 		// TODO Auto-generated method stub
 		
 	}

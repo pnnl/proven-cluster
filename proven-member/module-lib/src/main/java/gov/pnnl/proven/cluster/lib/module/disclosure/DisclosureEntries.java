@@ -122,7 +122,7 @@ public class DisclosureEntries extends DisclosureComponent {
 	}
 
 	@Inject
-	public DisclosureEntries(InjectionPoint ip) {
+	public DisclosureEntries() {
 		super();
 		log.debug("DefaultConstructer for DisclosureBuffer");
 	}
@@ -473,21 +473,9 @@ public class DisclosureEntries extends DisclosureComponent {
 	}
 
 	@Override
-	public StatusReport getStatusReport() {
-		return null;
-
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
+	public void updateStatus() {
 		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setStatus(ComponentStatus status) {
-		// TODO Auto-generated method stub
-
+		
 	}
 
 }

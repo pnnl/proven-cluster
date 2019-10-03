@@ -67,9 +67,9 @@ public class ServiceBuffer extends ExchangeComponent {
 	}
 
 	@Inject
-	public ServiceBuffer(InjectionPoint ip) {
+	public ServiceBuffer() {
 		super();
-		log.debug("DefaultConstructer for ServiceBuffer");
+		log.debug("Default Constructer for ServiceBuffer");
 	}
 
 	@Override
@@ -90,19 +90,7 @@ public class ServiceBuffer extends ExchangeComponent {
 	}
 
 	@Override
-	public StatusReport getStatusReport() {
-		return null;
-		
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setStatus(ComponentStatus status) {
+	public void updateStatus() {
 		// TODO Auto-generated method stub
 		
 	}

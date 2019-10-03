@@ -63,14 +63,14 @@ import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
  * @see ComponentManager
  *
  */
-@ManagedBy(value = {StreamManager.class})
-public class MessageStream extends StreamComponent  {
+@ManagedBy(value = { StreamManager.class })
+public class MessageStream extends StreamComponent {
 
 	static Logger log = LoggerFactory.getLogger(MessageStream.class);
 
 	@Inject
 	protected HazelcastInstance hzi;
-	
+
 	private String streamName;
 	private DisclosureDomain dd;
 	private MessageStreamType mst;
@@ -82,7 +82,7 @@ public class MessageStream extends StreamComponent  {
 	}
 
 	@Inject
-	public MessageStream(InjectionPoint ip) {
+	public MessageStream() {
 		super();
 		log.debug("DefaultConstructer for MessageStream");
 
@@ -123,31 +123,19 @@ public class MessageStream extends StreamComponent  {
 	@Override
 	public void activate() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void deactivate() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public StatusReport getStatusReport() {
-		return null;
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
+	public void updateStatus() {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
-	@Override
-	public void setStatus(ComponentStatus status) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	
 }

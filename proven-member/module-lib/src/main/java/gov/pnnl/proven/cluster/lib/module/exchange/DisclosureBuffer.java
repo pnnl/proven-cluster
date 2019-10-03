@@ -91,7 +91,6 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	private RequestBuffer localExchange;
 	private CompletableFuture<Void> bufferSourceReader;
 
-
 	DisclosureEntries de;
 
 	@Inject
@@ -102,7 +101,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	void init() {
 
 		log.debug("Post construct for DisclosureBuffer");
-		
+
 		de = getComponent(DisclosureEntries.class);
 
 		// Create buffer instance
@@ -127,7 +126,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	}
 
 	@Inject
-	public DisclosureBuffer(InjectionPoint ip) {
+	public DisclosureBuffer() {
 		super(SUPPORTED_ITEM_STATES);
 		log.debug("DefaultConstructer for DisclosureBuffer");
 	}
@@ -166,7 +165,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 					} catch (UnsupportedMessageContentException | UnsupportedDisclosureEntryType | JsonParsingException
 							| InvalidDisclosureDomainException | CsvParsingException e) {
 						log.error("Failed to create and add new disclosure message to stream", e);
-					
+
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -202,13 +201,19 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	@Override
 	public void activate() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void deactivate() {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	@Override
+	public void updateStatus() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

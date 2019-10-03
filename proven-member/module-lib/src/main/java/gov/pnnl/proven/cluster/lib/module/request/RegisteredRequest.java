@@ -49,7 +49,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 public class RegisteredRequest extends RequestComponent {
 
 	@Inject
-	public RegisteredRequest(InjectionPoint ip) {
+	public RegisteredRequest() {
 		super();
 	}
 
@@ -61,31 +61,19 @@ public class RegisteredRequest extends RequestComponent {
 	@Override
 	public void activate() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void deactivate() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public StatusReport getStatusReport() {
-		return null;
-	}
-
-	@Override
-	public ComponentStatus getStatus() {
+	public void updateStatus() {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
-	@Override
-	public void setStatus(ComponentStatus status) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	
 }

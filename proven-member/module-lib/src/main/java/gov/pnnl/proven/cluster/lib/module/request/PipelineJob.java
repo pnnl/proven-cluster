@@ -39,38 +39,71 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.request;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hazelcast.jet.Job;
+
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
- * The result of a {@code PipelineRequest} invocation. 
+ * The result of a {@code PipelineRequest} invocation.
  * 
  * @author d3j766
  * 
- * @see PipelineRequest 
+ * @see PipelineRequest
  *
  */
 public class PipelineJob extends RequestComponent {
 
 	static Logger log = LoggerFactory.getLogger(PipelineJob.class);
 
+	/**
+	 * The Jet job created and submitted by this component.
+	 */
+	Job job;
+
+	/**
+	 * Identifies the domain this job uses for source/sink data. This may be
+	 * null depending on the {@code PipelineRequestType}.
+	 * 
+	 * @see PipelineRequestType
+	 */
+	DisclosureDomain dd = null;
+
+	/**
+	 * The {@code PipelineRequest} used to acquire the job's pipeline.  
+	 */
+	PipelineRequest request = null;
+
 	@PostConstruct
 	void init() {
-		log.debug("Post construct for PipelineJob");		
+		log.debug("Post construct for PipelineJob");
 	}
-	
+
+	@PreDestroy
+	void destroy() {
+	}
+
 	@Inject
-	public PipelineJob(InjectionPoint ip) {
+	public PipelineJob() {
 		super();
 		log.debug("DefaultConstructer for PipelineJob");
+	}
+
+	public void addRequest(PipelineRequest request, DisclosureDomain dd) {
+		this.request = request;
+		this.dd = dd;
 	}
 
 	@Override
@@ -78,38 +111,34 @@ public class PipelineJob extends RequestComponent {
 		return ComponentType.PipelineJob;
 	}
 
-	@PreDestroy
-	void destroy() {
-	}
-
 	@Override
 	public void activate() {
-		// TODO Auto-generated method stub
-		
+
+		if (null == request) {
+			log.error("Job request is missing.  Request needs to be added");
+		} else if (getStatus() != ComponentStatus.Offline) {
+
+		}
+
+		// Create and submit Job
+		else {
+
+			// Get job configuration
+
+			// Create and submit Job
+
+		}
 	}
 
 	@Override
 	public void deactivate() {
+	}
+
+	@Override
+	public void updateStatus() {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
-	public StatusReport getStatusReport() {
-		return null;
-		
-	}
 
-	@Override
-	public ComponentStatus getStatus() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setStatus(ComponentStatus status) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 }

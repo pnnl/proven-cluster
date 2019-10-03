@@ -37,101 +37,22 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.hazelcast.core.IExecutorService;
-import com.hazelcast.ringbuffer.ReadResultSet;
-import com.hazelcast.ringbuffer.Ringbuffer;
+import java.lang.annotation.Annotation;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
-import gov.pnnl.proven.cluster.lib.module.request.RequestProxy;
-import gov.pnnl.proven.cluster.lib.module.service.ServiceBuffer;
 
-/**
- * A managed component supporting the collection and processing of
- * {@code RequestProxy} requests. The exchange of requests to other like buffer
- * components may be performed for either compatibility, scoping, or load
- * balancing purposes. A request buffer is linked to a single
- * {@code DisclosureBuffer} to makeup a {@code RequestExchange}.
- * 
- * @author d3j766
- * 
- * @see RequestExchange, DisclosureBuffer, ServiceBuffer
- *
- */
-public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
+public interface Activator {
 
-	static Logger log = LoggerFactory.getLogger(RequestBuffer.class);
-
-	public static final BufferedItemState[] SUPPORTED_ITEM_STATES = { BufferedItemState.New,
-			BufferedItemState.Disclosed, BufferedItemState.Complete, BufferedItemState.Fail };
-
-	Ringbuffer<RequestProxy<?>> buffer;
-	IExecutorService serviceBuffer;
-	DisclosureBuffer localDisclosure;
-
-	@Inject
-	@ManagedComponentType
-	private ServiceBuffer sb;
-
-	@PostConstruct
-	void init() {
-		log.debug("Post construct for ExchangeBuffer");
-		// TODO Add default declarative configurations for buffers
-		// TODO Integrate buffer id's into their names
-		buffer = hzi.getRingbuffer(getDoId());
-	}
-
-	@Inject
-	public RequestBuffer() {
-		super(SUPPORTED_ITEM_STATES);
-		log.debug("DefaultConstructer for ExchangeBuffer");
-	}
+	void activate();
 	
+	<T extends ManagedComponent> void activateNew(Class<T> clazz, Annotation... qualifiers);
 	
-
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.RequestBuffer;
-	}
-
-	public BufferedItemState[] itemStates() {
-		return SUPPORTED_ITEM_STATES;
-	}
-
-	void addLocalDisclosure(DisclosureBuffer db) {
-		localDisclosure = db;
-	}
-
-	@Override
-	protected void itemProcessor(ReadResultSet<RequestProxy<?>> items) {
-	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-		
-	}
-
+	void retry();
+	
+	void deactivate();
+	
+	void updateStatus();
+	
 }

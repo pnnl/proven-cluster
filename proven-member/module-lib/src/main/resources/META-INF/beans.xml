@@ -8,6 +8,10 @@
 		<class>gov.pnnl.proven.cluster.lib.module.component.interceptor.ScheduledEventReporterInterceptor</class>
 	</interceptors>
 
+    <decorators>
+        <class>gov.pnnl.proven.cluster.lib.module.component.interceptor.ActivatedComponentDecorator</class>
+    </decorators>
+
 </beans>
 
 

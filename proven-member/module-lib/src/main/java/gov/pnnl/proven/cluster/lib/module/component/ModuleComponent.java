@@ -64,6 +64,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.ScheduledEvent;
 import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.ScheduledEventRegistry;
+import gov.pnnl.proven.cluster.member.MemberProperties;
 
 /**
  * The base component, performing activities to support the operation of a
@@ -81,7 +82,7 @@ public abstract class ModuleComponent {
 	private static final String BASE_NAME = "component.proven.pnnl.gov";
 
 	@Inject 
-	protected BeanManager bm;
+	protected MemberProperties mp;
 	
 	@Resource(lookup = "java:module/ModuleName")
 	protected String moduleName;
@@ -96,14 +97,14 @@ public abstract class ModuleComponent {
 	protected HazelcastInstance hzi;
 
 	@PreDestroy
-	public void mcDestroy() {
+	public void moduleComponentDestroy() {
 		log.debug("ProvenComponent PreDestroy..." + this.getClass().getSimpleName());
 		// TODO unregister events from registry
 		// unregisterAll();
 	}
 
 	@PostConstruct
-	public void mcInit() {
+	public void moduleComponentInit() {
 
 		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().toString();		
 		clusterGroup = hzi.getConfig().getGroupConfig().getName();
@@ -124,8 +125,6 @@ public abstract class ModuleComponent {
 	protected UUID id;
 
 	protected Set<ComponentGroup> group;
-
-	//protected ComponentType type;
 
 	protected String doId;
 

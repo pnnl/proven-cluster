@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.event;
 
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
 
 /**
@@ -53,7 +54,7 @@ public class StatusReport extends ScheduledEvent  {
 		
 	public static final String STATUS_REPORT_SCHEDULE = ":0/1:::::";
 	
-	public StatusReport(ModuleComponent c) {
+	public StatusReport(ManagedComponent c) {
 		super(c);
 	}
 	

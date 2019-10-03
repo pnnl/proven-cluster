@@ -43,7 +43,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.HealthReport;
 
 public interface HealthReporter {
 	
-	HealthReport getHealthReport();
+	HealthReport reportHealth();
 	
 }
 

@@ -65,8 +65,9 @@ public enum PipelineRequestType {
 	Proven(PipelineRequestTypeName.PROVEN),
 
 	/**
-	 * Pipeline may operate on multiple domain stream environments.  A single job will be
-	 * produced for this pipeline type.  
+	 * Pipeline may operate on multiple domain stream environments. A single job
+	 * will be produced for this pipeline type. It is the implemetations's
+	 * responsibility for managing domain streams.
 	 */
 	Custom(PipelineRequestTypeName.CUSTOM);
 

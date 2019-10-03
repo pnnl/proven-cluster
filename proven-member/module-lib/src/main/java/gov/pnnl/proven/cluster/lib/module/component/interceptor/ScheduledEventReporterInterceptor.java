@@ -118,19 +118,19 @@ public class ScheduledEventReporterInterceptor implements Serializable {
 			// Status report
 			if ((clazz.equals(StatusReport.class)) && (StatusReporter.class.isAssignableFrom(componentType))) {
 				StatusReporter sr = (StatusReporter) ctx.getTarget();
-				supplier = sr::getStatusReport;
+				supplier = sr::reportStatus;
 			}
 
 			// Metrics Report
 			if ((clazz.equals(MetricsReport.class)) && (MetricsReporter.class.isAssignableFrom(componentType))) {
 				MetricsReporter mr = (MetricsReporter) ctx.getTarget();
-				supplier = mr::getMetricsReport;
+				supplier = mr::reportMetrics;
 			}
 
 			// Health Report
 			if ((clazz.equals(HealthReport.class)) && (HealthReporter.class.isAssignableFrom(componentType))) {
 				HealthReporter hr = (HealthReporter) ctx.getTarget();
-				supplier = hr::getHealthReport;
+				supplier = hr::reportHealth;
 			}
 
 			// Register scheduled event if supplier was found, else report error
