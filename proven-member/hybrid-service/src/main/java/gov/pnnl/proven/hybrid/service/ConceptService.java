@@ -590,6 +590,7 @@ public class ConceptService {
 
 
 
+	@SuppressWarnings("unused")
 	public String convertResults2Json(QueryResult qr) {
 
 		//
@@ -599,7 +600,6 @@ public class ConceptService {
 		String jsonresults = "";
 		Mpoint point = new Mpoint();
 		Measurement measurement = new Measurement();
-		Results results = new Results();
 
 		List<Result> resultList = qr.getResults();
 		int resultIndex = 0;
@@ -932,8 +932,107 @@ public class ConceptService {
 		return statement;
 
 	}
+	
+	private Map<String, Integer> countFilterFields(List<ProvenQueryFilter> filters) {
+		Map<String, Integer> filterFieldCounter = new HashMap();
+		if (filters != null) {
+			int index = 0;			
+			while (index < filters.size()) {
+				ProvenQueryFilter filter = filters.get(index);
+				String localKey = filters.get(index).getField();
+				if (!filterFieldCounter.containsKey(localKey)) {
+					filterFieldCounter.put(localKey, 1);
+				} else {
+					Integer currentCount = filterFieldCounter.get(localKey);
+					filterFieldCounter.replace(localKey, currentCount + 1);
+				}
+				index = index + 1;
+			}
+		}
+		return filterFieldCounter;
+	}
+
+	private String formatFilterCriteria(ProvenQueryFilter filter) {
+		String statement = "";
+		String space = " ";
+		String eq = "=";
+		String quote = "'";
+		
+		if (filter.getDatatype() == null) {
+
+			statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
+		} else {
+			if (filter.getDatatype().equals(MetricValueType.Integer.toString())) {
+				statement = filter.getField() + space + eq + Integer.parseInt(filter.getValue());
+			} else if (filter.getDatatype().equals(MetricValueType.Long.toString())) {
+				statement = filter.getField() + space + eq + Long.parseLong(filter.getValue());
+			} else if (filter.getDatatype().equals(MetricValueType.Float.toString())) {
+				statement = filter.getField() + space + eq + Float.parseFloat(filter.getValue());
+			} else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
+				statement = filter.getField() + space + eq + Double.parseDouble(filter.getValue());
+			} else
+				statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
+		}
+		return statement;
+
+	}
+
+	
+	private List<String> assembleFilterStatements(List<ProvenQueryFilter> filters,
+			Map<String, Integer> filterFieldCounter) {
+		List<String> assembledFilterStatements = new ArrayList();
 
 
+		Iterator iter = filterFieldCounter.entrySet().iterator();
+		while (iter.hasNext()) {
+			Map.Entry entry = (Map.Entry) iter.next();
+			Integer counterIndex = (Integer)entry.getValue();
+			if (counterIndex == 1) {
+
+				int index = 0;
+				String filter_statement = "";
+				while (index < filters.size()) {
+
+					if (filters.get(index).getField().equalsIgnoreCase((String)entry.getKey())) {
+						if (filters.get(index).getField().toLowerCase().contains("starttime")
+								|| filters.get(index).getField().toLowerCase().contains("endtime")) {
+							assembledFilterStatements.add(timeFilterStatement(filters.get(index).getField(), filters.get(index).getValue()));
+						} else {
+							
+							assembledFilterStatements.add(formatFilterCriteria(filters.get(index)));					
+						}
+
+						break;
+
+					} 
+					index = index + 1;
+				}
+			} else {
+
+				int index = 0;
+				String unionStatement = "";
+				while (index < filters.size()) {
+
+					if (filters.get(index).getField().equalsIgnoreCase((String)entry.getKey())) {
+						if (unionStatement.length() == 0) {
+							unionStatement = " ( " + assembledFilterStatements.add(formatFilterCriteria(filters.get(index)));
+						} else {
+							unionStatement = unionStatement + " or " + formatFilterCriteria(filters.get(index));
+						}
+					}
+					if (unionStatement.length() != 0) {
+						assembledFilterStatements.add(unionStatement + " ) ");
+					}
+					index = index + 1;
+
+				}
+			}
+		}
+
+		return assembledFilterStatements;
+	}
+	
+	
 	public ProvenMessageResponse influxQuery(ProvenMessage query) throws InvalidProvenMessageException {
 
 		ProvenMessageResponse pmr = influxQuery(query, false);
@@ -960,51 +1059,29 @@ public class ConceptService {
 		queryStatement = queryStatement + space;
 
 		List<ProvenQueryFilter> filters = tsquery.getFilters();
+
 		String filter_statement = "";
 		if (filters != null) {
+			Map<String,Integer> filterFieldCounter = countFilterFields(filters);
+			List<String> assembledFilterStatements = assembleFilterStatements(filters, filterFieldCounter);
 			queryStatement = queryStatement + space + "where" + space;
 			boolean flag = true;
 			int index = 0;
-			while (index < filters.size()) {
-				ProvenQueryFilter filter = filters.get(index);
-
+			while (index < assembledFilterStatements.size()) {
 				//
 				// Set up filter
 				//
-				if (filter.getDatatype() == null) {
-
-					filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
-				} else {
-					if (filter.getDatatype().equals(MetricValueType.Integer.toString())) {
-						filter_statement = filter.getField() + space + eq + Integer.parseInt(filter.getValue());
-					} else if (filter.getDatatype().equals(MetricValueType.Long.toString())) {
-						filter_statement = filter.getField() + space + eq + Long.parseLong(filter.getValue());
-					} else if (filter.getDatatype().equals(MetricValueType.Float.toString())) {
-						filter_statement = filter.getField() + space + eq + Float.parseFloat(filter.getValue());
-					} else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
-						filter_statement = filter.getField() + space + eq + Double.parseDouble(filter.getValue());
-					} else
-						filter_statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
-				}
 
 
-				//
-				// If time oriented, override filter with StartTime and EndTime
-				// are special fields used to filter the InfluxDB time.
-				//
-				if (filter.getField().toLowerCase().contains("starttime")
-						|| filter.getField().toLowerCase().contains("endtime")) {
-					filter_statement = timeFilterStatement(filter.getField(), filter.getValue());
-				}
-
-				if (flag) {
-					queryStatement = queryStatement + space + filter_statement + space;
+				if (index == 0) {
+					queryStatement = queryStatement + space + assembledFilterStatements.get(index) + space;
 					flag = false;
+					
 				} else {
 
 					// If not a time filter, treat it as a field.
 					//
-					queryStatement = queryStatement + space + "and" + space + filter_statement + space;
+					queryStatement = queryStatement + space + "and" + space + assembledFilterStatements.get(index) + space;
 
 				}
 				index = index + 1;
@@ -1018,7 +1095,6 @@ public class ConceptService {
 			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
 			String dbName = idbDB;
 			influxDB.setRetentionPolicy(idbRP);
-
 			// // Query query = new Query("select time_idle from cpu limit 10",
 			// dbName);
 			//
@@ -1068,6 +1144,8 @@ public class ConceptService {
 		return ret;
 
 	}
+
+
 
 	//
 	// New write measurement routine
