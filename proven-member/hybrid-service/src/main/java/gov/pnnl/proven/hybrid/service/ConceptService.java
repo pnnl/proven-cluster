@@ -962,13 +962,13 @@ public class ConceptService {
 
 			statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
 		} else {
-			if (filter.getDatatype().equals(MetricValueType.Integer.toString())) {
+			if (filter.getDatatype().equalsIgnoreCase(MetricValueType.Integer.toString())) {
 				statement = filter.getField() + space + eq + Integer.parseInt(filter.getValue());
-			} else if (filter.getDatatype().equals(MetricValueType.Long.toString())) {
+			} else if (filter.getDatatype().equalsIgnoreCase(MetricValueType.Long.toString())) {
 				statement = filter.getField() + space + eq + Long.parseLong(filter.getValue());
-			} else if (filter.getDatatype().equals(MetricValueType.Float.toString())) {
+			} else if (filter.getDatatype().equalsIgnoreCase(MetricValueType.Float.toString())) {
 				statement = filter.getField() + space + eq + Float.parseFloat(filter.getValue());
-			} else if (filter.getDatatype().equals(MetricValueType.Double.toString())) {
+			} else if (filter.getDatatype().equalsIgnoreCase(MetricValueType.Double.toString())) {
 				statement = filter.getField() + space + eq + Double.parseDouble(filter.getValue());
 			} else
 				statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
@@ -977,11 +977,34 @@ public class ConceptService {
 
 	}
 
+	private String assembleUnionFilterStatement(List<ProvenQueryFilter> filters, String fieldName, Integer fieldCounter) {
+              String unionStatement = "";
+     		  int index = 0;
+			while (index < filters.size()) {
+
+					if (filters.get(index).getField().equalsIgnoreCase(fieldName)) {
+						if (unionStatement.length() == 0) {
+							unionStatement = " ( " + formatFilterCriteria(filters.get(index));
+						} else {
+							unionStatement = unionStatement + " or " + formatFilterCriteria(filters.get(index));
+						}
+					}
+
+					index = index + 1;
+	          
+			}
+   	        if (unionStatement.length() != 0) {
+		         unionStatement = unionStatement + " ) ";
+	        }
+	          return unionStatement;
+		
+	}
+	
 	
 	private List<String> assembleFilterStatements(List<ProvenQueryFilter> filters,
 			Map<String, Integer> filterFieldCounter) {
-		List<String> assembledFilterStatements = new ArrayList();
-
+		
+		List<String> assembledFilterStatements = new ArrayList<>();
 
 		Iterator iter = filterFieldCounter.entrySet().iterator();
 		while (iter.hasNext()) {
@@ -996,6 +1019,7 @@ public class ConceptService {
 					if (filters.get(index).getField().equalsIgnoreCase((String)entry.getKey())) {
 						if (filters.get(index).getField().toLowerCase().contains("starttime")
 								|| filters.get(index).getField().toLowerCase().contains("endtime")) {
+//							assembledFilterStatements.add(timeFilterStatement(filters.get(index).getField(), filters.get(index).getValue()));
 							assembledFilterStatements.add(timeFilterStatement(filters.get(index).getField(), filters.get(index).getValue()));
 						} else {
 							
@@ -1008,26 +1032,26 @@ public class ConceptService {
 					index = index + 1;
 				}
 			} else {
-
-				int index = 0;
-				String unionStatement = "";
-				while (index < filters.size()) {
-
-					if (filters.get(index).getField().equalsIgnoreCase((String)entry.getKey())) {
-						if (unionStatement.length() == 0) {
-							unionStatement = " ( " + assembledFilterStatements.add(formatFilterCriteria(filters.get(index)));
-						} else {
-							unionStatement = unionStatement + " or " + formatFilterCriteria(filters.get(index));
-						}
-					}
-					if (unionStatement.length() != 0) {
-						assembledFilterStatements.add(unionStatement + " ) ");
-					}
-					index = index + 1;
-
+				assembledFilterStatements.add(assembleUnionFilterStatement(filters, (String) entry.getKey(), (Integer) counterIndex));
+// 
+//				int index = 0;
+//				String unionStatement = "";
+//				while (index < filters.size()) {
+//
+//					if (filters.get(index).getField().equalsIgnoreCase((String)entry.getKey())) {
+//						if (unionStatement.length() == 0) {
+//							unionStatement = " ( " + assembledFilterStatements.add(formatFilterCriteria(filters.get(index)));
+//						} else {
+//							unionStatement = unionStatement + " or " + formatFilterCriteria(filters.get(index));
+//						}
+//					}
+//					if (unionStatement.length() != 0) {
+//						assembledFilterStatements.add(unionStatement + " ) ");
+//					}
+//					index = index + 1;
+//
 				}
 			}
-		}
 
 		return assembledFilterStatements;
 	}
@@ -1063,7 +1087,7 @@ public class ConceptService {
 		String filter_statement = "";
 		if (filters != null) {
 			Map<String,Integer> filterFieldCounter = countFilterFields(filters);
-			List<String> assembledFilterStatements = assembleFilterStatements(filters, filterFieldCounter);
+			List <String> assembledFilterStatements = assembleFilterStatements(filters, filterFieldCounter);
 			queryStatement = queryStatement + space + "where" + space;
 			boolean flag = true;
 			int index = 0;
