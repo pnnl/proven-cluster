@@ -51,7 +51,12 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleQualifier;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ModuleEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserver;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ModuleStartupException;
 import gov.pnnl.proven.cluster.lib.module.module.exception.MultipleModuleImplementationException;
 import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementationException;
@@ -68,22 +73,20 @@ import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementatio
  */
 @Singleton
 @Startup
-@DependsOn({"MemberProperties"})
+@DependsOn({ "MemberProperties" })
 public class ModuleManager {
 
 	static Logger logger = LoggerFactory.getLogger(ModuleManager.class);
-	
+
 	@Inject
 	BeanManager beanManager;
 
 	@Inject
-	Event<ModuleStartup> mse;
+	@Module
+	Event<ModuleEvent> mse;
 
 	@PostConstruct
 	public void initialize() throws ModuleStartupException {
-		
-		
-		
 
 		logger.info("Enter PostConstruct for " + this.getClass().getSimpleName());
 		sendStartupMessage();
@@ -91,9 +94,11 @@ public class ModuleManager {
 	}
 
 	public void sendStartupMessage() throws ModuleStartupException {
-		
-		ModuleStartup ms = new ModuleStartup();
-		Set<ObserverMethod<? super ModuleStartup>> observers = beanManager.resolveObserverMethods(ms);
+
+		StartupEvent ms = new StartupEvent();
+		Set<ObserverMethod<? super StartupEvent>> observers = beanManager.resolveObserverMethods(ms,
+				new ModuleQualifier() {
+				});
 		if (observers.isEmpty()) {
 			logger.info("Module implementation was not provided");
 			throw new NoModuleImplementationException();
@@ -103,6 +108,11 @@ public class ModuleManager {
 		} else {
 			mse.fire(ms);
 		}
+	}
+	
+	public void sendShutdownMessage() throws ModuleStartupException {
+		ShutdownEvent ms = new ShutdownEvent();
+		mse.fire(ms);
 	}
 
 }

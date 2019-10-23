@@ -40,29 +40,14 @@
 
 package gov.pnnl.proven.cluster.lib.module.manager;
 
-import java.lang.annotation.Annotation;
 import java.util.List;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
-import javax.persistence.PersistenceProperty;
-
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
-import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
-
-import javax.enterprise.util.AnnotationLiteral;
 
 /**
  * A component manager responsible for managing a set of {@code PipelineRequest}
@@ -73,15 +58,15 @@ import javax.enterprise.util.AnnotationLiteral;
  * @see ComponentManager, PipelineRequest
  *
  */
-@ApplicationScoped
 public class PipelineManager extends ManagerComponent {
 
-	static Logger log = LoggerFactory.getLogger(PipelineManager.class);
-	
+	@Inject
+	Logger log; 
+
 	@PostConstruct
 	public void initialize() {
 
-		// Load PipelineRequest implementations as managed components		
+		// Load PipelineRequest implementations as managed components
 		List<PipelineRequest> prs = getComponents(PipelineRequest.class, PipelineRequestProvider.Literal.INSTANCE);
 		log.info(prs.size() + " PipelineRequests loaded");
 
@@ -93,37 +78,18 @@ public class PipelineManager extends ManagerComponent {
 		 * component.
 		 */
 		activateCreated();
-		
-		//createdComponents.forEach((k, v) -> v.activate());
+
+		// createdComponents.forEach((k, v) -> v.activate());
 
 	}
 
-	
 	public PipelineManager() {
 		super();
 	}
-	
 
 	@Override
 	public ComponentType getComponentType() {
 		return ComponentType.PipelineManager;
-	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-	}
-
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

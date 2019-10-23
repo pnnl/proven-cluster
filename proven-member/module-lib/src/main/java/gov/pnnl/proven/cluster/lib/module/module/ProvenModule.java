@@ -39,81 +39,178 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.module;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-import javax.enterprise.event.Reception;
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import org.slf4j.Logger;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.module.event.ModuleShutdown;
-import gov.pnnl.proven.cluster.lib.module.module.event.ModuleStartup;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
+import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.manager.PipelineManager;
+import gov.pnnl.proven.cluster.lib.module.manager.RequestManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
-import gov.pnnl.proven.cluster.lib.module.module.event.ModuleEventObserver;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Managers;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserver;
 
-
+/**
+ * Represents a Proven module and is responsible for activation/deactivation of
+ * {@code ManagerComponent}s. Implementations represent the module application,
+ * and is activated on platform startup.
+ * 
+ * @author d3j766
+ *
+ */
 @ApplicationScoped
-public abstract class ProvenModule implements ModuleEventObserver {
+@Module
+public abstract class ProvenModule extends ModuleComponent implements ModuleObserver {
 
-	private static Logger logger = LogManager.getLogger(ProvenModule.class);
-		
 	@Inject
-	@ManagedComponentType
-	private ExchangeManager em;
-	
-	@Inject
-	@ManagedComponentType
-	private PipelineManager pm;
-	
-	@Inject 
-	@ManagedComponentType
-	private StreamManager sm;
+	Logger log;
 
-	
+	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
+
+	@Inject
+	@Managed
+	Instance<ManagerComponent> managerProvider;
+
+	// Map of managers created for the module
+	Map<UUID, ManagerComponent> managers = new HashMap<>();
+
 	// Module identifier
 	private static UUID moduleId;
-	
+
 	// Module name
 	private static String moduleName;
-	
-	public void observeModuleStartup(@Observes(notifyObserver = Reception.ALWAYS) ModuleStartup moduleStartup) {
 
-		logger.debug("ProvenModule startup message observed");
-
-		// TODO - default managers to activate should be configurable per module
-		// Activate managers
-		em.activate();
-		pm.activate();
-		sm.activate();
-		
-		
-		// Log startup message
-		logger.info("ProvenModule startup completed.");
-
+	public ProvenModule() {
 	}
 
-	public String observeModuleShutdown(@Observes(notifyObserver = Reception.ALWAYS) ModuleShutdown moduleShutdown) {
-
-		logger.debug("ProvenModule shutdown message observed");
-
-		// Deactivate managers
-
-		// Log shutdown message
-		logger.info("ProvenModule shutdown completed.");
-		return "test";
+	@PostConstruct
+	public void init() {
 	}
-	
-	public static UUID getModuleId() {
+
+	public <T extends ManagerComponent> void addManager(Class<T> clazz) {
+		T manager = managerProvider.select(clazz).get();
+		managers.put(manager.getId(), manager);
+	}
+
+	public <T extends ManagerComponent> T getManager(Class<T> manager) {
+
+		T ret = null;
+		for (ManagerComponent mc : managers.values()) {
+
+			// CDI bean proxy is subclass
+			if (manager.isAssignableFrom(mc.getClass())) {
+				ret = (T) mc;
+				break;
+			}
+		}
+
+		return ret;
+	}
+
+	public static UUID retrieveModuleId() {
 		if (null == moduleId) {
 			moduleId = UUID.randomUUID();
 		}
 		return moduleId;
+	}
+
+	public static String retrieveModuleName() {
+		if (null == moduleName) {
+			try {
+				moduleName = (String) InitialContext.doLookup(JNDI_MODULE_NAME);
+			} catch (NamingException e) {
+				e.printStackTrace();
+			}
+		}
+		return moduleName;
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		return ComponentType.ProvenModule;
+	}
+
+	@Override
+	public void observeModuleStartup(@Observes @Module StartupEvent moduleStartup) {
+
+		log.debug("ProvenModule startup message observed");
+
+		Set<Class<?>> managers;
+
+		// Get list of managers to activate
+		ActiveManagers toActivate = this.getClass().getAnnotation(ActiveManagers.class);
+		if ((null != toActivate) && (toActivate.managers().length != 0)) {
+			managers = new HashSet<Class<?>>(Arrays.asList(toActivate.managers()));
+		} else {
+			managers = new HashSet<Class<?>>(ManagerFactory.getManagerTypes().keySet());
+		}
+
+		// Verify required managers are present
+		Map<Class<?>, Boolean> allManagers = ManagerFactory.getManagerTypes();
+		for (Class<?> k : allManagers.keySet()) {
+			if (allManagers.get(k)) {
+				if (!managers.contains(k)) {
+					managers.add(k);
+				}
+			}
+		}
+
+		// Start managers
+		for (Class<?> c : managers) {
+			if (ManagerComponent.class.isAssignableFrom(c)) {
+				addManager((Class<ManagerComponent>) c);
+			}
+		}
+
+		// TEST DESTROY
+		// Ensure injected manager instances into a managed component is not
+		// destroyed
+//		ExchangeManager em = getManager(ExchangeManager.class);
+//		managerProvider.destroy(em);
+//		managers.remove(em);
+//		StreamManager sm = getManager(StreamManager.class);
+//		List<DisclosureDomain> dds = sm.getManagedDomains();
+
+		log.info("ProvenModule startup completed.");
+	}
+
+	@Override
+	public void observeModuleShutdown(@Observes @Module ShutdownEvent moduleShutdown) {
+
+		log.debug("ProvenModule shutdown message observed");
+
+		// Make sure pre-destroy callbacks are in place for cleanup. This should
+		// be the same as what is called for an out of service status change.
+		for (ManagerComponent mc : managers.values()) {
+			managerProvider.destroy(mc);
+		}
+
+		// Log shutdown message
+		log.info("ProvenModule shutdown completed.");
 	}
 
 }

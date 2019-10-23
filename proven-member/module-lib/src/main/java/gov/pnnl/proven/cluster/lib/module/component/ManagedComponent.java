@@ -45,51 +45,64 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.interceptor.InvocationContext;
 
+import org.apache.http.impl.execchain.RetryExec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ScheduledEventReporter;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
+import gov.pnnl.proven.cluster.lib.module.messenger.StatusReporter;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.StatusObserver;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.StatusOperationObserver;
+import io.github.resilience4j.retry.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 
 /**
  * 
  * Represents managed components within a Proven module. They each perform
- * specific tasks to support the operation of the platform. These components are
+ * specific tasks to support the operation of a module. These components are
  * registered with their {@code MemberComponentRegistry}, report their
  * {@code ComponentStatus} to their registry, and report their
- * {@code ComponentStatus} as well to their {@code ManagerComponent}.
+ * {@code ComponentStatus} as well to other managed components. Managed
+ * components may share their resources (compute and data) across the cluster.
  * 
  * @author d3j766
  *
  * @see ModuleComponent
  *
  */
-@ScheduledEventReporter(event = StatusReport.class, schedule = StatusReport.STATUS_REPORT_SCHEDULE)
-@ManagedComponentType
-public abstract class ManagedComponent extends ModuleComponent implements Activator, StatusReporter {
+@Messenger
+@Managed
+public abstract class ManagedComponent extends ModuleComponent
+		implements ManagedStatusOperation, StatusReporter, StatusOperationObserver {
 
-	static Logger log = LoggerFactory.getLogger(ManagedComponent.class);
+	@Inject
+	Logger log;
 
-	protected ComponentStatus status;
+	@Inject
+	@Managed
+	protected Instance<ManagedComponent> componentProvider;
 
-	protected ComponentStatus previousStatus;
-
-	protected int remainingRetries;
+	protected ManagedStatus status;
 
 	protected UUID managerId;
 
 	protected UUID creatorId;
-
-	@Inject
-	@ManagedComponentType
-	protected Instance<ManagedComponent> instanceProvider;
 
 	/**
 	 * Created components. The Map contains the component's ID as the key and
@@ -97,22 +110,25 @@ public abstract class ManagedComponent extends ModuleComponent implements Activa
 	 */
 	protected Map<UUID, ManagedComponent> createdComponents;
 
-	@PostConstruct
-	public void managedComponentInit() {
-		remainingRetries = mp.getManagedComponentMaxRetries();
-	}
-
 	public ManagedComponent() {
 		super();
 		group.add(ComponentGroup.Managed);
-		status = ComponentStatus.Offline;
-		previousStatus = ComponentStatus.Offline;
+		status = ManagedStatus.Ready;
 		createdComponents = new HashMap<>();
+	}
+
+	@PostConstruct
+	public void managedComponentInit() {
+		addMessenger();
+	}
+
+	private void addMessenger() {
+
 	}
 
 	protected <T extends ManagedComponent> T getComponent(Class<T> subtype, Annotation... qualifiers) {
 		// Get component
-		T mc = instanceProvider.select(subtype, qualifiers).get();
+		T mc = componentProvider.select(subtype, qualifiers).get();
 		addLineage(mc);
 		createdComponents.put(mc.getId(), mc);
 		return mc;
@@ -120,7 +136,7 @@ public abstract class ManagedComponent extends ModuleComponent implements Activa
 
 	protected <T extends ManagedComponent> List<T> getComponents(Class<T> subtype, Annotation... qualifiers) {
 		List<T> ret = new ArrayList<>();
-		Iterator<T> mcItr = instanceProvider.select(subtype, qualifiers).iterator();
+		Iterator<T> mcItr = componentProvider.select(subtype, qualifiers).iterator();
 		while (mcItr.hasNext()) {
 			T mc = mcItr.next();
 			addLineage(mc);
@@ -131,10 +147,11 @@ public abstract class ManagedComponent extends ModuleComponent implements Activa
 	}
 
 	private void addLineage(ManagedComponent mc) {
+
 		// If the caller is a manager component, then use its identifier,
 		// otherwise pass through the manager identifier for the caller to the
 		// new component.
-		if (ManagerComponent.class.isAssignableFrom(this.getClass())) {
+		if (this instanceof ManagerComponent) {
 			mc.setManagerId(getId());
 		} else {
 			mc.setManagerId(getManagerId());
@@ -142,6 +159,7 @@ public abstract class ManagedComponent extends ModuleComponent implements Activa
 
 		// Creator is always the caller's identifier
 		mc.setCreatorId(getCreatorId());
+
 	}
 
 	/**
@@ -162,41 +180,6 @@ public abstract class ManagedComponent extends ModuleComponent implements Activa
 		}
 	}
 
-	@Override
-	public <T extends ManagedComponent> void activateNew(Class<T> clazz, Annotation... qualifiers) {
-
-		boolean foundScaledComponent = false;
-		ManagedComponent deactivatedComponent = null;
-		for (ManagedComponent component : createdComponents.values()) {
-			if (component.getClass().equals(clazz)) {
-				foundScaledComponent = true;
-				if (component.getStatus() == ComponentStatus.Deactivated) {
-					deactivatedComponent = component;
-					break;
-				}
-			}
-		}
-
-		// Scaling only applies if adding another component of the same type
-		if (foundScaledComponent) {
-			// Recycle existing deactivated component, if possible.
-			if (null != deactivatedComponent) {
-				deactivatedComponent.activate();
-			} else {
-				T component = getComponent(clazz, qualifiers);
-				component.activate();
-			}
-		}
-	}
-
-	/**
-	 * Retry activating or deactivating a component having a FailedRetry status
-	 */
-	@Override
-	public void retry() {
-
-	}
-
 	public UUID getManagerId() {
 		return managerId;
 	}
@@ -213,22 +196,60 @@ public abstract class ManagedComponent extends ModuleComponent implements Activa
 		this.creatorId = creatorId;
 	}
 
-	public ComponentStatus getStatus() {
-		synchronized (status) {
-			return status;
-		}
+	public Set<UUID> getCreatedIds() {
+		return createdComponents.keySet();
 	}
 
-	protected void setStatus(ComponentStatus status) {
+	public ManagedStatus getStatus() {
+		return status;
+	}
+
+	protected void setStatus(ManagedStatus status) {
+
 		synchronized (status) {
 			this.status = status;
 		}
 	}
 
 	@Override
-	public StatusReport reportStatus() {
-		updateStatus();
-		return new StatusReport(this);
+	public void activate() {
+		log.debug("No activation operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	public <T extends ManagedComponent> void scale(Class<T> clazz) {
+		log.debug("No scale operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	public void check() {
+		log.debug("No status operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	public void fail() {
+		log.debug("No fail operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	public void retry() {
+		log.debug("No retry operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	public void deactivate() {
+		log.debug("No deactivate operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	public void remove() {
+		log.debug("No remove operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	public StatusEvent reportStatus() {
+		check();
+		return new StatusEvent(this);
 	}
 
 }

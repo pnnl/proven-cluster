@@ -52,6 +52,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.Annotated;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -62,7 +63,10 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
@@ -71,12 +75,14 @@ import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 /**
  * A component manager responsible for managing the platform's message streams.
  * 
+ * This is a required {@code ProvenModule} manager and will always be activated
+ * on module startup.
+ * 
  * @author d3j766
  * 
  * @see ComponentManager, MessageStream
  *
  */
-@ApplicationScoped
 public class StreamManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(StreamManager.class);
@@ -99,7 +105,7 @@ public class StreamManager extends ManagerComponent {
 	public StreamManager() {
 		super();
 	}
-	
+
 	@Override
 	public ComponentType getComponentType() {
 		return ComponentType.StreamManager;
@@ -143,17 +149,17 @@ public class StreamManager extends ManagerComponent {
 
 		return ret;
 	}
-	
+
 	public List<DisclosureDomain> getManagedDomains() {
-		
+
 		List<DisclosureDomain> ret = new ArrayList<>();
-		
+
 		synchronized (domainStreams) {
 			for (DisclosureDomain dd : domainStreams.keySet()) {
 				ret.add(new DisclosureDomain(dd));
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -219,22 +225,4 @@ public class StreamManager extends ManagerComponent {
 		return (domainStreams.containsKey(dd));
 	}
 
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-		
-	}
-	
 }

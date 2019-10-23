@@ -48,11 +48,11 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
  * A cluster level managed Proven component representing an IMDG proven message
@@ -118,24 +118,6 @@ public class MessageStream extends StreamComponent {
 
 	public HazelcastInstance getHzi() {
 		return hzi;
-	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-
 	}
 
 }

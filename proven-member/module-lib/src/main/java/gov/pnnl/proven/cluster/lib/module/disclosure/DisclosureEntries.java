@@ -63,13 +63,14 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.disclosure.exception.EntryParserException;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageContentException;
 
 /**
@@ -84,6 +85,7 @@ import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageCon
  * @see RequestExchange
  *
  */
+@Scalable
 public class DisclosureEntries extends DisclosureComponent {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureEntries.class);
@@ -110,8 +112,8 @@ public class DisclosureEntries extends DisclosureComponent {
 		// bufferSource = hzi.getQueue(getDistributedName());
 		queue = hzi.getQueue(EXTERNAL_DISCLOSURE_QUEUE_NAME);
 		largeMessageQueue = hzi.getQueue(INTERNAL_LARGE_MESSAGE_QUEUE_NAME);
-		startReader(false);
-		startLargeMessageReader(false);
+		//startReader(false);
+		//startLargeMessageReader(false);
 	}
 
 	@PreDestroy
@@ -181,7 +183,8 @@ public class DisclosureEntries extends DisclosureComponent {
 			List<DisclosureProxy> entries;
 
 			// TODO this should be changed to a registry request for an
-			// available disclosure buffer (registry will give preference to local)
+			// available disclosure buffer (registry will give preference to
+			// local)
 			// Should not continue if local disclosure has no free space - the
 			// entries will be lost
 			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(BufferedItemState.New))) {
@@ -460,22 +463,5 @@ public class DisclosureEntries extends DisclosureComponent {
 		localDisclosure = db;
 	}
 
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-		
-	}
 
 }

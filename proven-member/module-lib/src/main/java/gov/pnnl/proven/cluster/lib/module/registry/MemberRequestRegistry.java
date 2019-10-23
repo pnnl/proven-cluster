@@ -39,10 +39,13 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
+import java.io.Serializable;
+
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Registry;
 
 /**
  * Provides a Request Registry at Member level.
@@ -53,11 +56,12 @@ import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 @ApplicationScoped
 public class MemberRequestRegistry extends RegistryComponent {
 
-	private static final long serialVersionUID = 1L;
+	@Inject
+	ClusterRequestRegistry crr;
 
 	public MemberRequestRegistry() {
 	}
-	
+
 	@Override
 	public ComponentType getComponentType() {
 		return ComponentType.MemberRequestRegistry;

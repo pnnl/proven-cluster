@@ -40,13 +40,19 @@
 package gov.pnnl.proven.cluster.lib.module.component;
 
 /**
- * Listing of module component types.
+ * Enumeration of module component types. A convenience listing of the possible
+ * module component types.
+ * 
+ * @see ModuleComponent
  * 
  * @author d3j766
  *
  */
 public enum ComponentType {
-
+	
+	// Module
+	ProvenModule,
+	
 	// Registry
 	ClusterComponentRegistry,
 	ClusterRequestRegistry,
@@ -76,5 +82,10 @@ public enum ComponentType {
 	PipelineJob,
 
 	// Stream
-	MessageStream;
+	MessageStream,
+	
+	// Messenger
+	StatusMessenger,
+	MetricsMessenger;
+	
 }

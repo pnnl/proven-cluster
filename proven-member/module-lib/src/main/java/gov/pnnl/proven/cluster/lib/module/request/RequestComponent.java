@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.request;
 
+import javax.enterprise.inject.spi.CDI;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +65,7 @@ public abstract class RequestComponent extends ManagedComponent {
 
 	public RequestComponent() {
 		super();
-		group.add(ComponentGroup.Request);
+		group.add(ComponentGroup.Request);		
 	}
 
 }

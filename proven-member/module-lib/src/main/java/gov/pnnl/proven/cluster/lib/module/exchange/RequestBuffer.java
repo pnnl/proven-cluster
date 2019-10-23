@@ -49,10 +49,11 @@ import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.request.RequestProxy;
 import gov.pnnl.proven.cluster.lib.module.service.ServiceBuffer;
 
@@ -68,6 +69,7 @@ import gov.pnnl.proven.cluster.lib.module.service.ServiceBuffer;
  * @see RequestExchange, DisclosureBuffer, ServiceBuffer
  *
  */
+@Scalable
 public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 
 	static Logger log = LoggerFactory.getLogger(RequestBuffer.class);
@@ -80,7 +82,7 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 	DisclosureBuffer localDisclosure;
 
 	@Inject
-	@ManagedComponentType
+	@Managed
 	private ServiceBuffer sb;
 
 	@PostConstruct
@@ -96,8 +98,6 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 		super(SUPPORTED_ITEM_STATES);
 		log.debug("DefaultConstructer for ExchangeBuffer");
 	}
-	
-	
 
 	@Override
 	public ComponentType getComponentType() {
@@ -114,24 +114,6 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 
 	@Override
 	protected void itemProcessor(ReadResultSet<RequestProxy<?>> items) {
-	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

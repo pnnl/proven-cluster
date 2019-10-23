@@ -39,11 +39,14 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.util;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class LoggerResource {
 
     @Produces

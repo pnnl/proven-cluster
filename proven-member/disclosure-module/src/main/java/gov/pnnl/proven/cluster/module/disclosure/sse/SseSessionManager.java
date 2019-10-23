@@ -67,9 +67,10 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.module.disclosure.dto.SseRegisterEventDto;
@@ -106,7 +107,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 	HazelcastInstance hzi;
 	
 	@Inject
-	@ManagedComponentType
+	@Manager
 	StreamManager sm;
 
 	@Inject

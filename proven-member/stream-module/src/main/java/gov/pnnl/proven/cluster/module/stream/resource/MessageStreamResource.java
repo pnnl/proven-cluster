@@ -98,8 +98,9 @@ import org.slf4j.Logger;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 import gov.pnnl.proven.cluster.module.stream.dto.MessageStreamDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -119,7 +120,7 @@ public class MessageStreamResource {
 	Logger logger;
 
 	@Inject
-	@ManagedComponentType
+	@Manager
 	StreamManager sm;
 
 	/**

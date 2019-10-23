@@ -47,13 +47,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.component.annotation.DisclosureComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ExchangeComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagerComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.RegistryComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.RequestComponentReporter;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.StreamComponentReporter;
 
 /**
  * Represents the different component groups. Marks each group with their group
@@ -63,29 +56,25 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.StreamComponentRe
  *
  */
 public enum ComponentGroup {
+	
+	Module(GroupLabel.MODULE_GROUP),
 
-	@RegistryComponentReporter
 	Registry(GroupLabel.REGISTRY_GROUP),
 
-	@ManagerComponentReporter
 	Manager(GroupLabel.MANAGER_GROUP),
 
-	@ManagedComponentReporter
 	Managed(GroupLabel.MANAGED_GROUP),
 
-	@DisclosureComponentReporter
 	Disclosure(GroupLabel.DISCLOSURE_GROUP),
 
-	@ExchangeComponentReporter
 	Exchange(GroupLabel.EXCHANGE_GROUP),
 
-	@RequestComponentReporter
 	Request(GroupLabel.REQUEST_GROUP),
 
-	@StreamComponentReporter
 	Stream(GroupLabel.STREAM_GROUP);
 
 	private class GroupLabel {
+		private static final String MODULE_GROUP = "module";
 		private static final String REGISTRY_GROUP = "registry";
 		private static final String MANAGER_GROUP = "manager";
 		private static final String MANAGED_GROUP = "managed";

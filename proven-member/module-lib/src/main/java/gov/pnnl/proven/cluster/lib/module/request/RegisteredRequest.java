@@ -42,9 +42,9 @@ package gov.pnnl.proven.cluster.lib.module.request;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 public class RegisteredRequest extends RequestComponent {
 
@@ -58,22 +58,5 @@ public class RegisteredRequest extends RequestComponent {
 		return ComponentType.RegisteredRequest;
 	}
 
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-
-	}
 
 }

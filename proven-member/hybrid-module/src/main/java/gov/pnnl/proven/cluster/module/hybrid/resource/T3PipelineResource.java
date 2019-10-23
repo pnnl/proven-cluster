@@ -89,8 +89,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.module.hybrid.pipeline.T3Pipeline;
@@ -101,11 +102,11 @@ public class T3PipelineResource {
 	private final Logger log = LoggerFactory.getLogger(T3PipelineResource.class);
 
 	@Inject
-	@ManagedComponentType
+	@Manager
 	StreamManager sm;
 
 	@Inject
-	@ManagedComponentType
+	@Managed
 	T3Pipeline t3p;
 
 	@GET

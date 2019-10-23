@@ -39,16 +39,20 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
  * A managed component supporting disclosure and processing of module requests.
@@ -64,6 +68,7 @@ import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
  * @see ExchangeBuffer, DisclosureBuffer, RequestBuffer
  *
  */
+@Scalable
 public class RequestExchange extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(RequestExchange.class);
@@ -101,24 +106,6 @@ public class RequestExchange extends ExchangeComponent {
 
 	@PreDestroy
 	void destroy() {
-	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-
 	}
 
 }

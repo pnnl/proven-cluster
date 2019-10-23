@@ -39,12 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.request;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,9 +48,8 @@ import org.slf4j.LoggerFactory;
 import com.hazelcast.jet.Job;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 
 /**
  * The result of a {@code PipelineRequest} invocation.
@@ -82,7 +77,7 @@ public class PipelineJob extends RequestComponent {
 	DisclosureDomain dd = null;
 
 	/**
-	 * The {@code PipelineRequest} used to acquire the job's pipeline.  
+	 * The {@code PipelineRequest} used to acquire the job's pipeline.
 	 */
 	PipelineRequest request = null;
 
@@ -116,7 +111,7 @@ public class PipelineJob extends RequestComponent {
 
 		if (null == request) {
 			log.error("Job request is missing.  Request needs to be added");
-		} else if (getStatus() != ComponentStatus.Offline) {
+		} else if (getStatus() != ManagedStatus.Ready) {
 
 		}
 
@@ -129,16 +124,5 @@ public class PipelineJob extends RequestComponent {
 
 		}
 	}
-
-	@Override
-	public void deactivate() {
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-		
-	}
-
 
 }

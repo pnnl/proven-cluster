@@ -39,22 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.module.stream;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 @ApplicationScoped
 public class StreamModule extends ProvenModule {
-
-	public static void main(String[] args) {
-	}
-	
-	private static Logger log = LoggerFactory.getLogger(StreamModule.class);
-
-	@PostConstruct
-	public void init() {		
-		log.info("StreamModule startup, creating proven disclosure streams");
-	}	
 }

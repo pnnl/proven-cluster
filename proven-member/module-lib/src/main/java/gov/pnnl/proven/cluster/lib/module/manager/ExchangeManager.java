@@ -42,6 +42,8 @@ package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -51,8 +53,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessengerType;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
 
 /**
  * A component manager responsible for managing a set of {@code RequestExchange}
@@ -63,7 +70,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
  * @see ComponentManager, RequestExchange
  *
  */
-@ApplicationScoped
+@Scalable
 public class ExchangeManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(ExchangeManager.class);
@@ -104,24 +111,6 @@ public class ExchangeManager extends ManagerComponent {
 			RequestExchange re = getComponent(RequestExchange.class);
 			res.add(re);
 		}
-	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

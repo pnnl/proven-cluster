@@ -44,10 +44,11 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.event.StatusReport;
 import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeComponent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
  * A managed component supporting the execution of module requests.
@@ -57,6 +58,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeComponent;
  * @see RequestExchange
  *
  */
+@Scalable
 public class ServiceBuffer extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(ServiceBuffer.class);
@@ -76,24 +78,5 @@ public class ServiceBuffer extends ExchangeComponent {
 	public ComponentType getComponentType() {
 		return ComponentType.ServiceBuffer;
 	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-		
-	}
-
 
 }

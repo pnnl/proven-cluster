@@ -40,14 +40,12 @@
 package gov.pnnl.proven.cluster.module.hybrid;
 
 import javax.enterprise.context.ApplicationScoped;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 @ApplicationScoped
+@ActiveManagers(managers = {StreamManager.class})
 public class HybridModule extends ProvenModule {
-
-	private static Logger log = LoggerFactory.getLogger(HybridModule.class);
-
-	
 }

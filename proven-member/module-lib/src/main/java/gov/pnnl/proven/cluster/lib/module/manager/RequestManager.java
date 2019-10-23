@@ -41,14 +41,9 @@
 package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.lang.reflect.Method;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.inject.Inject;
-
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.request.ModuleRequest;
 
-@ApplicationScoped
 public class RequestManager extends ManagerComponent {
 
 	public RequestManager() {
@@ -72,24 +67,6 @@ public class RequestManager extends ManagerComponent {
 	@Override
 	public ComponentType getComponentType() {
 		return ComponentType.RequestManager;
-	}
-
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-
 	}
 
 }

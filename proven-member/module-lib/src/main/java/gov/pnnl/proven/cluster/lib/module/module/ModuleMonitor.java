@@ -41,9 +41,11 @@ package gov.pnnl.proven.cluster.lib.module.module;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 
 /**
+ * TODO convert into a metrics consumer.
+ * 
  * Monitors and provides information regarding the state of Proven's runtime
  * environment. For example, the cluster, the local member node, memory, load
  * averages, etc.. This information is used by Proven components to determine
@@ -60,19 +62,19 @@ import gov.pnnl.proven.cluster.lib.module.component.ComponentStatus;
 @ApplicationScoped
 public class ModuleMonitor {
 	
-	public ComponentStatus clusterState() {
+	public ManagedStatus clusterState() {
 		return null;
 	}
 	
-	public ComponentStatus memberState() {
+	public ManagedStatus memberState() {
 		return null;
 	}
 	
-	public ComponentStatus memoryState() {
+	public ManagedStatus memoryState() {
 		return null;
 	}
 
-	public ComponentStatus loadState() {
+	public ManagedStatus loadState() {
 		return null;
 	}
 
@@ -82,7 +84,7 @@ public class ModuleMonitor {
 	 * 
 	 * @return
 	 */
-	public ComponentStatus runtimeState() {
+	public ManagedStatus runtimeState() {
 		return null;
 	}
 	

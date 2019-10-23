@@ -5,4 +5,5 @@ dependencies {
 	// Do not include IMDG from Jet.  Versions for IMDG and Client must match.
 	// Which in this case, is the Payara IMDG version
 	{ exclude group: 'com.hazelcast' }
+	compile group: 'io.github.resilience4j', name: 'resilience4j-retry', version: '1.1.0' 
 }

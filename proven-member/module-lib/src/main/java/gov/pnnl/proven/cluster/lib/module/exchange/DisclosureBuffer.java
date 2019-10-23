@@ -62,9 +62,12 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
@@ -83,6 +86,7 @@ import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageCon
  * @see RequestExchange, RequestBuffer, DisclosureEntries
  *
  */
+@Scalable
 public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureBuffer.class);
@@ -94,7 +98,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	DisclosureEntries de;
 
 	@Inject
-	@ManagedComponentType
+	@Manager
 	StreamManager sm;
 
 	@PostConstruct
@@ -198,22 +202,5 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 		localExchange = rb;
 	}
 
-	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateStatus() {
-		// TODO Auto-generated method stub
-
-	}
 
 }

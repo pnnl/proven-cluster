@@ -40,26 +40,11 @@
 package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.New;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedComponentType;
-import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
-import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 
 /**
  * 
@@ -73,13 +58,14 @@ import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
  */
 public abstract class ManagerComponent extends ManagedComponent {
 
-	static Logger log = LoggerFactory.getLogger(ManagerComponent.class);
-			
+	@Inject
+	Logger log;
+
 	public ManagerComponent() {
 		super();
 		group.add(ComponentGroup.Manager);
-		setManagerId(ProvenModule.getModuleId());
-		setCreatorId(ProvenModule.getModuleId());
+		setManagerId(getModuleId());
+		setCreatorId(getModuleId());
 	}
-	
+
 }
