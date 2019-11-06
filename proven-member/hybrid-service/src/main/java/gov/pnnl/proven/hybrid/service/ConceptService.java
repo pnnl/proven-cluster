@@ -917,7 +917,7 @@ public class ConceptService {
 			// Seconds - 10 digits
 
 			// 16 digit nanosecond padding
-//		statement = padRightZeros(val, 7);
+			//		statement = padRightZeros(val, 7);
 			statement = padRightZeros(val, 19);
 
 		} catch (Exception e) {
@@ -932,7 +932,7 @@ public class ConceptService {
 		return statement;
 
 	}
-	
+
 	private Map<String, Integer> countFilterFields(List<ProvenQueryFilter> filters) {
 		Map<String, Integer> filterFieldCounter = new HashMap();
 		if (filters != null) {
@@ -957,7 +957,7 @@ public class ConceptService {
 		String space = " ";
 		String eq = "=";
 		String quote = "'";
-		
+
 		if (filter.getDatatype() == null) {
 
 			statement = filter.getField() + space + eq + quote + filter.getValue() + quote;
@@ -978,32 +978,32 @@ public class ConceptService {
 	}
 
 	private String assembleUnionFilterStatement(List<ProvenQueryFilter> filters, String fieldName, Integer fieldCounter) {
-              String unionStatement = "";
-     		  int index = 0;
-			while (index < filters.size()) {
+		String unionStatement = "";
+		int index = 0;
+		while (index < filters.size()) {
 
-					if (filters.get(index).getField().equalsIgnoreCase(fieldName)) {
-						if (unionStatement.length() == 0) {
-							unionStatement = " ( " + formatFilterCriteria(filters.get(index));
-						} else {
-							unionStatement = unionStatement + " or " + formatFilterCriteria(filters.get(index));
-						}
-					}
-
-					index = index + 1;
-	          
+			if (filters.get(index).getField().equalsIgnoreCase(fieldName)) {
+				if (unionStatement.length() == 0) {
+					unionStatement = " ( " + formatFilterCriteria(filters.get(index));
+				} else {
+					unionStatement = unionStatement + " or " + formatFilterCriteria(filters.get(index));
+				}
 			}
-   	        if (unionStatement.length() != 0) {
-		         unionStatement = unionStatement + " ) ";
-	        }
-	          return unionStatement;
-		
+
+			index = index + 1;
+
+		}
+		if (unionStatement.length() != 0) {
+			unionStatement = unionStatement + " ) ";
+		}
+		return unionStatement;
+
 	}
-	
-	
+
+
 	private List<String> assembleFilterStatements(List<ProvenQueryFilter> filters,
 			Map<String, Integer> filterFieldCounter) {
-		
+
 		List<String> assembledFilterStatements = new ArrayList<>();
 
 		Iterator iter = filterFieldCounter.entrySet().iterator();
@@ -1019,10 +1019,10 @@ public class ConceptService {
 					if (filters.get(index).getField().equalsIgnoreCase((String)entry.getKey())) {
 						if (filters.get(index).getField().toLowerCase().contains("starttime")
 								|| filters.get(index).getField().toLowerCase().contains("endtime")) {
-//							assembledFilterStatements.add(timeFilterStatement(filters.get(index).getField(), filters.get(index).getValue()));
+							//							assembledFilterStatements.add(timeFilterStatement(filters.get(index).getField(), filters.get(index).getValue()));
 							assembledFilterStatements.add(timeFilterStatement(filters.get(index).getField(), filters.get(index).getValue()));
 						} else {
-							
+
 							assembledFilterStatements.add(formatFilterCriteria(filters.get(index)));					
 						}
 
@@ -1033,30 +1033,30 @@ public class ConceptService {
 				}
 			} else {
 				assembledFilterStatements.add(assembleUnionFilterStatement(filters, (String) entry.getKey(), (Integer) counterIndex));
-// 
-//				int index = 0;
-//				String unionStatement = "";
-//				while (index < filters.size()) {
-//
-//					if (filters.get(index).getField().equalsIgnoreCase((String)entry.getKey())) {
-//						if (unionStatement.length() == 0) {
-//							unionStatement = " ( " + assembledFilterStatements.add(formatFilterCriteria(filters.get(index)));
-//						} else {
-//							unionStatement = unionStatement + " or " + formatFilterCriteria(filters.get(index));
-//						}
-//					}
-//					if (unionStatement.length() != 0) {
-//						assembledFilterStatements.add(unionStatement + " ) ");
-//					}
-//					index = index + 1;
-//
-				}
+				// 
+				//				int index = 0;
+				//				String unionStatement = "";
+				//				while (index < filters.size()) {
+				//
+				//					if (filters.get(index).getField().equalsIgnoreCase((String)entry.getKey())) {
+				//						if (unionStatement.length() == 0) {
+				//							unionStatement = " ( " + assembledFilterStatements.add(formatFilterCriteria(filters.get(index)));
+				//						} else {
+				//							unionStatement = unionStatement + " or " + formatFilterCriteria(filters.get(index));
+				//						}
+				//					}
+				//					if (unionStatement.length() != 0) {
+				//						assembledFilterStatements.add(unionStatement + " ) ");
+				//					}
+				//					index = index + 1;
+				//
 			}
+		}
 
 		return assembledFilterStatements;
 	}
-	
-	
+
+
 	public ProvenMessageResponse influxQuery(ProvenMessage query) throws InvalidProvenMessageException {
 
 		ProvenMessageResponse pmr = influxQuery(query, false);
@@ -1100,7 +1100,7 @@ public class ConceptService {
 				if (index == 0) {
 					queryStatement = queryStatement + space + assembledFilterStatements.get(index) + space;
 					flag = false;
-					
+
 				} else {
 
 					// If not a time filter, treat it as a field.
@@ -1126,7 +1126,7 @@ public class ConceptService {
 			//queryStatement = queryStatement + " limit 10";
 			//*******DEBUG statement
 			//
-			
+
 
 			Query influxQuery = new Query(queryStatement, dbName);
 			//
@@ -1273,26 +1273,32 @@ public class ConceptService {
 
 	}
 
-	public ProvenMessageResponse influxWriteBulkOutputMeasurement() {
-		ProvenMessageResponse pmr = null;
-
-		return pmr;
-	}
 
 	@SuppressWarnings("unchecked")
-	public char detectObjectType(JSONObject message) {
-		char type = 0;
-		JSONObject object = (JSONObject) message.get("message");
-		if (object != null) {
-			type = 'O';
-		} else {
-			object = (JSONObject) message.get("input");
-			if (object != null) {
-				type = 'I';
-			}
-		}
+	public String detectObjectType(Object messageObject) {
+		String objectType = "";
+		if (messageObject instanceof JSONObject) {
 
-		return type;
+			JSONObject mObject = (JSONObject) messageObject;
+			JSONObject object = (JSONObject) (mObject.get("message"));
+			if (object != null) {
+				objectType = "O";
+
+			} else {
+				object = (JSONObject) mObject.get("input");
+				if (object != null) {
+					objectType = "I";
+				}
+			}
+			//
+			// If it isn't a JSONObject, assume that it is a JSONArray representing Alarms
+			//
+		} else {
+			objectType = "A";
+		} 
+
+
+		return objectType;
 
 	}
 
@@ -1330,7 +1336,7 @@ public class ConceptService {
 	}
 
 
-	private ProvenMessageResponse influxWriteBulkSimulationInput(JSONObject commandObject, InfluxDB influxDB,
+	private ProvenMessageResponse influxWriteSimulationInput(JSONObject commandObject, InfluxDB influxDB,
 			String measurementName, String instanceId) {
 		ProvenMessageResponse ret = null;
 		Long timestamp = (long) -1;
@@ -1471,7 +1477,7 @@ public class ConceptService {
 		return ret;
 	}
 
-	private ProvenMessageResponse influxWriteBulkSimulationOutput(JSONObject messageObject, InfluxDB influxDB,
+	private ProvenMessageResponse influxWriteSimulationOutput(JSONObject messageObject, InfluxDB influxDB,
 			String measurementName, String instanceId) {
 
 		ProvenMessageResponse ret = null;
@@ -1552,10 +1558,55 @@ public class ConceptService {
 
 	}
 
+
+
+	private ProvenMessageResponse influxWriteAlarms(JSONArray messageObject, InfluxDB influxDB,
+			String measurementName, String instanceId) {
+
+		ProvenMessageResponse ret = null;
+		Long timestamp = System.currentTimeMillis() / 1000l;
+
+		Iterator<JSONObject> iterator = messageObject.iterator();
+		while (iterator.hasNext()) {
+			//System.out.println(iterator.next());
+			JSONObject record = (JSONObject) iterator.next();         
+			Set<String> record_keys = record.keySet();
+			Iterator<String> record_it = record_keys.iterator();
+
+			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
+            timestamp = timestamp + 1;
+			while (record_it.hasNext()) {
+				String record_key = record_it.next();
+
+				if (record.get(record_key) instanceof String) {
+					builder.addField( record_key, String.valueOf((String) record.get(record_key)));							
+				} else if (record.get(record_key) instanceof Integer) {
+					builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
+				} else if (record.get(record_key) instanceof Long) {
+					builder.addField(record_key, Long.valueOf((Long) record.get(record_key)));
+				} else if (record.get(record_key) instanceof Float) {
+					builder.addField(record_key, Float.valueOf((Float) record.get(record_key)));
+				} else if (record.get(record_key) instanceof Double) {
+					builder.addField(record_key, Double.valueOf((Double) record.get(record_key)));
+				}
+			}
+			influxDB.write(idbDB, idbRP, builder.build());
+		}
+
+		ret = new ProvenMessageResponse();
+		ret.setReason("success");
+		ret.setStatus(Status.CREATED);
+		ret.setCode(Status.CREATED.getStatusCode());
+		ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
+		
+		return ret;
+
+	}	 
+
 	//
 	// New write measurement routine
 	//
-	public ProvenMessageResponse influxWriteBulkMeasurement(String measurements, String measurement_type,
+	public ProvenMessageResponse influxWriteMeasurements(String measurements, 
 			String measurementName, String instanceId) {
 
 		//		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
@@ -1576,20 +1627,26 @@ public class ConceptService {
 		influxDB.enableBatch(20000, 20, TimeUnit.SECONDS);
 		JSONParser parser = new JSONParser();
 
-		JSONObject messageObject = null;
+		Object messageObject = null;
+
+		String objectType = "" ;
+
 		try {
-			messageObject = (JSONObject) parser.parse(measurements);
+			messageObject = parser.parse(measurements);
+
 		} catch (org.json.simple.parser.ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		char type = detectObjectType(messageObject);
+		objectType = detectObjectType(messageObject);
 
-		if (type == 'O') {
-			ret = influxWriteBulkSimulationOutput(messageObject, influxDB, measurementName, instanceId);
-		} else if (type == 'I') {
-			ret = influxWriteBulkSimulationInput(messageObject, influxDB, measurementName, instanceId);
+		if (objectType.equalsIgnoreCase("O")) {
+			ret = influxWriteSimulationOutput((JSONObject)messageObject, influxDB, measurementName, instanceId);
+		} else if (objectType.equalsIgnoreCase("I")) {
+			ret = influxWriteSimulationInput((JSONObject)messageObject, influxDB, measurementName, instanceId);
+		} else if (objectType.equalsIgnoreCase("A")) {
+			ret = influxWriteAlarms((JSONArray)messageObject, influxDB, measurementName, instanceId);			
 		} else {
 			ret = new ProvenMessageResponse();
 			ret.setStatus(Status.BAD_REQUEST);

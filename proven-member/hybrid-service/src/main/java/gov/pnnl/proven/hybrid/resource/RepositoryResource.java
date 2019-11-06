@@ -1043,7 +1043,6 @@ public class RepositoryResource {
 			@QueryParam("instanceId") String instanceId) {
 
 		ProvenMessageResponse pmr = null;
-		String measurement_type = "input";
 		try {
 			cs.begin();
 
@@ -1052,16 +1051,8 @@ public class RepositoryResource {
 				throw new Exception("Measurement Name is missing.");
 			}
 			
-			// Explicit
-			//
-			// Hack
-			//
-			if (pm.contains("measurement") || pm.contains("MEASUREMENT")) {
 
-				measurement_type = "output";
-			}
-
-			pmr = cs.influxWriteBulkMeasurement(pm, measurement_type, measurementName, instanceId);
+			pmr = cs.influxWriteMeasurements(pm, measurementName, instanceId);
 
 			// Invalid message content
 			if (null == pmr) {
