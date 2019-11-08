@@ -37,70 +37,43 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
 package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
-import javax.enterprise.util.Nonbinding;
-import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import javax.enterprise.util.AnnotationLiteral;
+import javax.enterprise.util.Nonbinding;
 
 /**
- * {@code ScheduledMesenger} qualifier. Includes members providing schedule
- * properties.
+ * {@code Messenger} implementation.
  * 
  * @author d3j766
  *
- * @see ScheduledMessenger
- * 
  */
-@Qualifier
-@InterceptorBinding
-@Retention(RUNTIME)
-@Target({ TYPE, FIELD })
-public @interface Messenger {
+public abstract class MessengerAnnotationLiteral extends AnnotationLiteral<Messenger> implements Messenger {
 
-	/**
-	 * (Optional) Fixed delay in specified {@link #timeUnit()} between report
-	 * messages.
-	 * 
-	 * Default is 3 Seconds.
-	 */
+	@Override
 	@Nonbinding
-	long delay() default 3;
+	public long delay() {
+		return 7;
+	}
 
-	/**
-	 * (Optional) {@code TimeUnit} for {@link #delay()} value.
-	 * 
-	 * Default is {@code TimeUnit#SECONDS}
-	 */
+	@Override
 	@Nonbinding
-	TimeUnit timeUnit() default TimeUnit.SECONDS;
+	public TimeUnit timeUnit() {
+		return TimeUnit.SECONDS;
+	}
 
-	/**
-	 * (Optional) A controlled variance adjustment applied to the reporting
-	 * schedule's fixed {@link #delay()} value. Variance is a +/- value that
-	 * ranges from 0 to the provided percentage of the fixed delay.
-	 */
+	@Override
 	@Nonbinding
-	int jitterPercent() default 10;
-	
-	/**
-	 * (Optional) If true, messenger component will be activated on startup.  
-	 */
-	@Nonbinding
-	boolean activateOnStartup() default true;
+	public int jitterPercent() {
+		return 10;
+	}
+
+	@Override
+	public boolean activateOnStartup() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 	
 }

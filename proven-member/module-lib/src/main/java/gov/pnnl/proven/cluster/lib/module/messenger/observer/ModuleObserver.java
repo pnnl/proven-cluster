@@ -39,16 +39,26 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import javax.enterprise.event.Observes;
-
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
+/**
+ * Observer of event messages for {@code ProvenModule} component.
+ * 
+ * @see ProvenModule
+ * 
+ * @author d3j766
+ * 
+ */
 public interface ModuleObserver extends EventObserver {
 
-	public void observeModuleStartup(@Observes @Module StartupEvent moduleStartup);
+	public void observeModuleStartup(StartupEvent moduleStartup);
 	
-	public void observeModuleShutdown(@Observes @Module ShutdownEvent moduleShutdown);
+	public void observeModuleSuspend(SuspendEvent moduleSuspend);
+	
+	public void observeModuleShutdown(ShutdownEvent moduleShutdown);
 	
 }

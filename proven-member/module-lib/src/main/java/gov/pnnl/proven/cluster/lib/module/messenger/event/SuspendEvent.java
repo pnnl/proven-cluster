@@ -37,24 +37,16 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
 /**
- * Container annotation type for {@link Messenger}.
+ * Module suspend event.
  * 
  * @author d3j766
  *
  */
-@Inherited
-@Retention(RUNTIME)
-@Target({ TYPE })
-public @interface Messengers {
-	Messenger[] value();
+public class SuspendEvent extends ModuleEvent {
+	
+	public SuspendEvent() {
+	}
 }

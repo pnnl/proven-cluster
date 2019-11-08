@@ -39,18 +39,17 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-/** 
- * Base class for registery events.
- *  
+/**
+ * Base class for registry event messages.
+ * 
  * @author d3j766
  *
  */
-public abstract class RegistryEvent {
-		
-	protected String componentId;
-	
-	public RegistryEvent(String componentId) {
-		this.componentId = componentId;
+public abstract class RegistryEvent extends MessageEvent{
+
+	private static final long serialVersionUID = 1L;
+
+	public RegistryEvent() {
 	}
-	
+
 }

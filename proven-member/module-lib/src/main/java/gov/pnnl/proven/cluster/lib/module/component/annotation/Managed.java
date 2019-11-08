@@ -43,6 +43,7 @@
 package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -50,34 +51,28 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Stereotype;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
-
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
-import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
-import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider.Literal;
 
 /**
- * Identifies the bean as a managed component type. Meaning, the component's
- * creation and destruction must be performed through a {@code ManagerComponent}
- * or another {@code ManagedComponentType} that can be traced back to a
- * {@code ManagerComponent}. This may be further restricted by the use of
- * {@code ManagedBy} to identify a restricted list {@code ManagerComponents}(s)
- * that are allowed as managers.
+ * Identifies the bean as a managed component. Meaning, the component's creation
+ * and destruction must be performed through the {@code ProvenModule} or another
+ * {@code Managed} component that can be traced back to the
+ * {@code ProvenModule}.
+ * 
+ * This may be further restricted by the use of {@code ManagedBy} to identify a
+ * restricted list of {@code ManagerComponent}(s) that are allowed to serve as
+ * as managers of the new {@code Managed} component.
  * 
  * @author d3j766
  *
- * @see ManagerComponent, ManagedComponent, ManagedBy
+ * @see ProvenModule, ManagerComponent, ManagedBy
  * 
  */
 @Documented
 @Inherited
 @Qualifier
-@InterceptorBinding
+// @InterceptorBinding
 @Retention(RUNTIME)
-@Target({ TYPE, FIELD, METHOD })
+@Target({ TYPE, FIELD, METHOD, PARAMETER })
 public @interface Managed {
 }

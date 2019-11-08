@@ -39,10 +39,14 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 
 /**
  * Provides information related to the status of a {@code ManagedComponent}.
@@ -54,15 +58,35 @@ public class StatusEvent extends ComponentEvent {
 
 	private static final long serialVersionUID = 1L;
 
+	ManagedStatus status;
 	String managerId;
 	String creatorId;
-	Set<UUID> created;
+	Map<UUID, ManagedStatus> created =  new HashMap<>();
 
 	public StatusEvent(ManagedComponent mc) {
 		super(mc);
-		this.managerId = mc.getManagerId().toString();
-		this.creatorId = mc.getCreatorId().toString();
-		this.created = mc.getCreatedIds();
+		status = mc.getStatus();
+		managerId = mc.getManagerId().toString();
+		creatorId = mc.getCreatorId().toString();
+		for (Entry<UUID, ManagedStatus> entry : created.entrySet()) {
+			created.put(entry.getKey(), entry.getValue());
+		}
+	}
+	
+	public ManagedStatus getStatus() {
+		return status;
+	}
+
+	public String getManagerId() {
+		return managerId;
+	}
+
+	public String getCreatorId() {
+		return creatorId;
+	}
+
+	public Map<UUID, ManagedStatus> getCreated() {
+		return created;
 	}
 
 }

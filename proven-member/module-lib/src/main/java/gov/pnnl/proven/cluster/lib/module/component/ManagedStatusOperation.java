@@ -39,40 +39,63 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.lang.annotation.Annotation;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.FailureEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
- * Identifies life-cycle stage processing for {@code ManagedComponent}s. The
- * component's status will be modified based on processing result.  
+ * Identifies {@code ManagedComponent} status operations. Each component
+ * operation will be modify its {@code ManagedStatus} value based on processing
+ * result.
  * 
- * @see ManagedComponent, ManagedComponentStatus
+ * @see ManagedComponent, ManagedStatus
  * 
  * @author d3j766
  *
  */
 public interface ManagedStatusOperation {
-	
-	enum Operation {
-		Activate,
-		Scale,
-		Check,
-		Fail,
-		Retry,
-		Deactivate,
-		Remove
-	}
-	
+
+	<T extends ManagedComponent> T createComponent(Class<T> subtype, Annotation... qualifiers);
+
+	<T extends ManagedComponent> List<T> createComponents(Class<T> subtype, Annotation... qualifiers);
+
+	void activateCreated(UUID created);
+
 	void activate();
 
-	<T extends ManagedComponent> void scale(Class<T> clazz);
-	
-	void check();
+	void failedCreated(UUID created);
 
-	void fail();
+	void failed();
 
 	void retry();
+
+	void deactivateCreated(UUID created);
 
 	void deactivate();
 
 	void remove();
+
+	/**
+	 * Changes status to {@code ManagedStatus#FailedOnlineRetry} representing a
+	 * runtime failure event has occurred. If {@code noRetry} is false then
+	 * component's status will be set to {@code ManagedStatus#Failed} resulting
+	 * in no reactivation attempts to be made. If {@code noRetry} is true then
+	 * reactivation attempts will be made.
+	 * 
+	 * @param noRetry
+	 *            true indicates retries should be supported, false otherwise.
+	 */
+	void failure(FailureEvent event, boolean noRetry);
+
+	/**
+	 * Performs a check and update of the component's current status and returns the current status report.
+	 */
+	List<ScheduledMessage> checkAndUpdate();
 
 }

@@ -102,16 +102,25 @@ import javax.naming.InitialContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * Collection of static methods supporting ProvEn operations
  */
 public class MemberUtils {
 
 	private static Logger log = LoggerFactory.getLogger(MemberUtils.class);
-	
+
 	public static final String FILE_SEP = System.getProperty("file.separator");
-	
+
+	/** 
+	 * Returns the throwable cause if it exists (i.e. not null) or the throwable name itself.
+	 * 
+	 * @param t the {@code Throwable}
+	 * 
+	 * @return simple class name of throwable or it's cause if it exists.
+	 */
+	public static String exCause(Throwable t) {
+		return (null != t.getCause()) ? (t.getCause().getClass().getSimpleName()) : (t.getClass().getSimpleName());
+	}
 
 	/**
 	 * Finds a resource in class path
@@ -674,7 +683,6 @@ public class MemberUtils {
 			}
 		}
 	}
-	
 
 	/**
 	 * Performs a JNDI lookup

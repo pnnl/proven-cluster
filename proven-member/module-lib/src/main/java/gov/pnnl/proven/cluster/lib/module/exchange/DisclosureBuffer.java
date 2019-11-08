@@ -106,7 +106,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 		log.debug("Post construct for DisclosureBuffer");
 
-		de = getComponent(DisclosureEntries.class);
+		de = createComponent(DisclosureEntries.class);
 
 		// Create buffer instance
 		buffer = hzi.getRingbuffer(getDoId());

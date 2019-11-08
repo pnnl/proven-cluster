@@ -39,10 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 /**
- * Provides information related to the status of a {@code ProvenComponent}.
+ * Metrics information for {@code ModuleComponent}s.
  * 
  * @author d3j766
  *
@@ -51,7 +51,7 @@ public class MetricsEvent extends ComponentEvent {
 
 	private static final long serialVersionUID = 1L;
 
-	public MetricsEvent(ModuleComponent mc) {
+	public MetricsEvent(ManagedComponent mc) {
 		super(mc);
 	}
 

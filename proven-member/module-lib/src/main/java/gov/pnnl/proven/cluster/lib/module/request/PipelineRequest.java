@@ -69,6 +69,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Managers;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 
@@ -98,7 +99,7 @@ public abstract class PipelineRequest extends RequestComponent {
 	@Inject
 	@Manager
 	protected StreamManager sm;
-
+	
 	/**
 	 * Represents a Hazelcast client connection used by the pipeline's job to
 	 * connect to Proven's IMDG environment. Source and sink stages of the job's
@@ -312,18 +313,18 @@ public abstract class PipelineRequest extends RequestComponent {
 	private void createDomainJobs() {
 		List<DisclosureDomain> managedDomains = sm.getManagedDomains();
 		for (DisclosureDomain dd : managedDomains) {
-			PipelineJob pj = getComponent(PipelineJob.class);
+			PipelineJob pj = createComponent(PipelineJob.class);
 			pj.addRequest(this, dd);
 		}
 	}
 
 	private void createProvenJob() {
-		PipelineJob pj = getComponent(PipelineJob.class);
+		PipelineJob pj = createComponent(PipelineJob.class);
 		pj.addRequest(this, DomainProvider.getProvenDisclosureDomain());
 	}
 
 	private void createCustomJob() {
-		PipelineJob pj = getComponent(PipelineJob.class);
+		PipelineJob pj = createComponent(PipelineJob.class);
 		pj.addRequest(this, null);
 	}
 

@@ -40,11 +40,19 @@
 package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
 import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
+import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
+import javax.interceptor.InterceptorBinding;
+
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation.*;
 
 /**
@@ -58,14 +66,30 @@ import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperatio
  */
 @Documented
 @Qualifier
+@Inherited
+@InterceptorBinding
 @Retention(RUNTIME)
-@Target({ PARAMETER })
+@Target({ PARAMETER, METHOD, TYPE, FIELD })
 public @interface StatusOperation {
 	
+	enum Operation {
+		Create,
+		ActivateCreated,
+		Activate,
+		FailedCreated,
+		Failed,
+		Retry,
+		DeactivateCreated,
+		Deactivate,
+		Remove,
+		Failure,
+		CheckAndUpdate;
+	}
+
 	/**
-	 * (Required) The {@link Operation} type.
+	 * (Required) The {@link StatusOperation.Operation} type.
 	 * 
 	 */
-	Operation operation();
+	StatusOperation.Operation operation() default StatusOperation.Operation.CheckAndUpdate;
 
 }

@@ -37,13 +37,56 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.event;
+package gov.pnnl.proven.cluster.lib.module.util;
 
-/**
- * Marker interface for event reporters.
- * 
- * @author d3j766
- *
- */
-public interface Reporter {
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+public class TestInterrupt {
+
+	public static void main(String[] args) throws InterruptedException {
+
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+
+		Future<?> future = executor.submit(() -> {
+
+			printNumbers(); // first call
+
+			printNumbers(); // second call
+
+		});
+
+		Thread.sleep(3_000);
+
+		executor.shutdownNow(); // will interrupt the task
+
+		executor.awaitTermination(3, TimeUnit.SECONDS);
+
+	}
+
+	private static void printNumbers() {
+
+		for (int i = 0; i < 10; i++) {
+
+			System.out.print(i);
+
+			try {
+
+				Thread.sleep(1_000);
+
+			} catch (InterruptedException e) {
+
+				Thread.currentThread().interrupt(); // preserve interruption
+													// status
+
+				break;
+
+			}
+
+		}
+
+	}
+
 }

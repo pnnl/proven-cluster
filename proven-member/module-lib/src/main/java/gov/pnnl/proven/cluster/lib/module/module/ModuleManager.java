@@ -45,17 +45,22 @@ import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
+import javax.enterprise.inject.spi.AfterTypeDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ObserverMethod;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleQualifier;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ModuleEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserver;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ModuleStartupException;
 import gov.pnnl.proven.cluster.lib.module.module.exception.MultipleModuleImplementationException;
@@ -84,10 +89,9 @@ public class ModuleManager {
 	@Inject
 	@Module
 	Event<ModuleEvent> mse;
-
+	
 	@PostConstruct
 	public void initialize() throws ModuleStartupException {
-
 		logger.info("Enter PostConstruct for " + this.getClass().getSimpleName());
 		sendStartupMessage();
 		logger.info("Leave PostConstruct for " + this.getClass().getSimpleName());
@@ -97,7 +101,7 @@ public class ModuleManager {
 
 		StartupEvent ms = new StartupEvent();
 		Set<ObserverMethod<? super StartupEvent>> observers = beanManager.resolveObserverMethods(ms,
-				new ModuleQualifier() {
+				new ModuleAnnotationLiteral() {
 				});
 		if (observers.isEmpty()) {
 			logger.info("Module implementation was not provided");

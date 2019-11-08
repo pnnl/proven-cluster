@@ -37,70 +37,72 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
+package gov.pnnl.proven.cluster.lib.module.messenger;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
-import javax.enterprise.util.Nonbinding;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 
-/**
- * {@code ScheduledMesenger} qualifier. Includes members providing schedule
- * properties.
- * 
- * @author d3j766
- *
- * @see ScheduledMessenger
- * 
- */
-@Qualifier
-@InterceptorBinding
-@Retention(RUNTIME)
-@Target({ TYPE, FIELD })
-public @interface Messenger {
+public class ScheduledMessage {
 
-	/**
-	 * (Optional) Fixed delay in specified {@link #timeUnit()} between report
-	 * messages.
-	 * 
-	 * Default is 3 Seconds.
-	 */
-	@Nonbinding
-	long delay() default 3;
+	private Optional<MessageEvent> eventOpt = Optional.empty();
+	private List<Qualifier> qualifiers = new ArrayList<>();
+	private boolean isAsync = true;
+	private boolean isCreateOnSend = true;
 
-	/**
-	 * (Optional) {@code TimeUnit} for {@link #delay()} value.
-	 * 
-	 * Default is {@code TimeUnit#SECONDS}
-	 */
-	@Nonbinding
-	TimeUnit timeUnit() default TimeUnit.SECONDS;
+	public ScheduledMessage() {
+	}
 
-	/**
-	 * (Optional) A controlled variance adjustment applied to the reporting
-	 * schedule's fixed {@link #delay()} value. Variance is a +/- value that
-	 * ranges from 0 to the provided percentage of the fixed delay.
-	 */
-	@Nonbinding
-	int jitterPercent() default 10;
-	
-	/**
-	 * (Optional) If true, messenger component will be activated on startup.  
-	 */
-	@Nonbinding
-	boolean activateOnStartup() default true;
+	public ScheduledMessage(MessageEvent event) {
+		this.eventOpt = Optional.of(event);
+	}
+
+	public ScheduledMessage(MessageEvent event, List<Qualifier> qualifiers) {
+		this.eventOpt = Optional.of(event);
+		this.qualifiers = qualifiers;
+	}
+
+	public ScheduledMessage(MessageEvent event, List<Qualifier> qualifiers, boolean isAsync, boolean isCreateOnSend) {
+		this.eventOpt = Optional.of(event);
+		this.qualifiers = qualifiers;
+		this.isAsync = isAsync;
+		this.isCreateOnSend = isCreateOnSend;
+	}
+
+	public Optional<MessageEvent> getEventOpt() {
+		return eventOpt;
+	}
+
+	public void setEventOpt(Optional<MessageEvent> eventOpt) {
+		this.eventOpt = eventOpt;
+	}
+
+	public List<Qualifier> getQualifiers() {
+		return qualifiers;
+	}
+
+	public void setQualifiers(List<Qualifier> qualifiers) {
+		this.qualifiers = qualifiers;
+	}
+
+	public boolean isAsync() {
+		return isAsync;
+	}
+
+	public void setAsync(boolean isAsync) {
+		this.isAsync = isAsync;
+	}
+
+	public boolean isCreateOnSend() {
+		return isCreateOnSend;
+	}
+
+	public void setCreateOnSend(boolean isCreateOnSend) {
+		this.isCreateOnSend = isCreateOnSend;
+	}
 	
 }

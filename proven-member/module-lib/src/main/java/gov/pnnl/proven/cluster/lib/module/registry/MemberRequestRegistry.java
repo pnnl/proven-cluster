@@ -54,17 +54,12 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Registry;
  *
  */
 @ApplicationScoped
-public class MemberRequestRegistry extends RegistryComponent {
+public class MemberRequestRegistry {
 
 	@Inject
 	ClusterRequestRegistry crr;
 
 	public MemberRequestRegistry() {
-	}
-
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.MemberRequestRegistry;
 	}
 
 }

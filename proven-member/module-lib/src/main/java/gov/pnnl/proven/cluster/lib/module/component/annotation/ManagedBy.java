@@ -48,6 +48,8 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import javax.interceptor.InterceptorBinding;
+
 /**
  * Restricts injection context of a managed component to the provided class
  * types. The provided class types must still adhere to the requirement of being

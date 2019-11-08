@@ -43,7 +43,7 @@ package gov.pnnl.proven.cluster.lib.module.component;
  * Enumeration of module component types. A convenience listing of the possible
  * module component types.
  * 
- * @see ModuleComponent
+ * @see ManagedComponent
  * 
  * @author d3j766
  *
@@ -85,7 +85,6 @@ public enum ComponentType {
 	MessageStream,
 	
 	// Messenger
-	StatusMessenger,
-	MetricsMessenger;
-	
+	ScheduledMessenger;
+		
 }

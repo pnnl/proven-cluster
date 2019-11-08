@@ -39,46 +39,67 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger;
 
+import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;
-import javax.enterprise.event.Event;
 import javax.inject.Inject;
-import javax.inject.Qualifier;
-
 import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import static gov.pnnl.proven.cluster.lib.member.MemberUtils.*;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.FailedMessengerEvent;
 
 /**
- * Base class for scheduled messengers. Provides a fixed delay schedule for
- * sending message reports.
+ * Provides a fixed delay schedule for sending message reports. Schedule
+ * properties are defined by {@code Messenger} annotations at injection point.
+ * Messenger owners must register their report suppliers.
+ * 
+ * @see Messenger
  * 
  * @author d3j766
  *
  */
-public abstract class ScheduledMessenger extends ModuleComponent {
+@Messenger
+public class ScheduledMessenger extends ManagedComponent {
 
 	@Inject
 	Logger log;
 
+	public enum MessengerStatus {
+
+		/**
+		 * Messenger is executing its scheduled tasks.
+		 */
+		STARTED,
+
+		/**
+		 * Messenger's scheduled tasks are no longer being executed due to
+		 * cancellation or failure.
+		 */
+		STOPPED;
+	}
+
 	public static final String SM_EXECUTOR_SERVICE = "concurrent/ScheduledMessenger";
 
-//	@Resource(lookup = SM_EXECUTOR_SERVICE)
-//	protected ManagedScheduledExecutorService scheduler;
+	@Resource(lookup = SM_EXECUTOR_SERVICE)
+	public ManagedScheduledExecutorService scheduler;
 
-	@Inject
-	protected Event<ComponentEvent> ceProvider;
+	protected ScheduledFuture<?> scheduledFuture;
 
 	/**
 	 * @see {@link Messenger#delay()}
 	 */
-	protected int delay;
+	protected long delay;
 
 	/**
 	 * @see {@link Messenger#timeUnit()}
@@ -91,95 +112,169 @@ public abstract class ScheduledMessenger extends ModuleComponent {
 	protected int jitterPercent;
 
 	/**
-	 * Registered supplier of message content.
+	 * @see {@link Messenger#activateOnStartup()}
 	 */
-	protected Supplier<ComponentEvent> reporter;
+	protected boolean activateOnStartup;
 
-	ScheduledMessenger() {
+	/**
+	 * Registered suppliers of message events.
+	 */
+	protected Supplier<List<ScheduledMessage>> reporter;
+
+	/**
+	 * Messenger status
+	 */
+	MessengerStatus status = MessengerStatus.STOPPED;
+
+	public ScheduledMessenger() {
 	}
 
 	@PostConstruct
-	public void init() {
+	public void initScheduler() {
+		if (isActivateOnStartup()) {
+			start();
+		}
 	}
 
 	@PreDestroy
-	public void destroy() {
+	public void destroyScheduler() {
 		stop();
 	}
 
-	
 	/**
-	 * Starts the fixed delay scheduler.  
+	 * Starts the fixed delay scheduler. Tasks will continue to be run as long
+	 * as error conditions or cancel exceptions are encountered.
 	 */
-	protected void start() {
-//		scheduler.scheduleWithFixedDelay(() -> {
-//			ComponentEvent event = reporter.get();
-//			send(event);
-//		}, delay, delay, timeUnit);
+	public void start() {
+
+		synchronized (status) {
+
+			if (status == MessengerStatus.STOPPED) {
+
+				applyJitter();
+				scheduledFuture = scheduler.scheduleWithFixedDelay(() -> {
+
+					try {
+						log.debug("Messenger task started");
+						if (hasRegisteredReporter()) {
+							for (ScheduledMessage message : reporter.get()) {
+								send(message);
+							}
+						}
+						log.debug("Messenger task completed normally");
+					} catch (Throwable e) {
+
+						log.debug("Task exception has occurred: " + exCause(e));
+
+						if (isUnhandledException(e)) {
+							log.error(this.getComponentType().toString() + ":: Messenger task encountered exception: "
+									+ exCause(e));
+							log.error("Messenger is being shutdown");
+							stop(e);
+						}
+
+					}
+				}, delay, delay, timeUnit);
+			}
+			status = MessengerStatus.STARTED;
+		}
+
 	}
 
-	protected void stop() {
-		//scheduler.shutdown();
+	private boolean isUnhandledException(Throwable e) {
+
+		Throwable cause = e.getCause();
+		if (null == cause) {
+			cause = e;
+		}
+		//@formatter:off
+		return (  
+				(cause instanceof Error) || 
+				(cause instanceof CancellationException) ||
+				(cause instanceof RejectedExecutionException) ||
+				(!(cause instanceof ExecutionException)) || 
+				(!(cause instanceof InterruptedException))
+			   );
+		//@formatter:on
+	}
+
+	private boolean hasRegisteredReporter() {
+		return (null != reporter);
 	}
 
 	/**
-	 * Registers the provided reporter as the message content supplier.
+	 * Messenger schedule will be shutdown.
+	 */
+	public void stop() {
+		stop(null);
+	}
+
+	/**
+	 * Shutdown of message scheduler and failure event recorded.
+	 * 
+	 * @param t
+	 */
+	private void stop(Throwable t) {
+
+		synchronized (status) {
+
+			if (null != scheduledFuture) {
+				scheduledFuture.cancel(true);
+				scheduledFuture = null;
+			}
+			status = MessengerStatus.STOPPED;
+		}
+
+		// Record if is failure event
+		boolean isFailure = (null == t) ? false : true;
+		if (isFailure) {
+			failure(new FailedMessengerEvent(), true);
+		}
+
+	}
+
+	/**
+	 * Registers the provided reporter as a message content supplier.
 	 * 
 	 * @param reporter
 	 *            message provider
 	 * 
 	 */
-	public void register(Supplier<ComponentEvent> reporter) {
-		this.reporter = reporter;
+	public void register(Supplier<List<ScheduledMessage>> supplier) {
+		this.reporter = supplier;
 	}
 
 	/**
-	 * Fires a new event message asynchronously.
+	 * Sends the {@code ScheduledMessage}.
 	 * 
-	 * @param event
+	 * @param message
 	 *            reported message content
-	 * @param qualifiers
-	 *            message qualifiers
 	 */
-	protected void send(ComponentEvent event, Qualifier... qualifiers) {
-		send(event, true, qualifiers);
-	}
-
-	/**
-	 * Fires a new event message. Message will be sent synchronously, unlsess
-	 * isAsync is true.
-	 * 
-	 * @param event
-	 *            reported message content
-	 * @param isAsync
-	 *            if true, message is sent asynchronously
-	 * @param qualifiers
-	 *            message qualifiers
-	 */
-	protected void send(ComponentEvent event, boolean isAsync, Qualifier... qualifiers) {
+	protected void send(ScheduledMessage message) {
 
 	}
 
 	/**
-	 * Dependent on implementation, their report content and messaging requirements. 
-	 * 
-	 * @param event reported message content
+	 * Will be applied at schedule start.
 	 */
-	protected abstract void send(ComponentEvent event);
-
-	public Supplier<ComponentEvent> getReporter() {
-		return reporter;
+	synchronized private void applyJitter() {
+		long duration = timeUnit.toMillis(delay);
+		long min = Math.round(duration - ((jitterPercent / 100.0) * duration));
+		long max = Math.round(duration + ((jitterPercent / 100.0) * duration));
+		duration = ThreadLocalRandom.current().nextLong(min, max + 1);
+		log.debug("Schedule jitter applied for: " + getDoId());
+		log.debug("MIN schedule delay: " + min);
+		log.debug("MAX schedule delay: " + max);
+		log.debug("New scheduled delay is: " + duration);
+		this.delay = duration;
+		this.timeUnit = TimeUnit.MILLISECONDS;
 	}
 
-	public void setReporter(Supplier<ComponentEvent> reporter) {
-		this.reporter = reporter;
-	}
-
-	public int getDelay() {
+	public long getDelay() {
 		return delay;
 	}
 
-	public void setDelay(int delay) {
+	public void setDelay(long delay) {
 		this.delay = delay;
 	}
 
@@ -197,6 +292,20 @@ public abstract class ScheduledMessenger extends ModuleComponent {
 
 	public void setJitterPercent(int jitterPercent) {
 		this.jitterPercent = jitterPercent;
+	}
+
+	public boolean isActivateOnStartup() {
+		return activateOnStartup;
+	}
+
+	public void setActivateOnStartup(boolean activateOnStartup) {
+		this.activateOnStartup = activateOnStartup;
+	}
+
+	@Override
+	public ComponentType getComponentType() {
+		// TODO Auto-generated method stub
+		return ComponentType.ScheduledMessenger;
 	}
 
 }

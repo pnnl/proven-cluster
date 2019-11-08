@@ -40,11 +40,11 @@
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
 /** 
- * Base class for module events.
+ * Base class for module event messages.
  *  
  * @author d3j766
  *
  */
-public abstract class ModuleEvent {
+public abstract class ModuleEvent extends MessageEvent {
 		
 }

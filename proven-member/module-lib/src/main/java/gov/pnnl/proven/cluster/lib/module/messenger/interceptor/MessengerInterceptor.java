@@ -40,41 +40,29 @@
 package gov.pnnl.proven.cluster.lib.module.messenger.interceptor;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.lang.annotation.Annotation;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Intercepted;
 import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
+import javax.interceptor.AroundConstruct;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import org.slf4j.Logger;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
-import gov.pnnl.proven.cluster.lib.module.messenger.MetricsMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.MetricsReporter;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessengerType;
-import gov.pnnl.proven.cluster.lib.module.messenger.StatusMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.StatusReporter;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.Reporter;
-import gov.pnnl.proven.cluster.lib.module.messenger.exception.MessengerConfigurationException;
 
 /**
- * Adds new messengers to the component at construction, based on provided
- * {@code Messenger} annotation member properties. The injection point must
- * implement the associated {@code Reporter} so that it can be registered with
- * the new messenger.
+ * Adds {@code MessengerProperties} to scheduler.
  * 
- * This only applies to {@code ManagedComponent}s. Other types will be ifnored.
  * 
  * @author d3j766
  * 
  */
-@Messenger
 @Interceptor
+@Messenger
 public class MessengerInterceptor implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -86,121 +74,39 @@ public class MessengerInterceptor implements Serializable {
 	@Intercepted
 	private Bean<?> intercepted;
 
-	@PostConstruct
-	public Object addMessengers(InvocationContext ctx) throws Exception {
+	@Inject
+	InjectionPoint ip;
+
+	@AroundConstruct
+	public void addMessengers(InvocationContext ctx) throws Exception {
 
 		// OK to proceed
 		ctx.proceed();
-
 		Object result = ctx.getTarget();
+		ScheduledMessenger sm = (ScheduledMessenger) result;
+		Messenger messenger;
 
-		Class<?> ic = intercepted.getBeanClass();
-
-		ModuleComponent mc = (ModuleComponent) result;
-
-		Reporter reporter = null;
-		if (Reporter.class.isAssignableFrom(mc.getClass())) {
-			reporter = (Reporter) mc;
+		Optional<Annotation> messengerOpt = ip.getQualifiers().stream().filter(it -> (it instanceof Messenger))
+				.findAny();
+		if (messengerOpt.isPresent()) {
+			messenger = (Messenger) messengerOpt.get();
 		}
-
-		if (null == reporter) {
-			throw new MessengerConfigurationException(
-					"Messenger annotation used for non-reporter type " + ic.getSimpleName());
-		}
-
+		// Use default from the class 
 		else {
-
-			// Event type determines the type of scheduled messenger to
-			// inject. More than one declared annotation of the same type is
-			// an error. A check for each scheduled messenger type is made,
-			// if found it is injected.
-			Map<ScheduledMessengerType, Messenger> finalConfigs = new HashMap<>();
-			Class<?> declared = ic;
-			while (null != declared) {
-				Map<ScheduledMessengerType, Messenger> tempConfigs = new HashMap<>();
-				for (Messenger annotation : declared.getDeclaredAnnotationsByType(Messenger.class)) {
-
-					ScheduledMessengerType smt = annotation.messengerType();
-					if (tempConfigs.containsKey(smt)) {
-						throw new MessengerConfigurationException("Ambiguous Messenger annotation used on "
-								+ ic.getSimpleName() + " for " + smt.toString());
-					} else {
-						tempConfigs.put(smt, annotation);
-					}
-				}
-
-				// Merge with final - do not overwrite existing/sub-class's
-				// annotation.
-				tempConfigs.forEach((key, value) -> finalConfigs.merge(key, value, (v1, v2) -> v1));
-
-				declared = declared.getSuperclass();
-			}
-
-			// reset to base class
-			declared = ic;
-
-			// Inject Messenger(s)
-			for (Entry<ScheduledMessengerType, Messenger> entry : finalConfigs.entrySet()) {
-
-				ScheduledMessengerType messengerType = entry.getKey();
-				ScheduledMessenger sm = null;
-
-				try {
-
-					switch (messengerType) {
-					case StatusMessenger:
-
-						Scalable scalable = declared.getDeclaredAnnotation(Scalable.class);
-						sm = mc.getMessenger(StatusMessenger.class);
-						addScheduleProperties(sm, entry.getValue());
-						// Check if scalable and add properties
-						if (null != scalable) {
-							addScalableProperties((StatusMessenger) sm, scalable);
-						}
-						StatusReporter sr = StatusReporter.class.cast(reporter);
-						sm.register(sr::reportStatus);
-						break;
-
-					case MetricsMessenger:
-						sm = mc.getMessenger(MetricsMessenger.class);
-						addScheduleProperties(sm, entry.getValue());
-						MetricsReporter mr = MetricsReporter.class.cast(reporter);
-						sm.register(mr::reportMetrics);
-						break;
-
-					default:
-						throw new MessengerConfigurationException("Unsupported scheduled messenger type,"
-								+ messengerType.toString() + ", used on " + ic.getSimpleName());
-					}
-
-					// Ensure a report supplier has been registered with
-					// messenger
-					if (null == sm.getReporter()) {
-						throw new MessengerConfigurationException(messengerType + " missing report supplier");
-					}
-
-				} catch (ClassCastException ex) {
-					throw new MessengerConfigurationException(
-							"Reporter interface not implemented for " + messengerType.toString(), ex);
-				}
-
-			}
-
+			log.info("Using default messenger schedule properties");
+			messenger = ScheduledMessenger.class.getAnnotation(Messenger.class);
 		}
 
-		return result;
+		// Add properties
+		addScheduleProperties(sm, messenger);
+
 	}
 
 	private void addScheduleProperties(ScheduledMessenger sm, Messenger m) {
 		sm.setDelay(m.delay());
 		sm.setTimeUnit(m.timeUnit());
 		sm.setJitterPercent(m.jitterPercent());
+		sm.setActivateOnStartup(m.activateOnStartup());
 	}
 
-	private void addScalableProperties(StatusMessenger sm, Scalable s) {
-		sm.setAllowedScalePerComponent(s.alowedPerComponent());
-		sm.setMinScalableCount(s.minCount());
-		sm.setMaxScalableCount(s.maxCount());
-		sm.setMaxScalableRetries(s.retries());
-	}
 }

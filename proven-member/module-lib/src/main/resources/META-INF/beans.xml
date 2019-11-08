@@ -6,8 +6,8 @@
 		<class>gov.pnnl.proven.cluster.lib.module.messenger.interceptor.MessengerInterceptor</class>
 	</interceptors>
 
-	<decorators>
-		<class>gov.pnnl.proven.cluster.lib.module.component.interceptor.ManagedStatusOperationDecorator</class>
-	</decorators>
+<!-- 	<decorators> -->
+<!-- 		<class>gov.pnnl.proven.cluster.lib.module.component.interceptor.ManagedStatusOperationDecorator</class> -->
+<!-- 	</decorators> -->
 
 </beans>

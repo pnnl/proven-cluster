@@ -43,7 +43,6 @@ package gov.pnnl.proven.cluster.lib.module.manager;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -51,13 +50,11 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessengerType;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
 
@@ -108,7 +105,7 @@ public class ExchangeManager extends ManagerComponent {
 
 		for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
 			// RequestExchange re = reProvider.get();
-			RequestExchange re = getComponent(RequestExchange.class);
+			RequestExchange re = createComponent(RequestExchange.class);
 			res.add(re);
 		}
 	}

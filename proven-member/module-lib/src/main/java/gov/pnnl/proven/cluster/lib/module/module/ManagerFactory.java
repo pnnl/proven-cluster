@@ -40,8 +40,8 @@
 package gov.pnnl.proven.cluster.lib.module.module;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
@@ -57,9 +57,8 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Managers;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 
-
 /**
- * Manages the production of {@code ManagerComponent}s.    
+ * Manages the production of {@code ManagerComponent}s.
  * 
  * @author d3j766
  *
@@ -122,37 +121,35 @@ public class ManagerFactory {
 	}
 
 	private <T extends ManagerComponent> T retrieveManager(Class<T> clazz) {
-
-		// ProvenModule pm = moduleProvider.select().get();
-
-		if (null == pm.getManager(clazz)) {
-			pm.addManager(clazz);
-		}
-		return pm.getManager(clazz);
+		return pm.getOrCreateManager(clazz);
 	}
 
 	@Produces
 	@Managers
-	public Set<StreamManager> streamManagersProducer(InjectionPoint ip) {
-		return null;
+	public List<StreamManager> streamManagersProducer(InjectionPoint ip) {
+		return retrieveManagers(StreamManager.class);
 	}
 
 	@Produces
 	@Managers
-	public Set<ExchangeManager> exchangeManagersProducer(InjectionPoint ip) {
-		return null;
+	public List<ExchangeManager> exchangeManagersProducer(InjectionPoint ip) {
+		return retrieveManagers(ExchangeManager.class);
 	}
 
 	@Produces
 	@Managers
-	public Set<PipelineManager> pipelineManagersProducer(InjectionPoint ip) {
-		return null;
+	public List<PipelineManager> pipelineManagersProducer(InjectionPoint ip) {
+		return retrieveManagers(PipelineManager.class);
 	}
 
 	@Produces
 	@Managers
-	public Set<RequestManager> requestManagersProducer(InjectionPoint ip) {
-		return null;
+	public List<RequestManager> requestManagersProducer(InjectionPoint ip) {
+		return retrieveManagers(RequestManager.class);
 	}
 
+	private <T extends ManagerComponent> List<T> retrieveManagers(Class<T> clazz) {
+		return pm.getOrCreateManagers(clazz);
+	}
+	
 }

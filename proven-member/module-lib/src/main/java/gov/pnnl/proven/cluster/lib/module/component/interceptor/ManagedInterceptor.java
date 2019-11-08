@@ -58,10 +58,12 @@ import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 /**
- * Verifies injection of a {@code ManagedComponent} is being injected by a
- * {@code ManagerComponent} or another {@code ManagedComponent}. An
- * {@code InjectionException} is thrown if this is not the case. Ensures correct
- * utilization of {@code ManagedComponentType} annotation.
+ * Verifies injection of a {@code Managed} component is being injected by a
+ * {@code ProvenModule} or another {@code Managed} component that can be traced
+ * back to a {@code ProvenModule}. An {@code InjectionException} is thrown if
+ * this is not the case.
+ * 
+ * Ensures correct utilization of {@code Managed} annotation.
  * 
  * @author d3j766
  * 
@@ -86,62 +88,76 @@ public class ManagedInterceptor {
 		log.debug("Intercepted component :: " + intercepted.getBeanClass().getName());
 
 		Class<?> ic = intercepted.getBeanClass();
-		Bean<?> ipBean = ip.getBean();
-		Class<?> ipClass = ipBean.getBeanClass();
-		boolean isIpModule = false;
-		boolean isIpManagerComponent = false;
 
-		// Injecting ManagerComponent
-		if (ManagerComponent.class.isAssignableFrom(ic)) {
+		// Proven Module - no checks, this is top of hierarchy
+		if (ProvenModule.class.isAssignableFrom(ic)) {
+			log.debug("Proven Module : " + ic.getSimpleName());
+		}
+
+		else {
+
+			Bean<?> ipBean = ip.getBean();
+			Class<?> ipClass = ipBean.getBeanClass();
+			boolean isIpModule = false;
+			boolean isIpManager = false;
 
 			if ((null != ipBean) && (ProvenModule.class.isAssignableFrom(ipClass))) {
 				isIpModule = true;
 			}
 
-			if (!isIpModule) {
-				throw new InjectionException("Injection point for a @Managed manager component must be a proven module");
-			}
-		}
+			// Injecting ManagerComponent
+			if (ManagerComponent.class.isAssignableFrom(ic)) {
 
-		// Injecting non-manager component
-		else {
+				if ((null != ipBean) && (ProvenModule.class.isAssignableFrom(ipClass))) {
+					isIpModule = true;
+				}
 
-			// Verify that it's is a managed component
-			if (!ManagedComponent.class.isAssignableFrom(ic)) {
-				throw new InjectionException("Intercepted bean must be managed component");
-			}
-
-			// Verify a manager component is requesting the new managed
-			// component.
-			// Bean<?> ipBean = ip.getBean();
-			if ((null != ipBean) && (ManagerComponent.class.isAssignableFrom(ipBean.getBeanClass()))) {
-				isIpManagerComponent = true;
-			}
-
-			// If not a component manager, verify it is another managed
-			// component performing the injection.
-			if (!isIpManagerComponent) {
-				Managed mc = ipBean.getBeanClass().getAnnotation(Managed.class);
-				if (null == mc) {
+				if (!isIpModule) {
 					throw new InjectionException(
-							"Injection point for managed component is not a manager component or another managed component");
+							"Injection point for a @Managed manager component must be a proven module");
 				}
 			}
 
-			// So far so good - check if ManagedBy restriction is in place
-			ManagedBy mb = ic.getAnnotation(ManagedBy.class);
-			if (null != mb) {
-				List<Class<?>> restrictions = Arrays.asList(mb.value());
-				if (!restrictions.isEmpty()) {
-					if (!restrictions.contains(ipBean.getBeanClass())) {
+			// Injecting non-manager component
+			else {
+
+				// Verify that it's is a managed component
+				if (!ManagedComponent.class.isAssignableFrom(ic)) {
+					throw new InjectionException("Intercepted bean must be managed component");
+				}
+
+				// Verify a manager component is requesting the new managed
+				// component.
+				// Bean<?> ipBean = ip.getBean();
+				if ((null != ipBean) && (ManagerComponent.class.isAssignableFrom(ipClass))) {
+					isIpManager = true;
+				}
+
+				// If not a manager, verify it is another managed component
+				// performing the injection.
+				if (!isIpManager) {
+					Managed mc = ipClass.getAnnotation(Managed.class);
+					if (null == mc) {
 						throw new InjectionException(
-								"Injection point for " + ic.toString() + " not allowed due to ManagedBy restriction");
+								"Injection point for managed component is not a manager component or another managed component");
 					}
 				}
+
+				// So far so good - check if ManagedBy restriction is in place
+				ManagedBy mb = ic.getAnnotation(ManagedBy.class);
+				if (null != mb) {
+					List<Class<?>> restrictions = Arrays.asList(mb.value());
+					if (!restrictions.isEmpty()) {
+						if (!restrictions.contains(ipBean.getBeanClass())) {
+							throw new InjectionException("Injection point for " + ic.toString()
+									+ " not allowed due to ManagedBy restriction");
+						}
+					}
+				}
+
+				log.debug("ManagedComponent verified for:: " + ip.getBean().getBeanClass().getSimpleName());
+
 			}
-
-			log.debug("ManagedComponent verified for:: " + ip.getBean().getBeanClass().getSimpleName());
-
 		}
 
 		// OK to proceed

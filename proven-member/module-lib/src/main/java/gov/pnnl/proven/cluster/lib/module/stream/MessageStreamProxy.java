@@ -42,21 +42,22 @@ package gov.pnnl.proven.cluster.lib.module.stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageContentException;
 
 /**
- * A wrapper class providing access to the cluster level component
- * {@code MessageStream}. {@code StreamConfig} is used to configure and access
- * the underlying message stream.
+ * A wrapper class providing access to the managed component
+ * {@code MessageStream}. {@code StreamConfig} can be used to configure and
+ * access the underlying message stream.
  * 
  * @author d3j766
  * 
- * @see MessageStream, StreamConfig
+ * @see MessageStream, StreamConfig, ManagedComponent
  *
  */
-//this default configuration used if not provided at injection point
-@StreamConfig 
+// this default configuration used if not provided at injection point
+@StreamConfig
 public class MessageStreamProxy {
 
 	static Logger log = LoggerFactory.getLogger(MessageStreamProxy.class);
@@ -83,11 +84,11 @@ public class MessageStreamProxy {
 		if (!messageStream.getMst().getMessageContents().contains(pm.getMessageContent())) {
 			throw new UnsupportedMessageContentException();
 		}
-
-		// Add message
+		
+		// Asynchronously adds message
 		messageStream.getStream().setAsync(pm.getMessageKey(), pm);
 	}
-	
+
 	public String getStreamName() {
 		return messageStream.getStreamName();
 	}

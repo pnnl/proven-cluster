@@ -83,8 +83,8 @@ public class RequestExchange extends ExchangeComponent {
 	void init() {
 		log.debug("Post construct for RequestExchange");
 
-		db = getComponent(DisclosureBuffer.class);
-		rb = getComponent(RequestBuffer.class);
+		db = createComponent(DisclosureBuffer.class);
+		rb = createComponent(RequestBuffer.class);
 
 		// Connect disclosure/exchange buffers supporting local transfers within
 		// a request exchange

@@ -46,8 +46,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
+import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProviderAnnotationLiteral;
 
 /**
  * A component manager responsible for managing a set of {@code PipelineRequest}
@@ -61,13 +64,16 @@ import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProv
 public class PipelineManager extends ManagerComponent {
 
 	@Inject
-	Logger log; 
+	Logger log;
 
 	@PostConstruct
 	public void initialize() {
 
 		// Load PipelineRequest implementations as managed components
-		List<PipelineRequest> prs = getComponents(PipelineRequest.class, PipelineRequestProvider.Literal.INSTANCE);
+		List<PipelineRequest> prs = createComponents(PipelineRequest.class,
+				new PipelineRequestProviderAnnotationLiteral() {
+				});
+
 		log.info(prs.size() + " PipelineRequests loaded");
 
 		/*

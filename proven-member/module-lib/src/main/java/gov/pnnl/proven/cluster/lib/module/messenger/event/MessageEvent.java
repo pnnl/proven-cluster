@@ -37,142 +37,19 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
-
-import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import com.hazelcast.core.HazelcastInstance;
-import fish.payara.micro.PayaraMicro;
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.member.MemberProperties;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
 /**
- * The base component, with each performing activities to support operation
- * of a Proven module/application
+ * Base class for event messages.
  * 
  * @author d3j766
  *
  */
-public abstract class ModuleComponent {
+public abstract class MessageEvent {
 
-	@Inject
-	Logger log;
+	private static final long serialVersionUID = 1L;
 
-	private static final String BASE_NAME = "component.proven.pnnl.gov";
-
-	@Inject
-	protected Instance<ScheduledMessenger> messengerProvider;
-	
-	@Inject
-	protected MemberProperties mp;
-
-	@Inject
-	protected HazelcastInstance hzi;
-
-	protected String clusterGroup;
-
-	protected String host;
-
-	protected String memberId;
-
-	protected String containerName;
-
-	protected UUID moduleId;
-
-	protected String moduleName;
-
-	protected UUID id;
-
-	protected Set<ComponentGroup> group;
-
-	protected String doId;
-
-	protected Boolean isManaged;
-
-	protected Map<UUID, ScheduledMessenger> messengers = new HashMap<>();
-
-	public ModuleComponent() {
-		containerName = PayaraMicro.getInstance().getInstanceName();
-		id = UUID.randomUUID();
-		group = new HashSet<>();
-		moduleId = ProvenModule.retrieveModuleId();
-		moduleName = ProvenModule.retrieveModuleName();
-		if (getComponentType() == ComponentType.ProvenModule) {
-			this.id = moduleId;
-			this.group.add(ComponentGroup.Module);
-		}
-	}
-
-	@PostConstruct
-	public void moduleComponentInit() {
-		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().toString();
-		clusterGroup = hzi.getConfig().getGroupConfig().getName();
-		host = hzi.getCluster().getLocalMember().getAddress().getHost();
-		memberId = hzi.getCluster().getLocalMember().getUuid();
-	}
-
-	@PreDestroy
-	public void moduleComponentDestroy() {
-		log.debug("ProvenComponent PreDestroy..." + this.getClass().getSimpleName());
-	}
-
-	public <T extends ScheduledMessenger> T getMessenger(Class<T> subtype, Annotation... qualifiers) {
-		T mc = messengerProvider.select(subtype, qualifiers).get();
-		addMessenger(mc);
-		return mc;
-	}
-	
-	protected void addMessenger(ScheduledMessenger sm) {
-		messengers.put(sm.getId(), sm);
-	}
-	
-	public String getClusterGroup() {
-		return clusterGroup;
-	}
-
-	public String getHost() {
-		return host;
-	}
-
-	public String getMemberId() {
-		return memberId;
-	}
-
-	public String getContainerName() {
-		return containerName;
-	}
-
-	public UUID getModuleId() {
-		return moduleId;
-	}
-
-	public String getModuleName() {
-		return moduleName;
-	}
-
-	public UUID getId() {
-		return id;
-	}
-
-	public Set<ComponentGroup> getComponentGroups() {
-		return group;
-	}
-
-	public abstract ComponentType getComponentType();
-
-	public String getDoId() {
-		return doId;
+	public MessageEvent() {
 	}
 
 }

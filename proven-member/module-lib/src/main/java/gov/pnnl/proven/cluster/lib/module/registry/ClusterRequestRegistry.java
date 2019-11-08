@@ -55,17 +55,11 @@ import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
  */
 @Clustered
 @ApplicationScoped
-public class ClusterRequestRegistry extends RegistryComponent implements Serializable {
+public class ClusterRequestRegistry implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	public ClusterRequestRegistry() {
 	}
-	
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.ClusterRequestRegistry;
-	}
-
 	
 }

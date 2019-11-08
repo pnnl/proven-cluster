@@ -40,15 +40,15 @@
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 /**
- * Base class for component events.
+ * Provides information related to {@code ModuleComponent}s.
  * 
  * @author d3j766
  *
  */
-public abstract class ComponentEvent {
+public abstract class ComponentEvent extends MessageEvent {
 
 	String clusterGroup;
 	String host;
@@ -58,9 +58,9 @@ public abstract class ComponentEvent {
 	ComponentType componentType;
 	String componentId;
 	String doId;
-	Class<? extends ModuleComponent> clazz;
+	Class<? extends ManagedComponent> clazz;
 
-	public ComponentEvent(ModuleComponent c) {
+	public ComponentEvent(ManagedComponent c) {
 		clusterGroup = c.getClusterGroup();
 		host = c.getHost();
 		memberId = c.getMemberId();
@@ -71,4 +71,41 @@ public abstract class ComponentEvent {
 		doId = c.getDoId();
 		clazz = c.getClass();
 	}
+
+	public String getClusterGroup() {
+		return clusterGroup;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public String getMemberId() {
+		return memberId;
+	}
+
+	public String getContainerName() {
+		return containerName;
+	}
+
+	public String getModuleId() {
+		return moduleId;
+	}
+
+	public ComponentType getComponentType() {
+		return componentType;
+	}
+
+	public String getComponentId() {
+		return componentId;
+	}
+
+	public String getDoId() {
+		return doId;
+	}
+
+	public Class<? extends ManagedComponent> getClazz() {
+		return clazz;
+	}
+	
 }

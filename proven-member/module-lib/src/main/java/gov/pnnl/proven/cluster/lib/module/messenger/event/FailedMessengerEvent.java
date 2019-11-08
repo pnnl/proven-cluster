@@ -37,23 +37,21 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-package gov.pnnl.proven.cluster.lib.module.messenger.exception;
-
-public class MessengerConfigurationException extends RuntimeException {
+/**
+ * Indicates a {@code ScheduledMessenger} has failed due to an {@code Error}
+ * condition. Information related to the messenger and error contained in event
+ * message.
+ * 
+ * @author d3j766
+ *
+ */
+public class FailedMessengerEvent extends FailureEvent {
 
 	private static final long serialVersionUID = 1L;
 
-	public MessengerConfigurationException() {
-		super();
+	public FailedMessengerEvent() {
 	}
 
-	public MessengerConfigurationException(String message) {
-		super(message);
-	}
-
-	public MessengerConfigurationException(String message, Throwable e) {
-		super(message, e);
-	}
-	
 }

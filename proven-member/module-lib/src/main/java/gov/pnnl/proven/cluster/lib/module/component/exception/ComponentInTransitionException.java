@@ -37,62 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import javax.decorator.Decorator;
-import javax.decorator.Delegate;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.messenger.StatusReporter;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-@Decorator
-public abstract class ManagedStatusOperationDecorator implements ManagedStatusOperation, StatusReporter {
+public class ComponentInTransitionException extends Exception {
 
-	static Logger log = LoggerFactory.getLogger(ManagedStatusOperationDecorator.class);
+	private static final long serialVersionUID = 1L;
 
-	@Inject
-	@Delegate
-	@Managed
-	ManagedComponent mc;
-
-	@Override
-	public void activate() {
+	public ComponentInTransitionException() {
+		super();
 	}
 
-	@Override
-	public void retry() {
-		if (mc.getStatus() == ManagedStatus.FailedDeactivateRetry)
-			mc.deactivate();
-		if (mc.getStatus() == ManagedStatus.FailedActivateRetry)
-			mc.activate();
+	public ComponentInTransitionException(String message) {
+		super(message);
 	}
 
-	@Override
-	public <T extends ManagedComponent> void scale(Class<T> clazz) {
-
+	public ComponentInTransitionException(String message, Throwable e) {
+		super(message, e);
 	}
-
-	@Override
-	public void check() {
-	}
-
-	@Override
-	public void deactivate() {
-	}
-
-	@Override
-	public void remove() {
-	}
-
-	@Override
-	public StatusEvent reportStatus() {
-		return null;
-	}
-
+	
 }

@@ -39,11 +39,12 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+
 /**
- * Represents the possible states for managed components. A status value may be
- * a transition state, indicating it will change to a non-transition state based
- * on current processing. New status processing must not be initiated while a
- * component is in a transition state.
+ * Represents the possible states for managed components. A component's status
+ * value may be a transition state, indicating it will be changed to a
+ * non-transition state based on current processing. New status processing must
+ * not be initiated while a component is in a transition state.
  * 
  * @see ManagedComponent
  * 
@@ -53,8 +54,19 @@ package gov.pnnl.proven.cluster.lib.module.component;
 public enum ManagedStatus {
 
 	/**
-	 * Initial state for a managed component post construction. Indicates the
-	 * component has successfully been created and is ready to be activated.
+	 * Transition status, indicating the component is in the process of being
+	 * created.
+	 */
+	Creating(true),
+
+	/**
+	 * Indicates the component has successfully been created and is ready to be
+	 * activated for status reporting. In this state the component may perform
+	 * local services, however no reporting will be performed until it has been
+	 * activated making it known to other members of the cluster.  
+	 * 
+	 * @see Reporter
+	 * 
 	 */
 	Ready(false),
 
@@ -65,7 +77,7 @@ public enum ManagedStatus {
 	Activating(true),
 
 	/**
-	 * Component has been activated and is performing its defined tasks.
+	 * Component has been activated and is reporting its status.
 	 */
 	Online(false),
 
@@ -168,7 +180,7 @@ public enum ManagedStatus {
 	}
 
 	/**
-	 * Returns true if a transition status. 
+	 * Returns true if a transition status.
 	 */
 	public boolean isTransition() {
 		return isTransition;

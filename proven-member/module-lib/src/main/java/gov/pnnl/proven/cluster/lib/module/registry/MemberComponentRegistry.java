@@ -45,10 +45,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Registry;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.StatusObserver;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 /**
  * Provides a Component Registry at the Member level.
@@ -57,11 +54,11 @@ import gov.pnnl.proven.cluster.lib.module.messenger.observer.StatusObserver;
  *
  */
 @ApplicationScoped
-public class MemberComponentRegistry extends RegistryComponent implements StatusObserver  {
+public class MemberComponentRegistry {
 
 	@Inject
 	Logger logger;
-	
+
 	@Inject
 	ClusterComponentRegistry ccr;
 
@@ -71,7 +68,7 @@ public class MemberComponentRegistry extends RegistryComponent implements Status
 	/**
 	 * Contains the set of Hazelcast member's reporting module components.
 	 */
-	ISet<ModuleComponent> components;
+	ISet<ManagedComponent> components;
 
 	@PostConstruct
 	public void initialize() {
@@ -79,11 +76,6 @@ public class MemberComponentRegistry extends RegistryComponent implements Status
 	}
 
 	public MemberComponentRegistry() {
-	}
-
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.MemberComponentRegistry;
 	}
 
 }

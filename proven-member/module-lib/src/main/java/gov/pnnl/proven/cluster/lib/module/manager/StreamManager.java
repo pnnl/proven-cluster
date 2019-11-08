@@ -96,10 +96,6 @@ public class StreamManager extends ManagerComponent {
 
 	@PostConstruct
 	public void initialize() {
-		// Initialize managed streams with Proven's default domain streams
-		log.debug("Creating default Proven managed streams");
-		domainStreams = new HashMap<DisclosureDomain, Set<MessageStream>>();
-		createStreams(DomainProvider.getProvenDisclosureDomain());
 	}
 
 	public StreamManager() {
@@ -212,7 +208,8 @@ public class StreamManager extends ManagerComponent {
 			if (!isManagedDomain(dd)) {
 				Set<MessageStream> messageStreams = new HashSet<MessageStream>();
 				for (MessageStreamType mst : MessageStreamType.values()) {
-					MessageStream ms = getComponent(MessageStream.class);
+					MessageStream ms = createComponent(MessageStream.class);
+					ms.checkAndUpdate();
 					ms.configure(dd, mst);
 					messageStreams.add(ms);
 				}
@@ -223,6 +220,14 @@ public class StreamManager extends ManagerComponent {
 
 	private boolean isManagedDomain(DisclosureDomain dd) {
 		return (domainStreams.containsKey(dd));
+	}
+
+	@Override
+	public void activate() {
+		// Initialize managed streams with Proven's default domain streams
+		log.debug("Creating default Proven managed streams");
+		domainStreams = new HashMap<DisclosureDomain, Set<MessageStream>>();
+		createStreams(DomainProvider.getProvenDisclosureDomain());
 	}
 
 }

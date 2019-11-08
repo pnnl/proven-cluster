@@ -37,14 +37,9 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger;
+package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MetricsEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.Reporter;
+import javax.enterprise.util.AnnotationLiteral;
 
-public interface MetricsReporter extends Reporter {
-	
-	MetricsEvent reportMetrics();
-	
+public abstract class StatusOperationAnnotationLiteral extends AnnotationLiteral<StatusOperation> implements StatusOperation {
 }
-

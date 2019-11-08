@@ -37,9 +37,33 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import javax.enterprise.util.AnnotationLiteral;
+import javax.inject.Inject;
 
-public abstract class ManagedQualifier extends AnnotationLiteral<Managed> implements Managed {
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+
+/**
+ * Observes events on behalf of a {@code ManagedComponent}
+ * 
+ * @author d3j766
+ *
+ * @param <T>
+ *            the type of {@code ManagedComponent} for which events are being
+ *            observed.
+ */
+public abstract class ComponentObserver<T> {
+
+	@Inject
+	Logger log;
+
+	T owner;
+
+	public void addOwner(T owner) {
+		this.owner = owner;
+	}
+
 }

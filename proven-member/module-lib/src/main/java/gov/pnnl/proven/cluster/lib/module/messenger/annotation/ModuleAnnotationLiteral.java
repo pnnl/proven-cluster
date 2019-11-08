@@ -41,5 +41,11 @@ package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
 import javax.enterprise.util.AnnotationLiteral;
 
-public abstract class ManagerQualifier extends AnnotationLiteral<Manager> implements Manager {
+/**
+ * {@code Module} implementation.
+ * 
+ * @author d3j766
+ *
+ */
+public abstract class ModuleAnnotationLiteral extends AnnotationLiteral<Module> implements Module {
 }

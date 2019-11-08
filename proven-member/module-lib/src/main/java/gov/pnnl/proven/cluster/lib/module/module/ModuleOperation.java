@@ -37,9 +37,28 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
+package gov.pnnl.proven.cluster.lib.module.module;
 
-import javax.enterprise.util.AnnotationLiteral;
+import java.lang.annotation.Annotation;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
-public abstract class StatusOperationQualifier extends AnnotationLiteral<StatusOperation> implements StatusOperation {
+/**
+ * Identifies {@code ProvenModule} operations.
+ * 
+ * @see ProvenModule
+ * 
+ * @author d3j766
+ *
+ */
+public interface ModuleOperation {
+	
+	void startup();
+	
+	void suspend();
+	
+	void shutdown();
+	
 }

@@ -40,17 +40,13 @@
 package gov.pnnl.proven.cluster.lib.module.request.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
@@ -70,17 +66,17 @@ import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
 @Target({ TYPE })
 @Documented
 public @interface PipelineRequestProvider {
-	
+
 	static Logger log = LoggerFactory.getLogger(PipelineRequestProvider.class);
 
 	/**
-	 * (Optional) The type of pipeline request
+	 * (Optional) The type of pipeline request.
 	 * 
 	 * @see PipelineRequestType
 	 * 
 	 */
 	@Nonbinding
-	PipelineRequestType pipelineType() default PipelineRequestType.Domain; 
+	PipelineRequestType pipelineType() default PipelineRequestType.Domain;
 
 	/**
 	 * (Optional) Provides a list of class resources that will be added to the
@@ -98,50 +94,12 @@ public @interface PipelineRequestProvider {
 	 */
 	@Nonbinding
 	boolean isTest() default true;
-	
 
 	/**
-	 * (Optional) Indicates if the pipeline should be activated on module startup.
+	 * (Optional) Indicates if the pipeline should be activated on module
+	 * startup.
 	 */
 	@Nonbinding
 	boolean activateOnStartup() default true;
-
-		
-	/*
-	 * Supports instantiation
-	 */
-	public static final class Literal extends AnnotationLiteral<PipelineRequestProvider>
-			implements PipelineRequestProvider {
-
-		public static final Literal INSTANCE = new Literal();
-
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		@Nonbinding
-		public PipelineRequestType pipelineType() {
-			return PipelineRequestType.Domain;
-		}
-
-		@Override
-		@Nonbinding
-		public Class<?>[] resources() {
-			Class<?>[] ret = {};
-			return ret;
-		}
-
-		@Override
-		@Nonbinding
-		public boolean isTest() {
-			return true;
-		}
-
-		@Override
-		@Nonbinding
-		public boolean activateOnStartup() {
-			return true;
-		}
-
-	}
 
 }

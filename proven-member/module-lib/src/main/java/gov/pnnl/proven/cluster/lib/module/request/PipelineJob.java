@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.pipeline.Pipeline;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
@@ -110,7 +111,7 @@ public class PipelineJob extends RequestComponent {
 	public void activate() {
 
 		if (null == request) {
-			log.error("Job request is missing.  Request needs to be added");
+			log.error("Pipeline request for job submission is missing.");
 		} else if (getStatus() != ManagedStatus.Ready) {
 
 		}

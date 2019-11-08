@@ -37,19 +37,118 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger;
+package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-/**
- * Enumerates the different messenger types. This is provided as a convenience,
- * representing the implementations of {@code ScheduledMessenger}.
- * 
- * @see ScheduledMessenger
- * 
- * @author d3j766
- *
- */
-public enum ScheduledMessengerType {
-	StatusMessenger,
-	ScalableMessenger,
-	MetricsMessenger;
+import java.lang.annotation.Annotation;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import javax.annotation.Priority;
+import javax.decorator.Decorator;
+import javax.decorator.Delegate;
+import javax.inject.Inject;
+import javax.interceptor.Interceptor;
+import org.slf4j.Logger;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.FailureEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+
+@Decorator
+@Priority(value = Interceptor.Priority.APPLICATION)
+public class StatusDecorator implements ManagedStatusOperation {
+
+	@Inject
+	Logger log;
+
+	@Inject
+	@Delegate
+	@Managed
+	ManagedComponent mc;
+
+	@Override
+	public <T extends ManagedComponent> T createComponent(Class<T> subtype, Annotation... qualifiers) {
+
+		// Caller component must be in an "online state" to perform a create
+		// TODO Group component status into categories - [created - online -
+		// failed - etc]
+
+		log.debug("Decorating create components status operation");
+		return mc.createComponent(subtype, qualifiers);
+	}
+
+	@Override
+	public <T extends ManagedComponent> List<T> createComponents(Class<T> subtype, Annotation... qualifiers) {
+		// TODO Auto-generated method stub
+		return mc.createComponents(subtype, qualifiers);
+	}
+
+	@Override
+	public void activateCreated(UUID created) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void activate() {
+
+		// Save current state - restore on exception
+		// e.g. save created components and restore if activation fails. Others
+		// to save and restore on failure?
+
+		log.debug("Decorating activate status operation");
+
+	}
+
+	@Override
+	public void failedCreated(UUID created) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void failed() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void retry() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void deactivateCreated(UUID created) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void deactivate() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void remove() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void failure(FailureEvent event, boolean noRetry) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public List<ScheduledMessage> checkAndUpdate() {
+		log.debug("Decorating checkAndUpdate status operation");
+		return mc.checkAndUpdate();
+	}
+
 }

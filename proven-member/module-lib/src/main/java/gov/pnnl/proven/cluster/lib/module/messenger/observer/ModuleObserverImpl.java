@@ -37,70 +37,47 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
+package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
-import javax.enterprise.util.Nonbinding;
-import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
+import javax.annotation.PostConstruct;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
-/**
- * {@code ScheduledMesenger} qualifier. Includes members providing schedule
- * properties.
- * 
- * @author d3j766
- *
- * @see ScheduledMessenger
- * 
- */
-@Qualifier
-@InterceptorBinding
-@Retention(RUNTIME)
-@Target({ TYPE, FIELD })
-public @interface Messenger {
-
-	/**
-	 * (Optional) Fixed delay in specified {@link #timeUnit()} between report
-	 * messages.
-	 * 
-	 * Default is 3 Seconds.
-	 */
-	@Nonbinding
-	long delay() default 3;
-
-	/**
-	 * (Optional) {@code TimeUnit} for {@link #delay()} value.
-	 * 
-	 * Default is {@code TimeUnit#SECONDS}
-	 */
-	@Nonbinding
-	TimeUnit timeUnit() default TimeUnit.SECONDS;
-
-	/**
-	 * (Optional) A controlled variance adjustment applied to the reporting
-	 * schedule's fixed {@link #delay()} value. Variance is a +/- value that
-	 * ranges from 0 to the provided percentage of the fixed delay.
-	 */
-	@Nonbinding
-	int jitterPercent() default 10;
+public class ModuleObserverImpl extends ComponentObserver<ProvenModule> implements ModuleObserver  {
 	
-	/**
-	 * (Optional) If true, messenger component will be activated on startup.  
-	 */
-	@Nonbinding
-	boolean activateOnStartup() default true;
+	@Inject
+	@Module
+	private ProvenModule pm;
 	
+	public ModuleObserverImpl() {
+	}
+	
+	@PostConstruct
+	public void init() {
+		addOwner(pm);
+	}
+		 
+	@Override
+	public void observeModuleStartup(@Observes @Module StartupEvent moduleStartup) {
+		owner.startup();
+	}
+
+	@Override
+	public void observeModuleSuspend(@Observes @Module SuspendEvent moduleSuspend) {
+		owner.suspend();
+	}
+	
+	@Override
+	public void observeModuleShutdown(@Observes @Module ShutdownEvent moduleShutdown) {
+		owner.shutdown();
+	}
+
 }

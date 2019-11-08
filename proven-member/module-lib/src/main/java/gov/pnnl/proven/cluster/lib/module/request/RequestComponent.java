@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 /**
  * 
@@ -56,7 +56,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
  * 
  * @author d3j766
  *
- * @see ModuleComponent
+ * @see ManagedComponent
  *
  */
 public abstract class RequestComponent extends ManagedComponent {

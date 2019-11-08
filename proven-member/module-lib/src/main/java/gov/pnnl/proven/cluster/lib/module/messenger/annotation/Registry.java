@@ -50,10 +50,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import javax.inject.Qualifier;
 
-import gov.pnnl.proven.cluster.lib.module.registry.RegistryComponent;
-
 /**
- * Identifies a registry component, used to qualify event messages intended for registries.
+ * Identifies a registry component, used to qualify event messages intended for
+ * registries.
  * 
  * @see RegistryComponent
  * 

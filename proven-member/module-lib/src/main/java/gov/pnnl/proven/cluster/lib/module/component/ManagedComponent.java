@@ -42,61 +42,75 @@ package gov.pnnl.proven.cluster.lib.module.component;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-
+import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.PostConstruct;
-import javax.enterprise.event.Observes;
+import javax.annotation.PreDestroy;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.interceptor.InvocationContext;
-
-import org.apache.http.impl.execchain.RetryExec;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.hazelcast.core.HazelcastInstance;
+import fish.payara.micro.PayaraMicro;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
+import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.StatusReporter;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MessengerAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.FailureEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.StatusObserver;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.StatusOperationObserver;
-import io.github.resilience4j.retry.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 /**
  * 
- * Represents managed components within a Proven module. They each perform
- * specific tasks to support the operation of a module. These components are
- * registered with their {@code MemberComponentRegistry}, report their
- * {@code ComponentStatus} to their registry, and report their
- * {@code ComponentStatus} as well to other managed components. Managed
- * components may share their resources (compute and data) across the cluster.
+ * Base module component. Represents managed components within a Proven
+ * application module, this includes the {@code ProvenModule} component itself.
+ * Each component performs specific tasks to support a module's operation. These
+ * components are registered with both their local and clustered registries. A
+ * {@code ManagedComponent} may share its resources (compute and data) across
+ * the cluster.
  * 
  * @author d3j766
  *
- * @see ModuleComponent
+ * @see ProvenModule, RegistryComponent
  *
  */
-@Messenger
 @Managed
-public abstract class ManagedComponent extends ModuleComponent
-		implements ManagedStatusOperation, StatusReporter, StatusOperationObserver {
+public abstract class ManagedComponent implements ManagedStatusOperation {
 
 	@Inject
 	Logger log;
 
+	private static final String BASE_NAME = "component.proven.pnnl.gov";
+
+	@Inject
+	protected MemberProperties mp;
+
+	@Inject
+	protected HazelcastInstance hzi;
+
 	@Inject
 	@Managed
 	protected Instance<ManagedComponent> componentProvider;
+	
+	@Inject
+	@Any
+	protected Instance<ScheduledMessenger> messengerProvider;
+
+	protected ReentrantLock statusLock = new ReentrantLock();
 
 	protected ManagedStatus status;
 
@@ -104,29 +118,175 @@ public abstract class ManagedComponent extends ModuleComponent
 
 	protected UUID creatorId;
 
+	protected String clusterGroup;
+
+	protected String host;
+
+	protected String memberId;
+
+	protected String containerName;
+
+	protected UUID moduleId;
+
+	protected String moduleName;
+
+	protected UUID id;
+
+	protected Set<ComponentGroup> group;
+
+	protected String doId;
+
 	/**
 	 * Created components. The Map contains the component's ID as the key and
 	 * object as value.
 	 */
 	protected Map<UUID, ManagedComponent> createdComponents;
-
+	
+	/**
+	 * Messenger components. The Map contains the component's ID as the key and
+	 * object as value.
+	 */
+	protected Map<UUID, ScheduledMessenger> messengerComponents;
+	
+	
 	public ManagedComponent() {
-		super();
+		containerName = PayaraMicro.getInstance().getInstanceName();
+		id = UUID.randomUUID();
+		group = new HashSet<>();
+		moduleId = ProvenModule.retrieveModuleId();
+		moduleName = ProvenModule.retrieveModuleName();
+		if (getComponentType() == ComponentType.ProvenModule) {
+			this.id = moduleId;
+			this.group.add(ComponentGroup.Module);
+		}
 		group.add(ComponentGroup.Managed);
-		status = ManagedStatus.Ready;
 		createdComponents = new HashMap<>();
+		messengerComponents = new HashMap<>();
+		status = ManagedStatus.Creating;
 	}
 
+	@SuppressWarnings("unchecked")
 	@PostConstruct
 	public void managedComponentInit() {
-		addMessenger();
+
+		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().toString();
+		clusterGroup = hzi.getConfig().getGroupConfig().getName();
+		host = hzi.getCluster().getLocalMember().getAddress().getHost();
+		memberId = hzi.getCluster().getLocalMember().getUuid();
+
+		// All managed components must have a status messenger, except for the
+		// messenger itself. Messengers will include their status report with
+		// their owners.
+		if ((!ScheduledMessenger.class.isAssignableFrom(this.getClass()))) {
+
+			ScheduledMessenger messenger;
+
+			if (ManagerComponent.class.isAssignableFrom(this.getClass())) {
+
+				// create - managers messenger must be inactive at startup.
+				messenger = createMessenger(new MessengerAnnotationLiteral() {
+					
+					private static final long serialVersionUID = 1L;
+					
+					@Override 
+					public boolean activateOnStartup() {
+						return false;
+					};	
+				});
+			}
+
+			else {
+				// create - use default Messenger configuration
+				messenger = createComponent(ScheduledMessenger.class, new MessengerAnnotationLiteral() {
+					
+					private static final long serialVersionUID = 1L;
+				});
+			}
+
+			// register supplier
+			messenger.register(() -> {
+				return checkAndUpdate();
+			});
+
+		}
 	}
 
-	private void addMessenger() {
-
+	@PreDestroy
+	public void managedComponentDestroy() {
+		log.debug("ProvenComponent PreDestroy..." + this.getClass().getSimpleName());
 	}
 
-	protected <T extends ManagedComponent> T getComponent(Class<T> subtype, Annotation... qualifiers) {
+	public boolean acquireStatusLock() {
+		return statusLock.tryLock();
+	}
+
+	public void releaseStatusLock() {
+		statusLock.unlock();
+	}
+
+	public String getClusterGroup() {
+		return clusterGroup;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public String getMemberId() {
+		return memberId;
+	}
+
+	public String getContainerName() {
+		return containerName;
+	}
+
+	public UUID getModuleId() {
+		return moduleId;
+	}
+
+	public String getModuleName() {
+		return moduleName;
+	}
+
+	public UUID getId() {
+		return id;
+	}
+
+	public Set<ComponentGroup> getComponentGroups() {
+		return group;
+	}
+
+	public abstract ComponentType getComponentType();
+
+	public String getDoId() {
+		return doId;
+	}
+
+	public boolean isScalable() {
+		return this.getClass().isAnnotationPresent(Scalable.class);
+	}
+
+	public ScheduledMessenger createMessenger(Messenger messenger) {
+		ScheduledMessenger sm = messengerProvider.select(messenger).get();
+		addLineage(sm);
+		messengerComponents.put(sm.getId(), sm);
+		return sm;
+	}
+	
+	public void startAllMessengers() {
+		for (ScheduledMessenger messenger : messengerComponents.values()) {
+			messenger.start();
+		}
+	}
+	
+	public void stopAllMessengers() {
+		for (ScheduledMessenger messenger : messengerComponents.values()) {
+			messenger.stop();
+		}		
+	}
+	
+	@Override
+	public <T extends ManagedComponent> T createComponent(Class<T> subtype, Annotation... qualifiers) {
 		// Get component
 		T mc = componentProvider.select(subtype, qualifiers).get();
 		addLineage(mc);
@@ -134,7 +294,8 @@ public abstract class ManagedComponent extends ModuleComponent
 		return mc;
 	}
 
-	protected <T extends ManagedComponent> List<T> getComponents(Class<T> subtype, Annotation... qualifiers) {
+	@Override
+	public <T extends ManagedComponent> List<T> createComponents(Class<T> subtype, Annotation... qualifiers) {
 		List<T> ret = new ArrayList<>();
 		Iterator<T> mcItr = componentProvider.select(subtype, qualifiers).iterator();
 		while (mcItr.hasNext()) {
@@ -204,52 +365,77 @@ public abstract class ManagedComponent extends ModuleComponent
 		return status;
 	}
 
-	protected void setStatus(ManagedStatus status) {
+	public void setStatus(ManagedStatus status) {
 
-		synchronized (status) {
-			this.status = status;
+		if (statusLock.tryLock()) {
+			try {
+				this.status = status;
+			} finally {
+				statusLock.unlock();
+			}
 		}
 	}
 
 	@Override
+	@StatusOperation
+	public void activateCreated(UUID created) {
+		log.debug("No activation created operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	@StatusOperation
 	public void activate() {
 		log.debug("No activation operation for :: " + this.getComponentType());
 	}
 
 	@Override
-	public <T extends ManagedComponent> void scale(Class<T> clazz) {
-		log.debug("No scale operation for :: " + this.getComponentType());
+	@StatusOperation
+	public void failedCreated(UUID created) {
+		log.debug("No fail created operation for :: " + this.getComponentType());
 	}
 
 	@Override
-	public void check() {
-		log.debug("No status operation for :: " + this.getComponentType());
-	}
-
-	@Override
-	public void fail() {
+	@StatusOperation
+	public void failed() {
 		log.debug("No fail operation for :: " + this.getComponentType());
 	}
 
 	@Override
+	@StatusOperation
 	public void retry() {
 		log.debug("No retry operation for :: " + this.getComponentType());
 	}
 
 	@Override
+	@StatusOperation
+	public void deactivateCreated(UUID created) {
+		log.debug("No deactivation created operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	@StatusOperation
 	public void deactivate() {
 		log.debug("No deactivate operation for :: " + this.getComponentType());
 	}
 
 	@Override
+	@StatusOperation
 	public void remove() {
 		log.debug("No remove operation for :: " + this.getComponentType());
 	}
 
 	@Override
-	public StatusEvent reportStatus() {
-		check();
-		return new StatusEvent(this);
+	@StatusOperation
+	public void failure(FailureEvent event, boolean noRetry) {
+		log.debug("No status operation for :: " + this.getComponentType());
+	}
+
+	@Override
+	@StatusOperation
+	public List<ScheduledMessage> checkAndUpdate() {
+		log.debug("No status operation for :: " + this.getComponentType());
+		List<ScheduledMessage> ret = new ArrayList<>();
+		return ret;
 	}
 
 }

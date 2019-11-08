@@ -39,9 +39,13 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
+import javax.persistence.PersistenceProperty;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.hazelcast.core.HazelcastInstance;
@@ -52,6 +56,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Managers;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
@@ -70,6 +75,10 @@ public class MessageStream extends StreamComponent {
 
 	@Inject
 	protected HazelcastInstance hzi;
+	
+	@Inject
+	@Managers
+	protected List<StreamManager> sms;
 
 	private String streamName;
 	private DisclosureDomain dd;
@@ -79,20 +88,20 @@ public class MessageStream extends StreamComponent {
 	@PostConstruct
 	void init() {
 		log.debug("Post construct for Message stream");
+		activate();
 	}
 
 	@Inject
 	public MessageStream() {
 		super();
 		log.debug("DefaultConstructer for MessageStream");
-
 	}
 
 	@Override
 	public ComponentType getComponentType() {
 		return ComponentType.MessageStream;
 	}
-
+	
 	public void configure(DisclosureDomain dd, MessageStreamType mst) {
 		this.streamName = mst.getStreamName(dd);
 		this.dd = dd;
@@ -119,5 +128,4 @@ public class MessageStream extends StreamComponent {
 	public HazelcastInstance getHzi() {
 		return hzi;
 	}
-
 }

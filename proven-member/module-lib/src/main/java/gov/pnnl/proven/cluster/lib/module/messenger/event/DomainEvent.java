@@ -37,30 +37,24 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 
 /**
+ * Provides a listing of missing {@code DisclosureDomain}s for a module that
+ * have been added by another module within the clustered environment.  
  * 
- * Represents registry components. These components are responsible for tracking
- * status and availability of {@code ManagedComponent}s within a module, member,
- * and cluster levels.
+ * @see DisclosureDomain, ProvenModule
  * 
  * @author d3j766
  *
  */
-public abstract class RegistryComponent extends ModuleComponent {
+public class DomainEvent extends RegistryEvent {
 
-	static Logger log = LoggerFactory.getLogger(RegistryComponent.class);
+	private static final long serialVersionUID = 1L;
 
-	public RegistryComponent() {
-		super();
-		group.add(ComponentGroup.Registry);
+	public DomainEvent() {
 	}
 
 }

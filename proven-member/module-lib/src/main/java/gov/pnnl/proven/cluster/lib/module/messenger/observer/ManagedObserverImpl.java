@@ -37,31 +37,26 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger;
+package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import javax.enterprise.event.Observes;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.CheckFailureEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
-public class MetricsMessenger extends ScheduledMessenger {
+public class ManagedObserverImpl extends ComponentObserver<ManagedComponent> implements ManagedObserver {
 
-	static Logger log = LoggerFactory.getLogger(MetricsMessenger.class);
-
-	public MetricsMessenger() {
-		super();
+	@Override
+	public void observeStatus(@Observes @Managed @StatusOperation StatusEvent statusEvent) {
+		// TODO
 	}
 
 	@Override
-	protected void send(ComponentEvent event) {
-		// TODO Auto-generated method stub
-		
+	public void observeCheckFailure(@Observes @Managed CheckFailureEvent checkFailureEvent) {
+		// TODO
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.MetricsMessenger;
-	}
-	
 }

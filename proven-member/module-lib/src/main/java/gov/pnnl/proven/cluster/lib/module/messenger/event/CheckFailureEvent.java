@@ -37,16 +37,18 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
+
 
 /**
- * Observer of {@code ManagedComponent} {@code StatusEvent} messages.
- * 
- * @see ManagedComponent, StatusEvent
+ * Event message to trigger {@code Managed} components to check for internal
+ * {@Code FailureEvent}s.
  * 
  * @author d3j766
- * 
+ *
  */
-public interface StatusObserver extends EventObserver {
+public class CheckFailureEvent extends RegistryEvent {
 
+	public CheckFailureEvent() {
+	}
 }

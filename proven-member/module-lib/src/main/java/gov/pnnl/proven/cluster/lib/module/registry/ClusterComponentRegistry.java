@@ -40,18 +40,14 @@
 package gov.pnnl.proven.cluster.lib.module.registry;
 
 import java.io.Serializable;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.slf4j.Logger;
-
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
-
 import fish.payara.cluster.Clustered;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 /**
  * Provides a Component Registry at the Cluster level.
@@ -61,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ModuleComponent;
  */
 @Clustered
 @ApplicationScoped
-public class ClusterComponentRegistry extends RegistryComponent implements Serializable {
+public class ClusterComponentRegistry implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -72,20 +68,15 @@ public class ClusterComponentRegistry extends RegistryComponent implements Seria
 	HazelcastInstance hzi;
 
 	/**
-	 * Contains the set of Hazelcast member's reporting module components.  
+	 * Contains the set of Hazelcast member's reporting module components.
 	 */
-	ISet<ModuleComponent> components;
+	ISet<ManagedComponent> components;
 
 	@PostConstruct
-	public void initialize() { 
-	}
-	
-	public ClusterComponentRegistry() {
+	public void initialize() {
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.ClusterComponentRegistry;
+	public ClusterComponentRegistry() {
 	}
 
 }

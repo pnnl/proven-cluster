@@ -37,146 +37,22 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import org.slf4j.Logger;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 
-import gov.pnnl.proven.cluster.lib.member.MemberProperties;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+/**
+ * Provides information concerning the cluster member for which the module belongs.    
+ * 
+ * 
+ * @author d3j766
+ *
+ */
+public class ClusterEvent extends RegistryEvent {
 
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.*;
+	private static final long serialVersionUID = 1L;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class StatusMessenger extends ScheduledMessenger {
-
-	@Inject
-	Logger log;
-
-	@Inject
-	MemberProperties mp;
-
-	// General status properties
-	ManagedStatus status;
-	ManagedStatus previousStatus;
-	int maxRetries;
-	
-	// Scalable properties
-	boolean isScalable;
-	int maxScalableRetries;
-	int allowedScalePerComponent;
-	int minScalableCount;
-	int maxScalableCount;
-	
-	// Retries per status
-	Map<ManagedStatus, Integer> retries;
-	
-	public StatusMessenger() {
-		super();
-		this.status = Unknown;
-		this.previousStatus = Unknown;
-		this.isScalable = false;
-		this.retries = new HashMap<>();
-	}
-	
-	@PostConstruct
-	public void init() {
-		this.maxRetries = mp.getManagedComponentMaxRetries();
-	}
-	
-	@Override
-	protected void send(ComponentEvent ce) {		
-	}
-	
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.StatusMessenger;
+	public ClusterEvent() {
 	}
 
-	public MemberProperties getMp() {
-		return mp;
-	}
-
-	public void setMp(MemberProperties mp) {
-		this.mp = mp;
-	}
-
-	public ManagedStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(ManagedStatus status) {
-		this.status = status;
-	}
-
-	public ManagedStatus getPreviousStatus() {
-		return previousStatus;
-	}
-
-	public void setPreviousStatus(ManagedStatus previousStatus) {
-		this.previousStatus = previousStatus;
-	}
-
-	public int getMaxRetries() {
-		return maxRetries;
-	}
-
-	public void setMaxRetries(int maxRetries) {
-		this.maxRetries = maxRetries;
-	}
-
-	public boolean isScalable() {
-		return isScalable;
-	}
-
-	public void setScalable(boolean isScalable) {
-		this.isScalable = isScalable;
-	}
-
-	public int getMaxScalableRetries() {
-		return maxScalableRetries;
-	}
-
-	public void setMaxScalableRetries(int maxScalableRetries) {
-		this.maxScalableRetries = maxScalableRetries;
-	}
-
-	public int getAllowedScalePerComponent() {
-		return allowedScalePerComponent;
-	}
-
-	public void setAllowedScalePerComponent(int allowedScalePerComponent) {
-		this.allowedScalePerComponent = allowedScalePerComponent;
-	}
-
-	public int getMinScalableCount() {
-		return minScalableCount;
-	}
-
-	public void setMinScalableCount(int minScalableCount) {
-		this.minScalableCount = minScalableCount;
-	}
-
-	public int getMaxScalableCount() {
-		return maxScalableCount;
-	}
-
-	public void setMaxScalableCount(int maxScalableCount) {
-		this.maxScalableCount = maxScalableCount;
-	}
-
-	public Map<ManagedStatus, Integer> getRetries() {
-		return retries;
-	}
-
-	public void setRetries(Map<ManagedStatus, Integer> retries) {
-		this.retries = retries;
-	}
-	
 }

@@ -37,11 +37,32 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.event;
+package gov.pnnl.proven.cluster.lib.module.module;
 
-public class OverdueReportEvent extends RegistryEvent {
+import javax.enterprise.event.Observes;
+import javax.enterprise.inject.spi.AfterBeanDiscovery;
+import javax.enterprise.inject.spi.AfterTypeDiscovery;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.Extension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory; 
 
-	public OverdueReportEvent(String componentId) {
-		super(componentId);
+public class ExtensionObserver implements Extension {
+	
+	static Logger log = LoggerFactory.getLogger(ExtensionObserver.class);
+	
+	public void afterTypeDiscovery(@Observes AfterTypeDiscovery event, BeanManager bm) {
+
+		log.debug("Listing ALL decorator classes");
+		log.debug("BEGIN");
+		for (Class<?> clazz : event.getDecorators()) {
+			log.debug(clazz.getSimpleName());
+		}
+		log.debug("END");
+	}
+	
+	
+	public void afterTypeDiscovery(@Observes AfterBeanDiscovery event, BeanManager bm) {
+		log.debug("Observed AfterBeanDiscovery event");
 	}
 }
