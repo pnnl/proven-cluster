@@ -57,16 +57,20 @@ import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import org.slf4j.Logger;
+
+import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserver;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserverImpl;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserver;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
 import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
 
@@ -86,13 +90,13 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 	Logger log;
 
 	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
-
+	
 	@Inject
 	@Managed
 	Instance<ManagerComponent> managerProvider;
 
 	@Inject
-	ModuleObserverImpl mo;
+	ModuleObserver moduleObserver;
 
 	// Set of active managers for this module
 	Set<Class<?>> activeManagers;
@@ -111,7 +115,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 
 	@PostConstruct
 	public void init() {
-		mo.addOwner(this);
+		moduleObserver.addOwner(this);
 	}
 
 	public synchronized <T extends ManagerComponent> T getOrCreateManager(Class<T> clazz) {
@@ -125,7 +129,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 		}
 		return ret;
 	}
-	
+
 	public synchronized <T extends ManagerComponent> List<T> getOrCreateManagers(Class<T> clazz) {
 
 		List<T> ret;
@@ -139,7 +143,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 		}
 		return ret;
 	}
-		
+
 	private <T extends ManagerComponent> T addManager(Class<T> clazz) {
 
 		if (!activeManagers.contains(clazz)) {
@@ -165,16 +169,16 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 
 		return ret;
 	}
-	
+
 	private <T extends ManagerComponent> Optional<List<T>> getManagers(Class<T> manager) {
-		
+
 		Optional<List<T>> ret = Optional.empty();
 		List<T> managerList = new ArrayList<>();
-		
+
 		for (ManagerComponent mc : managers.values()) {
 			// CDI bean proxy is subclass
 			if (manager.isAssignableFrom(mc.getClass())) {
-				managerList.add((T)mc);
+				managerList.add((T) mc);
 			}
 		}
 
@@ -183,7 +187,6 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 		}
 		return ret;
 	}
-	
 
 	public static UUID retrieveModuleId() {
 		if (null == moduleId) {
@@ -207,7 +210,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 	public void startup() {
 
 		log.debug("ProvenModule startup message observed");
-
+				
 		// Get list of managers to activate
 		ActiveManagers toActivate = this.getClass().getAnnotation(ActiveManagers.class);
 		if ((null != toActivate) && (toActivate.managers().length != 0)) {
@@ -232,10 +235,10 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 				addManager((Class<ManagerComponent>) c);
 			}
 		}
-		
+
 		// Start messengers
 		for (ManagerComponent mc : managers.values()) {
-			mc.startAllMessengers();
+			mc.getStatusMessenger().start();
 		}
 
 		log.info("ProvenModule startup completed.");
@@ -243,7 +246,6 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 
 	@Override
 	public void suspend() {
-
 
 		// Make sure pre-destroy callbacks are in place for cleanup. This should
 		// be the same as what is called for an out of service status change.
@@ -256,7 +258,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 
 	@Override
 	public void shutdown() {
-
+		
 		log.debug("ProvenModule shutdown message observed");
 
 		// Make sure pre-destroy callbacks are in place for cleanup, if
@@ -268,6 +270,18 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 
 		// Log shutdown message
 		log.info("ProvenModule shutdown completed.");
+	}
+
+	@Override
+	public void checkMember(MemberEvent event) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void checkCluster(ClusterEvent event) {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override

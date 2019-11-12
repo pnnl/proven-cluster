@@ -71,7 +71,7 @@ import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementatio
  * message is sent to the {@link ProvenModule} implementation. Only a single
  * {@code ProvenModule} implementation per application is supported. The module
  * is required to observe this startup message for module activation to take
- * place. An unsuccessful startup will be logged to the container.
+ * place.
  * 
  * @author d3j766
  *

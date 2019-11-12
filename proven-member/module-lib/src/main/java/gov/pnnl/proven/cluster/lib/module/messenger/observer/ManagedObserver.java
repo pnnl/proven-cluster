@@ -39,22 +39,21 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
+import javax.enterprise.event.ObservesAsync;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.CheckFailureEvent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ReportStatusEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
-/**
- * Observer of event messages for {@code ManagedComponent}s.
- * 
- * @see ManagedComponent
- * 
- * @author d3j766
- * 
- */
-public interface ManagedObserver extends EventObserver {
+public class ManagedObserver extends EventObserver<ManagedComponent> {
 
-	void observeStatus(StatusEvent statusEvent);
+	public void status(@ObservesAsync @Managed @StatusOperation StatusEvent event) {
+		// TODO
+	}
 
-	void observeCheckFailure(CheckFailureEvent checkFailureEvent);
+	public void checkStatus(@ObservesAsync @Managed ReportStatusEvent event) {
+		// TODO
+	}
 
 }

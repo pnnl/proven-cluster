@@ -204,6 +204,10 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 
 		// Other exceptions
 		else {
+			// TODO Call failure() to record the internal failure event and set
+			// status to either failedOnelineRetry or failed depending on
+			// severity -> If unchecked or error then failed, else
+			// failedOnlineRetry.
 			log.error("Exchange buffer reader was completed exceptionally :: " + readerException.getMessage());
 			readerException.printStackTrace();
 		}
@@ -249,7 +253,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	public boolean hasFreeSpace(BufferedItemState state) {
 		return freeSpaceCount(state) > minMaxBatchSizeByState.get(state).getValue();
 	}
-	
+
 	/**
 	 * Returns the count of already processed buffered items representing the
 	 * buffer's free space.
@@ -259,19 +263,19 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	protected synchronized long freeSpaceCount(BufferedItemState state) {
 		log.debug("Calculating ringbuffer free space");
 
-			Long h = buffer.headSequence();
-			Long t = buffer.tailSequence();
-			Long c = buffer.capacity();
-			Long cSeq = h + c - 1;
-			Long r = lastReadItemByState.get(state);
-			Long freeSpace = ((r - h) + 1) + (cSeq - t);
+		Long h = buffer.headSequence();
+		Long t = buffer.tailSequence();
+		Long c = buffer.capacity();
+		Long cSeq = h + c - 1;
+		Long r = lastReadItemByState.get(state);
+		Long freeSpace = ((r - h) + 1) + (cSeq - t);
 
-			log.debug("\th: " + h);
-			log.debug("\tt: " + t);
-			log.debug("\tc: " + c);
-			log.debug("\tcSeq: " + cSeq);
-			log.debug("\tr: " + r);
-			log.debug("\tfreeSpace: " + freeSpace);
+		log.debug("\th: " + h);
+		log.debug("\tt: " + t);
+		log.debug("\tc: " + c);
+		log.debug("\tcSeq: " + cSeq);
+		log.debug("\tr: " + r);
+		log.debug("\tfreeSpace: " + freeSpace);
 
 		return freeSpace;
 	}
@@ -407,7 +411,9 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 
 		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
-			Thread.currentThread().interrupt();
+			if (e instanceof InterruptedException) {
+				Thread.currentThread().interrupt();
+			}
 			throw new BufferReaderInterruptedException(
 					"Disclosure buffer reader interrupted for state :: " + state.toString(), state, e);
 		}

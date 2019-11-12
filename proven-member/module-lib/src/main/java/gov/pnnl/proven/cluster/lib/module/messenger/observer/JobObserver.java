@@ -39,16 +39,18 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import javax.enterprise.event.Observes;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Registry;
+import javax.enterprise.event.ObservesAsync;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.JobEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ReportStatusEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 
-public class RegistryObserverImpl extends ComponentObserver<MemberComponentRegistry> implements RegistryObserver {
+public class JobObserver extends EventObserver<PipelineRequest> {
 
-	@Override
-	public void observeStatus(@Observes @Registry StatusEvent statusEvent) {
+	public void job(@ObservesAsync @Managed JobEvent event) {
 		// TODO
 	}
 

@@ -37,18 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.event;
+package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
+import javax.enterprise.event.ObservesAsync;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.DomainEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.JobEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ReportStatusEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 
-/**
- * Event message to trigger {@code Managed} components to check for internal
- * {@Code FailureEvent}s.
- * 
- * @author d3j766
- *
- */
-public class CheckFailureEvent extends RegistryEvent {
+public class DomainObserver extends EventObserver<StreamManager> {
 
-	public CheckFailureEvent() {
+	public void job(@ObservesAsync @Managed DomainEvent event) {
+		// TODO
 	}
+
 }

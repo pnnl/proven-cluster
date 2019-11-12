@@ -39,10 +39,31 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
+import javax.inject.Inject;
 
-/*
- * Marker interface for event observers.
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+
+/**
+ * Represents a class that observes message events on behalf its owner.  
+ * 
+ * @author d3j766
+ *
+ * @param <T>
+ *            type of the owning component for which events are being
+ *            observed.
  */
-public interface EventObserver {
+public class EventObserver<T> {
+
+	@Inject
+	Logger log;
+
+	T owner;
+
+	public void addOwner(T owner) {
+		this.owner = owner;
+	}
 
 }

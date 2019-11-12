@@ -146,7 +146,7 @@ public class StatusDecorator implements ManagedStatusOperation {
 	}
 
 	@Override
-	public List<ScheduledMessage> checkAndUpdate() {
+	public Optional<ScheduledMessage> checkAndUpdate() {
 		log.debug("Decorating checkAndUpdate status operation");
 		return mc.checkAndUpdate();
 	}

@@ -93,12 +93,16 @@ public @interface Messenger {
 	 * (Optional) A controlled variance adjustment applied to the reporting
 	 * schedule's fixed {@link #delay()} value. Variance is a +/- value that
 	 * ranges from 0 to the provided percentage of the fixed delay.
+	 * 
+	 * Default is 10
 	 */
 	@Nonbinding
 	int jitterPercent() default 10;
 	
 	/**
-	 * (Optional) If true, messenger component will be activated on startup.  
+	 * (Optional) If true, messenger component will be activated on startup.
+	 * 
+	 * Default is true
 	 */
 	@Nonbinding
 	boolean activateOnStartup() default true;

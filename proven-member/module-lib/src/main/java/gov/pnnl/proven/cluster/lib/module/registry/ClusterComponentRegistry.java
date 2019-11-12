@@ -40,14 +40,29 @@
 package gov.pnnl.proven.cluster.lib.module.registry;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.slf4j.Logger;
+
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
 import fish.payara.cluster.Clustered;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.DomainEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.JobEvent;
 
 /**
  * Provides a Component Registry at the Cluster level.
@@ -67,16 +82,92 @@ public class ClusterComponentRegistry implements Serializable {
 	@Inject
 	HazelcastInstance hzi;
 
+	@Inject
+	@Messenger
+	ScheduledMessenger domainMessenger;
+
+	@Inject
+	@Messenger
+	ScheduledMessenger jobMessenger;
+
+	@Inject
+	@Messenger
+	ScheduledMessenger clusterMessenger;
+
 	/**
 	 * Contains the set of Hazelcast member's reporting module components.
 	 */
 	ISet<ManagedComponent> components;
 
-	@PostConstruct
-	public void initialize() {
+	public ClusterComponentRegistry() {
 	}
 
-	public ClusterComponentRegistry() {
+	@PostConstruct
+	public void initialize() {
+		registerMessengers();
+	}
+
+	private void registerMessengers() {
+
+		domainMessenger.register(() -> {
+			return domainMessage();
+		});
+
+		jobMessenger.register(() -> {
+			return jobMessage();
+		});
+
+		clusterMessenger.register(() -> {
+			return clusterMessage();
+		});
+	}
+
+	private Optional<ScheduledMessage> domainMessage() {
+
+		Optional<ScheduledMessage> message = Optional.empty();
+		Optional<DomainEvent> deOpt = createDomainMessage();
+		if (deOpt.isPresent()) {
+			message = Optional.of(new ScheduledMessage(deOpt.get()));
+		}
+		return message;
+	}
+
+	private Optional<ScheduledMessage> jobMessage() {
+
+		Optional<ScheduledMessage> message = Optional.empty();
+		Optional<JobEvent> jobOpt = createJobMessage();
+		if (jobOpt.isPresent()) {
+			message = Optional.of(new ScheduledMessage(jobOpt.get()));
+		}
+		return message;
+	}
+
+	@SuppressWarnings("serial")
+	private Optional<ScheduledMessage> clusterMessage() {
+
+		Optional<ScheduledMessage> message = Optional.empty();
+		Module module = new ModuleAnnotationLiteral() {
+		};
+		Optional<ClusterEvent> clusterOpt = createClusterMessage();
+		if (clusterOpt.isPresent()) {
+			message = Optional.of(new ScheduledMessage(clusterOpt.get(), module));
+		}
+		return message;
+	}
+
+	public Optional<DomainEvent> createDomainMessage() {
+		// TODO
+		return Optional.of(new DomainEvent());
+	}
+
+	public Optional<JobEvent> createJobMessage() {
+		// TODO
+		return Optional.of(new JobEvent());
+	}
+
+	public Optional<ClusterEvent> createClusterMessage() {
+		// TODO
+		return Optional.of(new ClusterEvent());
 	}
 
 }

@@ -39,18 +39,18 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.annotation.Annotation;
 import java.util.Optional;
 
+import javax.enterprise.inject.literal.QualifierLiteral;
 import javax.inject.Qualifier;
 
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 
 public class ScheduledMessage {
 
-	private Optional<MessageEvent> eventOpt = Optional.empty();
-	private List<Qualifier> qualifiers = new ArrayList<>();
+	private MessageEvent event;
+	private Optional<Annotation[]> qualifiers = Optional.empty();
 	private boolean isAsync = true;
 	private boolean isCreateOnSend = true;
 
@@ -58,35 +58,36 @@ public class ScheduledMessage {
 	}
 
 	public ScheduledMessage(MessageEvent event) {
-		this.eventOpt = Optional.of(event);
+		this.event = event;
 	}
 
-	public ScheduledMessage(MessageEvent event, List<Qualifier> qualifiers) {
-		this.eventOpt = Optional.of(event);
-		this.qualifiers = qualifiers;
+	public ScheduledMessage(MessageEvent event, Annotation... qualifiers) {
+		this.event = event;
+		if (qualifiers.length > 0) {
+			setQualifiers(Optional.of(qualifiers));
+		}
 	}
 
-	public ScheduledMessage(MessageEvent event, List<Qualifier> qualifiers, boolean isAsync, boolean isCreateOnSend) {
-		this.eventOpt = Optional.of(event);
-		this.qualifiers = qualifiers;
-		this.isAsync = isAsync;
-		this.isCreateOnSend = isCreateOnSend;
+	public MessageEvent getEvent() {
+		return event;
 	}
 
-	public Optional<MessageEvent> getEventOpt() {
-		return eventOpt;
+	public void setEvent(MessageEvent event) {
+		this.event = event;
 	}
 
-	public void setEventOpt(Optional<MessageEvent> eventOpt) {
-		this.eventOpt = eventOpt;
-	}
-
-	public List<Qualifier> getQualifiers() {
+	public Optional<Annotation[]> getQualifiers() {
 		return qualifiers;
 	}
 
-	public void setQualifiers(List<Qualifier> qualifiers) {
+	public void setQualifiers(Optional<Annotation[]> qualifiers) {
 		this.qualifiers = qualifiers;
+		for (Annotation qualifier : this.qualifiers.get()) {
+			if (!qualifier.getClass().isAnnotationPresent(Qualifier.class)) {
+				throw new IllegalArgumentException(
+						"Annotation:  " + qualifier.getClass().getSimpleName() + "  Must be an @Qualifier");
+			}
+		}
 	}
 
 	public boolean isAsync() {
@@ -104,5 +105,5 @@ public class ScheduledMessage {
 	public void setCreateOnSend(boolean isCreateOnSend) {
 		this.isCreateOnSend = isCreateOnSend;
 	}
-	
+
 }

@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -46,6 +47,16 @@ import org.slf4j.Logger;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ReportStatusEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.MemberObserver;
 
 /**
  * Provides a Component Registry at the Member level.
@@ -65,6 +76,17 @@ public class MemberComponentRegistry {
 	@Inject
 	HazelcastInstance hzi;
 
+	@Inject
+	@Messenger
+	ScheduledMessenger memberMessenger;
+
+	@Inject
+	@Messenger
+	ScheduledMessenger reportStatusMessenger;
+
+	@Inject
+	MemberObserver memberObserver;
+
 	/**
 	 * Contains the set of Hazelcast member's reporting module components.
 	 */
@@ -72,10 +94,58 @@ public class MemberComponentRegistry {
 
 	@PostConstruct
 	public void initialize() {
-		// components =
+		memberObserver.addOwner(this);
+		registerMessengers();
 	}
 
 	public MemberComponentRegistry() {
+	}
+
+	private void registerMessengers() {
+
+		memberMessenger.register(() -> {
+			return memberMessage();
+		});
+
+		reportStatusMessenger.register(() -> {
+			return reportStatusMessage();
+		});
+	}
+
+	@SuppressWarnings("serial")
+	private Optional<ScheduledMessage> memberMessage() {
+
+		Optional<ScheduledMessage> message = Optional.empty();
+		Module module = new ModuleAnnotationLiteral() {
+		};
+		Optional<MemberEvent> memberOpt = createMemberMessage();
+		if (memberOpt.isPresent()) {
+			message = Optional.of(new ScheduledMessage(memberOpt.get(), module));
+		}
+		return message;
+	}
+
+	@SuppressWarnings("serial")
+	private Optional<ScheduledMessage> reportStatusMessage() {
+
+		Optional<ScheduledMessage> message = Optional.empty();
+		Managed managed = new ManagedAnnotationLiteral() {
+		};
+		Optional<ReportStatusEvent> rsOpt = createReportStatusMessage();
+		if (rsOpt.isPresent()) {
+			message = Optional.of(new ScheduledMessage(rsOpt.get(), managed));
+		}
+		return message;
+	}
+
+	public Optional<MemberEvent> createMemberMessage() {
+		// TODO
+		return Optional.of(new MemberEvent());
+	}
+
+	public Optional<ReportStatusEvent> createReportStatusMessage() {
+		// TODO
+		return Optional.of(new ReportStatusEvent());
 	}
 
 }

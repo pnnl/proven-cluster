@@ -83,8 +83,5 @@ public enum ComponentType {
 
 	// Stream
 	MessageStream,
-	
-	// Messenger
-	ScheduledMessenger;
-		
+			
 }

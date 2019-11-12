@@ -66,6 +66,8 @@ import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.DomainObserver;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.JobObserver;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
@@ -87,6 +89,9 @@ public class StreamManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(StreamManager.class);
 
+	@Inject
+	DomainObserver domainObserver;
+
 	/**
 	 * Set of managed message stream instances that provide access to the
 	 * underlying IMDG distributed data structures. Message streams are
@@ -96,6 +101,7 @@ public class StreamManager extends ManagerComponent {
 
 	@PostConstruct
 	public void initialize() {
+		domainObserver.addOwner(this);
 	}
 
 	public StreamManager() {

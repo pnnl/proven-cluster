@@ -46,9 +46,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Any;
@@ -60,9 +63,7 @@ import fish.payara.micro.PayaraMicro;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
-import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
@@ -70,8 +71,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MessengerAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.FailureEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 /**
@@ -105,10 +105,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 	@Inject
 	@Managed
 	protected Instance<ManagedComponent> componentProvider;
-	
+
 	@Inject
 	@Any
 	protected Instance<ScheduledMessenger> messengerProvider;
+
+	@Inject
+	protected ManagedObserver managedObserver;
 
 	protected ReentrantLock statusLock = new ReentrantLock();
 
@@ -141,14 +144,12 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 	 * object as value.
 	 */
 	protected Map<UUID, ManagedComponent> createdComponents;
-	
+
 	/**
-	 * Messenger components. The Map contains the component's ID as the key and
-	 * object as value.
+	 * Status messenger for the managed component.
 	 */
-	protected Map<UUID, ScheduledMessenger> messengerComponents;
-	
-	
+	protected ScheduledMessenger statusMessenger;
+
 	public ManagedComponent() {
 		containerName = PayaraMicro.getInstance().getInstanceName();
 		id = UUID.randomUUID();
@@ -161,11 +162,9 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 		}
 		group.add(ComponentGroup.Managed);
 		createdComponents = new HashMap<>();
-		messengerComponents = new HashMap<>();
 		status = ManagedStatus.Creating;
 	}
 
-	@SuppressWarnings("unchecked")
 	@PostConstruct
 	public void managedComponentInit() {
 
@@ -173,42 +172,36 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 		clusterGroup = hzi.getConfig().getGroupConfig().getName();
 		host = hzi.getCluster().getLocalMember().getAddress().getHost();
 		memberId = hzi.getCluster().getLocalMember().getUuid();
+		managedObserver.addOwner(this);
 
-		// All managed components must have a status messenger, except for the
-		// messenger itself. Messengers will include their status report with
-		// their owners.
-		if ((!ScheduledMessenger.class.isAssignableFrom(this.getClass()))) {
+		// All managed components must have a status messenger.
+		// Managers must be manually started
 
-			ScheduledMessenger messenger;
+		// ScheduledMessage supplier
+		Supplier<Optional<ScheduledMessage>> supplier = () -> {
+			return checkAndUpdate();
+		};
 
-			if (ManagerComponent.class.isAssignableFrom(this.getClass())) {
+		if (ManagerComponent.class.isAssignableFrom(this.getClass())) {
 
-				// create - managers messenger must be inactive at startup.
-				messenger = createMessenger(new MessengerAnnotationLiteral() {
-					
-					private static final long serialVersionUID = 1L;
-					
-					@Override 
-					public boolean activateOnStartup() {
-						return false;
-					};	
-				});
-			}
+			// create - managers messenger must be inactive at startup.
+			statusMessenger = createMessenger(new MessengerAnnotationLiteral() {
+				private static final long serialVersionUID = 1L;
 
-			else {
-				// create - use default Messenger configuration
-				messenger = createComponent(ScheduledMessenger.class, new MessengerAnnotationLiteral() {
-					
-					private static final long serialVersionUID = 1L;
-				});
-			}
-
-			// register supplier
-			messenger.register(() -> {
-				return checkAndUpdate();
-			});
-
+				@Override
+				public boolean activateOnStartup() {
+					return false;
+				};
+			}, supplier);
 		}
+
+		else {
+			// create - use default Messenger configuration
+			statusMessenger = createMessenger(new MessengerAnnotationLiteral() {
+				private static final long serialVersionUID = 1L;
+			}, supplier);
+		}
+
 	}
 
 	@PreDestroy
@@ -265,26 +258,17 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 	public boolean isScalable() {
 		return this.getClass().isAnnotationPresent(Scalable.class);
 	}
+	
+	public ScheduledMessenger getStatusMessenger() {
+		return statusMessenger;
+	}
 
-	public ScheduledMessenger createMessenger(Messenger messenger) {
+	public ScheduledMessenger createMessenger(Messenger messenger, Supplier<Optional<ScheduledMessage>> supplier) {
 		ScheduledMessenger sm = messengerProvider.select(messenger).get();
-		addLineage(sm);
-		messengerComponents.put(sm.getId(), sm);
+		sm.register(supplier);
 		return sm;
 	}
-	
-	public void startAllMessengers() {
-		for (ScheduledMessenger messenger : messengerComponents.values()) {
-			messenger.start();
-		}
-	}
-	
-	public void stopAllMessengers() {
-		for (ScheduledMessenger messenger : messengerComponents.values()) {
-			messenger.stop();
-		}		
-	}
-	
+
 	@Override
 	public <T extends ManagedComponent> T createComponent(Class<T> subtype, Annotation... qualifiers) {
 		// Get component
@@ -432,10 +416,9 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 
 	@Override
 	@StatusOperation
-	public List<ScheduledMessage> checkAndUpdate() {
+	public Optional<ScheduledMessage> checkAndUpdate() {
 		log.debug("No status operation for :: " + this.getComponentType());
-		List<ScheduledMessage> ret = new ArrayList<>();
-		return ret;
+		return Optional.empty();
 	}
 
 }

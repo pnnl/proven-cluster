@@ -39,31 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import javax.inject.Inject;
+import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 
-import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-
-/**
- * Observes events on behalf of a {@code ManagedComponent}
- * 
- * @author d3j766
- *
- * @param <T>
- *            the type of {@code ManagedComponent} for which events are being
- *            observed.
- */
-public abstract class ComponentObserver<T> {
-
-	@Inject
-	Logger log;
-
-	T owner;
-
-	public void addOwner(T owner) {
-		this.owner = owner;
-	}
-
+public class ManagerObserver extends EventObserver<ManagerComponent> {
+	// TODO Does there need to be a Manager observer?
 }

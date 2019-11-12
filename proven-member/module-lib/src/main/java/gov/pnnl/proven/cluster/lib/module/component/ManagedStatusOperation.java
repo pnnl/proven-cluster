@@ -96,6 +96,6 @@ public interface ManagedStatusOperation {
 	/**
 	 * Performs a check and update of the component's current status and returns the current status report.
 	 */
-	List<ScheduledMessage> checkAndUpdate();
+	Optional<ScheduledMessage> checkAndUpdate();
 
 }

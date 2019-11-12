@@ -39,7 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
@@ -70,7 +72,9 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.FailedMessengerEvent;
  *
  */
 @Messenger
-public class ScheduledMessenger extends ManagedComponent {
+public class ScheduledMessenger implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	@Inject
 	Logger log;
@@ -117,10 +121,9 @@ public class ScheduledMessenger extends ManagedComponent {
 	protected boolean activateOnStartup;
 
 	/**
-	 * Registered suppliers of message events.
+	 * Registered supplier.
 	 */
-	protected Supplier<List<ScheduledMessage>> reporter;
-
+	protected Supplier<Optional<ScheduledMessage>> reporter;
 	/**
 	 * Messenger status
 	 */
@@ -157,20 +160,19 @@ public class ScheduledMessenger extends ManagedComponent {
 					try {
 						log.debug("Messenger task started");
 						if (hasRegisteredReporter()) {
-							for (ScheduledMessage message : reporter.get()) {
-								send(message);
-							}
+								send(reporter.get());
+						}
+						else {
+							log.debug("No registered reporter for messenger");
 						}
 						log.debug("Messenger task completed normally");
 					} catch (Throwable e) {
 
 						log.debug("Task exception has occurred: " + exCause(e));
 
-						if (isUnhandledException(e)) {
-							log.error(this.getComponentType().toString() + ":: Messenger task encountered exception: "
-									+ exCause(e));
-							log.error("Messenger is being shutdown");
-							stop(e);
+						if (e instanceof CancellationException) {
+							log.debug("Task execution has been cancelled: " + exCause(e));
+							stop();
 						}
 
 					}
@@ -181,6 +183,7 @@ public class ScheduledMessenger extends ManagedComponent {
 
 	}
 
+	@Deprecated
 	private boolean isUnhandledException(Throwable e) {
 
 		Throwable cause = e.getCause();
@@ -203,19 +206,13 @@ public class ScheduledMessenger extends ManagedComponent {
 	}
 
 	/**
-	 * Messenger schedule will be shutdown.
-	 */
-	public void stop() {
-		stop(null);
-	}
-
-	/**
 	 * Shutdown of message scheduler and failure event recorded.
 	 * 
 	 * @param t
 	 */
-	private void stop(Throwable t) {
+	public void stop() {
 
+		log.debug("Messenger stopping...");
 		synchronized (status) {
 
 			if (null != scheduledFuture) {
@@ -224,23 +221,17 @@ public class ScheduledMessenger extends ManagedComponent {
 			}
 			status = MessengerStatus.STOPPED;
 		}
-
-		// Record if is failure event
-		boolean isFailure = (null == t) ? false : true;
-		if (isFailure) {
-			failure(new FailedMessengerEvent(), true);
-		}
-
+		log.debug("Messenger stopped");
 	}
 
 	/**
-	 * Registers the provided reporter as a message content supplier.
+	 * Registers message content supplier.
 	 * 
-	 * @param reporter
+	 * @param supplier
 	 *            message provider
 	 * 
 	 */
-	public void register(Supplier<List<ScheduledMessage>> supplier) {
+	public void register(Supplier<Optional<ScheduledMessage>> supplier) {
 		this.reporter = supplier;
 	}
 
@@ -248,9 +239,9 @@ public class ScheduledMessenger extends ManagedComponent {
 	 * Sends the {@code ScheduledMessage}.
 	 * 
 	 * @param message
-	 *            reported message content
+	 *            optional reported message content
 	 */
-	protected void send(ScheduledMessage message) {
+	protected void send(Optional<ScheduledMessage> message) {
 
 	}
 
@@ -262,7 +253,6 @@ public class ScheduledMessenger extends ManagedComponent {
 		long min = Math.round(duration - ((jitterPercent / 100.0) * duration));
 		long max = Math.round(duration + ((jitterPercent / 100.0) * duration));
 		duration = ThreadLocalRandom.current().nextLong(min, max + 1);
-		log.debug("Schedule jitter applied for: " + getDoId());
 		log.debug("MIN schedule delay: " + min);
 		log.debug("MAX schedule delay: " + max);
 		log.debug("New scheduled delay is: " + duration);
@@ -300,12 +290,6 @@ public class ScheduledMessenger extends ManagedComponent {
 
 	public void setActivateOnStartup(boolean activateOnStartup) {
 		this.activateOnStartup = activateOnStartup;
-	}
-
-	@Override
-	public ComponentType getComponentType() {
-		// TODO Auto-generated method stub
-		return ComponentType.ScheduledMessenger;
 	}
 
 }

@@ -1,3 +1,8 @@
+#Disable dynamic reloading of applications
+set configs.config.server-config.admin-service.das-config.dynamic-reload-enabled=false
+#Disable auto deployment
+set configs.config.server-config.admin-service.das-config.autodeploy-enabled=false
+
 # Managed Executor Service for request exchange
 create-managed-executor-service --corepoolsize=100 concurrent/RequestExchange
 create-managed-executor-service --corepoolsize=100 concurrent/SSE

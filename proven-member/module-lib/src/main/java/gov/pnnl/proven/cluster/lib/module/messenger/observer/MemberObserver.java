@@ -39,45 +39,14 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
+import javax.enterprise.event.ObservesAsync;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Registry;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
-import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+public class MemberObserver extends EventObserver<MemberComponentRegistry> {
 
-public class ModuleObserverImpl extends ComponentObserver<ProvenModule> implements ModuleObserver  {
-	
-	@Inject
-	@Module
-	private ProvenModule pm;
-	
-	public ModuleObserverImpl() {
-	}
-	
-	@PostConstruct
-	public void init() {
-		addOwner(pm);
-	}
-		 
-	@Override
-	public void observeModuleStartup(@Observes @Module StartupEvent moduleStartup) {
-		owner.startup();
-	}
-
-	@Override
-	public void observeModuleSuspend(@Observes @Module SuspendEvent moduleSuspend) {
-		owner.suspend();
-	}
-	
-	@Override
-	public void observeModuleShutdown(@Observes @Module ShutdownEvent moduleShutdown) {
-		owner.shutdown();
+	public void observeStatus(@ObservesAsync @Registry StatusEvent event) {
 	}
 
 }

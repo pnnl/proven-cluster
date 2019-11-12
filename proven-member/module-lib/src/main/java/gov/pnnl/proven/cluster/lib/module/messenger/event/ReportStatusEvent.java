@@ -37,26 +37,17 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import javax.enterprise.event.Observes;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.CheckFailureEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
-public class ManagedObserverImpl extends ComponentObserver<ManagedComponent> implements ManagedObserver {
+/**
+ * Event message to trigger {@code Managed} components to report their status.
+ * 
+ * @author d3j766
+ *
+ */
+public class ReportStatusEvent extends RegistryEvent {
 
-	@Override
-	public void observeStatus(@Observes @Managed @StatusOperation StatusEvent statusEvent) {
-		// TODO
+	public ReportStatusEvent() {
 	}
-
-	@Override
-	public void observeCheckFailure(@Observes @Managed CheckFailureEvent checkFailureEvent) {
-		// TODO
-	}
-
 }

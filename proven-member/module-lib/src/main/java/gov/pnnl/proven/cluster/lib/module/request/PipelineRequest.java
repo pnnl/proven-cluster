@@ -64,13 +64,10 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Managers;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.JobObserver;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 
 /**
@@ -99,6 +96,9 @@ public abstract class PipelineRequest extends RequestComponent {
 	@Inject
 	@Manager
 	protected StreamManager sm;
+	
+	@Inject
+	JobObserver jobObserver;
 	
 	/**
 	 * Represents a Hazelcast client connection used by the pipeline's job to
@@ -188,6 +188,9 @@ public abstract class PipelineRequest extends RequestComponent {
 
 	@PostConstruct
 	void init() {
+		
+		// register observer
+		jobObserver.addOwner(this);
 	
 		// Extract provided metadata and add to class
 		addPipelineRequestProviderMetadata();
