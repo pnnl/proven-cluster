@@ -37,46 +37,41 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.util;
+package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import javax.annotation.Priority;
+import javax.interceptor.AroundInvoke;
+import javax.interceptor.Interceptor;
+import javax.interceptor.InvocationContext;
 
-import javax.annotation.Resource;
-import javax.ejb.Schedule;
-import javax.ejb.Timer;
-import javax.enterprise.concurrent.ManagedScheduledExecutorService;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 
-public class testSes  {
+@LockedStatusOperation
+@Interceptor
+@Priority(value = Interceptor.Priority.APPLICATION)
+public class LockedStatusOperationInterceptor {
 
-	@Resource(name ="DefaultManagedScheduledExecutorService")
-    ManagedScheduledExecutorService scheduler;
-	
-	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+	@AroundInvoke
+	public Object authorize(InvocationContext ic) throws Exception {
 
-//		CompletableFuture<Void> timeoutFuture = new CompletableFuture();
-//		final ManagedScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
-//		
-//		scheduler.scheduleWithFixedDelay( () -> 
-//		   {System.out.println("hello"); }  , 1L, 2L, TimeUnit.SECONDS);
+		Object ret = null;
+		Object target = ic.getTarget();
+		boolean isManagedComponent = (target instanceof ManagedComponent);
+
+		if (!isManagedComponent) {
+			return ic.proceed();
+		}
+
+		ManagedComponent mc = (ManagedComponent) target;
+		if (mc.acquireStatusLock()) {
+			try {
+				ret = ic.proceed();
+			} finally {
+				mc.releaseStatusLock();
+			}
+		}
 		
-		
-		testSes ses = new testSes();
-		ses.testScheduled();
-		
-
-	
+		return ret;
 	}
-	
-	 @Schedule
-	 void testScheduled() {
-		 System.out.println("hello");		 
-			scheduler.scheduleWithFixedDelay( () -> 
-			   {System.out.println("hello"); }  , 1L, 2L, TimeUnit.SECONDS);
-	 }
-
 }

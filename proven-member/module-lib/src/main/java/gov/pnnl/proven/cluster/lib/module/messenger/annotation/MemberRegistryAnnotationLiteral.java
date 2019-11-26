@@ -37,23 +37,9 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
+package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
-import javax.enterprise.event.ObservesAsync;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ReportStatusEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import javax.enterprise.util.AnnotationLiteral;
 
-public class ManagedObserver extends EventObserver<ManagedComponent> {
-
-	public void status(@ObservesAsync @Managed @StatusOperation StatusEvent event) {
-		// TODO
-	}
-
-	public void checkStatus(@ObservesAsync @Managed ReportStatusEvent event) {
-		// TODO
-	}
-
+public abstract class MemberRegistryAnnotationLiteral extends AnnotationLiteral<MemberRegistry> implements MemberRegistry {
 }

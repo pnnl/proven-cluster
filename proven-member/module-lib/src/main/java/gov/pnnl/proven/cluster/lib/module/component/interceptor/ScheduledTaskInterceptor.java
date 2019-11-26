@@ -39,43 +39,40 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import java.util.Arrays;
-import java.util.List;
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.util.Optional;
 
 import javax.annotation.Priority;
-import javax.enterprise.inject.InjectionException;
 import javax.enterprise.inject.Intercepted;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.interceptor.AroundConstruct;
-import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
+
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+
+import gov.pnnl.proven.cluster.lib.module.component.ScheduledTask;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.TaskSchedule;
 
 /**
- * Verifies injection of a {@code ManagedComponent} is being injected by a
- * {@code ManagerComponent} or another {@code ManagedComponent}. An
- * {@code InjectionException} is thrown if this is not the case. Ensures correct
- * utilization of {@code ManagedComponentType} annotation.
+ * Adds {@code MessengerProperties} to scheduler.
+ * 
  * 
  * @author d3j766
  * 
  */
-@StatusOperation
 @Interceptor
-@Priority(value=Interceptor.Priority.APPLICATION)
-public class StatusInterceptor {
+@TaskSchedule
+@Priority(value = Interceptor.Priority.APPLICATION)
+public class ScheduledTaskInterceptor implements Serializable {
 
-	static Logger log = LoggerFactory.getLogger(StatusInterceptor.class);
+	private static final long serialVersionUID = 1L;
+
+	@Inject
+	Logger log;
 
 	@Inject
 	@Intercepted
@@ -84,21 +81,44 @@ public class StatusInterceptor {
 	@Inject
 	InjectionPoint ip;
 
-	@AroundInvoke
-	public Object managedComponentStatusOperation(InvocationContext ctx) throws Exception {
-
-		log.debug("StatusInterceptor - BEFORE construction.");
-		log.debug("Intercepted component :: " + intercepted.getBeanClass().getName());
-		
-		ManagedComponent mc =  (ManagedComponent) ctx.getTarget();
-		log.debug("Status operation: " + ctx.getMethod().getName() + " For: " + mc.getDoId());
+	@AroundConstruct
+	public void addMessengers(InvocationContext ctx) throws Exception {
 
 		// OK to proceed
-		Object result = ctx.proceed();
+		ctx.proceed();
+		Object result = ctx.getTarget();
+		ScheduledTask<?> scheduledTask = (ScheduledTask<?>) result;
+		TaskSchedule schedule;
+		
+		
+		Optional<Annotation> scheduleOpt;// = Optional.empty();
+		scheduleOpt = ip.getQualifiers().stream().filter((q) -> q instanceof TaskSchedule).findAny();
+		
 
-		log.debug("StatusInterceptor - AFTER construction.");
+		
+//		if (ip.getAnnotated().isAnnotationPresent(TaskSchedule.class)) {
+//			scheduleOpt = Optional.of(ip.getAnnotated().getAnnotation(TaskSchedule.class));
+//		}
+				
+		if (scheduleOpt.isPresent()) {
+			schedule = (TaskSchedule) scheduleOpt.get();
+		}
+		// Use default from the class 
+		else {
+			log.info("Using default task schedule properties");
+			schedule = ScheduledTask.class.getAnnotation(TaskSchedule.class);
+		}
 
-		return result;
+		// Add properties
+		addScheduleProperties(scheduledTask, schedule);
+
+	}
+
+	private void addScheduleProperties(ScheduledTask<?> st, TaskSchedule t) {
+		st.setDelay(t.delay());
+		st.setTimeUnit(t.timeUnit());
+		st.setJitterPercent(t.jitterPercent());
+		st.setActivateOnStartup(t.activateOnStartup());
 	}
 
 }

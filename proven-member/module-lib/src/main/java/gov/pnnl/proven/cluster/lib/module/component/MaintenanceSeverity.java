@@ -37,21 +37,38 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import javax.enterprise.event.ObservesAsync;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.JobEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ReportStatusEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.NonRecoverable;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.OutOfService;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Recoverable;
 
-public class JobObserver extends EventObserver<PipelineRequest> {
+/**
+ * Represents the severity of maintenance performed on managed components. The
+ * severity will align to either a non-recoverable or recoverable status.
+ * Maintenance is only performed on components that are in a recoverable state.
+ * 
+ * @author d3j766
+ *
+ */
+public enum MaintenanceSeverity {
 
-	public void job(@ObservesAsync @Managed JobEvent event) {
-		// TODO
+	RemoveFromService(OutOfService),
+	Severe(NonRecoverable),
+	Warn(Recoverable),
+	Normal(Recoverable),
+	Unknown(Recoverable);
+	
+	private final ManagedStatus severity;
+
+	MaintenanceSeverity(ManagedStatus severity) {
+		this.severity = severity;
 	}
 
+	/**
+	 * Returns true if maintenance severity is recoverable.
+	 */
+	public boolean isRecoverable() {
+		return ManagedStatus.isRecoverable(severity);
+	}
 }

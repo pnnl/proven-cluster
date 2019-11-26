@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +50,7 @@ import javax.enterprise.util.Nonbinding;
  * @author d3j766
  *
  */
-public abstract class MessengerAnnotationLiteral extends AnnotationLiteral<Messenger> implements Messenger {
+public abstract class TaskScheduleAnnotationLiteral extends AnnotationLiteral<TaskSchedule> implements TaskSchedule {
 
 	@Override
 	@Nonbinding

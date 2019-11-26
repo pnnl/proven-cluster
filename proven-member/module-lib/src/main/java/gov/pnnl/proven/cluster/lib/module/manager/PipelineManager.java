@@ -41,15 +41,14 @@
 package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.util.List;
+
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
 import org.slf4j.Logger;
+
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
-import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProviderAnnotationLiteral;
 
 /**
@@ -68,29 +67,20 @@ public class PipelineManager extends ManagerComponent {
 
 	@PostConstruct
 	public void initialize() {
-
-		// Load PipelineRequest implementations as managed components
-		List<PipelineRequest> prs = createComponents(PipelineRequest.class,
-				new PipelineRequestProviderAnnotationLiteral() {
-				});
-
-		log.info(prs.size() + " PipelineRequests loaded");
-
-		/*
-		 * Now activate all the loaded pipeline requests
-		 * 
-		 * TODO Remove and replace with observer of its managed component status
-		 * reports. If {@code ComponentStatus#Offline }, then activate the
-		 * component.
-		 */
-		activateCreated();
-
-		// createdComponents.forEach((k, v) -> v.activate());
-
 	}
 
 	public PipelineManager() {
 		super();
+	}
+	
+	//@Override
+	public boolean activate() {
+		// Load PipelineRequest implementations as managed components
+		List<PipelineRequest> prs = createComponents(PipelineRequest.class,
+				new PipelineRequestProviderAnnotationLiteral() {
+				});
+		log.info(prs.size() + " PipelineRequests created by PipelineManager: " + this.getDoId());
+		return true;
 	}
 
 	@Override

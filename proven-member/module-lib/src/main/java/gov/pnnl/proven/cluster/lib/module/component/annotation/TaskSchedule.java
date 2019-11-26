@@ -37,56 +37,75 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.util;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
 
-public class TestInterrupt {
+import javax.enterprise.util.Nonbinding;
+import javax.inject.Qualifier;
+import javax.interceptor.InterceptorBinding;
 
-	public static void main(String[] args) throws InterruptedException {
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
 
-		ExecutorService executor = Executors.newSingleThreadExecutor();
+/**
+ * {@code ScheduledMesenger} qualifier. Includes members providing schedule
+ * properties.
+ * 
+ * @author d3j766
+ *
+ * @see ScheduledMessenger
+ * 
+ */
+@InterceptorBinding
+@Qualifier
+@Inherited
+@Retention(RUNTIME)
+@Target({ TYPE, FIELD })
+public @interface TaskSchedule {
 
-		Future<?> future = executor.submit(() -> {
+	/**
+	 * (Optional) Fixed delay in specified {@link #timeUnit()} between report
+	 * messages.
+	 * 
+	 * Default is 3 Seconds.
+	 */
+	@Nonbinding
+	long delay() default 15;
 
-			printNumbers(); // first call
+	/**
+	 * (Optional) {@code TimeUnit} for {@link #delay()} value.
+	 * 
+	 * Default is {@code TimeUnit#SECONDS}
+	 */
+	@Nonbinding
+	TimeUnit timeUnit() default TimeUnit.SECONDS;
 
-			printNumbers(); // second call
-
-		});
-
-		Thread.sleep(3_000);
-
-		executor.shutdownNow(); // will interrupt the task
-
-		executor.awaitTermination(3, TimeUnit.SECONDS);
-
-	}
-
-	private static void printNumbers() {
-
-		for (int i = 0; i < 10; i++) {
-
-			System.out.print(i);
-
-			try {
-
-				Thread.sleep(1_000);
-
-			} catch (InterruptedException e) {
-
-				Thread.currentThread().interrupt(); // preserve interruption
-													// status
-
-				break;
-
-			}
-
-		}
-
-	}
-
+	/**
+	 * (Optional) A controlled variance adjustment applied to the reporting
+	 * schedule's fixed {@link #delay()} value. Variance is a +/- value that
+	 * ranges from 0 to the provided percentage of the fixed delay.
+	 * 
+	 * Default is 10
+	 */
+	@Nonbinding
+	int jitterPercent() default 10;
+	
+	/**
+	 * (Optional) If true, messenger component will be activated on startup.
+	 * 
+	 * Default is true
+	 */
+	@Nonbinding
+	boolean activateOnStartup() default true;
+	
 }

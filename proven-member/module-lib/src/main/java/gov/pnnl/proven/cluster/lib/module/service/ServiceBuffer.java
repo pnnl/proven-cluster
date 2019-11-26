@@ -40,15 +40,15 @@
 package gov.pnnl.proven.cluster.lib.module.service;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
+
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 
 /**
  * A managed component supporting the execution of module requests.

@@ -37,67 +37,35 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.util;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
+import javax.inject.Qualifier;
 
-public class ScheduledExecutorServiceWithException {
+/**
+ * Identifies a registry component, used to qualify event messages intended for
+ * registries.
+ * 
+ * @see RegistryComponent
+ * 
+ * @author d3j766
+ *
+ * 
+ */
+@Documented
+@Qualifier
+@Retention(RUNTIME)
+@Target({ PARAMETER, TYPE })
+public @interface MemberRegistry {
 
-  public static void main(String[] args) {
-    ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
-
-    // variable used to thrown an error at the 3rd task invocation
-    AtomicInteger countBeforeError = new AtomicInteger(3);
-
-    // boolean allowing to leave the client to halt the scheduling task or not after a failure
-    boolean mustHalt = true;
-    do {
-      Future<?> futureA = executor
-              .scheduleWithFixedDelay(new MyRunnable(countBeforeError), 1, 2, TimeUnit.SECONDS);
-      try {
-        futureA.get(); // will return only if canceled
-      } catch (InterruptedException e) {
-        // handle that : halt or not halt
-      } catch (ExecutionException e) {
-        if (e.getCause() instanceof Error) {
-          System.out.println("I halt in case of Error");
-          mustHalt = true;
-        } else {
-          System.out.println("I reschedule in case of Exception");
-          mustHalt = false;
-        }
-      }
-    }
-    while (!mustHalt);
-    // shutdown the executorservice
-    executor.shutdown();
-  }
-
-  private static class MyRunnable implements Runnable {
-
-    private final AtomicInteger invocationDone;
-
-    public MyRunnable(AtomicInteger invocationDone) {
-      this.invocationDone = invocationDone;
-    }
-
-    @Override
-    public void run() {
-      System.out.println(Thread.currentThread().getName() + ", execution");
-
-      if (invocationDone.decrementAndGet() == 0) {
-        throw new Error("ohhh an Error in MyRunnable");
-      } else {
-        throw new IllegalArgumentException("ohhh an Exception in MyRunnable");
-      }
-    }
-  }
 }
-

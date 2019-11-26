@@ -39,63 +39,62 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
-import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.FailureEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-
 /**
- * Identifies {@code ManagedComponent} status operations. Each component
- * operation will be modify its {@code ManagedStatus} value based on processing
- * result.
+ * Identifies {@code ManagedComponent} status operations.
  * 
- * @see ManagedComponent, ManagedStatus
+ * Each operation may change the component's {@code ManagedStatus} value.
+ * 
+ * @see ManagedComponent, ManagedStatus, StatusOperation
  * 
  * @author d3j766
  *
  */
 public interface ManagedStatusOperation {
 
-	<T extends ManagedComponent> T createComponent(Class<T> subtype, Annotation... qualifiers);
-
-	<T extends ManagedComponent> List<T> createComponents(Class<T> subtype, Annotation... qualifiers);
-
-	void activateCreated(UUID created);
-
-	void activate();
-
-	void failedCreated(UUID created);
-
-	void failed();
-
-	void retry();
-
-	void deactivateCreated(UUID created);
-
-	void deactivate();
-
-	void remove();
-
 	/**
-	 * Changes status to {@code ManagedStatus#FailedOnlineRetry} representing a
-	 * runtime failure event has occurred. If {@code noRetry} is false then
-	 * component's status will be set to {@code ManagedStatus#Failed} resulting
-	 * in no reactivation attempts to be made. If {@code noRetry} is true then
-	 * reactivation attempts will be made.
+	 * Component is activated.
 	 * 
-	 * @param noRetry
-	 *            true indicates retries should be supported, false otherwise.
+	 * @return true if the component was successfully activated, false otherwise
 	 */
-	void failure(FailureEvent event, boolean noRetry);
+	boolean activate();
 
 	/**
-	 * Performs a check and update of the component's current status and returns the current status report.
+	 * A new component is created of the same type as the scaled component.
+	 * 
+	 * @param scaled
+	 *            identifier of component that triggered the scale operation
+	 * @return
 	 */
-	Optional<ScheduledMessage> checkAndUpdate();
+	void scale(UUID scaled);
+
+	/**
+	 * Component is deactivated.
+	 * 
+	 * @return true if the component was successfully deactivated, false
+	 *         otherwise
+	 */
+	boolean deactivate();
+
+	/**
+	 * Component is set to a {@code ManagedStatus#Failed} state.
+	 */
+	void fail();
+
+	/**
+	 * Component is removed from service.
+	 * 
+	 * @return true if the component was successfully removed, false otherwise
+	 */
+	boolean remove();
+
+	/**
+	 * Performs maintenance checks and repairs on a component. Returns
+	 * {@code ManagedMaintenance}, representing maintenance results of this
+	 * operation.
+	 */
+	Optional<ManagedMaintenance> checkAndRepair();
 
 }

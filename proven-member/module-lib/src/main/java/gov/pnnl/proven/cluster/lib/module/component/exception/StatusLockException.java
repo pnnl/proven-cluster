@@ -37,10 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-public class ManagerObserver extends EventObserver<ManagerComponent> {
-	// TODO Does there need to be a Manager observer?
+public class StatusLockException extends RuntimeException {
+
+	private static final long serialVersionUID = 1L;
+
+	public StatusLockException() {
+		super();
+	}
+
+	public StatusLockException(String message) {
+		super(message);
+	}
+
+	public StatusLockException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

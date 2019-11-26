@@ -39,13 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.request;
 
-import javax.enterprise.inject.spi.CDI;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 /**

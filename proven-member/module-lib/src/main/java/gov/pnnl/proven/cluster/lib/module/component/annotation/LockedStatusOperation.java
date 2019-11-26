@@ -37,16 +37,31 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import javax.enterprise.event.ObservesAsync;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Registry;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public class MemberObserver extends EventObserver<MemberComponentRegistry> {
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-	public void observeStatus(@ObservesAsync @Registry StatusEvent event) {
-	}
+import javax.interceptor.InterceptorBinding;
+
+/**
+ * Indicates the annotated method requires locking of the component's status.
+ * 
+ * This only applies to methods of a {@code ManagedComponent} type. Other types
+ * will be ignored.
+ * 
+ * @author d3j766
+ *
+ */
+@Documented
+@InterceptorBinding
+@Retention(RUNTIME)
+@Target({ METHOD, TYPE })
+public @interface LockedStatusOperation {
 
 }

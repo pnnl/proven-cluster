@@ -39,10 +39,10 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.manager;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.inject.Inject;
+
 import org.slf4j.Logger;
+
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 

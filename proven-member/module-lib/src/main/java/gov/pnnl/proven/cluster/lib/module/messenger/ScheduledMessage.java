@@ -40,19 +40,17 @@
 package gov.pnnl.proven.cluster.lib.module.messenger;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-
-import javax.enterprise.inject.literal.QualifierLiteral;
-import javax.inject.Qualifier;
 
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 
 public class ScheduledMessage {
 
 	private MessageEvent event;
-	private Optional<Annotation[]> qualifiers = Optional.empty();
+	private Optional<List<Annotation>> qualifiers = Optional.empty();
 	private boolean isAsync = true;
-	private boolean isCreateOnSend = true;
 
 	public ScheduledMessage() {
 	}
@@ -61,10 +59,17 @@ public class ScheduledMessage {
 		this.event = event;
 	}
 
+	public ScheduledMessage(MessageEvent event, List<Annotation> qualifiers) {
+		this.event = event;
+		if (qualifiers.size() > 0) {
+			setQualifiers(Optional.of(qualifiers));
+		}
+	}
+	
 	public ScheduledMessage(MessageEvent event, Annotation... qualifiers) {
 		this.event = event;
 		if (qualifiers.length > 0) {
-			setQualifiers(Optional.of(qualifiers));
+			setQualifiers(Optional.of(Arrays.asList(qualifiers)));
 		}
 	}
 
@@ -76,18 +81,12 @@ public class ScheduledMessage {
 		this.event = event;
 	}
 
-	public Optional<Annotation[]> getQualifiers() {
+	public Optional<List<Annotation>> getQualifiers() {
 		return qualifiers;
 	}
 
-	public void setQualifiers(Optional<Annotation[]> qualifiers) {
+	public void setQualifiers(Optional<List<Annotation>> qualifiers) {
 		this.qualifiers = qualifiers;
-		for (Annotation qualifier : this.qualifiers.get()) {
-			if (!qualifier.getClass().isAnnotationPresent(Qualifier.class)) {
-				throw new IllegalArgumentException(
-						"Annotation:  " + qualifier.getClass().getSimpleName() + "  Must be an @Qualifier");
-			}
-		}
 	}
 
 	public boolean isAsync() {
@@ -96,14 +95,6 @@ public class ScheduledMessage {
 
 	public void setAsync(boolean isAsync) {
 		this.isAsync = isAsync;
-	}
-
-	public boolean isCreateOnSend() {
-		return isCreateOnSend;
-	}
-
-	public void setCreateOnSend(boolean isCreateOnSend) {
-		this.isCreateOnSend = isCreateOnSend;
 	}
 
 }

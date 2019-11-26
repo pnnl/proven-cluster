@@ -39,7 +39,14 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Failed;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Offline;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Unknown;
+import static gov.pnnl.proven.cluster.lib.module.util.LoggerResource.currentThreadLog;
+
 import java.lang.annotation.Annotation;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -57,21 +65,30 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+
 import org.slf4j.Logger;
+
 import com.hazelcast.core.HazelcastInstance;
+
 import fish.payara.micro.PayaraMicro;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.TaskScheduleAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.component.exception.StatusLockException;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
+import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessages;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MessengerAnnotationLiteral;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.FailureEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperationAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.StatusOperationObserver;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 /**
@@ -108,47 +125,57 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 
 	@Inject
 	@Any
-	protected Instance<ScheduledMessenger> messengerProvider;
+	protected Instance<ScheduledMessenger> scheduledMessengerProvider;
+	protected ScheduledMessenger scheduledMessenger;
+	protected long maxScheduledDelayMillis;
 
 	@Inject
-	protected ManagedObserver managedObserver;
+	@Any
+	protected Instance<ScheduledMaintenance> scheduledMaintenanceProvider;
+	protected ScheduledMaintenance scheduledMaintenance;
 
-	protected ReentrantLock statusLock = new ReentrantLock();
+	@Inject
+	protected StatusOperationObserver opObserver;
 
-	protected ManagedStatus status;
-
+	// Identifier properties
+	protected UUID id;
+	protected String doId;
 	protected UUID managerId;
-
 	protected UUID creatorId;
-
-	protected String clusterGroup;
-
-	protected String host;
-
 	protected String memberId;
-
-	protected String containerName;
-
 	protected UUID moduleId;
 
+	// Address properties
+	protected String clusterGroup;
+	protected String host;
+	protected String containerName;
 	protected String moduleName;
-
-	protected UUID id;
-
 	protected Set<ComponentGroup> group;
 
-	protected String doId;
+	// Status properties
+	protected ManagedStatus status;
+	protected ManagedStatus reportedStatus = Unknown;
+	protected int reportedAttempts = 0;
+	protected int maxAttemptsBeforeReporting = 5;
+	protected long maxRegisterReportingDelayMillis;
+	protected ReentrantLock statusLock = new ReentrantLock();
+
+	// Scalable properties
+	protected boolean scalable = false;
+	protected int allowedScalePerComponent;
+	protected int scaleAttempts;
+	protected int minScaleCount;
+	protected int maxScaleCount;
 
 	/**
-	 * Created components. The Map contains the component's ID as the key and
-	 * object as value.
+	 * Created (i.e. child) components. The Map contains the component's ID as
+	 * the key and object as value.
 	 */
 	protected Map<UUID, ManagedComponent> createdComponents;
 
 	/**
-	 * Status messenger for the managed component.
+	 * 
 	 */
-	protected ScheduledMessenger statusMessenger;
 
 	public ManagedComponent() {
 		containerName = PayaraMicro.getInstance().getInstanceName();
@@ -158,50 +185,75 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 		moduleName = ProvenModule.retrieveModuleName();
 		if (getComponentType() == ComponentType.ProvenModule) {
 			this.id = moduleId;
+			this.creatorId = moduleId;
+			this.managerId = moduleId;
 			this.group.add(ComponentGroup.Module);
 		}
 		group.add(ComponentGroup.Managed);
 		createdComponents = new HashMap<>();
-		status = ManagedStatus.Creating;
+
+		// Indicates component is being created - status is set to Ready in
+		// PostConstruct callback
+		setStatus(ManagedStatus.Creating);
 	}
 
 	@PostConstruct
 	public void managedComponentInit() {
 
+		// Member properties dependent on other injection members
 		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().toString();
 		clusterGroup = hzi.getConfig().getGroupConfig().getName();
 		host = hzi.getCluster().getLocalMember().getAddress().getHost();
 		memberId = hzi.getCluster().getLocalMember().getUuid();
-		managedObserver.addOwner(this);
+
+		// Register with the observer
+		opObserver.register(this);
+
+		// Get/set scalable properties
+		if (this.getClass().isAnnotationPresent(Scalable.class)) {
+			Scalable scalableAnnotation = this.getClass().getAnnotation(Scalable.class);
+			scalable = true;
+			allowedScalePerComponent = scalableAnnotation.alowedPerComponent();
+			scaleAttempts = 0;
+			minScaleCount = scalableAnnotation.minCount();
+			maxScaleCount = scalableAnnotation.maxCount();
+		}
 
 		// All managed components must have a status messenger.
-		// Managers must be manually started
-
-		// ScheduledMessage supplier
-		Supplier<Optional<ScheduledMessage>> supplier = () -> {
-			return checkAndUpdate();
+		Supplier<Optional<ScheduledMessages>> messageSupplier = () -> {
+			return reportStatus();
 		};
+		scheduledMessenger = createScheduledMessenger(new TaskScheduleAnnotationLiteral() {
+			private static final long serialVersionUID = 1L;
 
-		if (ManagerComponent.class.isAssignableFrom(this.getClass())) {
+			@Override
+			public boolean activateOnStartup() {
+				return false;
+			};
+		}, messageSupplier);
 
-			// create - managers messenger must be inactive at startup.
-			statusMessenger = createMessenger(new MessengerAnnotationLiteral() {
-				private static final long serialVersionUID = 1L;
+		// Set register's maximum waiting period before requesting a status
+		// check from a managed component
+		long delay = scheduledMessenger.getTimeUnit().toMillis(scheduledMessenger.getDelay());
+		long maxJitter = (delay * (scheduledMessenger.getJitterPercent() / 100));
+		long maxDelay = delay + maxJitter;
+		maxRegisterReportingDelayMillis = (maxAttemptsBeforeReporting + 1) * maxDelay;
 
-				@Override
-				public boolean activateOnStartup() {
-					return false;
-				};
-			}, supplier);
-		}
+		// All managed components have scheduled maintenance checks
+		Supplier<Optional<ManagedMaintenance>> maintenanceSupplier = () -> {
+			return checkAndRepair();
+		};
+		scheduledMaintenance = createScheduledMaintenance(new TaskScheduleAnnotationLiteral() {
+			private static final long serialVersionUID = 1L;
 
-		else {
-			// create - use default Messenger configuration
-			statusMessenger = createMessenger(new MessengerAnnotationLiteral() {
-				private static final long serialVersionUID = 1L;
-			}, supplier);
-		}
+			@Override
+			public boolean activateOnStartup() {
+				return false;
+			};
+		}, maintenanceSupplier);
 
+		// Initial non-transitional status for a managed component
+		setStatus(ManagedStatus.Ready);
 	}
 
 	@PreDestroy
@@ -210,10 +262,12 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 	}
 
 	public boolean acquireStatusLock() {
+		log.debug(currentThreadLog("ACQUIRE LOCK"));
 		return statusLock.tryLock();
 	}
 
 	public void releaseStatusLock() {
+		log.debug(currentThreadLog("RELEASE LOCK"));
 		statusLock.unlock();
 	}
 
@@ -258,40 +312,52 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 	public boolean isScalable() {
 		return this.getClass().isAnnotationPresent(Scalable.class);
 	}
-	
-	public ScheduledMessenger getStatusMessenger() {
-		return statusMessenger;
+
+	public ScheduledMessenger getScheduledMessenger() {
+		return scheduledMessenger;
 	}
 
-	public ScheduledMessenger createMessenger(Messenger messenger, Supplier<Optional<ScheduledMessage>> supplier) {
-		ScheduledMessenger sm = messengerProvider.select(messenger).get();
+	public ScheduledMaintenance getScheduledMaintenance() {
+		return scheduledMaintenance;
+	}
+
+	public ScheduledMessenger createScheduledMessenger(TaskSchedule schedule,
+			Supplier<Optional<ScheduledMessages>> supplier) {
+		ScheduledMessenger sm = scheduledMessengerProvider.select(schedule).get();
 		sm.register(supplier);
 		return sm;
 	}
 
-	@Override
+	public ScheduledMaintenance createScheduledMaintenance(TaskSchedule schedule,
+			Supplier<Optional<ManagedMaintenance>> supplier) {
+		ScheduledMaintenance sm = scheduledMaintenanceProvider.select(schedule).get();
+		sm.register(supplier);
+		return sm;
+	}
+
 	public <T extends ManagedComponent> T createComponent(Class<T> subtype, Annotation... qualifiers) {
 		// Get component
 		T mc = componentProvider.select(subtype, qualifiers).get();
-		addLineage(mc);
 		createdComponents.put(mc.getId(), mc);
+		log.debug("NEW COMPONENT created - " + mc.getComponentType().toString());
+		enableComponent(mc);
+		log.debug("NEW COMPONENT enabled - " + mc.getComponentType().toString());
 		return mc;
 	}
 
-	@Override
 	public <T extends ManagedComponent> List<T> createComponents(Class<T> subtype, Annotation... qualifiers) {
 		List<T> ret = new ArrayList<>();
 		Iterator<T> mcItr = componentProvider.select(subtype, qualifiers).iterator();
 		while (mcItr.hasNext()) {
 			T mc = mcItr.next();
-			addLineage(mc);
 			createdComponents.put(mc.getId(), mc);
+			enableComponent(mc);
 			ret.add(mc);
 		}
 		return ret;
 	}
 
-	private void addLineage(ManagedComponent mc) {
+	private void enableComponent(ManagedComponent mc) {
 
 		// If the caller is a manager component, then use its identifier,
 		// otherwise pass through the manager identifier for the caller to the
@@ -303,26 +369,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 		}
 
 		// Creator is always the caller's identifier
-		mc.setCreatorId(getCreatorId());
+		mc.setCreatorId(getId());
 
-	}
+		// Activate scheduled messenger
+		mc.getScheduledMessenger().start();
 
-	/**
-	 * All managed components must support their own activation.
-	 */
-	protected void activateCreated() {
-		for (ManagedComponent mc : createdComponents.values()) {
-			mc.activate();
-		}
-	}
-
-	/**
-	 * All managed components must support their own activation.
-	 */
-	protected void deactivateCreated() {
-		for (ManagedComponent mc : createdComponents.values()) {
-			mc.deactivate();
-		}
+		// Activate scheduled maintenance
+		// mc.getScheduledMaintenance().start();
 	}
 
 	public UUID getManagerId() {
@@ -345,80 +398,234 @@ public abstract class ManagedComponent implements ManagedStatusOperation {
 		return createdComponents.keySet();
 	}
 
+	public Optional<ManagedComponent> getCreated(UUID id) {
+
+		Optional<ManagedComponent> ret = Optional.empty();
+		ManagedComponent mc = createdComponents.get(id);
+		if (null != mc) {
+			ret = Optional.of(mc);
+		}
+
+		return ret;
+	}
+
 	public ManagedStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(ManagedStatus status) {
-
+	public void setStatus(ManagedStatus status) throws StatusLockException {
 		if (statusLock.tryLock()) {
 			try {
 				this.status = status;
 			} finally {
 				statusLock.unlock();
 			}
+		} else {
+			throw new StatusLockException("Failed to acquire status lock when setting status for: " + getDoId());
 		}
+
 	}
 
-	@Override
-	@StatusOperation
-	public void activateCreated(UUID created) {
-		log.debug("No activation created operation for :: " + this.getComponentType());
+	/**
+	 * @return the maxRegisterReportingDelayMillis
+	 */
+	public long getMaxRegisterReportingDelayMillis() {
+		return maxRegisterReportingDelayMillis;
 	}
 
-	@Override
-	@StatusOperation
-	public void activate() {
-		log.debug("No activation operation for :: " + this.getComponentType());
+	/**
+	 * @param maxRegisterReportingDelayMillis
+	 *            the maxRegisterReportingDelayMillis to set
+	 */
+	public void setMaxRegisterReportingDelayMillis(long maxRegisterReportingDelayMillis) {
+		this.maxRegisterReportingDelayMillis = maxRegisterReportingDelayMillis;
 	}
 
+	/**
+	 * @see ManagedStatusOperation#activate()
+	 */
 	@Override
-	@StatusOperation
-	public void failedCreated(UUID created) {
-		log.debug("No fail created operation for :: " + this.getComponentType());
+	@LockedStatusOperation
+	public boolean activate() {
+		log.debug("No activation operation implementation for :: " + this.getComponentType());
+		return true;
 	}
 
+	/**
+	 * @see ManagedStatusOperation#scale()
+	 */
 	@Override
-	@StatusOperation
-	public void failed() {
-		log.debug("No fail operation for :: " + this.getComponentType());
+	public void scale(UUID scaled) {
+		log.warn("No scale operation implementation for a scalable component provided :: " + this.getComponentType());
 	}
 
+	/**
+	 * @see ManagedStatusOperation#deactivate()
+	 */
 	@Override
-	@StatusOperation
-	public void retry() {
-		log.debug("No retry operation for :: " + this.getComponentType());
+	@LockedStatusOperation
+	public boolean deactivate() {
+		log.debug("No deactivate operation implementation for :: " + this.getComponentType());
+		return true;
 	}
 
+	/**
+	 * @see ManagedStatusOperation#remove()
+	 */
 	@Override
-	@StatusOperation
-	public void deactivateCreated(UUID created) {
-		log.debug("No deactivation created operation for :: " + this.getComponentType());
+	@LockedStatusOperation
+	public boolean remove() {
+		log.debug("No remove operation implemenation for :: " + this.getComponentType());
+		return true;
 	}
 
+	/**
+	 * @see ManagedStatusOperation#fail()
+	 */
 	@Override
-	@StatusOperation
-	public void deactivate() {
-		log.debug("No deactivate operation for :: " + this.getComponentType());
+	@LockedStatusOperation
+	public void fail() {
+		log.debug("No fail operation implementation for :: " + this.getComponentType());
 	}
 
+	/**
+	 * @see ManagedStatusOperation#checkAndRepair()
+	 */
 	@Override
-	@StatusOperation
-	public void remove() {
-		log.debug("No remove operation for :: " + this.getComponentType());
-	}
-
-	@Override
-	@StatusOperation
-	public void failure(FailureEvent event, boolean noRetry) {
-		log.debug("No status operation for :: " + this.getComponentType());
-	}
-
-	@Override
-	@StatusOperation
-	public Optional<ScheduledMessage> checkAndUpdate() {
-		log.debug("No status operation for :: " + this.getComponentType());
+	@LockedStatusOperation
+	public Optional<ManagedMaintenance> checkAndRepair() {
+		log.debug("No checkAndRepair implementation operation for :: " + this.getComponentType());
 		return Optional.empty();
+	}
+
+	/**
+	 * Optionally creates and returns {@code ScheduledMessages} composed of
+	 * {@code StatusEvent} information. The message may include
+	 * {@code StatusOperation.Operation} information as well, if
+	 * 
+	 * @return a {@code ScheduledMessage}, it may be empty if implementation
+	 *         determines the report is unnecessary (e.g. no change since last
+	 *         report or no required status operation).
+	 */
+	@SuppressWarnings("serial")
+	public Optional<ScheduledMessages> reportStatus() {
+
+		log.debug("REPORTING STATUS:: " + getStatus() + " FOR:: " + getDoId());
+
+		// This is not a locked status operation. Therefore, status may change
+		// during the method or before observance. The operation will be
+		// re-verified on observer end to account for this possibility.
+		Optional<ScheduledMessages> ret = Optional.empty();
+		ScheduledMessages sms = new ScheduledMessages();
+		Stack<SimpleEntry<Operation, MessageEvent>> ops = new Stack<>();
+
+		// Create operation messages
+		for (Operation op : Operation.values()) {
+			for (UUID candidate : statusEventOperationCandidates(op)) {
+				ops.push(new SimpleEntry<Operation, MessageEvent>(op, new StatusEvent(this, candidate)));
+			}
+		}
+
+		// Create operation messages
+		do {
+			List<Annotation> qualifiers = new ArrayList<>();
+			Optional<SimpleEntry<Operation, MessageEvent>> opEntry = Optional.empty();
+
+			if (!ops.empty()) {
+				opEntry = Optional.of(ops.pop());
+			}
+
+			if (opEntry.isPresent()) {
+
+				Operation operation = opEntry.get().getKey();
+				qualifiers.add(new ManagedAnnotationLiteral() {
+				});
+				qualifiers.add(new StatusOperationAnnotationLiteral() {
+					@Override
+					public Operation operation() {
+						// TODO Auto-generated method stub
+						return operation;
+					}
+				});
+				sms.addMessage(new ScheduledMessage(opEntry.get().getValue(), qualifiers));
+			}
+
+		} while (!ops.empty());
+
+		// Notify registry, if necessary
+		ManagedStatus currentStatus = getStatus();
+		if ((currentStatus != reportedStatus) || (reportedAttempts >= maxAttemptsBeforeReporting)) {
+			reportedAttempts = 0;
+			reportedStatus = currentStatus;
+			// sms.addMessage(
+			// new ScheduledMessage(new StatusEvent(this, this.getId()), new
+			// MemberRegistryAnnotationLiteral() {
+			// }));
+		} else {
+			reportedAttempts++;
+		}
+
+		if (sms.hasMessages()) {
+			ret = Optional.of(sms);
+		}
+
+		return ret;
+	}
+
+	private List<UUID> statusEventOperationCandidates(Operation op) {
+
+		List<UUID> ret = new ArrayList<UUID>();
+
+		switch (op) {
+
+		case Activate:
+			if (Online == getStatus()) {
+				ret = hasCreatedCandidates(op);
+			}
+			break;
+
+		case Scale:
+			if (Online == getStatus()) {
+				ret = hasCreatedCandidates(op);
+			}
+			break;
+
+		case Deactivate:
+			if (Offline == getStatus()) {
+				ret = hasCreatedCandidates(op);
+			}
+			break;
+
+		case Fail:
+			if (Failed == getStatus()) {
+				ret = hasCreatedCandidates(op);
+			}
+			break;
+
+		case Remove:
+			if (!getStatus().isTransition()) {
+				ret = hasCreatedCandidates(op);
+			}
+			break;
+
+		default:
+			log.error("Unknown Creator operation type requested in report status");
+			break;
+		}
+		
+		return ret;
+	}
+
+	private List<UUID> hasCreatedCandidates(Operation op) {
+
+		List<UUID> ret = new ArrayList<>();
+		for (ManagedComponent mc : createdComponents.values()) {
+			if (op.verifyOperation(mc.getStatus())) {
+				ret.add(mc.getId());
+			}
+		}
+
+		return ret;
 	}
 
 }

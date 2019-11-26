@@ -39,8 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-
 /**
  * Provides information concerning the cluster and its members.    
  * 

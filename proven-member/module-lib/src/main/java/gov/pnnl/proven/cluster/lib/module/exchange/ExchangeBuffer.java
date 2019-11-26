@@ -49,14 +49,18 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.hazelcast.core.ICompletableFuture;
 import com.hazelcast.ringbuffer.OverflowPolicy;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
+
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
@@ -375,7 +379,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * specified {@code BufferedItemState}.
 	 * 
 	 * @param {@code BufferedItemState} of the next item to read.
-	 * @return the item read. This method will block if there are no unprocessed
+	 * @return the items read. This method will block if there are no unprocessed
 	 *         items for the state provided.
 	 * @throws BufferReaderInterruptedException
 	 *             if the thread was interrupted during the read operation.

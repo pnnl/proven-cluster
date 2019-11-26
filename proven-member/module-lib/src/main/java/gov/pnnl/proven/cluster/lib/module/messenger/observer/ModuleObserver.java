@@ -43,6 +43,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
+
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
@@ -51,7 +52,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
-public class ModuleObserver extends EventObserver<ProvenModule> {
+public class ModuleObserver {
 
 	@Inject
 	@Module
@@ -62,27 +63,29 @@ public class ModuleObserver extends EventObserver<ProvenModule> {
 
 	@PostConstruct
 	public void init() {
-		addOwner(pm);
 	}
 
 	public void startup(@Observes @Module StartupEvent event) {
-		owner.startup();
+		pm.startup();
+		pm.activate();
+		pm.getScheduledMessenger().start();
+		//pm.getScheduledMaintenance().start();
 	}
 
 	public void suspend(@Observes @Module SuspendEvent event) {
-		owner.suspend();
+		pm.suspend();
 	}
 
 	public void shutdown(@Observes @Module ShutdownEvent event) {
-		owner.shutdown();
+		pm.shutdown();
 	}
 
 	public void checkMember(@ObservesAsync @Module MemberEvent event) {
-		owner.checkMember(event);
+		pm.checkMember(event);
 	}
 
 	public void checkCluster(@ObservesAsync @Module ClusterEvent event) {
-		owner.checkCluster(event);
+		pm.checkCluster(event);
 	}
 
 }

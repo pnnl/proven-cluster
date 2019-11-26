@@ -42,10 +42,10 @@ package gov.pnnl.proven.cluster.lib.module.request;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -65,9 +65,10 @@ import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.JobObserver;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.JobEvent;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
 
 /**
@@ -96,10 +97,12 @@ public abstract class PipelineRequest extends RequestComponent {
 	@Inject
 	@Manager
 	protected StreamManager sm;
-	
-	@Inject
-	JobObserver jobObserver;
-	
+
+	// (Observer) - Missing cluster job
+	public void job(@ObservesAsync @Managed JobEvent event) {
+		// TODO
+	}
+
 	/**
 	 * Represents a Hazelcast client connection used by the pipeline's job to
 	 * connect to Proven's IMDG environment. Source and sink stages of the job's
@@ -108,11 +111,11 @@ public abstract class PipelineRequest extends RequestComponent {
 	protected ClientConfig imdgClientConfig;
 
 	/**
-	 * Represents either an internal Jet server node or a Jet client that
-	 * connects to an external Jet cluster. Default is a Jet Client. If
-	 * {@link #isTest} is true an internal Jet server node will be used. The
-	 * referenced {@code #computeCluster} is responsible for processing a
-	 * pipeline request.
+	 * Represents either an internal Jet server node ({@link #internalConfig})
+	 * or an external Jet client ({@link #externalConfig}). Default is a Jet
+	 * Client. If {@link #isTest} is true an internal Jet server node will be
+	 * used. The referenced {@code #computeCluster} is responsible for
+	 * processing a pipeline request.
 	 * 
 	 * @see {@link #isTest},{@link #internalConfig}, {@link #externalConfig}
 	 */
@@ -161,12 +164,8 @@ public abstract class PipelineRequest extends RequestComponent {
 	 * false, indicating pipeline will be submitted to Proven's configured
 	 * external Jet cluster.
 	 */
-	private boolean isTest;
+	private boolean isTest = false;
 
-	/**
-	 * Contains the {@code PipelineJob}s for this {@code PipelineRequest}
-	 */
-	private Set<PipelineJob> jobs;
 
 	/**
 	 * Creates and returns a new {@code Pipeline} instance for the provided
@@ -189,9 +188,6 @@ public abstract class PipelineRequest extends RequestComponent {
 	@PostConstruct
 	void init() {
 		
-		// register observer
-		jobObserver.addOwner(this);
-	
 		// Extract provided metadata and add to class
 		addPipelineRequestProviderMetadata();
 
@@ -331,14 +327,16 @@ public abstract class PipelineRequest extends RequestComponent {
 		pj.addRequest(this, null);
 	}
 
-	@Override
-	public void activate() {
+	//@Override
+	public boolean activate() {
 		if (pipelineType == PipelineRequestType.Domain)
 			createDomainJobs();
 		if (pipelineType == PipelineRequestType.Proven)
 			createProvenJob();
 		if (pipelineType == PipelineRequestType.Custom)
 			createCustomJob();
+		
+		return true;
 	}
 
 }

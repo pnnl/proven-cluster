@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 /**
  * Represents a component that performs disclosure (internal and external)

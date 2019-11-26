@@ -41,43 +41,38 @@ package gov.pnnl.proven.cluster.lib.module.module;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.AfterTypeDiscovery;
 import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+
 import org.slf4j.Logger;
 
-import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserver;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserver;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
 
 /**
  * Represents a Proven module and is responsible for activation/deactivation of
- * {@code ManagerComponent}s. Implementations represent the module application,
- * and is activated on platform startup.
+ * {@code ManagerComponent}s. Implementations represent the module applications.
+ * 
+ * A Proven Module is the root of a managed component tree. That is, all managed
+ * components are {@code Dependent} either directly or indirectly on the Proven
+ * Module.
  * 
  * @author d3j766
  *
@@ -90,19 +85,9 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 	Logger log;
 
 	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
-	
-	@Inject
-	@Managed
-	Instance<ManagerComponent> managerProvider;
 
-	@Inject
-	ModuleObserver moduleObserver;
-
-	// Set of active managers for this module
+	// Set of active managers selected for this module
 	Set<Class<?>> activeManagers;
-
-	// Map of managers created for the module
-	Map<UUID, ManagerComponent> managers = new HashMap<>();
 
 	// Module identifier
 	private static UUID moduleId;
@@ -111,11 +96,12 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 	private static String moduleName;
 
 	public ProvenModule() {
+		super();
+		status = ManagedStatus.Ready;
 	}
 
 	@PostConstruct
 	public void init() {
-		moduleObserver.addOwner(this);
 	}
 
 	public synchronized <T extends ManagerComponent> T getOrCreateManager(Class<T> clazz) {
@@ -150,16 +136,13 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 			throw new ProducesInactiveManagerException(
 					"Cannot produce manager: " + clazz.getSimpleName() + " It has been configured as inactive.");
 		}
-
-		T manager = managerProvider.select(clazz).get();
-		managers.put(manager.getId(), manager);
-
+		T manager = createComponent(clazz);
 		return manager;
 	}
 
 	private <T extends ManagerComponent> Optional<T> getManager(Class<T> manager) {
 		Optional<T> ret = Optional.empty();
-		for (ManagerComponent mc : managers.values()) {
+		for (ManagedComponent mc : createdComponents.values()) {
 			// CDI bean proxy is subclass
 			if (manager.isAssignableFrom(mc.getClass())) {
 				ret = Optional.of((T) mc);
@@ -175,7 +158,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 		Optional<List<T>> ret = Optional.empty();
 		List<T> managerList = new ArrayList<>();
 
-		for (ManagerComponent mc : managers.values()) {
+		for (ManagedComponent mc : createdComponents.values()) {
 			// CDI bean proxy is subclass
 			if (manager.isAssignableFrom(mc.getClass())) {
 				managerList.add((T) mc);
@@ -210,7 +193,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 	public void startup() {
 
 		log.debug("ProvenModule startup message observed");
-				
+
 		// Get list of managers to activate
 		ActiveManagers toActivate = this.getClass().getAnnotation(ActiveManagers.class);
 		if ((null != toActivate) && (toActivate.managers().length != 0)) {
@@ -229,16 +212,11 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 			}
 		}
 
-		// Activate managers
+		// Create selected managers
 		for (Class<?> c : activeManagers) {
 			if (ManagerComponent.class.isAssignableFrom(c)) {
 				addManager((Class<ManagerComponent>) c);
 			}
-		}
-
-		// Start messengers
-		for (ManagerComponent mc : managers.values()) {
-			mc.getStatusMessenger().start();
 		}
 
 		log.info("ProvenModule startup completed.");
@@ -250,22 +228,26 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 		// Make sure pre-destroy callbacks are in place for cleanup. This should
 		// be the same as what is called for an out of service status change.
 		log.debug("ProvenModule suspend message observed, deactivating all managers");
-		for (ManagerComponent mc : managers.values()) {
-			mc.deactivate();
+		for (ManagedComponent mc : createdComponents.values()) {
+			if (ManagerComponent.class.isAssignableFrom(mc.getClass())) {
+				mc.deactivate();
+			}
 		}
 		log.info("ProvenModule suspend completed.");
 	}
 
 	@Override
 	public void shutdown() {
-		
+
 		log.debug("ProvenModule shutdown message observed");
 
 		// Make sure pre-destroy callbacks are in place for cleanup, if
 		// necessary. This should be the same as what is called for an out of
 		// service status change.
-		for (ManagerComponent mc : managers.values()) {
-			managerProvider.destroy(mc);
+		for (ManagedComponent mc : createdComponents.values()) {
+			if (ManagerComponent.class.isAssignableFrom(mc.getClass())) {
+				componentProvider.destroy(mc);
+			}
 		}
 
 		// Log shutdown message

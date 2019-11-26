@@ -39,9 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -49,7 +47,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 
 /**
- * Provides information related to the status of a {@code ManagedComponent}.
+ * Provides {@code ManagedComponent} status information.
  * 
  * @author d3j766
  *
@@ -58,34 +56,73 @@ public class StatusEvent extends ComponentEvent {
 
 	private static final long serialVersionUID = 1L;
 
-	ManagedStatus status;
-	String managerId;
-	String creatorId;
-	Map<UUID, ManagedStatus> created =  new HashMap<>();
-
-	public StatusEvent(ManagedComponent mc) {
-		super(mc);
-		status = mc.getStatus();
-		managerId = mc.getManagerId().toString();
-		creatorId = mc.getCreatorId().toString();
-		for (Entry<UUID, ManagedStatus> entry : created.entrySet()) {
-			created.put(entry.getKey(), entry.getValue());
-		}
-	}
+	UUID requestorId;
+	UUID opCandidateId;
+	ManagedStatus requestorStatus;
+	UUID managerId;
+	UUID creatorId;
+	Set<UUID> created = new HashSet<>();
+	long maxRegisterReportingDelayMillis;
 	
-	public ManagedStatus getStatus() {
-		return status;
+	
+
+	public StatusEvent(ManagedComponent mc, UUID opCandidateId) {
+		super(mc);
+		this.requestorId = mc.getId();
+		this.opCandidateId = opCandidateId;
+		this.requestorStatus = mc.getStatus();
+		this.managerId = mc.getManagerId();
+		this.creatorId = mc.getCreatorId();
+		this.created = mc.getCreatedIds();
+		this.maxRegisterReportingDelayMillis = mc.getMaxRegisterReportingDelayMillis();
 	}
 
-	public String getManagerId() {
+	/**
+	 * @return the serialversionuid
+	 */
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
+	/**
+	 * @return the requestorId
+	 */
+	public UUID getRequestorId() {
+		return requestorId;
+	}
+
+	/**
+	 * @return the opCandidateId
+	 */
+	public UUID getOpCandidateId() {
+		return opCandidateId;
+	}
+
+	/**
+	 * @return the requestorStatus
+	 */
+	public ManagedStatus getRequestorStatus() {
+		return requestorStatus;
+	}
+
+	/**
+	 * @return the managerId
+	 */
+	public UUID getManagerId() {
 		return managerId;
 	}
 
-	public String getCreatorId() {
+	/**
+	 * @return the creatorId
+	 */
+	public UUID getCreatorId() {
 		return creatorId;
 	}
 
-	public Map<UUID, ManagedStatus> getCreated() {
+	/**
+	 * @return the created
+	 */
+	public Set<UUID> getCreated() {
 		return created;
 	}
 

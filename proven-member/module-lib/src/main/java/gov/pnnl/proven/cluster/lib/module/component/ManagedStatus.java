@@ -39,12 +39,11 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
-
 /**
- * Represents the possible states for managed components. A component's status
- * value may be a transition state, indicating it will be changed to a
- * non-transition state based on current processing. New status processing must
- * not be initiated while a component is in a transition state.
+ * Represents possible states for managed components. A component's status value
+ * may be a transition state, indicating it is in process of being changed to a
+ * non-transition state. New status processing must not be initiated while a
+ * component is in a transition state.
  * 
  * @see ManagedComponent
  * 
@@ -63,10 +62,7 @@ public enum ManagedStatus {
 	 * Indicates the component has successfully been created and is ready to be
 	 * activated for status reporting. In this state the component may perform
 	 * local services, however no reporting will be performed until it has been
-	 * activated making it known to other members of the cluster.  
-	 * 
-	 * @see Reporter
-	 * 
+	 * activated making it known to other members of the cluster. 
 	 */
 	Ready(false),
 
@@ -107,14 +103,6 @@ public enum ManagedStatus {
 	Offline(false),
 
 	/**
-	 * Transition status, indicating a new component is being created in order
-	 * to add additional resources due to {@link #Busy} or {@link #Failed}
-	 * resources of the same type. Once successfully created the new component
-	 * will be put in a {@link #Ready} status.
-	 */
-	Scaling(true),
-
-	/**
 	 * Transition status, indicating the component has encountered an error
 	 * condition and is in process of being moved to a failed state.
 	 */
@@ -135,12 +123,6 @@ public enum ManagedStatus {
 	FailedDeactivateRetry(false),
 
 	/**
-	 * A failed state, indicating an error condition was encountered during a
-	 * scaling attempt. Scaling retries may be attempted from this state.
-	 */
-	FailedScalingRetry(false),
-
-	/**
 	 * A failed state, indicating an error condition was encountered while
 	 * {@link #Online}. Reactivation retries may be attempted from this state.
 	 */
@@ -148,30 +130,69 @@ public enum ManagedStatus {
 
 	/**
 	 * Indicates component has failed and will no longer accept retry attempts
-	 * and will be removed.
+	 * and will be removed from service.
 	 */
 	Failed(false),
 
 	/**
 	 * Transition status, indicating the component has failed and is being
-	 * removed from service.
+	 * removed from service. Any cleanup activities will be done as part of the
+	 * removal process.
 	 */
 	Removing(true),
 
 	/**
+	 * A failed state, indicating an error condition was encountered during a
+	 * remove attempt. Remove retries may be attempted from this state.
+	 */
+	FailedRemoveRetry(false),
+
+	/**
 	 * Indicates the component has been removed and is considered to be out of
-	 * service. Any cleanup activities will be done as part of the removal
-	 * process. This is the terminal state for a managed component.
+	 * service. This is the terminal state for a managed component.
 	 */
 	OutOfService(false),
 
 	/**
-	 * Indicates status of managed component is not known to a monitoring
-	 * component. Status information is used by monitoring components (e.g.
-	 * registry) to perform their tasks. If the status cannot be discovered it
-	 * is marked as unknown, from their perspective, and treated as such.
+	 * Indicates status of managed component is not known to its
+	 * {@code MemberRegistry}. This status is only used by a
+	 * {@code MemberRegistry} to mark a component as
+	 * {@code ManagedStatus#Unknown} if expected status messages have not been
+	 * received.
 	 */
-	Unknown(false);
+	Unknown(false),
+
+	/**
+	 * Indicates a component detected and reported a {@code MaintenanceEvent} to
+	 * its {@code MemberComponentRegistry}. This status is only used by a
+	 * registry to mark a component as under maintenance. A {@code #Maintenance}
+	 * status will be changed once the maintenance event is checked during
+	 * {@code ScheduledMaintenance} and resuts are reported back to the
+	 * registry.
+	 */
+	Maintenance(false),
+
+	/**
+	 * Indicates any transition status value.
+	 */
+	Transition(true),
+
+	/**
+	 * Indicates any non-transition status value.
+	 */
+	NonTransition(false),
+
+	/**
+	 * Indicates any non-transition status, where the component can be recovered
+	 * for service.
+	 */
+	Recoverable(false),
+
+	/**
+	 * Indicates any non-transition status, where the component can not be
+	 * recovered for service.
+	 */
+	NonRecoverable(false);
 
 	private final boolean isTransition;
 
@@ -184,6 +205,28 @@ public enum ManagedStatus {
 	 */
 	public boolean isTransition() {
 		return isTransition;
+	}
+
+	/**
+	 * Returns true if provided status value is a {@code #Recoverable} status.
+	 */
+	public static boolean isRecoverable(ManagedStatus status) {
+
+		boolean ret = true;
+
+		final ManagedStatus[] nonRecoverable = { Failed, FailedRemoveRetry, OutOfService, NonRecoverable };
+		if (!status.isTransition()) {
+			for (ManagedStatus failedStatus : nonRecoverable) {
+				if (failedStatus == status) {
+					ret = false;
+					break;
+				}
+			}
+		} else {
+			ret = false;
+		}
+
+		return ret;
 	}
 
 }

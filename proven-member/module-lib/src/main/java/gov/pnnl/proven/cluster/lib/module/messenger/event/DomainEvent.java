@@ -39,8 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-
 /**
  * Provides a listing of missing {@code DisclosureDomain}s for a module that
  * have been added by another module within the clustered environment.  

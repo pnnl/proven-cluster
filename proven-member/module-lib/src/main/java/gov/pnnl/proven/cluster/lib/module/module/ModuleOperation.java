@@ -39,14 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.module;
 
-import java.lang.annotation.Annotation;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
  * Identifies {@code ProvenModule} operations.

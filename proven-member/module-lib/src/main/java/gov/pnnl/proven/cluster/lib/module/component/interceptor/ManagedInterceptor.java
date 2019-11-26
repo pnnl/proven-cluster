@@ -41,6 +41,8 @@ package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
 import java.util.Arrays;
 import java.util.List;
+
+import javax.annotation.Priority;
 import javax.enterprise.inject.InjectionException;
 import javax.enterprise.inject.Intercepted;
 import javax.enterprise.inject.spi.Bean;
@@ -49,11 +51,13 @@ import javax.inject.Inject;
 import javax.interceptor.AroundConstruct;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
@@ -70,6 +74,7 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
  */
 @Managed
 @Interceptor
+@Priority(value = Interceptor.Priority.APPLICATION)
 public class ManagedInterceptor {
 
 	static Logger log = LoggerFactory.getLogger(ManagedInterceptor.class);

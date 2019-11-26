@@ -37,17 +37,39 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.event;
+package gov.pnnl.proven.cluster.lib.module.messenger;
 
+import java.util.HashSet;
+import java.util.Set;
 
-/**
- * Event message to trigger {@code Managed} components to report their status.
- * 
- * @author d3j766
- *
- */
-public class ReportStatusEvent extends RegistryEvent {
+public class ScheduledMessages {
 
-	public ReportStatusEvent() {
+	Set<ScheduledMessage> messages = new HashSet<>();
+
+	public ScheduledMessages() {
 	}
+	
+	public void addMessage(ScheduledMessage message) {
+		messages.add(message);
+	}
+	
+	public boolean hasMessages() {
+		return !messages.isEmpty(); 
+	}
+
+	/**
+	 * @return the messages
+	 */
+	public Set<ScheduledMessage> getMessages() {
+		return messages;
+	}
+
+	/**
+	 * @param messages the messages to set
+	 */
+	public void setMessages(Set<ScheduledMessage> messages) {
+		this.messages = messages;
+	}
+	
+	
 }

@@ -39,21 +39,94 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Activate;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Deactivate;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Fail;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Remove;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Scale;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.ObservesAsync;
+import javax.enterprise.event.Reception;
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.DomainEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.JobEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ReportStatusEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 
-public class DomainObserver extends EventObserver<StreamManager> {
+@ApplicationScoped
+public class StatusOperationObserver extends OperationObserver<ManagedComponent> {
 
-	public void job(@ObservesAsync @Managed DomainEvent event) {
-		// TODO
+	@Inject
+	Logger log;
+
+	@Inject
+	public StatusOperationObserver() {
 	}
 
+	public void activate(@ObservesAsync @Managed @StatusOperation(operation = Activate) StatusEvent event) {
+
+		UUID opCandidateId = event.getOpCandidateId();  // child
+		if (isRegistered(opCandidateId)) {
+			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
+			log.debug("ACTIVATING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
+			mc.activate();
+		}
+	}
+
+	public void scale(@ObservesAsync @Managed @StatusOperation(operation = Scale) StatusEvent event) {
+
+		UUID opCandidateId = event.getOpCandidateId();  // child
+		if (isRegistered(event.getRequestorId())) {
+			ManagedComponent mc = registeredObservers.get(event.getRequestorId());  // parent
+			Optional<ManagedComponent> scaledOpt = mc.getCreated(opCandidateId);
+			if (scaledOpt.isPresent()) {
+				ManagedComponent scaled = scaledOpt.get();
+				log.debug("SCALING FOR CREATED: " + scaled.getDoId() + " CREATOR: " + event.getDoId());
+				mc.scale(opCandidateId);
+			}
+		}
+	}
+
+	public void deactivate(
+			@ObservesAsync(notifyObserver = Reception.IF_EXISTS) @Managed @StatusOperation(operation = Deactivate) StatusEvent event) {
+
+		UUID opCandidateId = event.getOpCandidateId();  // child
+		if (isRegistered(opCandidateId)) {
+			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
+			log.debug("DEACTIVATING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
+			mc.deactivate();
+		}
+
+	}
+
+	public void fail(
+			@ObservesAsync(notifyObserver = Reception.IF_EXISTS) @Managed @StatusOperation(operation = Fail) StatusEvent event) {
+
+		UUID opCandidateId = event.getOpCandidateId();  // child
+		if (isRegistered(opCandidateId)) {
+			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
+			log.debug("FAILING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
+			mc.fail();
+		}
+
+	}
+
+	public void remove(
+			@ObservesAsync(notifyObserver = Reception.IF_EXISTS) @Managed @StatusOperation(operation = Remove) StatusEvent event) {
+
+		UUID opCandidateId = event.getOpCandidateId();  // child
+		if (isRegistered(opCandidateId)) {
+			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
+			log.debug("REMOVING CREATED: " + event.getDoId() + " CREATOR: " + mc.getDoId());
+			mc.remove();
+		}
+
+	}
 }

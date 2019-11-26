@@ -41,14 +41,18 @@ package gov.pnnl.proven.cluster.lib.module.request.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
 import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
 

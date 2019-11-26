@@ -40,20 +40,19 @@
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.hazelcast.core.IExecutorService;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.request.RequestProxy;
 import gov.pnnl.proven.cluster.lib.module.service.ServiceBuffer;
 

@@ -44,7 +44,6 @@ import java.io.Serializable;
 import javax.enterprise.context.ApplicationScoped;
 
 import fish.payara.cluster.Clustered;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 
 
 /**

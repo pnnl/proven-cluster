@@ -39,11 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.request;
 
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 
 public class RegisteredRequest extends RequestComponent {

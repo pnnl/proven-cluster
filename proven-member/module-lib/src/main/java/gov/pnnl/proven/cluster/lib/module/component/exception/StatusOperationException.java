@@ -37,33 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import javax.inject.Qualifier;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-/**
- * Identifies a registry component, used to qualify event messages intended for
- * registries.
- * 
- * @see RegistryComponent
- * 
- * @author d3j766
- *
- * 
- */
-@Documented
-@Qualifier
-@Retention(RUNTIME)
-@Target({ PARAMETER, TYPE })
-public @interface Registry {
+public class StatusOperationException extends Exception {
 
+	private static final long serialVersionUID = 1L;
+
+	public StatusOperationException() {
+		super();
+	}
+
+	public StatusOperationException(String message) {
+		super(message);
+	}
+
+	public StatusOperationException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

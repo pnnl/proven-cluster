@@ -41,13 +41,11 @@ package gov.pnnl.proven.cluster.lib.module.disclosure;
 
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
@@ -56,12 +54,12 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReaderFactory;
 import javax.json.stream.JsonParser;
-import javax.json.stream.JsonParserFactory;
 import javax.json.stream.JsonParser.Event;
+import javax.json.stream.JsonParserFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.module.disclosure.exception.EntryParserException;

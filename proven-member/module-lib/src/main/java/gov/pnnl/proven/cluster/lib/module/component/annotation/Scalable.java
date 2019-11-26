@@ -41,11 +41,12 @@ package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
 import javax.enterprise.util.Nonbinding;
-import javax.inject.Qualifier;
 
 /**
  * Indicates the annotated type is a scalable component. Provided member properties are used
@@ -81,7 +82,7 @@ public @interface Scalable {
 	 */
 	@Nonbinding
 	int minCount() default 1;
-
+	
 	/**
 	 * (Optional) Maximum number of components.
 	 * 
@@ -90,14 +91,5 @@ public @interface Scalable {
 	@Nonbinding
 	int maxCount() default 5;
 
-	/**
-	 * (Optional) The number of retries allowed per a failed scaling attempt.
-	 * Once number of retries has reached this value, retry attempts will no
-	 * longer be allowed.
-	 * 
-	 * Default is 5.
-	 */
-	@Nonbinding
-	int retries() default 3;
 
 }

@@ -42,14 +42,13 @@ package gov.pnnl.proven.cluster.lib.module.request;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.jet.Job;
-import com.hazelcast.jet.pipeline.Pipeline;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 
 /**
@@ -107,23 +106,26 @@ public class PipelineJob extends RequestComponent {
 		return ComponentType.PipelineJob;
 	}
 
-	@Override
-	public void activate() {
+	//@Override
+	public boolean activate() {
 
-		if (null == request) {
-			log.error("Pipeline request for job submission is missing.");
-		} else if (getStatus() != ManagedStatus.Ready) {
+		return true;
+		// if (null == request) {
+		// log.error("Pipeline request for job submission missing.");
+		// } else if (getStatus() != ManagedStatus.Ready) {
+		//
+		// }
+		//
+		// // Create and submit Job
+		// else {
+		//
+		// // Get job configuration
+		//
+		// // Create and submit Job
+		//
+		// }
+		// }
 
-		}
-
-		// Create and submit Job
-		else {
-
-			// Get job configuration
-
-			// Create and submit Job
-
-		}
 	}
 
 }

@@ -37,23 +37,59 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.module.component;
 
-package gov.pnnl.proven.cluster.lib.module.component.exception;
+import java.util.Optional;
 
-public class ComponentInTransitionException extends Exception {
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
+/**
+ * Performs maintenance checks provided by the supplier.
+ * 
+ * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
+ * 
+ * @author d3j766
+ *
+ */
+public class ScheduledMaintenance extends ScheduledTask<ManagedMaintenance> {
 
 	private static final long serialVersionUID = 1L;
 
-	public ComponentInTransitionException() {
-		super();
+	@Inject
+	Logger log;
+
+	public ScheduledMaintenance() {
 	}
 
-	public ComponentInTransitionException(String message) {
-		super(message);
+	@PostConstruct
+	public void initMaintenance() {
 	}
 
-	public ComponentInTransitionException(String message, Throwable e) {
-		super(message, e);
+	@PreDestroy
+	public void destroyMaintatenace() {
 	}
-	
+
+	/**
+	 * Performs provided maintenance checks.
+	 * 
+	 * @param maintenance
+	 *            optional reported message content
+	 */
+	protected void apply(Optional<ManagedMaintenance> maintenance) {
+
+//		Annotation[] qualifiers = {};
+//
+//		if (maintenance.isPresent()) {
+//
+//			ManagedMaintenance mcs = maintenance.get();
+//			for (MaintenanceCheck mc : mcs.getChecks()) {
+//
+//			}
+//		}
+	}
+
 }

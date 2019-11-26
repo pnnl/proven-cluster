@@ -44,6 +44,7 @@ import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.AfterTypeDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
 

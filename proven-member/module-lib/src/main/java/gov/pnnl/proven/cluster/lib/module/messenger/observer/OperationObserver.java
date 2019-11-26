@@ -37,76 +37,44 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.interceptor;
+package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.util.Optional;
-import javax.annotation.PostConstruct;
-import javax.enterprise.inject.Intercepted;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.InjectionPoint;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import javax.inject.Inject;
-import javax.interceptor.AroundConstruct;
-import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
+
 import org.slf4j.Logger;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Messenger;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+
 
 /**
- * Adds {@code MessengerProperties} to scheduler.
- * 
+ * Represents a class that observes message events that require an operation to
+ * be performed on behalf of the registered observer.
  * 
  * @author d3j766
- * 
+ *
+ * @param <T>
+ *            type of the owning component for which events are being observed
+ *            for.
  */
-@Interceptor
-@Messenger
-public class MessengerInterceptor implements Serializable {
-
-	private static final long serialVersionUID = 1L;
+public class OperationObserver<T extends ManagedComponent> {
 
 	@Inject
 	Logger log;
 
-	@Inject
-	@Intercepted
-	private Bean<?> intercepted;
+	// Map of managed component observers
+	Map<UUID, T> registeredObservers = new HashMap<>();
 
-	@Inject
-	InjectionPoint ip;
-
-	@AroundConstruct
-	public void addMessengers(InvocationContext ctx) throws Exception {
-
-		// OK to proceed
-		ctx.proceed();
-		Object result = ctx.getTarget();
-		ScheduledMessenger sm = (ScheduledMessenger) result;
-		Messenger messenger;
-
-		Optional<Annotation> messengerOpt = ip.getQualifiers().stream().filter(it -> (it instanceof Messenger))
-				.findAny();
-		if (messengerOpt.isPresent()) {
-			messenger = (Messenger) messengerOpt.get();
-		}
-		// Use default from the class 
-		else {
-			log.info("Using default messenger schedule properties");
-			messenger = ScheduledMessenger.class.getAnnotation(Messenger.class);
-		}
-
-		// Add properties
-		addScheduleProperties(sm, messenger);
-
+	public void register(T mc) {
+		registeredObservers.put(mc.getId(), mc);
 	}
 
-	private void addScheduleProperties(ScheduledMessenger sm, Messenger m) {
-		sm.setDelay(m.delay());
-		sm.setTimeUnit(m.timeUnit());
-		sm.setJitterPercent(m.jitterPercent());
-		sm.setActivateOnStartup(m.activateOnStartup());
-	}
-
+	public boolean isRegistered(UUID id) {
+		return registeredObservers.containsKey(id);
+	}	
+	
 }

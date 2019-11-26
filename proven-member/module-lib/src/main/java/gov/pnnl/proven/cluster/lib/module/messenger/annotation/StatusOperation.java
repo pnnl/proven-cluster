@@ -39,24 +39,35 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
-import static java.lang.annotation.ElementType.PARAMETER;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Busy;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Failed;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedActivateRetry;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedOnlineRetry;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedRemoveRetry;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.NonRecoverable;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Offline;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Ready;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Recoverable;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
 
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation.*;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 
 /**
- * Used to qualify event status messages, indicating the message is for a
+ * Used to qualify status event messages, indicating the message is for a
  * particular status operation.
  * 
  * @see StatusOperation
@@ -66,30 +77,83 @@ import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperatio
  */
 @Documented
 @Qualifier
-@Inherited
-@InterceptorBinding
 @Retention(RUNTIME)
 @Target({ PARAMETER, METHOD, TYPE, FIELD })
 public @interface StatusOperation {
-	
+
+	/**
+	 * Enumerates status operations and their valid {@code ManagedStatus}
+	 * inputs. A {@code ManagedComponent}'s status operation will not be
+	 * performed unless its status is one of the indicated valid status input
+	 * values.
+	 * 
+	 * @author d3j766
+	 *
+	 */
 	enum Operation {
-		Create,
-		ActivateCreated,
-		Activate,
-		FailedCreated,
-		Failed,
-		Retry,
-		DeactivateCreated,
-		Deactivate,
-		Remove,
-		Failure,
-		CheckAndUpdate;
+
+		/**
+		 * A component may activate if it is in one of the enumerated states.
+		 */
+		Activate(Ready, Offline, FailedActivateRetry),
+
+		/**
+		 * A parent's scale operation to create or recycle is triggered by a
+		 * child component that is in one of the enumerated states. The new or
+		 * recycled component will be of the same type that triggered the scale
+		 * operation.
+		 */
+		Scale(Busy, FailedOnlineRetry, NonRecoverable),
+
+		/**
+		 * A component may deactivate if it is in one of the enumerated states.
+		 */
+		Deactivate(Recoverable),
+
+		/**
+		 * A component may fail if it is in one of the enumerated states.
+		 */
+		Fail(Recoverable),
+
+		/**
+		 * A parent may remove a child component from service if the child is in
+		 * one of the enumerated states.
+		 */
+		Remove(Failed, FailedRemoveRetry),
+
+		/**
+		 * Maintenance will be performed on a component if it is in one of the
+		 * enumerated states.
+		 */
+		CheckAndRepair(Offline, Online, Busy, FailedOnlineRetry);
+
+		private final Set<ManagedStatus> validStatus;
+
+		Operation(ManagedStatus... validStatus) {
+			this.validStatus = new HashSet<>(Arrays.asList(validStatus));
+		}
+
+		/**
+		 * Verify the operation is suitable for the provided status input.
+		 * 
+		 * @return true if the status is suitable for the operation, false
+		 *         otherwise.
+		 * 
+		 */
+		public boolean verifyOperation(ManagedStatus status) {
+			//@formatter:off
+			return (validStatus.contains(status) 
+				|| (!status.isTransition() && !ManagedStatus.isRecoverable(status) && validStatus.contains(NonRecoverable))
+				|| (!status.isTransition() && ManagedStatus.isRecoverable(status) && validStatus.contains(Recoverable)));
+			//@formatter:on
+		}
+
 	}
 
 	/**
 	 * (Required) The {@link StatusOperation.Operation} type.
 	 * 
 	 */
-	StatusOperation.Operation operation() default StatusOperation.Operation.CheckAndUpdate;
+	StatusOperation.Operation operation();
 
 }

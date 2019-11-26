@@ -40,28 +40,24 @@
 package gov.pnnl.proven.cluster.lib.module.module;
 
 import java.util.Set;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.AfterTypeDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ObserverMethod;
 import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ModuleEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.observer.ModuleObserver;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ModuleStartupException;
 import gov.pnnl.proven.cluster.lib.module.module.exception.MultipleModuleImplementationException;
 import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementationException;

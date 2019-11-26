@@ -39,25 +39,20 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream;
 
-import java.util.List;
-
 import javax.annotation.PostConstruct;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
-import javax.persistence.PersistenceProperty;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Managers;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
  * A cluster level managed Proven component representing an IMDG proven message
@@ -76,9 +71,9 @@ public class MessageStream extends StreamComponent {
 	@Inject
 	protected HazelcastInstance hzi;
 	
-	@Inject
-	@Managers
-	protected List<StreamManager> sms;
+//	@Inject
+//	@Managers
+//	protected List<StreamManager> sms;
 
 	private String streamName;
 	private DisclosureDomain dd;
@@ -88,7 +83,6 @@ public class MessageStream extends StreamComponent {
 	@PostConstruct
 	void init() {
 		log.debug("Post construct for Message stream");
-		activate();
 	}
 
 	@Inject
