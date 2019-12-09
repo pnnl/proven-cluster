@@ -23,3 +23,4 @@ proven.lib.module.managed.component.max.retries=3
 
 # hybrid module
 proven.module.hybrid.t3.serviceUrl=http://localhost:8889/bigdata
+proven.module.hybrid.ts.serviceUrl=http://localhost:8086

@@ -112,7 +112,7 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 	public DisclosureMessage(JsonObject message, JsonObject schema) throws JSONDataValidationException, Exception {
 		super(message, schema);
 	
-		MessageModel mm = MessageModel.getInstance(new DisclosureDomain(DomainProvider.PROVEN_DOMAIN));
+		MessageModel mm = MessageModel.getInstance(new DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN));
 		try {
 			String jsonApi = mm.getApiSchema();
 			//System.out.println(jsonApi);
@@ -126,13 +126,30 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 			}
 
 		this.name = message.getJsonString("name").getString();
-		this.authToken = message.getJsonString("authToken").getString();
+		
+		if (message.getJsonString("authToken") != null) 
+	    { 
+		     this.authToken = message.getJsonString("authToken").getString();
+		}
 		this.requester =  message.getJsonString("requestorId").getString();
-		this.isStatic = message.get("isStatic") != null;
-		this.isTransient = message.get("isTransient") != null;
+
+		JsonValue.ValueType isStaticType = message.get("isStatic").getValueType();
+		if (isStaticType == JsonValue.ValueType.TRUE) 
+		{
+			this.isStatic = true;
+		} else 
+			this.isStatic = false;
+//		this.isStatic = message.get("isStatic") != null;
+		JsonValue.ValueType isTransientType = message.get("isTransient").getValueType();
+		if (isTransientType == JsonValue.ValueType.TRUE ) 
+		{
+			this.isTransient = true;
+		} else 
+			this.isTransient = false;
+//		this.isTransient = message.get("isTransient") != null;
 		this.disclosureId = message.getJsonString("disclosureId").getString();
 		String content_type = message.getJsonString("content").getString();
-		if(content_type.equalsIgnoreCase("explicit")) {
+		if(content_type.equalsIgnoreCase(MessageContent.Explicit.getName())) {
 			this.disclosedContent = MessageContent.Explicit;
 			this.isRequest = false;
 			this.isKnowledge = true;
@@ -140,17 +157,17 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 			this.mimeType = message.getJsonString("mimeType").getString();
 		}
 
-		else if (content_type.equalsIgnoreCase("query")) {
+		else if (content_type.equalsIgnoreCase(MessageContent.Query.getName())) {
 			this.disclosedContent = MessageContent.Query;
 			this.isRequest = true;
 			this.isKnowledge = false;
 			this.hasMeasurements = false;
 		}
-		else if (content_type.equalsIgnoreCase("measurement")) {
+		else if (content_type.equalsIgnoreCase(MessageContent.Measurement.getName())) {
 			this.disclosedContent = MessageContent.Measurement;
 			this.isRequest = false;
 			this.isKnowledge = true;
-			//this.hasMeasurements = true;
+			this.hasMeasurements = true;
 		}
 
 		this.message = (JsonObject) message.get("message");
