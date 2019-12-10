@@ -53,10 +53,10 @@ import com.hazelcast.core.ISet;
 
 import fish.payara.cluster.Clustered;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
+import gov.pnnl.proven.cluster.lib.module.messenger.MessengerSchedule;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessages;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
@@ -82,8 +82,8 @@ public class ClusterComponentRegistry implements Serializable {
 	HazelcastInstance hzi;
 
 	@Inject
-	@TaskSchedule
-	ScheduledMessenger clusterMessenger;
+	@Scheduler
+	MessengerSchedule clusterMessenger;
 
 	/**
 	 * Contains the set of Hazelcast member's reporting module components.

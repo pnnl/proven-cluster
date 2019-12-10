@@ -60,23 +60,23 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.annotation.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 
 /**
- * Provides a fixed delay schedule to apply a task for a registered type.
- * Schedule properties are defined by {@code TaskSchedule} annotation at injection
- * point. Scheduled tasks must register their supplier of T.
+ * Provides a fixed delay schedule for the application of a task of a registered
+ * type. Schedule properties are defined by {@code Scheduler} annotation at
+ * injection point. Scheduled tasks must register their supplier of T.
  * 
  * @param T
- *            the type provided to the applied task
+ *            the type of the registered task
  * 
- * @see TaskSchedule
+ * @see Scheduler
  * 
  * @author d3j766
  *
  */
-@TaskSchedule
-public abstract class ScheduledTask<T> implements Serializable {
+@Scheduler
+public abstract class TaskSchedule<T> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -105,36 +105,38 @@ public abstract class ScheduledTask<T> implements Serializable {
 	protected ScheduledFuture<?> scheduledFuture;
 
 	/**
-	 * @see {@link TaskSchedule#delay()}
+	 * @see {@link Scheduler#delay()}
 	 */
 	protected long delay;
 
 	/**
-	 * @see {@link TaskSchedule#timeUnit()}
+	 * @see {@link Scheduler#timeUnit()}
 	 */
 	protected TimeUnit timeUnit;
 
 	/**
-	 * @see {@link TaskSchedule#jitterPercent()}
+	 * @see {@link Scheduler#jitterPercent()}
 	 */
 	protected int jitterPercent;
 
 	/**
-	 * @see {@link TaskSchedule#activateOnStartup()}
+	 * @see {@link Scheduler#activateOnStartup()}
 	 */
 	protected boolean activateOnStartup;
 
 	/**
 	 * Registered supplier.
 	 */
-	protected Supplier<Optional<T>> supplier;
+	protected Supplier<Optional<T>> supplier = () -> {
+		return Optional.empty();
+	};
 
 	/**
 	 * Messenger status
 	 */
 	ScheduleStatus status = ScheduleStatus.STOPPED;
 
-	public ScheduledTask() {
+	public TaskSchedule() {
 	}
 
 	@PostConstruct
@@ -156,14 +158,10 @@ public abstract class ScheduledTask<T> implements Serializable {
 	public void start() {
 
 		synchronized (status) {
-
 			if (status == ScheduleStatus.STOPPED) {
-
 				applyJitter();
 				scheduledFuture = scheduler.scheduleWithFixedDelay(() -> {
-
 					log.debug(currentThreadLog("START SCHEDULER"));
-					
 					try {
 						log.debug("Scheduled task started");
 						if (hasRegisteredSupplier()) {
@@ -173,23 +171,19 @@ public abstract class ScheduledTask<T> implements Serializable {
 						}
 						log.debug("Scheduled task completed normally");
 					} catch (Throwable e) {
-
 						log.debug("Scheduled task exception has occurred: " + exCause(e));
-
+						e.printStackTrace();
 						if (e instanceof CancellationException) {
 							log.debug("Scheduled task execution has been cancelled: " + exCause(e));
 							stop();
 						}
-
-					}
-					finally {
-						log.debug(currentThreadLog("START SCHEDULER"));
+					} finally {
+						log.debug(currentThreadLog("STOP SCHEDULER"));
 					}
 				}, delay, delay, timeUnit);
 			}
 			status = ScheduleStatus.STARTED;
 		}
-
 	}
 
 	@Deprecated
@@ -239,8 +233,8 @@ public abstract class ScheduledTask<T> implements Serializable {
 	}
 
 	/**
-	 * Applies task for type T 
-	 *  
+	 * Applies task of type T
+	 * 
 	 * @param message
 	 *            optional supplied type T
 	 */

@@ -37,38 +37,76 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.NonRecoverable;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.OutOfService;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Recoverable;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
-/**
- * Represents the severity of maintenance performed on managed components. The
- * severity will align to either a non-recoverable or recoverable status.
- * Maintenance is only performed on components that are in a recoverable state.
- * 
- * @author d3j766
- *
- */
-public enum MaintenanceSeverity {
+public abstract class MaintenanceOperation implements MaintenanceCheck {
 
-	RemoveFromService(OutOfService),
-	Severe(NonRecoverable),
-	Warn(Recoverable),
-	Normal(Recoverable),
-	Unknown(Recoverable);
+	protected ManagedComponent operator;
+	protected String name;
+	protected MaintenanceOperationStatus status;
+
+	MaintenanceOperation(ManagedComponent operator) {
+		this.operator = operator;
+		this.name = this.getClass().getName();
+		this.status = MaintenanceOperationStatus.PASSED;
+	}
+
+	@Override
+	public ManagedComponent getOperator() {
+		return operator;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	public MaintenanceOperationStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(MaintenanceOperationStatus status) {
+		this.status = status;
+	}
 	
-	private final ManagedStatus severity;
-
-	MaintenanceSeverity(ManagedStatus severity) {
-		this.severity = severity;
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((operator == null) ? 0 : operator.hashCode());
+		return result;
 	}
 
-	/**
-	 * Returns true if maintenance severity is recoverable.
-	 */
-	public boolean isRecoverable() {
-		return ManagedStatus.isRecoverable(severity);
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof MaintenanceOperation)) {
+			return false;
+		}
+		MaintenanceOperation other = (MaintenanceOperation) obj;
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		if (operator == null) {
+			if (other.operator != null) {
+				return false;
+			}
+		} else if (!operator.equals(other.operator)) {
+			return false;
+		}
+		return true;
 	}
+
 }

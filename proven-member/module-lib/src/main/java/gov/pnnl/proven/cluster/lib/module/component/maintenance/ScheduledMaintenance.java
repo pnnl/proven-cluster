@@ -37,83 +37,12 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
-import java.lang.annotation.Annotation;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
+public interface ScheduledMaintenance {
 
-import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.component.ScheduledTask;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-
-/**
- * Sends {@code ScheduledMessages} containing {@MessageEvent}s on a fixed delay
- * schedule.
- * 
- * Default {@code TaskSchedule} is provided here, and used if
- * {@code TaskSchedule} is not annotated at injection point.
- * 
- * @see ScheduledTask, ScheduledMessages, MessageEvent, TaskSchedule
- * 
- * @author d3j766
- *
- */
-public class ScheduledMessenger extends ScheduledTask<ScheduledMessages> {
-
-	private static final long serialVersionUID = 1L;
-
-	@Inject
-	Logger log;
-
-	@Inject
-	Event<MessageEvent> eventInstance;
-
-	public ScheduledMessenger() {
-	}
-
-	@PostConstruct
-	public void initMessenger() {
-	}
-
-	@PreDestroy
-	public void destroyMessenger() {
-	}
-
-	/**
-	 * Sends the {@code ScheduledMessage}.
-	 * 
-	 * @param messages
-	 *            optional reported message content
-	 */
-	protected void apply(Optional<ScheduledMessages> messages) {
-
-		Annotation[] qualifiers = {};
-
-		if (messages.isPresent()) {
-
-			ScheduledMessages sms = messages.get();
-
-			for (ScheduledMessage sm : sms.getMessages()) {
-
-				if (sm.getQualifiers().isPresent()) {
-					qualifiers = sm.getQualifiers().get().toArray(qualifiers);
-				}
-
-				if (sm.isAsync()) {
-					log.debug("ASYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
-					eventInstance.select(qualifiers).fireAsync(sm.getEvent());
-				} else {
-					log.debug("SYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
-					eventInstance.select(qualifiers).fire(sm.getEvent());
-				}
-			}
-		}
-	}
-
+	Optional<ComponentMaintenance> getScheduledMaintenance();
+	
 }

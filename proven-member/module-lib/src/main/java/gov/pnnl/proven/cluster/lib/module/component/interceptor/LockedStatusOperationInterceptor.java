@@ -64,7 +64,7 @@ public class LockedStatusOperationInterceptor {
 		}
 
 		ManagedComponent mc = (ManagedComponent) target;
-		if (mc.acquireStatusLock()) {
+		if (mc.acquireStatusLockNoWait()) {
 			try {
 				ret = ic.proceed();
 			} finally {

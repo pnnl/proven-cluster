@@ -62,7 +62,7 @@ public enum ManagedStatus {
 	 * Indicates the component has successfully been created and is ready to be
 	 * activated for status reporting. In this state the component may perform
 	 * local services, however no reporting will be performed until it has been
-	 * activated making it known to other members of the cluster. 
+	 * activated making it known to other members of the cluster.
 	 */
 	Ready(false),
 
@@ -78,10 +78,24 @@ public enum ManagedStatus {
 	Online(false),
 
 	/**
-	 * Transition status, indicating the component has been requested to check
-	 * and update its status.
+	 * Transition status, indicating the component has been requested to perform
+	 * maintenance checks and update its status accordingly.
 	 */
 	CheckingStatus(true),
+
+	/**
+	 * Component has been suspended due to a maintenance check operation and is
+	 * considered as offline. Existing tasks will be completed, new tasks/data
+	 * will not be accepted. The component may be reactivated from this state
+	 * only if the cause has been repaired by subsequent maintenance checks.  
+	 */
+	CheckedOffline(false),
+
+	/**
+	 * A failed state, indicating an error condition was encountered while
+	 * {@link #Online}. Reactivation retries may be attempted from this state.
+	 */
+	FailedOnlineRetry(false),
 
 	/**
 	 * Component can no longer accept new tasks. It will continue to perform its
@@ -96,9 +110,9 @@ public enum ManagedStatus {
 	Deactivating(true),
 
 	/**
-	 * Component has been suspended and is considered as offline. Existing tasks
-	 * will be completed, new tasks will not be accepted. The component may be
-	 * reactivated from this state.
+	 * Component has been suspended due to a deactivate operation and is
+	 * considered as offline. Existing tasks will be completed, new tasks will
+	 * not be accepted. The component may be reactivated from this state.
 	 */
 	Offline(false),
 
@@ -121,12 +135,6 @@ public enum ManagedStatus {
 	 * this state.
 	 */
 	FailedDeactivateRetry(false),
-
-	/**
-	 * A failed state, indicating an error condition was encountered while
-	 * {@link #Online}. Reactivation retries may be attempted from this state.
-	 */
-	FailedOnlineRetry(false),
 
 	/**
 	 * Indicates component has failed and will no longer accept retry attempts
@@ -167,7 +175,7 @@ public enum ManagedStatus {
 	 * its {@code MemberComponentRegistry}. This status is only used by a
 	 * registry to mark a component as under maintenance. A {@code #Maintenance}
 	 * status will be changed once the maintenance event is checked during
-	 * {@code ScheduledMaintenance} and resuts are reported back to the
+	 * {@code ScheduledMaintenance} and results are reported back to the
 	 * registry.
 	 */
 	Maintenance(false),

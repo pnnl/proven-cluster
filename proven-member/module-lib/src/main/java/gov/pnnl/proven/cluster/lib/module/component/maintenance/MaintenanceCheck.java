@@ -37,44 +37,16 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
-
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
-
-/**
- * Represents a class that observes message events that require an operation to
- * be performed on behalf of the registered observer.
- * 
- * @author d3j766
- *
- * @param <T>
- *            type of the owning component for which events are being observed
- *            for.
- */
-public class OperationObserver<T extends ManagedComponent> {
-
-	@Inject
-	Logger log;
-
-	// Map of managed component observers
-	Map<UUID, T> registeredObservers = new HashMap<>();
-
-	public void register(T mc) {
-		registeredObservers.put(mc.getId(), mc);
-	}
-
-	public boolean isRegistered(UUID id) {
-		return registeredObservers.containsKey(id);
-	}	
+public interface MaintenanceCheck {
 	
+	ManagedComponent getOperator();
+	String getName();
+	MaintenanceOperationStatus checkAndRepair();
+	MaintenanceSeverity getSeverity();
+	String getdescription();
+
 }

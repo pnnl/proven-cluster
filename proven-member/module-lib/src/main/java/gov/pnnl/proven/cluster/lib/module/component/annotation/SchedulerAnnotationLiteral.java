@@ -37,10 +37,18 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
+import java.util.concurrent.TimeUnit;
 
-public class ManagerOperationObserver extends OperationObserver<ManagerComponent> {
-	// TODO Does there need to be a Manager observer?
+import javax.enterprise.util.AnnotationLiteral;
+import javax.enterprise.util.Nonbinding;
+
+/**
+ * {@code Messenger} implementation.
+ * 
+ * @author d3j766
+ *
+ */
+public abstract class SchedulerAnnotationLiteral extends AnnotationLiteral<Scheduler> implements Scheduler {	
 }

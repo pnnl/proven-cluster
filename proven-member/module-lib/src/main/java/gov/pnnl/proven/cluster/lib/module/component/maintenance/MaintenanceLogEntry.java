@@ -37,75 +37,8 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+public class MaintenanceLogEntry {
 
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
-
-import javax.enterprise.util.Nonbinding;
-import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
-
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-
-/**
- * {@code ScheduledMesenger} qualifier. Includes members providing schedule
- * properties.
- * 
- * @author d3j766
- *
- * @see ScheduledMessenger
- * 
- */
-@InterceptorBinding
-@Qualifier
-@Inherited
-@Retention(RUNTIME)
-@Target({ TYPE, FIELD })
-public @interface TaskSchedule {
-
-	/**
-	 * (Optional) Fixed delay in specified {@link #timeUnit()} between report
-	 * messages.
-	 * 
-	 * Default is 3 Seconds.
-	 */
-	@Nonbinding
-	long delay() default 15;
-
-	/**
-	 * (Optional) {@code TimeUnit} for {@link #delay()} value.
-	 * 
-	 * Default is {@code TimeUnit#SECONDS}
-	 */
-	@Nonbinding
-	TimeUnit timeUnit() default TimeUnit.SECONDS;
-
-	/**
-	 * (Optional) A controlled variance adjustment applied to the reporting
-	 * schedule's fixed {@link #delay()} value. Variance is a +/- value that
-	 * ranges from 0 to the provided percentage of the fixed delay.
-	 * 
-	 * Default is 10
-	 */
-	@Nonbinding
-	int jitterPercent() default 10;
-	
-	/**
-	 * (Optional) If true, messenger component will be activated on startup.
-	 * 
-	 * Default is true
-	 */
-	@Nonbinding
-	boolean activateOnStartup() default true;
-	
 }

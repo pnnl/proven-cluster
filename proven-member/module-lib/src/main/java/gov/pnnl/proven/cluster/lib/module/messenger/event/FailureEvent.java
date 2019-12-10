@@ -40,7 +40,7 @@
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
 /**
- * Base class for registry event messages.
+ * Base class for failure events.
  * 
  * @author d3j766
  *
