@@ -37,73 +37,75 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.UUID;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperation;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.util.concurrent.TimeUnit;
+
+import javax.enterprise.util.Nonbinding;
+import javax.inject.Qualifier;
+import javax.interceptor.InterceptorBinding;
+
+import gov.pnnl.proven.cluster.lib.module.messenger.MessengerSchedule;
 
 /**
- * Identifies {@code ManagedComponent} status operations.
- * 
- * Each operation may change the component's {@code ManagedStatus} value.
- * 
- * @see ManagedComponent, ManagedStatus, StatusOperation
+ * {@code ScheduledMesenger} qualifier. Includes members providing schedule
+ * properties.
  * 
  * @author d3j766
  *
+ * @see MessengerSchedule
+ * 
  */
-public interface ManagedStatusOperation {
+@InterceptorBinding
+@Qualifier
+@Inherited
+@Retention(RUNTIME)
+@Target({ TYPE, FIELD })
+public @interface Scheduler {
 
 	/**
-	 * Component is activated.
+	 * (Optional) Fixed delay in specified {@link #timeUnit()} between report
+	 * messages.
 	 * 
-	 * @return true if the component was successfully activated, false otherwise
+	 * Default is 3 Seconds.
 	 */
-	boolean activate();
+	@Nonbinding
+	long delay() default 5;
 
 	/**
-	 * A new component is created of the same type as the scaled component.
+	 * (Optional) {@code TimeUnit} for {@link #delay()} value.
 	 * 
-	 * @param scaled
-	 *            identifier of component that triggered the scale operation
-	 * @return
+	 * Default is {@code TimeUnit#SECONDS}
 	 */
-	void scale(UUID scaled);
+	@Nonbinding
+	TimeUnit timeUnit() default TimeUnit.SECONDS;
 
 	/**
-	 * Component is deactivated.
+	 * (Optional) A controlled variance adjustment applied to the reporting
+	 * schedule's fixed {@link #delay()} value. Variance is a +/- value that
+	 * ranges from 0 to the provided percentage of the fixed delay.
 	 * 
-	 * @return true if the component was successfully deactivated, false
-	 *         otherwise
+	 * Default is 10
 	 */
-	boolean deactivate();
-
+	@Nonbinding
+	int jitterPercent() default 10;
+	
 	/**
-	 * Component is set to a {@code ManagedStatus#Failed} state.
-	 */
-	void fail();
-
-	/**
-	 * Component is removed from service.
+	 * (Optional) If true, messenger component will be activated on startup.
 	 * 
-	 * @return true if the component was successfully removed, false otherwise
+	 * Default is true
 	 */
-	boolean remove();
-
-	/**
-	 * Performs maintenance operations (checks and repairs, if possible) for a
-	 * component. Returns {@code MaintenanceSeverity}, representing the result
-	 * of the operations.
-	 * 
-	 * @param ops
-	 *            the set of maintenance operations to perform.
-	 * 
-	 */
-	MaintenanceSeverity check(SortedSet<MaintenanceOperation> ops);
-
+	@Nonbinding
+	boolean activateOnStartup() default true;
+	
 }

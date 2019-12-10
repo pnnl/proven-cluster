@@ -71,10 +71,6 @@ public class MessageStream extends StreamComponent {
 	@Inject
 	protected HazelcastInstance hzi;
 	
-//	@Inject
-//	@Managers
-//	protected List<StreamManager> sms;
-
 	private String streamName;
 	private DisclosureDomain dd;
 	private MessageStreamType mst;

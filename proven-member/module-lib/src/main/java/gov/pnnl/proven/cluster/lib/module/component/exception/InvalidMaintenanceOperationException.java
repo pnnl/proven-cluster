@@ -37,73 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
 
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.UUID;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperation;
+public class InvalidMaintenanceOperationException extends RuntimeException {
 
-/**
- * Identifies {@code ManagedComponent} status operations.
- * 
- * Each operation may change the component's {@code ManagedStatus} value.
- * 
- * @see ManagedComponent, ManagedStatus, StatusOperation
- * 
- * @author d3j766
- *
- */
-public interface ManagedStatusOperation {
+	private static final long serialVersionUID = 1L;
 
-	/**
-	 * Component is activated.
-	 * 
-	 * @return true if the component was successfully activated, false otherwise
-	 */
-	boolean activate();
+	public InvalidMaintenanceOperationException() {
+		super();
+	}
 
-	/**
-	 * A new component is created of the same type as the scaled component.
-	 * 
-	 * @param scaled
-	 *            identifier of component that triggered the scale operation
-	 * @return
-	 */
-	void scale(UUID scaled);
+	public InvalidMaintenanceOperationException(String message) {
+		super(message);
+	}
 
-	/**
-	 * Component is deactivated.
-	 * 
-	 * @return true if the component was successfully deactivated, false
-	 *         otherwise
-	 */
-	boolean deactivate();
-
-	/**
-	 * Component is set to a {@code ManagedStatus#Failed} state.
-	 */
-	void fail();
-
-	/**
-	 * Component is removed from service.
-	 * 
-	 * @return true if the component was successfully removed, false otherwise
-	 */
-	boolean remove();
-
-	/**
-	 * Performs maintenance operations (checks and repairs, if possible) for a
-	 * component. Returns {@code MaintenanceSeverity}, representing the result
-	 * of the operations.
-	 * 
-	 * @param ops
-	 *            the set of maintenance operations to perform.
-	 * 
-	 */
-	MaintenanceSeverity check(SortedSet<MaintenanceOperation> ops);
-
+	public InvalidMaintenanceOperationException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

@@ -37,43 +37,25 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.component.extension;
 
-import java.util.concurrent.TimeUnit;
-
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
+import javax.enterprise.inject.spi.AfterDeploymentValidation;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.util.AnnotationLiteral;
-import javax.enterprise.util.Nonbinding;
 
-/**
- * {@code Messenger} implementation.
- * 
- * @author d3j766
- *
- */
-public abstract class TaskScheduleAnnotationLiteral extends AnnotationLiteral<TaskSchedule> implements TaskSchedule {
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 
-	@Override
-	@Nonbinding
-	public long delay() {
-		return 7;
+public class EagerCDIExtension implements Extension {
+
+	public void afterDeploymentValidation(@Observes AfterDeploymentValidation event, BeanManager beanManager) {
+		beanManager.getBeans(Object.class, new AnnotationLiteral<Eager>() {
+		}).parallelStream().filter(bean -> bean.getBeanClass().isAnnotationPresent(ApplicationScoped.class))
+				.forEach(bean -> {
+					beanManager.getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean))
+							.toString();
+				});
 	}
-
-	@Override
-	@Nonbinding
-	public TimeUnit timeUnit() {
-		return TimeUnit.SECONDS;
-	}
-
-	@Override
-	@Nonbinding
-	public int jitterPercent() {
-		return 10;
-	}
-
-	@Override
-	public boolean activateOnStartup() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-	
 }

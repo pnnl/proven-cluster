@@ -37,73 +37,66 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.UUID;
+import java.util.Optional;
+import java.util.function.Supplier;
 
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperation;
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceRegistry;
 
 /**
- * Identifies {@code ManagedComponent} status operations.
+ * Performs maintenance checks provided by the registered supplier.
  * 
- * Each operation may change the component's {@code ManagedStatus} value.
- * 
- * @see ManagedComponent, ManagedStatus, StatusOperation
+ * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
  * 
  * @author d3j766
  *
  */
-public interface ManagedStatusOperation {
+public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
+
+	private static final long serialVersionUID = 1L;
+
+	@Inject
+	Logger log;
+
+	@Inject
+	MaintenanceRegistry mr;
+
+	public MaintenanceSchedule() {
+	}
+
+	@Override
+	synchronized public void register(Supplier<Optional<ComponentMaintenance>> supplier) {
+		
+			if ((null != supplier) && (supplier.get().isPresent())) {
+				ComponentMaintenance cm = supplier.get().get();
+				mr.register(cm);
+			}			
+			this.supplier = supplier;
+			
+	}
 
 	/**
-	 * Component is activated.
+	 * Performs provided maintenance checks, if any.
 	 * 
-	 * @return true if the component was successfully activated, false otherwise
+	 * @param cmOpt
+	 *            optional scheduled maintenance
 	 */
-	boolean activate();
+	protected void apply(Optional<ComponentMaintenance> cmOpt) {
 
-	/**
-	 * A new component is created of the same type as the scaled component.
-	 * 
-	 * @param scaled
-	 *            identifier of component that triggered the scale operation
-	 * @return
-	 */
-	void scale(UUID scaled);
-
-	/**
-	 * Component is deactivated.
-	 * 
-	 * @return true if the component was successfully deactivated, false
-	 *         otherwise
-	 */
-	boolean deactivate();
-
-	/**
-	 * Component is set to a {@code ManagedStatus#Failed} state.
-	 */
-	void fail();
-
-	/**
-	 * Component is removed from service.
-	 * 
-	 * @return true if the component was successfully removed, false otherwise
-	 */
-	boolean remove();
-
-	/**
-	 * Performs maintenance operations (checks and repairs, if possible) for a
-	 * component. Returns {@code MaintenanceSeverity}, representing the result
-	 * of the operations.
-	 * 
-	 * @param ops
-	 *            the set of maintenance operations to perform.
-	 * 
-	 */
-	MaintenanceSeverity check(SortedSet<MaintenanceOperation> ops);
+		ComponentMaintenance cm;
+		ManagedComponent mc;
+		if (cmOpt.isPresent()) {
+			cm = cmOpt.get();
+			mc = cm.getOperator();
+			mc.check(mr.getOps(mc));
+		}
+	}
 
 }

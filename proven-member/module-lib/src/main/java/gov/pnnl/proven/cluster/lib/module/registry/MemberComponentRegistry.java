@@ -40,10 +40,10 @@
 package gov.pnnl.proven.cluster.lib.module.registry;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -52,15 +52,14 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ISet;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
+import gov.pnnl.proven.cluster.lib.module.messenger.MessengerSchedule;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
 import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessages;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessenger;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MemberRegistry;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
  * Provides a Component Registry at the Member level.
@@ -69,10 +68,11 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
  *
  */
 @ApplicationScoped
+@Eager
 public class MemberComponentRegistry {
 
 	@Inject
-	Logger logger;
+	Logger log;
 
 	@Inject
 	ClusterComponentRegistry ccr;
@@ -81,12 +81,8 @@ public class MemberComponentRegistry {
 	HazelcastInstance hzi;
 
 	@Inject
-	@TaskSchedule
-	ScheduledMessenger memberMessenger;
-
-	// (Observer) - Record ManagedComponent status
-	public void observeStatus(@ObservesAsync @MemberRegistry StatusEvent event) {
-	}
+	@Scheduler(delay=30, timeUnit=TimeUnit.SECONDS)
+	MessengerSchedule memberMessenger;
 	
 	/**
 	 * Contains the set of Hazelcast member's reporting module components.
@@ -95,10 +91,12 @@ public class MemberComponentRegistry {
 
 	@PostConstruct
 	public void initialize() {
+		log.debug("Inside MemberComponentRegistry PostConstruct");
 		registerMessengers();
 	}
 
 	public MemberComponentRegistry() {
+		System.out.println("Inside MemberComponentRegistry constructor");
 	}
 
 	private void registerMessengers() {
@@ -135,5 +133,5 @@ public class MemberComponentRegistry {
 		// TODO
 		return Optional.of(new MemberEvent());
 	}
-
+	
 }

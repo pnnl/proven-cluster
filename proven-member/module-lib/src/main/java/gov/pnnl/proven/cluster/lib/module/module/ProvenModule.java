@@ -60,11 +60,13 @@ import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
+import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
 
 /**
  * Represents a Proven module and is responsible for activation/deactivation of
@@ -86,6 +88,10 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 
 	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
 
+	@Inject
+	@Eager
+	MemberComponentRegistry mcr;
+	
 	// Set of active managers selected for this module
 	Set<Class<?>> activeManagers;
 
@@ -257,7 +263,6 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 	@Override
 	public void checkMember(MemberEvent event) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override

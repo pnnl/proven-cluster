@@ -54,8 +54,8 @@ import javax.interceptor.InvocationContext;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.ScheduledTask;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 
 /**
  * Adds {@code MessengerProperties} to scheduler.
@@ -65,7 +65,7 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.TaskSchedule;
  * 
  */
 @Interceptor
-@TaskSchedule
+@Scheduler
 @Priority(value = Interceptor.Priority.APPLICATION)
 public class ScheduledTaskInterceptor implements Serializable {
 
@@ -87,26 +87,20 @@ public class ScheduledTaskInterceptor implements Serializable {
 		// OK to proceed
 		ctx.proceed();
 		Object result = ctx.getTarget();
-		ScheduledTask<?> scheduledTask = (ScheduledTask<?>) result;
-		TaskSchedule schedule;
+		TaskSchedule<?> scheduledTask = (TaskSchedule<?>) result;
+		Scheduler schedule;
 		
 		
 		Optional<Annotation> scheduleOpt;// = Optional.empty();
-		scheduleOpt = ip.getQualifiers().stream().filter((q) -> q instanceof TaskSchedule).findAny();
-		
-
-		
-//		if (ip.getAnnotated().isAnnotationPresent(TaskSchedule.class)) {
-//			scheduleOpt = Optional.of(ip.getAnnotated().getAnnotation(TaskSchedule.class));
-//		}
-				
+		scheduleOpt = ip.getQualifiers().stream().filter((q) -> q instanceof Scheduler).findAny();
+						
 		if (scheduleOpt.isPresent()) {
-			schedule = (TaskSchedule) scheduleOpt.get();
+			schedule = (Scheduler) scheduleOpt.get();
 		}
 		// Use default from the class 
 		else {
 			log.info("Using default task schedule properties");
-			schedule = ScheduledTask.class.getAnnotation(TaskSchedule.class);
+			schedule = TaskSchedule.class.getAnnotation(Scheduler.class);
 		}
 
 		// Add properties
@@ -114,7 +108,7 @@ public class ScheduledTaskInterceptor implements Serializable {
 
 	}
 
-	private void addScheduleProperties(ScheduledTask<?> st, TaskSchedule t) {
+	private void addScheduleProperties(TaskSchedule<?> st, Scheduler t) {
 		st.setDelay(t.delay());
 		st.setTimeUnit(t.timeUnit());
 		st.setJitterPercent(t.jitterPercent());

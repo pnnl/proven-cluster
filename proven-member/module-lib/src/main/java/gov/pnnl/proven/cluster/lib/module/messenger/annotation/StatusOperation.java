@@ -48,7 +48,8 @@ import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.NonReco
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Offline;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Ready;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Recoverable;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.*;
+
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.PARAMETER;
@@ -61,6 +62,7 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.zip.CheckedOutputStream;
 
 import javax.inject.Qualifier;
 
@@ -106,7 +108,7 @@ public @interface StatusOperation {
 		Scale(Busy, FailedOnlineRetry, NonRecoverable),
 
 		/**
-		 * A component may deactivate if it is in one of the enumerated states.
+		 * A component may be deactivated if it is in one of the enumerated states.
 		 */
 		Deactivate(Recoverable),
 
@@ -125,7 +127,7 @@ public @interface StatusOperation {
 		 * Maintenance will be performed on a component if it is in one of the
 		 * enumerated states.
 		 */
-		CheckAndRepair(Offline, Online, Busy, FailedOnlineRetry);
+		Check(Online, Busy, FailedOnlineRetry, CheckedOffline);
 
 		private final Set<ManagedStatus> validStatus;
 

@@ -37,59 +37,92 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.messenger;
 
+import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+
 /**
- * Performs maintenance checks provided by the supplier.
+ * Sends {@code ScheduledMessages} containing {@MessageEvent}s on a fixed delay
+ * schedule.
  * 
- * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
+ * Default {@code Scheduler} is provided here, and used if {@code Scheduler} is
+ * not annotated at injection point.
+ * 
+ * @see ScheduledTask, ScheduledMessages, MessageEvent, Scheduler
  * 
  * @author d3j766
  *
  */
-public class ScheduledMaintenance extends ScheduledTask<ManagedMaintenance> {
+public class MessengerSchedule extends TaskSchedule<ScheduledMessages> {
 
 	private static final long serialVersionUID = 1L;
 
 	@Inject
 	Logger log;
 
-	public ScheduledMaintenance() {
+	@Inject
+	Event<MessageEvent> eventInstance;
+
+	@Inject
+	public MessengerSchedule() {
 	}
 
 	@PostConstruct
-	public void initMaintenance() {
+	public void initMessenger() {
 	}
 
 	@PreDestroy
-	public void destroyMaintatenace() {
+	public void destroyMessenger() {
 	}
 
 	/**
-	 * Performs provided maintenance checks.
+	 * Sends the {@code ScheduledMessage}.
 	 * 
-	 * @param maintenance
+	 * @param messages
 	 *            optional reported message content
 	 */
-	protected void apply(Optional<ManagedMaintenance> maintenance) {
+	protected void apply(Optional<ScheduledMessages> messages) {
 
-//		Annotation[] qualifiers = {};
-//
-//		if (maintenance.isPresent()) {
-//
-//			ManagedMaintenance mcs = maintenance.get();
-//			for (MaintenanceCheck mc : mcs.getChecks()) {
-//
-//			}
-//		}
+		Annotation[] qualifiers = {};
+
+		if (messages.isPresent()) {
+
+			ScheduledMessages sms = messages.get();
+
+			for (ScheduledMessage sm : sms.getMessages()) {
+
+				if (sm.getQualifiers().isPresent()) {
+					List<Annotation> qualifierList = sm.getQualifiers().get();
+					qualifiers = new Annotation[qualifierList.size()];
+					qualifiers = sm.getQualifiers().get().toArray(qualifiers);
+				}
+
+				if (sm.isAsync()) {
+					log.debug("ASYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
+					log.debug("BEFORE ASYNC FIRE ******");
+					eventInstance.select(qualifiers).fireAsync(sm.getEvent());
+					log.debug("AFTER ASYNC FIRE ******");
+
+				} else {
+					log.debug("SYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
+					log.debug("BEFORE ASYNC FIRE ******");
+					eventInstance.select(qualifiers).fire(sm.getEvent());
+					log.debug("AFTER ASYNC FIRE ******");
+				}
+			}
+		}
 	}
 
 }

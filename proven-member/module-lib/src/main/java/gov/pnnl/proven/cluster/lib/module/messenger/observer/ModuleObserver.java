@@ -40,9 +40,12 @@
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
+
+import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
@@ -52,11 +55,11 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
+@ApplicationScoped
 public class ModuleObserver {
-
+	
 	@Inject
-	@Module
-	private ProvenModule pm;
+	Logger log;
 
 	public ModuleObserver() {
 	}
@@ -65,26 +68,27 @@ public class ModuleObserver {
 	public void init() {
 	}
 
-	public void startup(@Observes @Module StartupEvent event) {
+	public void startup(@Observes @Module StartupEvent event, @Module ProvenModule pm) {
 		pm.startup();
 		pm.activate();
-		pm.getScheduledMessenger().start();
-		//pm.getScheduledMaintenance().start();
+		pm.getMessengerSchedule().start();
+		pm.getMaintenanceSchedule().start();
 	}
 
-	public void suspend(@Observes @Module SuspendEvent event) {
+	public void suspend(@Observes @Module SuspendEvent event, @Module ProvenModule pm) {
 		pm.suspend();
 	}
 
-	public void shutdown(@Observes @Module ShutdownEvent event) {
+	public void shutdown(@Observes @Module ShutdownEvent event, @Module ProvenModule pm) {
 		pm.shutdown();
 	}
 
-	public void checkMember(@ObservesAsync @Module MemberEvent event) {
+	public void checkMember(@ObservesAsync @Module MemberEvent event, @Module ProvenModule pm) {
+		log.debug("(Observing) Inside check member event");
 		pm.checkMember(event);
 	}
 
-	public void checkCluster(@ObservesAsync @Module ClusterEvent event) {
+	public void checkCluster(@ObservesAsync @Module ClusterEvent event, @Module ProvenModule pm) {
 		pm.checkCluster(event);
 	}
 
