@@ -40,20 +40,41 @@
 
 package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-public class StatusOperationException extends Exception {
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation;
+
+public class StatusOperationException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
+
+	private Operation op;
 
 	public StatusOperationException() {
 		super();
 	}
 
-	public StatusOperationException(String message) {
-		super(message);
+	public StatusOperationException(Operation op) {
+		super();
+		this.op = op;
 	}
 
-	public StatusOperationException(String message, Throwable e) {
-		super(message, e);
+	public StatusOperationException(Operation op, String message) {
+		super(message);
+		this.op = op;
 	}
-	
+
+	public StatusOperationException(Operation op, Throwable e) {
+		super(e);
+		this.op = op;
+
+	}
+
+	public StatusOperationException(Operation op, String message, Throwable e) {
+		super(message, e);
+		this.op = op;
+	}
+
+	public Operation getOp() {
+		return op;
+	}
+
 }

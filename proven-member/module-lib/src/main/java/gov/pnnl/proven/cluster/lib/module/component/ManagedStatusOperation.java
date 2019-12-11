@@ -91,12 +91,18 @@ public interface ManagedStatusOperation {
 	/**
 	 * Component is removed from service.
 	 * 
-	 * @return true if the component was successfully removed, false otherwise
 	 */
-	boolean remove();
+	void remove();
+	
+	/**
+	 * Component is shutdown removing it from service.
+	 * 
+	 */
+	void shutdown();
+
 
 	/**
-	 * Performs maintenance operations (checks and repairs, if possible) for a
+	 * Performs maintenance operations (checks/repairs) for a
 	 * component. Returns {@code MaintenanceSeverity}, representing the result
 	 * of the operations.
 	 * 

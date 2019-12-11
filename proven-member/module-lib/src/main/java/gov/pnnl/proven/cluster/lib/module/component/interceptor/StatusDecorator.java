@@ -45,7 +45,6 @@ import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Deactiv
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Failed;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedActivateRetry;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedDeactivateRetry;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedRemoveRetry;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Failing;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Offline;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
@@ -57,9 +56,9 @@ import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOper
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Deactivate;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Fail;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Remove;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
 import static gov.pnnl.proven.cluster.lib.module.util.LoggerResource.currentThreadLog;
 
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.UUID;
 
@@ -72,11 +71,14 @@ import javax.interceptor.Interceptor;
 import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.exception.StatusOperationException;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSeverity;
+import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
 
 @Decorator
 @Priority(value = Interceptor.Priority.APPLICATION)
@@ -84,6 +86,9 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 
 	@Inject
 	Logger log;
+
+	@Inject
+	ManagedObserver mo;
 
 	@Inject
 	@Delegate
@@ -97,18 +102,26 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	public boolean activate() {
 
 		log.debug(currentThreadLog("START ACTIVATE DECORATOR"));
+
 		boolean opSuccess = false;
 		log.debug("Decorator activate started");
-		if (Activate.verifyOperation(mc.getStatus())) {
+		ManagedStatus inStatus = mc.getStatus();
+		if (Activate.verifyOperation(inStatus)) {
 			mc.setStatus(Activating);
 
-			opSuccess = mc.activate();
+			try {
+				opSuccess = mc.activate();
+			} catch (Exception e) {
+				mc.setStatus(inStatus);
+				throw new StatusOperationException(Activate, e);
+			}
 
 			if (opSuccess) {
 				mc.setStatus(Online);
 			} else {
 				mc.setStatus(FailedActivateRetry);
 			}
+
 		} else {
 			log.warn("Activate operation not performed.  Incompatible input status: " + mc.getStatus());
 
@@ -124,7 +137,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	 */
 	@Override
 	public void scale(UUID scaled) {
-
+		// TODO
 	}
 
 	/**
@@ -137,9 +150,17 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 
 		boolean opSuccess = false;
 		log.debug("Decorator deactivate started");
+		ManagedStatus inStatus = mc.getStatus();
 		if (Deactivate.verifyOperation(mc.getStatus())) {
 			mc.setStatus(Deactivating);
-			opSuccess = mc.deactivate();
+
+			try {
+				opSuccess = mc.deactivate();
+			} catch (Exception e) {
+				mc.setStatus(inStatus);
+				throw new StatusOperationException(Deactivate, e);
+			}
+
 			if (opSuccess) {
 				mc.setStatus(Offline);
 			} else {
@@ -149,53 +170,101 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			log.warn("Deactivate operation not performed.  Incompatible input status: " + mc.getStatus());
 		}
 		log.debug("Decorator deactivate completed");
-
 		log.debug(currentThreadLog("END DEACTIVATE DECORATOR"));
 
 		return opSuccess;
 	}
 
 	/**
-	 * @see ManagedStatusOperation#fail()()
+	 * @see ManagedStatusOperation#fail()
 	 */
 	@Override
 	public void fail() {
 
+		log.debug(currentThreadLog("START FAIL DECORATOR"));
 		log.debug("Decorator fail started");
 		if (Fail.verifyOperation(mc.getStatus())) {
-
-			// LOCAL deactivation called here to disable component
-
 			mc.setStatus(Failing);
+
+			try {
+				failTasks();
+			} catch (Exception e) {
+				mc.setStatus(Failed);
+				throw new StatusOperationException(Fail, e);
+			}
 			mc.setStatus(Failed);
+
 		} else {
 			log.warn("Fail operation not performed.  Incompatible input status: " + mc.getStatus());
 		}
 		log.debug("Decorator fail completed");
+		log.debug(currentThreadLog("END FAIL DECORATOR"));
+	}
+
+	private void failTasks() {
+		mc.getMaintenanceSchedule().stop();
+		mc.fail(); // Component specific
 	}
 
 	/**
 	 * @see ManagedStatusOperation#remove()
 	 */
 	@Override
-	public boolean remove() {
+	public void remove() {
 
-		boolean opSuccess = false;
+		log.debug(currentThreadLog("START REMOVE DECORATOR"));
+
 		log.debug("Decorator remove started");
 		if (Remove.verifyOperation(mc.getStatus())) {
 			mc.setStatus(Removing);
-			opSuccess = mc.remove();
-			if (opSuccess) {
+			try {
+				removeTasks();
+			} catch (Exception e) {
 				mc.setStatus(OutOfService);
-			} else {
-				mc.setStatus(FailedRemoveRetry);
+				throw new StatusOperationException(Remove, e);
 			}
+			mc.setStatus(OutOfService);
+
 		} else {
 			log.warn("Remove operation not performed.  Incompatible input status: " + mc.getStatus());
 		}
 		log.debug("Decorator remove completed");
+		log.debug(currentThreadLog("END REMOVE DECORATOR"));
 
-		return opSuccess;
+	}
+
+	private void removeTasks() {
+		mc.getMaintenanceSchedule().stop();
+		mc.getMessengerSchedule().stop();
+		mo.unregister(mc);
+		mc.remove(); // Component specific
+	}
+
+	/**
+	 * @see ManagedStatusOperation#remove()
+	 */
+	@Override
+	public void shutdown() {
+
+		log.debug(currentThreadLog("START SHUTDOWN DECORATOR"));
+
+		log.debug("Decorator shutdown started");
+		if (Shutdown.verifyOperation(mc.getStatus())) {
+			mc.setStatus(Removing);
+			try {
+				removeTasks();
+			} catch (Exception e) {
+				mc.setStatus(OutOfService);
+				throw new StatusOperationException(Shutdown, e);
+			}
+			mc.setStatus(OutOfService);
+
+		} else {
+			log.warn("Shutdown operation not performed.  Incompatible input status: " + mc.getStatus());
+		}
+		log.debug("Decorator shutdown completed");
+		log.debug(currentThreadLog("END SHUTDOWN DECORATOR"));
+
 	}
 
 	/**
@@ -204,16 +273,27 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	@Override
 	public MaintenanceSeverity check(SortedSet<MaintenanceOperation> ops) {
 
+		log.debug(currentThreadLog("START CHECK DECORATOR"));
+
 		log.debug("Decorator check started");
 		MaintenanceSeverity opResult = Undetermined;
+		ManagedStatus inStatus = mc.getStatus();
 		if (Check.verifyOperation(mc.getStatus())) {
 			mc.setStatus(CheckingStatus);
-			MaintenanceSeverity severity = mc.check(ops);
-			mc.setStatus(severity.getStatus());
+
+			try {
+				opResult = mc.check(ops);
+			} catch (Exception e) {
+				mc.setStatus(inStatus);
+				throw new StatusOperationException(Check, e);
+			}
+			mc.setStatus(opResult.getStatus());
+
 		} else {
 			log.warn("Check operation not performed.  Incompatible input status: " + mc.getStatus());
 		}
 		log.debug("Decorator check completed");
+		log.debug(currentThreadLog("END CHECK DECORATOR"));
 
 		return opResult;
 	}

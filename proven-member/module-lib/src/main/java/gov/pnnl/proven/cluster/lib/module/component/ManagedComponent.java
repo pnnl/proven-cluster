@@ -256,17 +256,17 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	public boolean acquireStatusLockNoWait() {
-		log.debug(currentThreadLog("ACQUIRE LOCK"));
+		log.debug(currentThreadLog("ACQUIRING LOCK NO WAIT"));
 		return statusLock.tryLock();
 	}
 
 	public void acquireStatusLockWait() {
-		log.debug(currentThreadLog("ACQUIRE LOCK WAIT"));
+		log.debug(currentThreadLog("ACQUIRING LOCK WAIT"));
 		statusLock.lock();
 	}
 
 	public boolean acquireStatusLockWaitTime(Long time, TimeUnit unit) {
-		log.debug(currentThreadLog("ACQUIRE LOCK WAIT TIME"));
+		log.debug(currentThreadLog("ACQUIRING LOCK WAIT TIME"));
 		boolean ret = false;
 		try {
 			ret = statusLock.tryLock(time, unit);
@@ -471,11 +471,19 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	@LockedStatusOperation
-	public boolean remove() {
-		log.debug("No remove operation implemenation for :: " + this.getComponentType());
-		return true;
+	public void remove() {
+		log.debug("No remove operation implementation for :: " + this.getComponentType());
 	}
 
+	/**
+	 * @see ManagedStatusOperation#shutdown()
+	 */
+	@Override
+	@LockedStatusOperation
+	public void shutdown() {
+		log.debug("No shutdown operation implementation for :: " + this.getComponentType());
+	}
+	
 	/**
 	 * @see ManagedStatusOperation#fail()
 	 */
@@ -637,8 +645,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		case Remove:
 			ret = hasCreatedCandidates(op);
 			break;
+			
+		case Shutdown:
+			// Not triggered by a status message
+			break;
 
 		case Check:
+			// Not triggered by a status message
 			break;
 
 		default:

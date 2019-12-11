@@ -52,7 +52,6 @@ import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.ObservesAsync;
-import javax.enterprise.event.Reception;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -65,6 +64,12 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
 
+/**
+ * Observer methods for {@code ManagedComponent} events.
+ * 
+ * @author d3j766
+ *
+ */
 @ApplicationScoped
 public class ManagedObserver {
 
@@ -78,17 +83,23 @@ public class ManagedObserver {
 		registeredObservers.put(mc.getId(), mc);
 	}
 
+	public void unregister(ManagedComponent mc) {
+		registeredObservers.remove(mc.getId());
+	}
+
 	public boolean isRegistered(UUID id) {
 		return registeredObservers.containsKey(id);
-	}	
-	
+	}
+
 	@Inject
 	public ManagedObserver() {
 	}
 
 	public void activate(@ObservesAsync @Managed @StatusOperation(operation = Activate) StatusEvent event) {
 
-		UUID opCandidateId = event.getOpCandidateId();  // child
+		log.debug("(Observing) Inside activate operation");
+
+		UUID opCandidateId = event.getOpCandidateId(); // child
 		if (isRegistered(opCandidateId)) {
 			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
 			log.debug("ACTIVATING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
@@ -98,9 +109,11 @@ public class ManagedObserver {
 
 	public void scale(@ObservesAsync @Managed @StatusOperation(operation = Scale) StatusEvent event) {
 
-		UUID opCandidateId = event.getOpCandidateId();  // child
+		log.debug("(Observing) Inside scale operation");
+
+		UUID opCandidateId = event.getOpCandidateId(); // child
 		if (isRegistered(event.getRequestorId())) {
-			ManagedComponent mc = registeredObservers.get(event.getRequestorId());  // parent
+			ManagedComponent mc = registeredObservers.get(event.getRequestorId()); // parent
 			Optional<ManagedComponent> scaledOpt = mc.getCreated(opCandidateId);
 			if (scaledOpt.isPresent()) {
 				ManagedComponent scaled = scaledOpt.get();
@@ -110,10 +123,11 @@ public class ManagedObserver {
 		}
 	}
 
-	public void deactivate(
-			@ObservesAsync(notifyObserver = Reception.IF_EXISTS) @Managed @StatusOperation(operation = Deactivate) StatusEvent event) {
+	public void deactivate(@ObservesAsync @Managed @StatusOperation(operation = Deactivate) StatusEvent event) {
 
-		UUID opCandidateId = event.getOpCandidateId();  // child
+		log.debug("(Observing) Inside deactivate operation");
+
+		UUID opCandidateId = event.getOpCandidateId(); // child
 		if (isRegistered(opCandidateId)) {
 			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
 			log.debug("DEACTIVATING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
@@ -122,10 +136,11 @@ public class ManagedObserver {
 
 	}
 
-	public void fail(
-			@ObservesAsync(notifyObserver = Reception.IF_EXISTS) @Managed @StatusOperation(operation = Fail) StatusEvent event) {
+	public void fail(@ObservesAsync @Managed @StatusOperation(operation = Fail) StatusEvent event) {
 
-		UUID opCandidateId = event.getOpCandidateId();  // child
+		log.debug("(Observing) Inside fail operation");
+
+		UUID opCandidateId = event.getOpCandidateId(); // child
 		if (isRegistered(opCandidateId)) {
 			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
 			log.debug("FAILING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
@@ -134,10 +149,11 @@ public class ManagedObserver {
 
 	}
 
-	public void remove(
-			@ObservesAsync(notifyObserver = Reception.IF_EXISTS) @Managed @StatusOperation(operation = Remove) StatusEvent event) {
+	public void remove(@ObservesAsync @Managed @StatusOperation(operation = Remove) StatusEvent event) {
 
-		UUID opCandidateId = event.getOpCandidateId();  // child
+		log.debug("(Observing) Inside remove operation");
+
+		UUID opCandidateId = event.getOpCandidateId(); // child
 		if (isRegistered(opCandidateId)) {
 			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
 			log.debug("REMOVING CREATED: " + event.getDoId() + " CREATOR: " + mc.getDoId());
@@ -145,10 +161,33 @@ public class ManagedObserver {
 		}
 
 	}
-	
+
 	public void statusReport(@ObservesAsync @MemberRegistry StatusEvent event, @Eager MemberComponentRegistry mcr) {
+
+		log.debug("(Observing) Inside registry statusReport operation");
+
 		// TODO
-		log.debug("(Observing) Status reports for registry");
+
+		// Registry records/updates provided managed component information
+
+	}
+
+	public void heartbeat(@ObservesAsync @Managed StatusEvent event, @Eager MemberComponentRegistry mcr) {
+
+		log.debug("(Observing) Inside registry statusReport operation");
+
+		// TODO
+
+		// (Sender) Both status reports and maintenance reports should be sent
+		// to registry
+		// If either are missing - registry will set to unknown and send
+		// heartbeat request
+
+		// (Receiver) Check both schedulers (status & Maintenance)
+		// Perform check operation for both schedulers
+		// Adjust status accordingly
+		// Fire "Heartbeat" report to registry
+
 	}
 
 }

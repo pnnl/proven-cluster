@@ -118,10 +118,21 @@ public class MemberUtils {
 	 * 
 	 * @return simple class name of throwable or it's cause if it exists.
 	 */
-	public static String exCause(Throwable t) {
+	public static String exCauseName(Throwable t) {
 		return (null != t.getCause()) ? (t.getCause().getClass().getSimpleName()) : (t.getClass().getSimpleName());
 	}
 
+	/** 
+	 * Returns the throwable cause if it exists (i.e. not null) or the throwable itself.
+	 * 
+	 * @param t the {@code Throwable}
+	 * 
+	 * @return the provided throwable or it's cause if it exists.
+	 */
+	public static Throwable exCause(Throwable t) {
+		return (null != t.getCause()) ? (t.getCause()) : (t);
+	}	
+	
 	/**
 	 * Finds a resource in class path
 	 * 

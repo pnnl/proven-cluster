@@ -43,9 +43,9 @@ import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.*;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 
 /**
- * Represents the result of a {@code MaintenanceOperation} being performed by a
- * managed component. The severity aligns to a {@code ManagedStatus} value which
- * may be assigned to the managed component.
+ * Represents result of a {@code MaintenanceOperation} performed by a managed
+ * component. The severity aligns to a {@code ManagedStatus} value which may be
+ * assigned to the managed component.
  * 
  * The enum constants are ordered by severity from high to low. This order MUST
  * be maintained to ensure maintenance operations, which include a severity

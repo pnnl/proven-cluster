@@ -84,10 +84,11 @@ public enum ManagedStatus {
 	CheckingStatus(true),
 
 	/**
-	 * Component has been suspended due to a maintenance check operation and is
-	 * considered as offline. Existing tasks will be completed, new tasks/data
-	 * will not be accepted. The component may be reactivated from this state
-	 * only if the cause has been repaired by subsequent maintenance checks.  
+	 * Component has been deactivated due to a maintenance check operation and
+	 * is considered as offline. Existing tasks will be completed, new
+	 * tasks/data will not be assigned. The component may be reactivated from
+	 * this state by another check operation, and only if the cause for
+	 * deactivation has been repaired by subsequent maintenance check(s).
 	 */
 	CheckedOffline(false),
 
@@ -112,7 +113,8 @@ public enum ManagedStatus {
 	/**
 	 * Component has been suspended due to a deactivate operation and is
 	 * considered as offline. Existing tasks will be completed, new tasks will
-	 * not be accepted. The component may be reactivated from this state.
+	 * not be assigned. The component may be reactivated from this state by its
+	 * creator.
 	 */
 	Offline(false),
 
@@ -148,12 +150,6 @@ public enum ManagedStatus {
 	 * removal process.
 	 */
 	Removing(true),
-
-	/**
-	 * A failed state, indicating an error condition was encountered during a
-	 * remove attempt. Remove retries may be attempted from this state.
-	 */
-	FailedRemoveRetry(false),
 
 	/**
 	 * Indicates the component has been removed and is considered to be out of
@@ -200,8 +196,20 @@ public enum ManagedStatus {
 	 * Indicates any non-transition status, where the component can not be
 	 * recovered for service.
 	 */
-	NonRecoverable(false);
+	NonRecoverable(false),
 
+	/**
+	 * Indicates any non-transition status that is a terminating state.
+	 */
+	Terminal(false),
+
+	/**
+	 * Indicates any non-transition status that is not a terminating state.
+	 */
+	NonTerminal(false);
+
+	
+	
 	private final boolean isTransition;
 
 	ManagedStatus(boolean isTransition) {
@@ -222,10 +230,33 @@ public enum ManagedStatus {
 
 		boolean ret = true;
 
-		final ManagedStatus[] nonRecoverable = { Failed, FailedRemoveRetry, OutOfService, NonRecoverable };
+		final ManagedStatus[] nonRecoverable = { Failed, OutOfService, NonRecoverable };
 		if (!status.isTransition()) {
 			for (ManagedStatus failedStatus : nonRecoverable) {
 				if (failedStatus == status) {
+					ret = false;
+					break;
+				}
+			}
+		} else {
+			ret = false;
+		}
+
+		return ret;
+	}
+
+	
+	/**
+	 * Returns true if provided status value is a {@code #Terminal} status.
+	 */
+	public static boolean isTerminal(ManagedStatus status) {
+
+		boolean ret = true;
+
+		final ManagedStatus[] terminal = { OutOfService, Terminal };
+		if (!status.isTransition()) {
+			for (ManagedStatus terminalStatus : terminal) {
+				if (terminalStatus == status) {
 					ret = false;
 					break;
 				}

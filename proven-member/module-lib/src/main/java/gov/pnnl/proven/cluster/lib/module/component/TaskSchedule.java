@@ -40,6 +40,7 @@
 package gov.pnnl.proven.cluster.lib.module.component;
 
 import static gov.pnnl.proven.cluster.lib.member.MemberUtils.exCause;
+import static gov.pnnl.proven.cluster.lib.member.MemberUtils.exCauseName;
 import static gov.pnnl.proven.cluster.lib.module.util.LoggerResource.currentThreadLog;
 
 import java.io.Serializable;
@@ -132,9 +133,11 @@ public abstract class TaskSchedule<T> implements Serializable {
 	};
 
 	/**
-	 * Messenger status
+	 * Messenger status properties
 	 */
 	ScheduleStatus status = ScheduleStatus.STOPPED;
+	boolean isCancelled = false;
+	boolean isError = false;
 
 	public TaskSchedule() {
 	}
@@ -159,9 +162,11 @@ public abstract class TaskSchedule<T> implements Serializable {
 
 		synchronized (status) {
 			if (status == ScheduleStatus.STOPPED) {
+				isCancelled = false;
+				isError = false;
 				applyJitter();
 				scheduledFuture = scheduler.scheduleWithFixedDelay(() -> {
-					log.debug(currentThreadLog("START SCHEDULER"));
+					log.debug(currentThreadLog("START SCHEDULER STARTED"));
 					try {
 						log.debug("Scheduled task started");
 						if (hasRegisteredSupplier()) {
@@ -171,14 +176,24 @@ public abstract class TaskSchedule<T> implements Serializable {
 						}
 						log.debug("Scheduled task completed normally");
 					} catch (Throwable e) {
-						log.debug("Scheduled task exception has occurred: " + exCause(e));
-						e.printStackTrace();
 						if (e instanceof CancellationException) {
-							log.debug("Scheduled task execution has been cancelled: " + exCause(e));
-							stop();
+							log.debug("Scheduled task execution has been cancelled.");
+							isCancelled = true;
+						} else if ((e instanceof RejectedExecutionException) || (e instanceof ExecutionException)
+								|| (e instanceof InterruptedException)) {
+							log.warn("Scheduled task execution had an exception: \n" + exCauseName(e));
+							exCause(e).printStackTrace();
+						} else if ((e instanceof Error) || (e instanceof Exception)) {
+							log.warn("Scheduled task execution encountered an Error or unknown exception: "
+									+ exCauseName(e));
+							exCause(e).printStackTrace();
+							isError = true;
 						}
 					} finally {
-						log.debug(currentThreadLog("STOP SCHEDULER"));
+						if (isCancelled || isError) {
+							stop();
+							log.debug(currentThreadLog("TASK SCHEDULER STOPPED"));
+						}
 					}
 				}, delay, delay, timeUnit);
 			}
@@ -186,30 +201,12 @@ public abstract class TaskSchedule<T> implements Serializable {
 		}
 	}
 
-	@Deprecated
-	private boolean isUnhandledException(Throwable e) {
-
-		Throwable cause = e.getCause();
-		if (null == cause) {
-			cause = e;
-		}
-		//@formatter:off
-		return (  
-				(cause instanceof Error) || 
-				(cause instanceof CancellationException) ||
-				(cause instanceof RejectedExecutionException) ||
-				(!(cause instanceof ExecutionException)) || 
-				(!(cause instanceof InterruptedException))
-			   );
-		//@formatter:on
-	}
-
 	private boolean hasRegisteredSupplier() {
 		return (null != supplier);
 	}
 
 	/**
-	 * Shutdown of task scheduler and failure event recorded.
+	 * Shutdown of task scheduler
 	 */
 	public void stop() {
 

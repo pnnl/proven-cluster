@@ -41,21 +41,22 @@ package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MemberRegistry;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
-
+/**
+ * Observer methods for registry events.
+ * 
+ * @author d3j766
+ *
+ */
 @ApplicationScoped
 public class RegistryObserver {
 
-	@Inject 
+	@Inject
 	Logger log;
-	
+
 	public RegistryObserver() {
 	}
 

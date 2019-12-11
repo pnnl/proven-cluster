@@ -40,16 +40,17 @@
 package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Busy;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.CheckedOffline;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Failed;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedActivateRetry;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedOnlineRetry;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.FailedRemoveRetry;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.NonRecoverable;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.NonTerminal;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Offline;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Ready;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.*;
-
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Recoverable;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Terminal;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.PARAMETER;
@@ -62,7 +63,6 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.zip.CheckedOutputStream;
 
 import javax.inject.Qualifier;
 
@@ -108,7 +108,8 @@ public @interface StatusOperation {
 		Scale(Busy, FailedOnlineRetry, NonRecoverable),
 
 		/**
-		 * A component may be deactivated if it is in one of the enumerated states.
+		 * A component may be deactivated if it is in one of the enumerated
+		 * states.
 		 */
 		Deactivate(Recoverable),
 
@@ -121,7 +122,13 @@ public @interface StatusOperation {
 		 * A parent may remove a child component from service if the child is in
 		 * one of the enumerated states.
 		 */
-		Remove(Failed, FailedRemoveRetry),
+		Remove(Failed),
+
+		/**
+		 * A parent may shutdown a child component removing it from service if
+		 * the child is in one of the enumerated states.
+		 */
+		Shutdown(NonTerminal),
 
 		/**
 		 * Maintenance will be performed on a component if it is in one of the
@@ -145,8 +152,10 @@ public @interface StatusOperation {
 		public boolean verifyOperation(ManagedStatus status) {
 			//@formatter:off
 			return (validStatus.contains(status) 
-				|| (!status.isTransition() && !ManagedStatus.isRecoverable(status) && validStatus.contains(NonRecoverable))
-				|| (!status.isTransition() && ManagedStatus.isRecoverable(status) && validStatus.contains(Recoverable)));
+				|| (!ManagedStatus.isRecoverable(status) && validStatus.contains(NonRecoverable))
+				|| (ManagedStatus.isRecoverable(status) && validStatus.contains(Recoverable))
+				|| (!ManagedStatus.isTerminal(status) && validStatus.contains(NonTerminal))
+				|| (ManagedStatus.isTerminal(status) && validStatus.contains(Terminal)));
 			//@formatter:on
 		}
 

@@ -69,6 +69,7 @@ public class ModuleObserver {
 	}
 
 	public void startup(@Observes @Module StartupEvent event, @Module ProvenModule pm) {
+		log.debug("(Observing) Inside startup event");
 		pm.startup();
 		pm.activate();
 		pm.getMessengerSchedule().start();
@@ -76,10 +77,12 @@ public class ModuleObserver {
 	}
 
 	public void suspend(@Observes @Module SuspendEvent event, @Module ProvenModule pm) {
+		log.debug("(Observing) Inside suspend event");
 		pm.suspend();
 	}
 
 	public void shutdown(@Observes @Module ShutdownEvent event, @Module ProvenModule pm) {
+		log.debug("(Observing) Inside shutdown event");
 		pm.shutdown();
 	}
 
@@ -89,6 +92,7 @@ public class ModuleObserver {
 	}
 
 	public void checkCluster(@ObservesAsync @Module ClusterEvent event, @Module ProvenModule pm) {
+		log.debug("(Observing) Inside check cluster event");
 		pm.checkCluster(event);
 	}
 
