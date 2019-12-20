@@ -44,9 +44,9 @@ import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Failed;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Offline;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Unknown;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperationStatus.FAILED;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperationStatus.PASSED;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.FAILED;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 import static gov.pnnl.proven.cluster.lib.module.util.LoggerResource.currentThreadLog;
 
 import java.lang.annotation.Annotation;
@@ -61,14 +61,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -85,23 +84,21 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.SchedulerAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.component.exception.StatusLockException;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperationStatus;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSchedule;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSeverity;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ScheduledMaintenance;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.SchedulerCheck;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.MessengerSchedule;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessages;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MemberRegistryAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.StatusMessages;
+import gov.pnnl.proven.cluster.lib.module.messenger.StatusOperationMessage;
+import gov.pnnl.proven.cluster.lib.module.messenger.StatusSchedule;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperationAnnotationLiteral;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
@@ -144,13 +141,14 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	@Inject
 	@Scheduler(activateOnStartup = false)
-	protected MessengerSchedule messengerSchedule;
+	protected StatusSchedule statusSchedule;
 
 	@Inject
 	@Scheduler(delay = 10, activateOnStartup = false)
 	protected MaintenanceSchedule maintenanceSchedule;
 
 	@Inject
+	@Eager
 	protected ManagedObserver opObserver;
 
 	// Identifier properties
@@ -170,10 +168,6 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	// Status properties
 	protected ManagedStatus status = Unknown;
-	protected ManagedStatus reportedStatus = Unknown;
-	protected int reportedAttempts = 0;
-	protected int maxAttemptsBeforeReporting = 5;
-	protected long maxRegisterReportingDelayMillis;
 	protected ReentrantLock statusLock = new ReentrantLock();
 
 	// Scalable properties
@@ -231,22 +225,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			maxScaleCount = scalableAnnotation.maxCount();
 		}
 
-		// Set registery's maximum waiting period before requesting a status
-		// check from a managed component
-		long delay = messengerSchedule.getTimeUnit().toMillis(messengerSchedule.getDelay());
-		long maxJitter = (delay * (messengerSchedule.getJitterPercent() / 100));
-		long maxDelay = delay + maxJitter;
-		maxRegisterReportingDelayMillis = (maxAttemptsBeforeReporting + 1) * maxDelay;
+		// Register with status scheduler
+		statusSchedule.register(this);
 
-		messengerSchedule.register(() -> {
-			return reportStatus();
-		});
+		// Register default maintenance
+		maintenanceSchedule.register(this);
 
-		maintenanceSchedule.register(() -> {
-			return getScheduledMaintenance();
-		});
-
-		// Initial non-transitional status for a managed component
+		// Starting status for a managed component
 		setStatus(ManagedStatus.Ready);
 	}
 
@@ -324,8 +309,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return this.getClass().isAnnotationPresent(Scalable.class);
 	}
 
-	public MessengerSchedule getMessengerSchedule() {
-		return messengerSchedule;
+	public StatusSchedule getStatusSchedule() {
+		return statusSchedule;
 	}
 
 	public MaintenanceSchedule getMaintenanceSchedule() {
@@ -369,7 +354,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		mc.setCreatorId(getId());
 
 		// Activate scheduled messenger
-		mc.getMessengerSchedule().start();
+		mc.getStatusSchedule().start();
 
 		// Activate scheduled maintenance
 		mc.getMaintenanceSchedule().start();
@@ -424,21 +409,6 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	/**
-	 * @return the maxRegisterReportingDelayMillis
-	 */
-	public long getMaxRegisterReportingDelayMillis() {
-		return maxRegisterReportingDelayMillis;
-	}
-
-	/**
-	 * @param maxRegisterReportingDelayMillis
-	 *            the maxRegisterReportingDelayMillis to set
-	 */
-	public void setMaxRegisterReportingDelayMillis(long maxRegisterReportingDelayMillis) {
-		this.maxRegisterReportingDelayMillis = maxRegisterReportingDelayMillis;
-	}
-
-	/**
 	 * @see ManagedStatusOperation#activate()
 	 */
 	@Override
@@ -483,7 +453,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	public void shutdown() {
 		log.debug("No shutdown operation implementation for :: " + this.getComponentType());
 	}
-	
+
 	/**
 	 * @see ManagedStatusOperation#fail()
 	 */
@@ -498,36 +468,57 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	@LockedStatusOperation
-	public MaintenanceSeverity check(SortedSet<MaintenanceOperation> ops) {
+	public MaintenanceOperationResult check(SortedSet<MaintenanceOperation> ops) {
 
-		// Assume all maintenance checks pass
-		// Operations are pre-sorted by severity/status
-		MaintenanceSeverity severity = Available;
-		MaintenanceOperation opFailure = null;
+		// Assume all checks pass
+		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available, Optional.empty());
+
+		// Record any failed operations.
+		Set<MaintenanceOperation> opFailures = new HashSet<>();
+
 		for (MaintenanceOperation mo : ops) {
-			MaintenanceOperationStatus status = mo.checkAndRepair();
-			if (status == FAILED) {
-				severity = mo.getSeverity();
-				mo.setStatus(FAILED);
-				opFailure = mo;
-				break;
-			} else { // PASSED
-				mo.setStatus(PASSED);
+
+			// Perform the check
+			MaintenanceOperationResult opResult = mo.checkAndRepair();
+
+			// Set as return value if it's a higher severity.
+			if (opResult.getSeverity().isHigherSeverity(ret.getSeverity())) {
+				ret = opResult;
+			}
+
+			// Did not pass maintenance check, add to failures list
+			if (opResult.getStatus() == FAILED) {
+				opFailures.add(mo);
+
+				// Break if max severity for failure
+				if (opResult.getSeverity() == mo.maximumSeverity()) {
+					break;
+				}
 			}
 		}
 
 		// Update sorted list for a failed operation. Remove followed by add to
 		// re-sort. This will ensure the failed operation is performed before
-		// other operations having the same severity level during the next
+		// other operations having equal or lower severity level during the next
 		// scheduled maintenance check. At any one time, there can be at most
-		// one failed operation per severity group in a managed component's set
-		// of maintenance operations.
-		if (null != opFailure) {
-			ops.remove(opFailure);
-			ops.add(opFailure);
+		// one failed operation.
+		if (!opFailures.isEmpty()) {
+			ops.removeAll(opFailures);
+			ops.addAll(opFailures);
 		}
 
-		return severity;
+		return ret;
+	}
+
+	/**
+	 * @see ManagedStatusOperation#schedulerCheck(SchedulerCheck)
+	 */
+	@Override
+	@LockedStatusOperation
+	public MaintenanceOperationResult schedulerCheck(SchedulerCheck op) {
+		SortedSet<MaintenanceOperation> ops = new TreeSet<>();
+		ops.add(op);
+		return check(ops);
 	}
 
 	/**
@@ -544,18 +535,18 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 *         for a required status operation).
 	 */
 	@SuppressWarnings("serial")
-	public Optional<ScheduledMessages> reportStatus() {
+	public StatusMessages reportStatus() {
 
 		log.debug("REPORTING STATUS:: " + getStatus() + " FOR:: " + getDoId());
 
-		ManagedStatus currentStatus = getStatus();
+		StatusEvent reportingStatus = new StatusEvent(this);
+		ManagedStatus currentStatus = reportingStatus.getRequestorStatus();
 
 		// This is not a locked status operation. Therefore, status may change
 		// during the method and/or before observance. The operation will be
 		// re-verified on observer end to account for this possibility.
-		Optional<ScheduledMessages> ret = Optional.empty();
-		ScheduledMessages sms = new ScheduledMessages();
-		Stack<SimpleEntry<Operation, MessageEvent>> ops = new Stack<>();
+		StatusMessages sms = new StatusMessages(reportingStatus);
+		Stack<SimpleEntry<Operation, StatusOperationEvent>> ops = new Stack<>();
 
 		// Only report on non-transitional status values
 		if (!currentStatus.isTransition()) {
@@ -563,12 +554,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			// Create operation messages
 			for (Operation op : Operation.values()) {
 				for (UUID candidate : statusEventOperationCandidates(op, currentStatus)) {
-					ops.push(new SimpleEntry<Operation, MessageEvent>(op, new StatusEvent(this, candidate)));
+					ops.push(new SimpleEntry<Operation, StatusOperationEvent>(op,
+							new StatusOperationEvent(this, candidate)));
 				}
 			}
 			do {
 				List<Annotation> qualifiers = new ArrayList<>();
-				Optional<SimpleEntry<Operation, MessageEvent>> opEntry = Optional.empty();
+				Optional<SimpleEntry<Operation, StatusOperationEvent>> opEntry = Optional.empty();
 
 				if (!ops.empty()) {
 					opEntry = Optional.of(ops.pop());
@@ -586,30 +578,14 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 							return operation;
 						}
 					});
-					sms.addMessage(new ScheduledMessage(opEntry.get().getValue(), qualifiers));
+					sms.addMessage(new StatusOperationMessage(opEntry.get().getValue(), qualifiers));
 				}
 
 			} while (!ops.empty());
 
-			// Notify registry, if necessary
-			if ((currentStatus != reportedStatus) || (reportedAttempts >= maxAttemptsBeforeReporting)) {
-				reportedAttempts = 0;
-				reportedStatus = currentStatus;
-				sms.addMessage(new ScheduledMessage(new StatusEvent(this, this.getId()),
-						new MemberRegistryAnnotationLiteral() {
-						}));
-			} else {
-				reportedAttempts++;
-			}
-
 		}
 
-		// If there are messages return them
-		if (sms.hasMessages()) {
-			ret = Optional.of(sms);
-		}
-
-		return ret;
+		return sms;
 	}
 
 	private List<UUID> statusEventOperationCandidates(Operation op, ManagedStatus status) {
@@ -645,12 +621,16 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		case Remove:
 			ret = hasCreatedCandidates(op);
 			break;
-			
+
 		case Shutdown:
 			// Not triggered by a status message
 			break;
 
 		case Check:
+			// Not triggered by a status message
+			break;
+			
+		case SchedulerCheck:
 			// Not triggered by a status message
 			break;
 
@@ -675,13 +655,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	/**
-	 * Default is no component maintenance.
+	 * Default is no maintenance. Override to assign component maintenance.
 	 * 
-	 * @see ScheduledMaintenance#getScheduledMaintenance()
+	 * @see ScheduledMaintenance#scheduledMaintenance()
 	 */
 	@Override
-	public Optional<ComponentMaintenance> getScheduledMaintenance() {
-		return Optional.empty();
+	public ComponentMaintenance scheduledMaintenance() {
+		return new ComponentMaintenance(this);
 	}
 
 	public int hashCode() {

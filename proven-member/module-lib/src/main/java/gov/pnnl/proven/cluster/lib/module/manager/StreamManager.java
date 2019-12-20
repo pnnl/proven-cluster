@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.DomainEvent;
@@ -231,7 +232,6 @@ public class StreamManager extends ManagerComponent {
 		// Initialize managed streams with Proven's default domain streams
 		log.debug("Creating default Proven managed streams");
 		//domainStreams = new HashMap<DisclosureDomain, Set<MessageStream>>();
-		//createStreams(DomainProvider.getProvenDisclosureDomain());
 		return true;
 	}
 

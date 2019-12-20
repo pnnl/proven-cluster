@@ -37,36 +37,30 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import java.util.Optional;
-import java.util.SortedSet;
+import java.util.Date;
 
+import javax.annotation.Priority;
+import javax.decorator.Decorator;
+import javax.decorator.Delegate;
 import javax.inject.Inject;
+import javax.interceptor.Interceptor;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceCheck;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
 
-/**
- * Performs maintenance checks provided by the registered supplier.
- * 
- * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
- * 
- * @author d3j766
- *
- */
-public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
-
-	private static final long serialVersionUID = 1L;
+@Decorator
+@Priority(value = Interceptor.Priority.APPLICATION)
+public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
 
 	@Inject
 	Logger log;
@@ -75,64 +69,36 @@ public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
 	@Eager
 	MemberMaintenanceRegistry mr;
 
-	/**
-	 * If true, indicates a components default maintenance has been registered.
-	 * False, otherwise.
-	 */
-	boolean defaultRegistered = false;
-
-	public MaintenanceSchedule() {
-	}
+	@Inject
+	@Delegate
+	MaintenanceOperation mo;
 
 	/**
-	 * Registers default scheduled maintenance identified by a managed
-	 * component. The default maintenance is registered only once.
+	 * @see MaintenanceCheck#checkAndRepair()
 	 */
 	@Override
-	synchronized public void register(ManagedComponent operator) {
+	public MaintenanceOperationResult checkAndRepair() {
 
-		this.operatorOpt = Optional.of(operator);
+		mo.setStartTime(new Date().getTime());
+		MaintenanceOperationResult result = mo.checkAndRepair();
+		mo.setResult(result);
+		mo.setEndTime(new Date().getTime());
+		mo.setInvocations(mo.getInvocations() + 1);
+		mr.recordMaintenanceOperation(createOpEvent(mo));
 
-		if (!defaultRegistered) {
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			mr.register(operator, cm);
-			defaultRegistered = true;
-		}
+		return result;
 	}
 
-	/**
-	 * Performs provided maintenance checks, if any.
-	 */
-	@Override
-	protected void apply() {
+	private MaintenanceOperationEvent createOpEvent(MaintenanceOperation mo) {
 
-		if (operatorOpt.isPresent()) {
+		MaintenanceOperationEvent moe = new MaintenanceOperationEvent(mo.getOperator());
+		moe.setOpName(mo.opName());
+		moe.setResult(mo.getResult());
+		moe.setStartTime(mo.getStartTime());
+		moe.setEndTime(mo.getEndTime());
+		moe.setInvocations(mo.getInvocations());
 
-			ManagedComponent operator = operatorOpt.get();
-
-			// Get maintenance information from supplier
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			SortedSet<MaintenanceOperation> ops = mr.getOps(operator);
-
-			// Perform checks
-			MaintenanceOperationResult result = operator.check(ops);
-
-			// Create new maintenance event and set as reporting
-			MaintenanceEvent event = new MaintenanceEvent(operator, result, ops, registryOverdueMillis);
-			notifyRegistry(event, false);
-		}
-
-	}
-
-	@Override
-	public boolean isReportable(MessageEvent event) {
-
-		MaintenanceOperationSeverity reportedSeverity = (null == reported())
-				? (MaintenanceOperationSeverity.Undetermined)
-				: (((MaintenanceEvent) reported()).getResult().getSeverity());
-		MaintenanceOperationSeverity reportingSeverity = ((MaintenanceEvent) event).getResult().getSeverity();
-
-		return ((reportingSeverity != reportedSeverity));
+		return moe;
 	}
 
 }

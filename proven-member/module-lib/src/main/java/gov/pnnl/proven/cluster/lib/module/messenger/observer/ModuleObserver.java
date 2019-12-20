@@ -47,6 +47,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
@@ -56,6 +57,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 @ApplicationScoped
+@Eager
 public class ModuleObserver {
 	
 	@Inject
@@ -72,7 +74,7 @@ public class ModuleObserver {
 		log.debug("(Observing) Inside startup event");
 		pm.startup();
 		pm.activate();
-		pm.getMessengerSchedule().start();
+		pm.getStatusSchedule().start();
 		pm.getMaintenanceSchedule().start();
 	}
 

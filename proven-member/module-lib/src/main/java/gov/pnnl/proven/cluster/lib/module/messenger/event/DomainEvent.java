@@ -50,8 +50,6 @@ package gov.pnnl.proven.cluster.lib.module.messenger.event;
  */
 public class DomainEvent extends RegistryEvent {
 
-	private static final long serialVersionUID = 1L;
-
 	public DomainEvent() {
 	}
 

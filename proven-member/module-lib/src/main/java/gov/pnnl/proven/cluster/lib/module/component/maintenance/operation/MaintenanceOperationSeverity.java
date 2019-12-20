@@ -37,28 +37,79 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
+
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.*;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 
 /**
- * Represents the possible results for a maintenance operation.
+ * Represents result of a {@code MaintenanceOperation} performed by a managed
+ * component. The severity aligns to a {@code ManagedStatus} value which may be
+ * assigned to the managed component.
  * 
- * @see MaintenanceOperation
+ * The enum constants are ordered by severity from high to low. This order MUST
+ * be maintained to ensure maintenance operations are invoked in correct order.
+ * That is, maintenance operations with higher severity should be performed
+ * before maintenance operations with lower severity.
+ * 
+ * @see MaintenanceOperation, ManagedStatus
  * 
  * @author d3j766
  *
  */
-public enum MaintenanceOperationStatus {
+public enum MaintenanceOperationSeverity {
+
+	Fatal(OutOfService, 0),
+	Severe(Failed, 10),
+	Error(FailedOnlineRetry, 20),
+	Warn(CheckedOffline, 30),
+	Unavailable(Busy, 40),
+	Available(Online, 50),
+	Undetermined(Unknown, 60);
+
+	private final ManagedStatus status;
+	private final int order;
+
+	MaintenanceOperationSeverity(ManagedStatus status, int order) {
+		this.status = status;
+		this.order = order;
+	}
 
 	/**
-	 * Indicates the maintenance checks failed and/or could not be repaired for
-	 * a maintenance operation.
+	 * Returns {@code ManagedStatus} aligned with severity level.
 	 */
-	FAILED,
+	public ManagedStatus getStatus() {
+		return status;
+	}
+	
+	public int getOrder() {
+		return order;
+	}
+	
+	public static MaintenanceOperationSeverity getSeverityByStatus(ManagedStatus status) {
 
-	/**
-	 * Indicates the maintenance checks passed and/or were repaired for a
-	 * maintenance operation.
-	 */
-	PASSED;
+		MaintenanceOperationSeverity ret = Undetermined;
+
+		for (MaintenanceOperationSeverity ms : MaintenanceOperationSeverity.values()) {
+			if (status == ms.getStatus()) {
+				ret = ms;
+				break;
+			}
+		}
+
+		return ret;
+	}
+
+	public boolean isHigherSeverity(MaintenanceOperationSeverity other) {
+		return this.order < other.order;
+	}
+
+	public boolean isSameSeverity(MaintenanceOperationSeverity other) {
+		return this.order == other.order;
+	}
+
+	public boolean isLowerSeverity(MaintenanceOperationSeverity other) {
+		return this.order > other.order;
+	}
 
 }

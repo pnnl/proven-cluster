@@ -54,34 +54,20 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
  */
 public class StatusEvent extends ComponentEvent {
 
-	private static final long serialVersionUID = 1L;
-
 	UUID requestorId;
-	UUID opCandidateId;
 	ManagedStatus requestorStatus;
 	UUID managerId;
 	UUID creatorId;
 	Set<UUID> created = new HashSet<>();
-	long maxRegisterReportingDelayMillis;
-	
-	
+	long registryOverdueMillis;
 
-	public StatusEvent(ManagedComponent mc, UUID opCandidateId) {
+	public StatusEvent(ManagedComponent mc) {
 		super(mc);
 		this.requestorId = mc.getId();
-		this.opCandidateId = opCandidateId;
 		this.requestorStatus = mc.getStatus();
 		this.managerId = mc.getManagerId();
 		this.creatorId = mc.getCreatorId();
 		this.created = mc.getCreatedIds();
-		this.maxRegisterReportingDelayMillis = mc.getMaxRegisterReportingDelayMillis();
-	}
-
-	/**
-	 * @return the serialversionuid
-	 */
-	public static long getSerialversionuid() {
-		return serialVersionUID;
 	}
 
 	/**
@@ -89,13 +75,6 @@ public class StatusEvent extends ComponentEvent {
 	 */
 	public UUID getRequestorId() {
 		return requestorId;
-	}
-
-	/**
-	 * @return the opCandidateId
-	 */
-	public UUID getOpCandidateId() {
-		return opCandidateId;
 	}
 
 	/**
@@ -124,6 +103,21 @@ public class StatusEvent extends ComponentEvent {
 	 */
 	public Set<UUID> getCreated() {
 		return created;
+	}
+
+	/**
+	 * @return the registryOverdueMillis
+	 */
+	public long getRegistryOverdueMillis() {
+		return registryOverdueMillis;
+	}
+
+	/**
+	 * @param registryOverdueMillis
+	 *            the registryOverdueMillis to set
+	 */
+	public void setRegistryOverdueMillis(long registryOverdueMillis) {
+		this.registryOverdueMillis = registryOverdueMillis;
 	}
 
 }

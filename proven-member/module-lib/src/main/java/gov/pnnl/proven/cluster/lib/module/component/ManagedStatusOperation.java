@@ -43,9 +43,11 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.UUID;
 
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSeverity;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.SchedulerCheck;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceOperation;
 
 /**
  * Identifies {@code ManagedComponent} status operations.
@@ -93,23 +95,37 @@ public interface ManagedStatusOperation {
 	 * 
 	 */
 	void remove();
-	
+
 	/**
 	 * Component is shutdown removing it from service.
 	 * 
 	 */
 	void shutdown();
 
-
 	/**
-	 * Performs maintenance operations (checks/repairs) for a
-	 * component. Returns {@code MaintenanceSeverity}, representing the result
-	 * of the operations.
+	 * Performs maintenance operations (checks/repairs) for a component. Returns
+	 * a {@code MaintenanceOperationResult} representing the result of the
+	 * performed operations.
 	 * 
 	 * @param ops
 	 *            the set of maintenance operations to perform.
 	 * 
+	 * @return a MaintenanceOperationResult
 	 */
-	MaintenanceSeverity check(SortedSet<MaintenanceOperation> ops);
+	MaintenanceOperationResult check(SortedSet<MaintenanceOperation> ops);
+
+	/**
+	 * Performs a special maintenance check specifically for a TaskSchedule,
+	 * separate from the component defined maintenance checks performed by the
+	 * {@link #check(SortedSet)} operation. This allows a scheduler that has
+	 * encountered an error condition to request a maintenance check on itself.
+	 * This is necessary because any error condition raised in the scheduler has
+	 * more than likely short circuited the normal scheduled maintenance checks.
+	 * 
+	 * @param op
+	 *            the scheduler check operation
+	 * @return a MaintenanceOperationResult
+	 */
+	MaintenanceOperationResult schedulerCheck(SchedulerCheck op);
 
 }

@@ -37,102 +37,123 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.interceptor.StatusDecorator;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 
 /**
- * Performs maintenance checks provided by the registered supplier.
- * 
- * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
+ * Provides {@code ManagedComponent} status information.
  * 
  * @author d3j766
  *
  */
-public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
+public class MaintenanceEvent extends ComponentEvent {
 
-	private static final long serialVersionUID = 1L;
+	MaintenanceOperationResult result;
+	boolean isUnmaintainedSeverity;
+	Optional<String> failedOpOpt = Optional.empty();
+	List<String> allOps = new ArrayList<>();
+	List<String> passedOps = new ArrayList<>();
+	List<String> notInvokedOps = new ArrayList<>();
+	long registryOverdueMillis;
 
-	@Inject
-	Logger log;
+	public MaintenanceEvent(ManagedComponent mc, MaintenanceOperationResult result, SortedSet<MaintenanceOperation> ops,
+			long registryOverdueMillis) {
 
-	@Inject
-	@Eager
-	MemberMaintenanceRegistry mr;
-
-	/**
-	 * If true, indicates a components default maintenance has been registered.
-	 * False, otherwise.
-	 */
-	boolean defaultRegistered = false;
-
-	public MaintenanceSchedule() {
+		super(mc);
+		this.result = result;
+		this.registryOverdueMillis = registryOverdueMillis;
+		ops.forEach((op) -> {
+			allOps.add(op.opName());
+			MaintenanceOperationStatus mos = op.getResult().getStatus();
+			switch (mos) {
+			case FAILED:
+				failedOpOpt = Optional.of(op.opName());
+				break;
+			case PASSED:
+				passedOps.add(op.opName());
+				break;
+			case NOT_INVOKED:
+				notInvokedOps.add(op.opName());
+				break;
+			}
+		});
+		isUnmaintainedSeverity = unmaintainedSeverity();
 	}
 
 	/**
-	 * Registers default scheduled maintenance identified by a managed
-	 * component. The default maintenance is registered only once.
+	 * Determines if the severity was caused by a non-maintained managed
+	 * component. Meaning, the severity result was not caused by a failed
+	 * maintenance operation. It was the result of a maintenance request for a
+	 * component whose status indicates maintenance is no longer required (i.e.
+	 * unmaintained)
+	 *
+	 * @see ManagedStatus, {@link StatusDecorator#check(SortedSet)}
+	 * 
 	 */
-	@Override
-	synchronized public void register(ManagedComponent operator) {
-
-		this.operatorOpt = Optional.of(operator);
-
-		if (!defaultRegistered) {
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			mr.register(operator, cm);
-			defaultRegistered = true;
-		}
+	public boolean unmaintainedSeverity() {
+		return ((!ManagedStatus.isMaintained(result.getSeverity().getStatus())) && (!failedOpOpt.isPresent()));
 	}
 
 	/**
-	 * Performs provided maintenance checks, if any.
+	 * @return the severity
 	 */
-	@Override
-	protected void apply() {
-
-		if (operatorOpt.isPresent()) {
-
-			ManagedComponent operator = operatorOpt.get();
-
-			// Get maintenance information from supplier
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			SortedSet<MaintenanceOperation> ops = mr.getOps(operator);
-
-			// Perform checks
-			MaintenanceOperationResult result = operator.check(ops);
-
-			// Create new maintenance event and set as reporting
-			MaintenanceEvent event = new MaintenanceEvent(operator, result, ops, registryOverdueMillis);
-			notifyRegistry(event, false);
-		}
-
+	public MaintenanceOperationResult getResult() {
+		return result;
 	}
 
-	@Override
-	public boolean isReportable(MessageEvent event) {
+	/**
+	 * @return the registryOverdueMillis
+	 */
+	public long getRegistryOverdueMillis() {
+		return registryOverdueMillis;
+	}
 
-		MaintenanceOperationSeverity reportedSeverity = (null == reported())
-				? (MaintenanceOperationSeverity.Undetermined)
-				: (((MaintenanceEvent) reported()).getResult().getSeverity());
-		MaintenanceOperationSeverity reportingSeverity = ((MaintenanceEvent) event).getResult().getSeverity();
+	/**
+	 * @param registryOverdueMillis
+	 *            the registryOverdueMillis to set
+	 */
+	public void setRegistryOverdueMillis(long registryOverdueMillis) {
+		this.registryOverdueMillis = registryOverdueMillis;
+	}
 
-		return ((reportingSeverity != reportedSeverity));
+	/**
+	 * @return the failedOpOpt
+	 */
+	public Optional<String> getFailedOpOpt() {
+		return failedOpOpt;
+	}
+
+	/**
+	 * @return the allOps
+	 */
+	public List<String> getAllOps() {
+		return allOps;
+	}
+
+	/**
+	 * @return the passedOps
+	 */
+	public List<String> getPassedOps() {
+		return passedOps;
+	}
+
+	/**
+	 * @return the notInvokedOps
+	 */
+	public List<String> getNotInvokedOps() {
+		return notInvokedOps;
 	}
 
 }

@@ -37,16 +37,88 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Unknown;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 
-public interface MaintenanceCheck {
+import java.util.Optional;
+
+import javax.annotation.PostConstruct;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.interceptor.StatusDecorator;
+
+/**
+ * Checks a ManagedComponent's scheduler.
+ * 
+ * Returns {@code MaintenanceOperationStatus#PASSED} if the schedule is running
+ * or has been cancelled. Schedule cancellation is a managed event.
+ * 
+ * Returns {@code MaintenanceOperationStatus#PASSED} if the schedule has failed
+ * to an unmanaged exception
+ * 
+ * Returns {@code MaintenanceOperationStatus#FAILED} if the schedule has been
+ * stopped due to an error.
+ * 
+ * @author d3j766
+ *
+ */
+public class SchedulerCheck extends MaintenanceOperation {
+
+	/**
+	 * Contains ManagedStatus value of the operator before the initial
+	 * SchedulerCheck operation has been performed. Meaning, a status value of
+	 * {@code ManagedStatus#Recoverable}, NOT including
+	 * {@code ManagedStatus#FailedSchedulerRetry}. This value is managed by
+	 * {@link StatusDecorator#schedulerCheck(SchedulerCheck)}.
+	 * 
+	 * @see #validPreCheckStatus(ManagedStatus)
+	 */
+	private ManagedStatus preCheckStatus = Unknown;
+
+	public SchedulerCheck() {
+		super();
+	}
+
+	@PostConstruct
+	public void init() {
+		log.debug("Inside SchedulerCheck contructor");
+	}
+
+	@Override
+	public MaintenanceOperationResult checkAndRepair() {
+		log.debug("Performing maintenance operation: " + opName());
+		return new MaintenanceOperationResult(PASSED, Available, Optional.empty());
+	}
+
+	@Override
+	public MaintenanceOperationSeverity maximumSeverity() {
+		return MaintenanceOperationSeverity.Severe;
+	}
+
+	@Override
+	public int priority() {
+		return MaintenanceCheck.Priority.HIGH;
+	}
+
+	public boolean validPreCheckStatus(ManagedStatus status) {
+		return ((status.isRecoverable(status)) && (status != ManagedStatus.FailedSchedulerRetry));
+	}
+
+	/**
+	 * @return the preCheckStatus
+	 */
+	public ManagedStatus getPreCheckStatus() {
+		return preCheckStatus;
+	}
+
+	/**
+	 * @param preCheckStatus the preCheckStatus to set
+	 */
+	public void setPreCheckStatus(ManagedStatus preCheckStatus) {
+		this.preCheckStatus = preCheckStatus;
+	}
 	
-	ManagedComponent getOperator();
-	String getName();
-	MaintenanceOperationStatus checkAndRepair();
-	MaintenanceSeverity getSeverity();
-	String getdescription();
-
 }

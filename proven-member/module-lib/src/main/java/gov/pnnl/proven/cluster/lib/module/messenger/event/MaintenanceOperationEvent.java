@@ -37,102 +37,105 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import java.util.Optional;
-import java.util.SortedSet;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
+import java.util.UUID;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 
 /**
- * Performs maintenance checks provided by the registered supplier.
- * 
- * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
+ * Provides {@code ManagedComponent} status information.
  * 
  * @author d3j766
  *
  */
-public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
+public class MaintenanceOperationEvent extends ComponentEvent {
 
-	private static final long serialVersionUID = 1L;
+	protected String opName;
+	protected MaintenanceOperationResult result;
+	protected long startTime;
+	protected long endTime;
+	protected long invocations = 0;
 
-	@Inject
-	Logger log;
-
-	@Inject
-	@Eager
-	MemberMaintenanceRegistry mr;
-
-	/**
-	 * If true, indicates a components default maintenance has been registered.
-	 * False, otherwise.
-	 */
-	boolean defaultRegistered = false;
-
-	public MaintenanceSchedule() {
+	public MaintenanceOperationEvent(ManagedComponent mc) {
+		super(mc);
 	}
 
 	/**
-	 * Registers default scheduled maintenance identified by a managed
-	 * component. The default maintenance is registered only once.
+	 * @return the opName
 	 */
-	@Override
-	synchronized public void register(ManagedComponent operator) {
-
-		this.operatorOpt = Optional.of(operator);
-
-		if (!defaultRegistered) {
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			mr.register(operator, cm);
-			defaultRegistered = true;
-		}
+	public String getOpName() {
+		return opName;
 	}
 
 	/**
-	 * Performs provided maintenance checks, if any.
+	 * @param opName
+	 *            the opName to set
 	 */
-	@Override
-	protected void apply() {
-
-		if (operatorOpt.isPresent()) {
-
-			ManagedComponent operator = operatorOpt.get();
-
-			// Get maintenance information from supplier
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			SortedSet<MaintenanceOperation> ops = mr.getOps(operator);
-
-			// Perform checks
-			MaintenanceOperationResult result = operator.check(ops);
-
-			// Create new maintenance event and set as reporting
-			MaintenanceEvent event = new MaintenanceEvent(operator, result, ops, registryOverdueMillis);
-			notifyRegistry(event, false);
-		}
-
+	public void setOpName(String opName) {
+		this.opName = opName;
 	}
 
-	@Override
-	public boolean isReportable(MessageEvent event) {
+	/**
+	 * @return the result
+	 */
+	public MaintenanceOperationResult getResult() {
+		return result;
+	}
 
-		MaintenanceOperationSeverity reportedSeverity = (null == reported())
-				? (MaintenanceOperationSeverity.Undetermined)
-				: (((MaintenanceEvent) reported()).getResult().getSeverity());
-		MaintenanceOperationSeverity reportingSeverity = ((MaintenanceEvent) event).getResult().getSeverity();
+	/**
+	 * @param result
+	 *            the result to set
+	 */
+	public void setResult(MaintenanceOperationResult result) {
+		this.result = result;
+	}
 
-		return ((reportingSeverity != reportedSeverity));
+	/**
+	 * @return the startTime
+	 */
+	public long getStartTime() {
+		return startTime;
+	}
+
+	/**
+	 * @param startTime
+	 *            the startTime to set
+	 */
+	public void setStartTime(long startTime) {
+		this.startTime = startTime;
+	}
+
+	/**
+	 * @return the endTime
+	 */
+	public long getEndTime() {
+		return endTime;
+	}
+
+	/**
+	 * @param endTime
+	 *            the endTime to set
+	 */
+	public void setEndTime(long endTime) {
+		this.endTime = endTime;
+	}
+
+	/**
+	 * @return the invocations
+	 */
+	public long getInvocations() {
+		return invocations;
+	}
+
+	/**
+	 * @param invocations
+	 *            the invocations to set
+	 */
+	public void setInvocations(long invocations) {
+		this.invocations = invocations;
 	}
 
 }

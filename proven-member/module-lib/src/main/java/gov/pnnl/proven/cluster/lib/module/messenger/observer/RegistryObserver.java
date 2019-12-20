@@ -39,11 +39,24 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
+import java.util.UUID;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
+import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MemberRegistry;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
 
 /**
  * Observer methods for registry events.
@@ -52,6 +65,7 @@ import org.slf4j.Logger;
  *
  */
 @ApplicationScoped
+@Eager
 public class RegistryObserver {
 
 	@Inject
@@ -62,6 +76,30 @@ public class RegistryObserver {
 
 	@PostConstruct
 	public void init() {
+	}
+
+	public void status(@ObservesAsync @MemberRegistry StatusEvent event, @Eager MemberComponentRegistry mcr) {
+
+		log.debug("(Observing) Inside registry status reporting operation for: " + event.getDoId());
+		mcr.recordStatus(event);
+
+		// If component is in a terminal state, then unregister.
+		if (ManagedStatus.isTerminal(event.getRequestorStatus())) {
+			mcr.unregister(UUID.fromString(event.getComponentId()));
+		}
+	}
+
+	public void maintenance(@Observes @MemberRegistry MaintenanceEvent event,
+			@Eager MemberMaintenanceRegistry mmr) {
+
+		log.debug("(Observing) Inside registry maintenance reporting operation for: " + event.getDoId());
+		mmr.recordMaintenance(event);
+
+		// If no longer a maintained component, then unregister.
+		if (!ManagedStatus.isMaintained(event.getResult().getSeverity().getStatus())) {
+			mmr.unregister(UUID.fromString(event.getComponentId()));
+		}
+
 	}
 
 }

@@ -37,102 +37,46 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
+
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 
 import java.util.Optional;
-import java.util.SortedSet;
 
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.Dependent;
 
 /**
- * Performs maintenance checks provided by the registered supplier.
- * 
- * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
+ * Default maintenance check for ManagedComponents. It is used by components
+ * without any other registered maintenance checks. When reporting to the
+ * {@code MemberComponentRegistry}, this check simply indicates the component
+ * has a working maintenance scheduler.
  * 
  * @author d3j766
  *
  */
-public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
+@Dependent
+public class MaintenanceHeartbeatCheck extends MaintenanceOperation {
 
-	private static final long serialVersionUID = 1L;
-
-	@Inject
-	Logger log;
-
-	@Inject
-	@Eager
-	MemberMaintenanceRegistry mr;
-
-	/**
-	 * If true, indicates a components default maintenance has been registered.
-	 * False, otherwise.
-	 */
-	boolean defaultRegistered = false;
-
-	public MaintenanceSchedule() {
+	public MaintenanceHeartbeatCheck() {
+		super();
 	}
-
-	/**
-	 * Registers default scheduled maintenance identified by a managed
-	 * component. The default maintenance is registered only once.
-	 */
-	@Override
-	synchronized public void register(ManagedComponent operator) {
-
-		this.operatorOpt = Optional.of(operator);
-
-		if (!defaultRegistered) {
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			mr.register(operator, cm);
-			defaultRegistered = true;
-		}
-	}
-
-	/**
-	 * Performs provided maintenance checks, if any.
-	 */
-	@Override
-	protected void apply() {
-
-		if (operatorOpt.isPresent()) {
-
-			ManagedComponent operator = operatorOpt.get();
-
-			// Get maintenance information from supplier
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			SortedSet<MaintenanceOperation> ops = mr.getOps(operator);
-
-			// Perform checks
-			MaintenanceOperationResult result = operator.check(ops);
-
-			// Create new maintenance event and set as reporting
-			MaintenanceEvent event = new MaintenanceEvent(operator, result, ops, registryOverdueMillis);
-			notifyRegistry(event, false);
-		}
-
+	
+	@PostConstruct 
+	public void init()  {
+		log.debug("Inside Heartbeat contructor");
 	}
 
 	@Override
-	public boolean isReportable(MessageEvent event) {
+	public MaintenanceOperationResult checkAndRepair() {
+		log.debug("Performing maintenance operation: " + opName() );
+		return new MaintenanceOperationResult(PASSED, maximumSeverity(), Optional.empty());
+	}
 
-		MaintenanceOperationSeverity reportedSeverity = (null == reported())
-				? (MaintenanceOperationSeverity.Undetermined)
-				: (((MaintenanceEvent) reported()).getResult().getSeverity());
-		MaintenanceOperationSeverity reportingSeverity = ((MaintenanceEvent) event).getResult().getSeverity();
-
-		return ((reportingSeverity != reportedSeverity));
+	@Override
+	public MaintenanceOperationSeverity maximumSeverity() {
+		return Available;
 	}
 
 }

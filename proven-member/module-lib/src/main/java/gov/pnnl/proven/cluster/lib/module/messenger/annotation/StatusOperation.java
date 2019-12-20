@@ -67,6 +67,8 @@ import java.util.Set;
 import javax.inject.Qualifier;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 
 /**
  * Used to qualify status event messages, indicating the message is for a
@@ -134,7 +136,15 @@ public @interface StatusOperation {
 		 * Maintenance will be performed on a component if it is in one of the
 		 * enumerated states.
 		 */
-		Check(Online, Busy, FailedOnlineRetry, CheckedOffline);
+		Check(Online, Busy, FailedOnlineRetry, CheckedOffline),
+
+		/**
+		 * Maintenance check specifically for a TaskSchedule. This check is only
+		 * performed if the scheduler encounters an unmanaged error condition.
+		 * 
+		 * @see TaskSchedule#start()
+		 */
+		SchedulerCheck(Recoverable);
 
 		private final Set<ManagedStatus> validStatus;
 

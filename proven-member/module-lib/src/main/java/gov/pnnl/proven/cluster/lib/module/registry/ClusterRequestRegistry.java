@@ -45,7 +45,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 import fish.payara.cluster.Clustered;
 
-
 /**
  * Provides a Request Registry at Member level.
  * 
@@ -60,5 +59,5 @@ public class ClusterRequestRegistry implements Serializable {
 
 	public ClusterRequestRegistry() {
 	}
-	
+
 }

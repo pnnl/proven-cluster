@@ -39,8 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -53,13 +52,8 @@ import com.hazelcast.core.ISet;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
-import gov.pnnl.proven.cluster.lib.module.messenger.MessengerSchedule;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessages;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
  * Provides a Component Registry at the Member level.
@@ -80,10 +74,6 @@ public class MemberComponentRegistry {
 	@Inject
 	HazelcastInstance hzi;
 
-	@Inject
-	@Scheduler(delay=30, timeUnit=TimeUnit.SECONDS)
-	MessengerSchedule memberMessenger;
-	
 	/**
 	 * Contains the set of Hazelcast member's reporting module components.
 	 */
@@ -92,46 +82,23 @@ public class MemberComponentRegistry {
 	@PostConstruct
 	public void initialize() {
 		log.debug("Inside MemberComponentRegistry PostConstruct");
-		registerMessengers();
 	}
 
 	public MemberComponentRegistry() {
 		System.out.println("Inside MemberComponentRegistry constructor");
 	}
 
-	private void registerMessengers() {
-
-		memberMessenger.register(() -> {
-			return memberMessages();
-		});
-
-	}
-
-	@SuppressWarnings("serial")
-	private Optional<ScheduledMessages> memberMessages() {
-
-		Optional<ScheduledMessages> ret = Optional.empty();
-
-		ScheduledMessages sms = new ScheduledMessages();
-
-		// Member report
-		Module module = new ModuleAnnotationLiteral() {
-		};
-		Optional<MemberEvent> memberOpt = createMemberMessage();
-		if (memberOpt.isPresent()) {
-			sms.addMessage(new ScheduledMessage(memberOpt.get(), module));
-		}
-
-		if (sms.hasMessages()) {
-			ret = Optional.of(sms);
-		}
-
-		return ret;
-	}
-
-	public Optional<MemberEvent> createMemberMessage() {
-		// TODO
-		return Optional.of(new MemberEvent());
+	public void recordStatus(StatusEvent event) {
+		//TODO
+		// record status information
 	}
 	
+	public void unregister(UUID componentId) {
+		//TODO
+		// Ungegister
+		
+		// Stop scheduler
+
+	}
+
 }

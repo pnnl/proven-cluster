@@ -48,8 +48,6 @@ package gov.pnnl.proven.cluster.lib.module.messenger.event;
  */
 public class ClusterEvent extends RegistryEvent {
 
-	private static final long serialVersionUID = 1L;
-
 	public ClusterEvent() {
 	}
 

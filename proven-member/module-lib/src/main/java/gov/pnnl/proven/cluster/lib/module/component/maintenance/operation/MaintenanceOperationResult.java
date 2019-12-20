@@ -37,76 +37,75 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import java.util.Optional;
 
-public abstract class MaintenanceOperation implements MaintenanceCheck {
-
-	protected ManagedComponent operator;
-	protected String name;
-	protected MaintenanceOperationStatus status;
-
-	MaintenanceOperation(ManagedComponent operator) {
-		this.operator = operator;
-		this.name = this.getClass().getName();
-		this.status = MaintenanceOperationStatus.PASSED;
+public class MaintenanceOperationResult {
+	
+	MaintenanceOperationStatus status;
+	MaintenanceOperationSeverity severity;
+	Optional<Throwable> cause;
+	
+	public MaintenanceOperationResult() {
+		resetDefault();
+	}
+	
+	public MaintenanceOperationResult(MaintenanceOperationStatus status, MaintenanceOperationSeverity severity, Optional<Throwable> cause) {
+		this.status = status;
+		this.severity = severity;
+		this.cause = cause;
+	}
+		
+	public void resetDefault() {
+		status = MaintenanceOperationStatus.NOT_INVOKED;
+		severity = MaintenanceOperationSeverity.Undetermined;
+		cause = Optional.empty();		
 	}
 
-	@Override
-	public ManagedComponent getOperator() {
-		return operator;
-	}
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
+	/**
+	 * @return the status
+	 */
 	public MaintenanceOperationStatus getStatus() {
 		return status;
 	}
 
+	/**
+	 * @param status the status to set
+	 */
 	public void setStatus(MaintenanceOperationStatus status) {
 		this.status = status;
 	}
+
+	/**
+	 * @return the severity
+	 */
+	public MaintenanceOperationSeverity getSeverity() {
+		return severity;
+	}
+
+	/**
+	 * @param severity the severity to set
+	 */
+	public void setSeverity(MaintenanceOperationSeverity severity) {
+		this.severity = severity;
+	}
+
+	/**
+	 * @return the cause
+	 */
+	public Optional<Throwable> getCause() {
+		return cause;
+	}
+
+	/**
+	 * @param cause the cause to set
+	 */
+	public void setCause(Optional<Throwable> cause) {
+		this.cause = cause;
+	}
+
+
 	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((operator == null) ? 0 : operator.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof MaintenanceOperation)) {
-			return false;
-		}
-		MaintenanceOperation other = (MaintenanceOperation) obj;
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		if (operator == null) {
-			if (other.operator != null) {
-				return false;
-			}
-		} else if (!operator.equals(other.operator)) {
-			return false;
-		}
-		return true;
-	}
-
+	
 }

@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -53,12 +54,16 @@ public class ComponentMaintenance {
 	Logger log;
 
 	ManagedComponent operator;
-	List<Class<?>> maintenanceOps;
+	List<Class<?>> maintenanceOps = new ArrayList<Class<?>>();
 
 	public ComponentMaintenance() {
 	}
 
-	ComponentMaintenance(ManagedComponent operator, List<Class<?>> maintenanceOps) {
+	public ComponentMaintenance(ManagedComponent operator) {
+		this.operator = operator;
+	}
+		
+	public ComponentMaintenance(ManagedComponent operator, List<Class<?>> maintenanceOps) {
 		this.operator = operator;
 		this.maintenanceOps = maintenanceOps;
 	}

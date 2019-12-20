@@ -37,102 +37,64 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.messenger;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-import java.util.SortedSet;
 
-import javax.inject.Inject;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 
-import org.slf4j.Logger;
+public class StatusOperationMessage {
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
+	private StatusOperationEvent event;
+	private Optional<List<Annotation>> qualifiers = Optional.empty();
+	private boolean isAsync = true;
 
-/**
- * Performs maintenance checks provided by the registered supplier.
- * 
- * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
- * 
- * @author d3j766
- *
- */
-public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
-
-	private static final long serialVersionUID = 1L;
-
-	@Inject
-	Logger log;
-
-	@Inject
-	@Eager
-	MemberMaintenanceRegistry mr;
-
-	/**
-	 * If true, indicates a components default maintenance has been registered.
-	 * False, otherwise.
-	 */
-	boolean defaultRegistered = false;
-
-	public MaintenanceSchedule() {
+	public StatusOperationMessage() {
 	}
 
-	/**
-	 * Registers default scheduled maintenance identified by a managed
-	 * component. The default maintenance is registered only once.
-	 */
-	@Override
-	synchronized public void register(ManagedComponent operator) {
+	public StatusOperationMessage(StatusOperationEvent event) {
+		this.event = event;
+	}
 
-		this.operatorOpt = Optional.of(operator);
-
-		if (!defaultRegistered) {
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			mr.register(operator, cm);
-			defaultRegistered = true;
+	public StatusOperationMessage(StatusOperationEvent event, List<Annotation> qualifiers) {
+		this.event = event;
+		if (qualifiers.size() > 0) {
+			setQualifiers(Optional.of(qualifiers));
+		}
+	}
+	
+	public StatusOperationMessage(StatusOperationEvent event, Annotation... qualifiers) {
+		this.event = event;
+		if (qualifiers.length > 0) {
+			setQualifiers(Optional.of(Arrays.asList(qualifiers)));
 		}
 	}
 
-	/**
-	 * Performs provided maintenance checks, if any.
-	 */
-	@Override
-	protected void apply() {
-
-		if (operatorOpt.isPresent()) {
-
-			ManagedComponent operator = operatorOpt.get();
-
-			// Get maintenance information from supplier
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			SortedSet<MaintenanceOperation> ops = mr.getOps(operator);
-
-			// Perform checks
-			MaintenanceOperationResult result = operator.check(ops);
-
-			// Create new maintenance event and set as reporting
-			MaintenanceEvent event = new MaintenanceEvent(operator, result, ops, registryOverdueMillis);
-			notifyRegistry(event, false);
-		}
-
+	public StatusOperationEvent getEvent() {
+		return event;
 	}
 
-	@Override
-	public boolean isReportable(MessageEvent event) {
+	public void setEvent(StatusOperationEvent event) {
+		this.event = event;
+	}
 
-		MaintenanceOperationSeverity reportedSeverity = (null == reported())
-				? (MaintenanceOperationSeverity.Undetermined)
-				: (((MaintenanceEvent) reported()).getResult().getSeverity());
-		MaintenanceOperationSeverity reportingSeverity = ((MaintenanceEvent) event).getResult().getSeverity();
+	public Optional<List<Annotation>> getQualifiers() {
+		return qualifiers;
+	}
 
-		return ((reportingSeverity != reportedSeverity));
+	public void setQualifiers(Optional<List<Annotation>> qualifiers) {
+		this.qualifiers = qualifiers;
+	}
+
+	public boolean isAsync() {
+		return isAsync;
+	}
+
+	public void setAsync(boolean isAsync) {
+		this.isAsync = isAsync;
 	}
 
 }

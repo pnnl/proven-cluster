@@ -40,7 +40,6 @@
 package gov.pnnl.proven.cluster.lib.module.registry;
 
 import java.io.Serializable;
-import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -53,15 +52,6 @@ import com.hazelcast.core.ISet;
 
 import fish.payara.cluster.Clustered;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
-import gov.pnnl.proven.cluster.lib.module.messenger.MessengerSchedule;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessage;
-import gov.pnnl.proven.cluster.lib.module.messenger.ScheduledMessages;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.DomainEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.JobEvent;
 
 /**
  * Provides a Component Registry at the Cluster level.
@@ -81,10 +71,6 @@ public class ClusterComponentRegistry implements Serializable {
 	@Inject
 	HazelcastInstance hzi;
 
-	@Inject
-	@Scheduler
-	MessengerSchedule clusterMessenger;
-
 	/**
 	 * Contains the set of Hazelcast member's reporting module components.
 	 */
@@ -95,63 +81,6 @@ public class ClusterComponentRegistry implements Serializable {
 
 	@PostConstruct
 	public void initialize() {
-		registerMessenger();
-	}
-
-	private void registerMessenger() {
-
-		clusterMessenger.register(() -> {
-			return clusterMessages();
-		});
-	}
-
-	@SuppressWarnings("serial")
-	private Optional<ScheduledMessages> clusterMessages() {
-
-		Optional<ScheduledMessages> ret = Optional.empty();
-
-		ScheduledMessages sms = new ScheduledMessages();
-
-		// Missing domain message
-		Optional<DomainEvent> deOpt = createDomainMessage();
-		if (deOpt.isPresent()) {
-			sms.addMessage(new ScheduledMessage(deOpt.get()));
-		}
-
-		// Missing jobs message
-		Optional<JobEvent> jobOpt = createJobMessage();
-		if (jobOpt.isPresent()) {
-			sms.addMessage(new ScheduledMessage(jobOpt.get()));
-		}
-
-		// Cluster report
-		Module module = new ModuleAnnotationLiteral() {
-		};
-		Optional<ClusterEvent> clusterOpt = createClusterMessage();
-		if (clusterOpt.isPresent()) {
-			sms.addMessage(new ScheduledMessage(clusterOpt.get(), module));
-		}
-
-		if (sms.hasMessages()) {
-			ret = Optional.of(sms);
-		}
-
-		return ret;
-	}
-
-	public Optional<DomainEvent> createDomainMessage() {
-		// TODO
-		return Optional.of(new DomainEvent());
-	}
-
-	public Optional<JobEvent> createJobMessage() {
-		// TODO
-		return Optional.of(new JobEvent());
-	}
-
-	public Optional<ClusterEvent> createClusterMessage() {
-		// TODO
-		return Optional.of(new ClusterEvent());
 	}
 
 }

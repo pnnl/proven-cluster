@@ -59,10 +59,8 @@ import org.slf4j.Logger;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MemberRegistry;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 
 /**
  * Observer methods for {@code ManagedComponent} events.
@@ -71,6 +69,7 @@ import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
  *
  */
 @ApplicationScoped
+@Eager
 public class ManagedObserver {
 
 	@Inject
@@ -95,7 +94,7 @@ public class ManagedObserver {
 	public ManagedObserver() {
 	}
 
-	public void activate(@ObservesAsync @Managed @StatusOperation(operation = Activate) StatusEvent event) {
+	public void activate(@ObservesAsync @Managed @StatusOperation(operation = Activate) StatusOperationEvent event) {
 
 		log.debug("(Observing) Inside activate operation");
 
@@ -107,7 +106,7 @@ public class ManagedObserver {
 		}
 	}
 
-	public void scale(@ObservesAsync @Managed @StatusOperation(operation = Scale) StatusEvent event) {
+	public void scale(@ObservesAsync @Managed @StatusOperation(operation = Scale) StatusOperationEvent event) {
 
 		log.debug("(Observing) Inside scale operation");
 
@@ -123,7 +122,8 @@ public class ManagedObserver {
 		}
 	}
 
-	public void deactivate(@ObservesAsync @Managed @StatusOperation(operation = Deactivate) StatusEvent event) {
+	public void deactivate(
+			@ObservesAsync @Managed @StatusOperation(operation = Deactivate) StatusOperationEvent event) {
 
 		log.debug("(Observing) Inside deactivate operation");
 
@@ -136,7 +136,7 @@ public class ManagedObserver {
 
 	}
 
-	public void fail(@ObservesAsync @Managed @StatusOperation(operation = Fail) StatusEvent event) {
+	public void fail(@ObservesAsync @Managed @StatusOperation(operation = Fail) StatusOperationEvent event) {
 
 		log.debug("(Observing) Inside fail operation");
 
@@ -149,7 +149,7 @@ public class ManagedObserver {
 
 	}
 
-	public void remove(@ObservesAsync @Managed @StatusOperation(operation = Remove) StatusEvent event) {
+	public void remove(@ObservesAsync @Managed @StatusOperation(operation = Remove) StatusOperationEvent event) {
 
 		log.debug("(Observing) Inside remove operation");
 
@@ -159,34 +159,6 @@ public class ManagedObserver {
 			log.debug("REMOVING CREATED: " + event.getDoId() + " CREATOR: " + mc.getDoId());
 			mc.remove();
 		}
-
-	}
-
-	public void statusReport(@ObservesAsync @MemberRegistry StatusEvent event, @Eager MemberComponentRegistry mcr) {
-
-		log.debug("(Observing) Inside registry statusReport operation");
-
-		// TODO
-
-		// Registry records/updates provided managed component information
-
-	}
-
-	public void heartbeat(@ObservesAsync @Managed StatusEvent event, @Eager MemberComponentRegistry mcr) {
-
-		log.debug("(Observing) Inside registry statusReport operation");
-
-		// TODO
-
-		// (Sender) Both status reports and maintenance reports should be sent
-		// to registry
-		// If either are missing - registry will set to unknown and send
-		// heartbeat request
-
-		// (Receiver) Check both schedulers (status & Maintenance)
-		// Perform check operation for both schedulers
-		// Adjust status accordingly
-		// Fire "Heartbeat" report to registry
 
 	}
 

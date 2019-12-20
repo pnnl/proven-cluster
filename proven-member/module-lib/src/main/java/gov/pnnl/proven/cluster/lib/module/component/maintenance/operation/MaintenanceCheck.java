@@ -37,46 +37,42 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.*;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
-/**
- * Represents result of a {@code MaintenanceOperation} performed by a managed
- * component. The severity aligns to a {@code ManagedStatus} value which may be
- * assigned to the managed component.
- * 
- * The enum constants are ordered by severity from high to low. This order MUST
- * be maintained to ensure maintenance operations, which include a severity
- * property, are invoked in correct order. That is, maintenance operations with
- * higher severity should be performed before maintenance operations with lower
- * severity.
- * 
- * @see MaintenanceOperation, ManagedStatus
- * 
- * @author d3j766
- *
- */
-public enum MaintenanceSeverity {
+public interface MaintenanceCheck {
 
-	Severe(Failed),
-	Error(FailedOnlineRetry),
-	Warn(CheckedOffline),
-	Unavailable(Busy),
-	Available(Online),
-	Undetermined(Unknown);
+	void addOperator(ManagedComponent operator);
 
-	private final ManagedStatus status;
+	String opName();
 
-	MaintenanceSeverity(ManagedStatus status) {
-		this.status = status;
+	MaintenanceOperationResult checkAndRepair();
+
+	MaintenanceOperationSeverity maximumSeverity();
+
+	int priority();
+
+	public static class Priority {
+
+		private Priority() {
+		} // don't allow instances
+
+		/**
+		 * Start of range for low priority
+		 */
+		public static final int LOW = 0;
+
+		/**
+		 * Start of range for standard priority
+		 */
+		public static final int STANDARD = 1000;
+
+		/**
+		 * Start of range for high priority
+		 */
+		public static final int HIGH = 2000;
+
 	}
 
-	/**
-	 * Returns {@code ManagedStatus} aligned with severity level.
-	 */
-	public ManagedStatus getStatus() {
-		return status;
-	}
 }

@@ -49,8 +49,6 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
  */
 public class MetricsEvent extends ComponentEvent {
 
-	private static final long serialVersionUID = 1L;
-
 	public MetricsEvent(ManagedComponent mc) {
 		super(mc);
 	}

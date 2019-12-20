@@ -37,102 +37,160 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 
-import java.util.Optional;
-import java.util.SortedSet;
+import java.util.Date;
 
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
 
 /**
- * Performs maintenance checks provided by the registered supplier.
+ * A maintenance operation performed by a managed component. This may represent
+ * a maintenance check on itself (internal) or a check on the platform's
+ * environment (external).
  * 
- * @see ManagedMaintenance, MaintenanceCheck, TaskSchedule
+ * Managed components may have multiple operations which are performed at
+ * scheduled intervals. Each operation instance retains the
+ * {@code MaintenanceOperationResult} for the most recent execution.
  * 
  * @author d3j766
  *
  */
-public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
-
-	private static final long serialVersionUID = 1L;
+public abstract class MaintenanceOperation implements MaintenanceCheck {
 
 	@Inject
 	Logger log;
 
-	@Inject
-	@Eager
-	MemberMaintenanceRegistry mr;
+	protected ManagedComponent operator;
+	protected String opName;
+	protected MaintenanceOperationResult result;
+	protected long startTime = new Date().getTime();
+	protected long endTime = new Date().getTime();
+	protected long invocations = 0;
 
-	/**
-	 * If true, indicates a components default maintenance has been registered.
-	 * False, otherwise.
-	 */
-	boolean defaultRegistered = false;
+	MaintenanceOperation() {
+		this.opName = this.getClass().getName();
+		this.result = new MaintenanceOperationResult();
+	}
 
-	public MaintenanceSchedule() {
+	@Override
+	public void addOperator(ManagedComponent operator) {
+		this.operator = operator;
+	}
+
+	@Override
+	public int priority() {
+		return MaintenanceCheck.Priority.STANDARD;
+	}
+
+	public ManagedComponent getOperator() {
+		return operator;
+	}
+
+	@Override
+	public String opName() {
+		return opName;
 	}
 
 	/**
-	 * Registers default scheduled maintenance identified by a managed
-	 * component. The default maintenance is registered only once.
+	 * @return the result
 	 */
+	public MaintenanceOperationResult getResult() {
+		return result;
+	}
+
+	/**
+	 * @param result
+	 *            the result to set
+	 */
+	public void setResult(MaintenanceOperationResult result) {
+		this.result = result;
+	}
+
+	/**
+	 * @return the startTime
+	 */
+	public long getStartTime() {
+		return startTime;
+	}
+
+	/**
+	 * @param startTime
+	 *            the startTime to set
+	 */
+	public void setStartTime(long startTime) {
+		this.startTime = startTime;
+	}
+
+	/**
+	 * @return the endTime
+	 */
+	public long getEndTime() {
+		return endTime;
+	}
+
+	/**
+	 * @param endTime
+	 *            the endTime to set
+	 */
+	public void setEndTime(long endTime) {
+		this.endTime = endTime;
+	}
+
+	/**
+	 * @return the invocations
+	 */
+	public long getInvocations() {
+		return invocations;
+	}
+
+	/**
+	 * @param invocations
+	 *            the invocations to set
+	 */
+	public void setInvocations(long invocations) {
+		this.invocations = invocations;
+	}
+
 	@Override
-	synchronized public void register(ManagedComponent operator) {
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((opName == null) ? 0 : opName.hashCode());
+		result = prime * result + ((operator == null) ? 0 : operator.hashCode());
+		return result;
+	}
 
-		this.operatorOpt = Optional.of(operator);
-
-		if (!defaultRegistered) {
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			mr.register(operator, cm);
-			defaultRegistered = true;
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
 		}
-	}
-
-	/**
-	 * Performs provided maintenance checks, if any.
-	 */
-	@Override
-	protected void apply() {
-
-		if (operatorOpt.isPresent()) {
-
-			ManagedComponent operator = operatorOpt.get();
-
-			// Get maintenance information from supplier
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			SortedSet<MaintenanceOperation> ops = mr.getOps(operator);
-
-			// Perform checks
-			MaintenanceOperationResult result = operator.check(ops);
-
-			// Create new maintenance event and set as reporting
-			MaintenanceEvent event = new MaintenanceEvent(operator, result, ops, registryOverdueMillis);
-			notifyRegistry(event, false);
+		if (obj == null) {
+			return false;
 		}
-
-	}
-
-	@Override
-	public boolean isReportable(MessageEvent event) {
-
-		MaintenanceOperationSeverity reportedSeverity = (null == reported())
-				? (MaintenanceOperationSeverity.Undetermined)
-				: (((MaintenanceEvent) reported()).getResult().getSeverity());
-		MaintenanceOperationSeverity reportingSeverity = ((MaintenanceEvent) event).getResult().getSeverity();
-
-		return ((reportingSeverity != reportedSeverity));
+		if (!(obj instanceof MaintenanceOperation)) {
+			return false;
+		}
+		MaintenanceOperation other = (MaintenanceOperation) obj;
+		if (opName == null) {
+			if (other.opName != null) {
+				return false;
+			}
+		} else if (!opName.equals(other.opName)) {
+			return false;
+		}
+		if (operator == null) {
+			if (other.operator != null) {
+				return false;
+			}
+		} else if (!operator.equals(other.operator)) {
+			return false;
+		}
+		return true;
 	}
 
 }

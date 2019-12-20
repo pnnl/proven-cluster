@@ -47,8 +47,6 @@ package gov.pnnl.proven.cluster.lib.module.messenger.event;
  */
 public abstract class MessageEvent {
 
-	private static final long serialVersionUID = 1L;
-
 	public MessageEvent() {
 	}
 

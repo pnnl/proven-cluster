@@ -46,6 +46,7 @@ import java.util.Optional;
 import javax.annotation.Priority;
 import javax.enterprise.inject.Intercepted;
 import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.interceptor.AroundConstruct;
@@ -58,7 +59,7 @@ import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 
 /**
- * Adds {@code MessengerProperties} to scheduler.
+ * Adds meta-data properties to scheduler.
  * 
  * 
  * @author d3j766
@@ -73,6 +74,9 @@ public class ScheduledTaskInterceptor implements Serializable {
 
 	@Inject
 	Logger log;
+	
+	@Inject
+	BeanManager bm;
 
 	@Inject
 	@Intercepted
@@ -82,8 +86,8 @@ public class ScheduledTaskInterceptor implements Serializable {
 	InjectionPoint ip;
 
 	@AroundConstruct
-	public void addMessengers(InvocationContext ctx) throws Exception {
-
+	public void addSchedulerProperties(InvocationContext ctx) throws Exception {
+				
 		// OK to proceed
 		ctx.proceed();
 		Object result = ctx.getTarget();
@@ -91,7 +95,7 @@ public class ScheduledTaskInterceptor implements Serializable {
 		Scheduler schedule;
 		
 		
-		Optional<Annotation> scheduleOpt;// = Optional.empty();
+		Optional<Annotation> scheduleOpt;
 		scheduleOpt = ip.getQualifiers().stream().filter((q) -> q instanceof Scheduler).findAny();
 						
 		if (scheduleOpt.isPresent()) {

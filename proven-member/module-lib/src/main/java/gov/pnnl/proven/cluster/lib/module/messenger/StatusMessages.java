@@ -37,21 +37,54 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.event;
+package gov.pnnl.proven.cluster.lib.module.messenger;
 
-/**
- * Indicates a {@code ScheduledMessenger} has failed due to an {@code Error}
- * condition. Information related to the messenger and error contained in event
- * message.
- * 
- * @author d3j766
- *
- */
-public class FailedMessengerEvent extends FailureEvent {
+import java.util.HashSet;
+import java.util.Set;
 
-	private static final long serialVersionUID = 1L;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
-	public FailedMessengerEvent() {
+public class StatusMessages {
+
+	StatusEvent statusEvent;
+	Set<StatusOperationMessage> messages = new HashSet<>();
+
+	public StatusMessages() {
+	}
+
+	public StatusMessages(StatusEvent status) {
+		this.statusEvent = status;
+	}
+
+	public void addMessage(StatusOperationMessage message) {
+		messages.add(message);
+	}
+
+	public boolean hasMessages() {
+		return !messages.isEmpty();
+	}
+
+	/**
+	 * @return the status
+	 */
+	public StatusEvent getStatusEvent() {
+		return statusEvent;
+	}
+
+	/**
+	 * @return the messages
+	 */
+	public Set<StatusOperationMessage> getMessages() {
+		return messages;
+	}
+
+	/**
+	 * @param messages
+	 *            the messages to set
+	 */
+	public void setMessages(Set<StatusOperationMessage> messages) {
+		this.messages = messages;
 	}
 
 }

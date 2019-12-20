@@ -37,39 +37,45 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 
-import java.util.HashSet;
-import java.util.Set;
-
-public class ScheduledMessages {
-
-	Set<ScheduledMessage> messages = new HashSet<>();
-
-	public ScheduledMessages() {
-	}
-	
-	public void addMessage(ScheduledMessage message) {
-		messages.add(message);
-	}
-	
-	public boolean hasMessages() {
-		return !messages.isEmpty(); 
-	}
+/**
+ * Represents the possible results for a maintenance operation.
+ * 
+ * @see MaintenanceOperation
+ * 
+ * @author d3j766
+ *
+ */
+public enum MaintenanceOperationStatus {
 
 	/**
-	 * @return the messages
+	 * Indicates the maintenance checks failed and/or could not be repaired for
+	 * a maintenance operation.
 	 */
-	public Set<ScheduledMessage> getMessages() {
-		return messages;
-	}
+	FAILED(0),
 
 	/**
-	 * @param messages the messages to set
+	 * Indicates the maintenance checks passed and/or were repaired for a
+	 * maintenance operation.
 	 */
-	public void setMessages(Set<ScheduledMessage> messages) {
-		this.messages = messages;
+	PASSED(1),
+
+	/**
+	 * Indicates the maintenance checks have not been invoked for a maintenance
+	 * operation.
+	 */
+	NOT_INVOKED(2);
+	
+
+	private final int order;
+
+	private MaintenanceOperationStatus(int order) {
+		this.order = order;
 	}
-	
-	
+
+	public int getOrder() {
+		return order;
+	}
+
 }

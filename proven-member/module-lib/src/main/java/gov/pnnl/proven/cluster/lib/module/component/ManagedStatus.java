@@ -99,6 +99,19 @@ public enum ManagedStatus {
 	FailedOnlineRetry(false),
 
 	/**
+	 * A failed state, indicating an error condition was encountered with a
+	 * component's TaskSchedule. Maintenance check/repairs may be performed from
+	 * this state. Specifically, a SchedulerCheck operation may be performed.
+	 */
+	FailedSchedulerRetry(false),
+
+	/**
+	 * Transition status, indicating the component has been requested to perform
+	 * scheduler maintenance check and update its status accordingly.
+	 */
+	CheckingScheduler(true),
+
+	/**
 	 * Component can no longer accept new tasks. It will continue to perform its
 	 * existing tasks.
 	 */
@@ -167,16 +180,6 @@ public enum ManagedStatus {
 	Unknown(false),
 
 	/**
-	 * Indicates a component detected and reported a {@code MaintenanceEvent} to
-	 * its {@code MemberComponentRegistry}. This status is only used by a
-	 * registry to mark a component as under maintenance. A {@code #Maintenance}
-	 * status will be changed once the maintenance event is checked during
-	 * {@code ScheduledMaintenance} and results are reported back to the
-	 * registry.
-	 */
-	Maintenance(false),
-
-	/**
 	 * Indicates any transition status value.
 	 */
 	Transition(true),
@@ -208,8 +211,6 @@ public enum ManagedStatus {
 	 */
 	NonTerminal(false);
 
-	
-	
 	private final boolean isTransition;
 
 	ManagedStatus(boolean isTransition) {
@@ -245,24 +246,51 @@ public enum ManagedStatus {
 		return ret;
 	}
 
-	
+	/**
+	 * Returns true if provided status value is a {@code #Recoverable} status.
+	 */
+	public static boolean isMaintained(ManagedStatus status) {
+		return isRecoverable(status);
+	}
+
+	/**
+	 * Returns true if provided status value is a "retry" status value. Meaning,
+	 * the status value is a failed state allowing for retry attempt to rectify
+	 * failure.
+	 */
+	public static boolean isRetry(ManagedStatus status) {
+
+		boolean ret = false;
+
+		final ManagedStatus[] retries = { FailedOnlineRetry, FailedSchedulerRetry, FailedActivateRetry,
+				FailedDeactivateRetry };
+		if (!status.isTransition()) {
+			for (ManagedStatus retry : retries) {
+				if (retry == status) {
+					ret = true;
+					break;
+				}
+			}
+		}
+
+		return ret;
+	}
+
 	/**
 	 * Returns true if provided status value is a {@code #Terminal} status.
 	 */
 	public static boolean isTerminal(ManagedStatus status) {
 
-		boolean ret = true;
+		boolean ret = false;
 
-		final ManagedStatus[] terminal = { OutOfService, Terminal };
+		final ManagedStatus[] terminals = { OutOfService, Terminal };
 		if (!status.isTransition()) {
-			for (ManagedStatus terminalStatus : terminal) {
-				if (terminalStatus == status) {
-					ret = false;
+			for (ManagedStatus terminal : terminals) {
+				if (terminal == status) {
+					ret = true;
 					break;
 				}
 			}
-		} else {
-			ret = false;
 		}
 
 		return ret;

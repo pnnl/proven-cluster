@@ -40,61 +40,104 @@
 package gov.pnnl.proven.cluster.lib.module.messenger;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
-public class ScheduledMessage {
+/**
+ * Sends {@code StatusMessages} on a fixed delay schedule.
+ * 
+ * Default {@code Scheduler} is provided here, and used if {@code Scheduler} is
+ * not annotated at injection point.
+ * 
+ * @see ScheduledTask, ScheduledMessages, MessageEvent, Scheduler
+ * 
+ * @author d3j766
+ *
+ */
+public class StatusSchedule extends TaskSchedule<StatusMessages> {
 
-	private MessageEvent event;
-	private Optional<List<Annotation>> qualifiers = Optional.empty();
-	private boolean isAsync = true;
+	private static final long serialVersionUID = 1L;
 
-	public ScheduledMessage() {
+	@Inject
+	Logger log;
+
+	public StatusSchedule() {
 	}
 
-	public ScheduledMessage(MessageEvent event) {
-		this.event = event;
+	@PostConstruct
+	public void initMessenger() {
 	}
 
-	public ScheduledMessage(MessageEvent event, List<Annotation> qualifiers) {
-		this.event = event;
-		if (qualifiers.size() > 0) {
-			setQualifiers(Optional.of(qualifiers));
-		}
+	@PreDestroy
+	public void destroyMessenger() {
 	}
+
 	
-	public ScheduledMessage(MessageEvent event, Annotation... qualifiers) {
-		this.event = event;
-		if (qualifiers.length > 0) {
-			setQualifiers(Optional.of(Arrays.asList(qualifiers)));
+	/**
+	 * Sends the {@code ScheduledMessage}.
+	 * 
+	 * @param messages
+	 *            optional reported message content
+	 */
+	protected void apply() {
+
+		if (operatorOpt.isPresent()) {
+			
+			ManagedComponent operator = operatorOpt.get(); 
+			
+			Annotation[] qualifiers = {};
+			StatusMessages sms = operator.reportStatus();
+
+			// Send operation messages
+			for (StatusOperationMessage sm : sms.getMessages()) {
+
+				if (sm.getQualifiers().isPresent()) {
+					List<Annotation> qualifierList = sm.getQualifiers().get();
+					qualifiers = new Annotation[qualifierList.size()];
+					qualifiers = sm.getQualifiers().get().toArray(qualifiers);
+				}
+
+				if (sm.isAsync()) {
+					log.debug("ASYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
+					log.debug("BEFORE ASYNC FIRE ******");
+					eventInstance.select(qualifiers).fireAsync(sm.getEvent());
+					log.debug("AFTER ASYNC FIRE ******");
+
+				} else {
+					log.debug("SYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
+					log.debug("BEFORE ASYNC FIRE ******");
+					eventInstance.select(qualifiers).fire(sm.getEvent());
+					log.debug("AFTER ASYNC FIRE ******");
+				}
+			}
+
+			// Report to registry
+			StatusEvent event = sms.getStatusEvent();
+			event.setRegistryOverdueMillis(registryOverdueMillis);
+			notifyRegistry(event, true);
+
 		}
+
 	}
 
-	public MessageEvent getEvent() {
-		return event;
-	}
+	@Override
+	public boolean isReportable(MessageEvent event) {
 
-	public void setEvent(MessageEvent event) {
-		this.event = event;
-	}
-
-	public Optional<List<Annotation>> getQualifiers() {
-		return qualifiers;
-	}
-
-	public void setQualifiers(Optional<List<Annotation>> qualifiers) {
-		this.qualifiers = qualifiers;
-	}
-
-	public boolean isAsync() {
-		return isAsync;
-	}
-
-	public void setAsync(boolean isAsync) {
-		this.isAsync = isAsync;
+		ManagedStatus reportedStatus = (null == reported()) ? (ManagedStatus.Unknown)
+				: (((StatusEvent) reported()).getRequestorStatus());
+		ManagedStatus reportingStatus = ((StatusEvent) event).getRequestorStatus();
+		return ((reportingStatus != reportedStatus));
 	}
 
 }

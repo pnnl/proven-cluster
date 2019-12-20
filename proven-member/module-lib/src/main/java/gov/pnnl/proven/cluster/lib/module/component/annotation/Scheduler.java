@@ -55,15 +55,16 @@ import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 import javax.interceptor.InterceptorBinding;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.MessengerSchedule;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.messenger.StatusSchedule;
 
 /**
- * {@code ScheduledMesenger} qualifier. Includes members providing schedule
+ * {@code TaskSchedule} qualifier. Includes members providing the schedule's
  * properties.
  * 
  * @author d3j766
  *
- * @see MessengerSchedule
+ * @see StatusSchedule
  * 
  */
 @InterceptorBinding
@@ -72,20 +73,25 @@ import gov.pnnl.proven.cluster.lib.module.messenger.MessengerSchedule;
 @Retention(RUNTIME)
 @Target({ TYPE, FIELD })
 public @interface Scheduler {
+	
+	public static final int SCHEDULER_DEFAULT_DELAY = 5;
+	public static final String SCHEDULER_DEFAULT_TIME_UNIT = TimeUnit.SECONDS.toString();
+	public static final int SCHEDULER_DEFAULT_JITTER_PERCENT = 10;
+	public static final boolean SCHEDULER_DEFAULT_ACTIVATE_ON_STARTUP = true;
 
 	/**
 	 * (Optional) Fixed delay in specified {@link #timeUnit()} between report
 	 * messages.
 	 * 
-	 * Default is 3 Seconds.
+	 * Default is {@link #SCHEDULER_DEFAULT_DELAY} for {@value #SCHEDULER_DEFAULT_TIME_UNIT}
 	 */
 	@Nonbinding
-	long delay() default 5;
+	long delay() default SCHEDULER_DEFAULT_DELAY;
 
 	/**
 	 * (Optional) {@code TimeUnit} for {@link #delay()} value.
 	 * 
-	 * Default is {@code TimeUnit#SECONDS}
+	 * Default is {@link #SCHEDULER_DEFAULT_TIME_UNIT}
 	 */
 	@Nonbinding
 	TimeUnit timeUnit() default TimeUnit.SECONDS;
@@ -95,17 +101,17 @@ public @interface Scheduler {
 	 * schedule's fixed {@link #delay()} value. Variance is a +/- value that
 	 * ranges from 0 to the provided percentage of the fixed delay.
 	 * 
-	 * Default is 10
+	 * Default is {@link #SCHEDULER_DEFAULT_JITTER_PERCENT}
 	 */
 	@Nonbinding
-	int jitterPercent() default 10;
-	
+	int jitterPercent() default SCHEDULER_DEFAULT_JITTER_PERCENT;
+
 	/**
 	 * (Optional) If true, messenger component will be activated on startup.
 	 * 
-	 * Default is true
+	 * Default is {@link #SCHEDULER_DEFAULT_ACTIVATE_ON_STARTUP}
 	 */
 	@Nonbinding
-	boolean activateOnStartup() default true;
-	
+	boolean activateOnStartup() default SCHEDULER_DEFAULT_ACTIVATE_ON_STARTUP;
+
 }

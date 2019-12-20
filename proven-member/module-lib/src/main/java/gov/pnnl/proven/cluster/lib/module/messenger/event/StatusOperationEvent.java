@@ -37,92 +37,33 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger;
+package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
-import java.lang.annotation.Annotation;
-import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
-import org.slf4j.Logger;
+public class StatusOperationEvent extends StatusEvent {
 
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+	UUID opCandidateId;
 
-/**
- * Sends {@code ScheduledMessages} containing {@MessageEvent}s on a fixed delay
- * schedule.
- * 
- * Default {@code Scheduler} is provided here, and used if {@code Scheduler} is
- * not annotated at injection point.
- * 
- * @see ScheduledTask, ScheduledMessages, MessageEvent, Scheduler
- * 
- * @author d3j766
- *
- */
-public class MessengerSchedule extends TaskSchedule<ScheduledMessages> {
-
-	private static final long serialVersionUID = 1L;
-
-	@Inject
-	Logger log;
-
-	@Inject
-	Event<MessageEvent> eventInstance;
-
-	@Inject
-	public MessengerSchedule() {
-	}
-
-	@PostConstruct
-	public void initMessenger() {
-	}
-
-	@PreDestroy
-	public void destroyMessenger() {
+	public StatusOperationEvent(ManagedComponent mc, UUID opCandidateId) {
+		super(mc);
+		this.opCandidateId = opCandidateId;
 	}
 
 	/**
-	 * Sends the {@code ScheduledMessage}.
-	 * 
-	 * @param messages
-	 *            optional reported message content
+	 * @return the opCandidateId
 	 */
-	protected void apply(Optional<ScheduledMessages> messages) {
-
-		Annotation[] qualifiers = {};
-
-		if (messages.isPresent()) {
-
-			ScheduledMessages sms = messages.get();
-
-			for (ScheduledMessage sm : sms.getMessages()) {
-
-				if (sm.getQualifiers().isPresent()) {
-					List<Annotation> qualifierList = sm.getQualifiers().get();
-					qualifiers = new Annotation[qualifierList.size()];
-					qualifiers = sm.getQualifiers().get().toArray(qualifiers);
-				}
-
-				if (sm.isAsync()) {
-					log.debug("ASYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
-					log.debug("BEFORE ASYNC FIRE ******");
-					eventInstance.select(qualifiers).fireAsync(sm.getEvent());
-					log.debug("AFTER ASYNC FIRE ******");
-
-				} else {
-					log.debug("SYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
-					log.debug("BEFORE ASYNC FIRE ******");
-					eventInstance.select(qualifiers).fire(sm.getEvent());
-					log.debug("AFTER ASYNC FIRE ******");
-				}
-			}
-		}
+	public UUID getOpCandidateId() {
+		return opCandidateId;
 	}
 
+	/**
+	 * @param opCandidateId the opCandidateId to set
+	 */
+	public void setOpCandidateId(UUID opCandidateId) {
+		this.opCandidateId = opCandidateId;
+	}
+	
 }

@@ -39,10 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
-import java.util.Optional;
-
 public interface ScheduledMaintenance {
 
-	Optional<ComponentMaintenance> getScheduledMaintenance();
-	
+	ComponentMaintenance scheduledMaintenance();
+
 }
