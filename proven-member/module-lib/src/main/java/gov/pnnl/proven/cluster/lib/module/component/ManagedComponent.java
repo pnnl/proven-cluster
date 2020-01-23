@@ -61,7 +61,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Stack;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -90,7 +89,8 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSched
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ScheduledMaintenance;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.SchedulerCheck;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.StatusMessages;
 import gov.pnnl.proven.cluster.lib.module.messenger.StatusOperationMessage;
@@ -358,6 +358,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 		// Activate scheduled maintenance
 		mc.getMaintenanceSchedule().start();
+
 	}
 
 	public UUID getManagerId() {
@@ -450,6 +451,15 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	@LockedStatusOperation
+	public void suspend() {
+		log.debug("No suspend operation implementation for :: " + this.getComponentType());
+	}
+
+	/**
+	 * @see ManagedStatusOperation#shutdown()
+	 */
+	@Override
+	@LockedStatusOperation
 	public void shutdown() {
 		log.debug("No shutdown operation implementation for :: " + this.getComponentType());
 	}
@@ -468,34 +478,66 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	@LockedStatusOperation
-	public MaintenanceOperationResult check(SortedSet<MaintenanceOperation> ops) {
+	public <T extends MaintenanceOperation> MaintenanceOperationResult check(SortedSet<T> ops) {
+
+		log.debug("Check operation for :: " + this.getComponentType());
 
 		// Assume all checks pass
 		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available, Optional.empty());
 
 		// Record any failed operations.
-		Set<MaintenanceOperation> opFailures = new HashSet<>();
+		Set<T> opFailures = new HashSet<>();
 
-		for (MaintenanceOperation mo : ops) {
+		/*
+		 * Process operations. They are ordered by high to low max severity.
+		 * 
+		 * Processing will terminate if:
+		 * 
+		 * (1) All operations PASSED
+		 * 
+		 * (2) An operation FAILED with max severity
+		 * 
+		 * (3) Current operation to be processed has a lower max severity then a
+		 * previous FAILED operation.
+		 */
+		MaintenanceOperationSeverity maxFailSeverity = null;
+		for (T op : ops) {
 
-			// Perform the check
-			MaintenanceOperationResult opResult = mo.checkAndRepair();
-
-			// Set as return value if it's a higher severity.
-			if (opResult.getSeverity().isHigherSeverity(ret.getSeverity())) {
-				ret = opResult;
-			}
-
-			// Did not pass maintenance check, add to failures list
-			if (opResult.getStatus() == FAILED) {
-				opFailures.add(mo);
-
-				// Break if max severity for failure
-				if (opResult.getSeverity() == mo.maximumSeverity()) {
-					break;
+			if (null != maxFailSeverity) {
+				if (maxFailSeverity.isHigherSeverity(op.maxSeverity())) {
+					break; // (3)
 				}
 			}
-		}
+
+			// Perform the check
+			MaintenanceOperationResult opResult = op.checkAndRepair();
+
+			// Did not pass maintenance check
+			if (opResult.getStatus() == FAILED) {
+
+				MaintenanceOperationSeverity opSeverity = opResult.getSeverity();
+
+				opFailures.add(op);
+
+				// Update return value, if necessary
+				if (opSeverity.isHigherSeverity(ret.getSeverity())) {
+					ret = opResult;
+				}
+
+				// Break if max severity for failure
+				if (opSeverity.isSameSeverity(op.maxSeverity())) {
+					break; // (2)
+				}
+
+				// Update maxFailSeverity, if necessary
+				if (null != maxFailSeverity) {
+					if (opSeverity.isHigherSeverity(maxFailSeverity)) {
+						maxFailSeverity = opSeverity;
+					}
+				}
+
+			}
+		} // (1)
 
 		// Update sorted list for a failed operation. Remove followed by add to
 		// re-sort. This will ensure the failed operation is performed before
@@ -511,22 +553,19 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	/**
-	 * @see ManagedStatusOperation#schedulerCheck(SchedulerCheck)
+	 * @see ManagedStatusOperation#schedulerCheck(SortedSet)
 	 */
 	@Override
 	@LockedStatusOperation
-	public MaintenanceOperationResult schedulerCheck(SchedulerCheck op) {
-		SortedSet<MaintenanceOperation> ops = new TreeSet<>();
-		ops.add(op);
+	public MaintenanceOperationResult schedulerCheck(SortedSet<ScheduleCheck> ops) {
 		return check(ops);
 	}
 
 	/**
-	 * Optionally creates and returns {@code StatusEvent}
-	 * {@code ScheduledMessages}. The component's status messages, if any, are
-	 * qualified by the {@code StatusOperation.Operation}, indicating to the
-	 * compnent's child observer what status operation to invoke. Messages are
-	 * also directed to the component's registry, informing the registry of it's
+	 * Creates and returns {@code StatusMessages}. The status messages, if any,
+	 * are qualified by a {@code StatusOperation}, indicating to the compnent's
+	 * child observer what status operation to invoke. Messages are also
+	 * directed to the component's registry, informing the registry of it's
 	 * current status.
 	 * 
 	 * @return optional {@code ScheduledMessages}, it may be empty if
@@ -553,9 +592,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 			// Create operation messages
 			for (Operation op : Operation.values()) {
-				for (UUID candidate : statusEventOperationCandidates(op, currentStatus)) {
-					ops.push(new SimpleEntry<Operation, StatusOperationEvent>(op,
-							new StatusOperationEvent(this, candidate)));
+
+				// Only report on observed operations
+				if (op.isObserved()) {
+					for (UUID candidate : statusEventOperationCandidates(op, currentStatus)) {
+						ops.push(new SimpleEntry<Operation, StatusOperationEvent>(op,
+								new StatusOperationEvent(this, candidate)));
+					}
 				}
 			}
 			do {
@@ -600,6 +643,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			}
 			break;
 
+		// TODO Implement scale operation
 		case Scale:
 			if (Online == status) {
 				ret = hasCreatedCandidates(op);
@@ -622,20 +666,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			ret = hasCreatedCandidates(op);
 			break;
 
-		case Shutdown:
-			// Not triggered by a status message
-			break;
-
-		case Check:
-			// Not triggered by a status message
-			break;
-			
-		case SchedulerCheck:
-			// Not triggered by a status message
-			break;
-
 		default:
-			log.error("Unknown Creator operation type requested in report status");
+			log.error("Unknown operation type requested in report status: " + op.name());
 			break;
 		}
 

@@ -49,8 +49,8 @@ public interface MaintenanceCheck {
 
 	MaintenanceOperationResult checkAndRepair();
 
-	MaintenanceOperationSeverity maximumSeverity();
-
+	MaintenanceOperationSeverity maxSeverity();
+	
 	int priority();
 
 	public static class Priority {

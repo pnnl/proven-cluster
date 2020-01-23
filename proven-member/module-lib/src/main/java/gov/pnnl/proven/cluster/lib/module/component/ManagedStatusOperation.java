@@ -39,15 +39,12 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.UUID;
 
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.SchedulerCheck;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 
 /**
  * Identifies {@code ManagedComponent} status operations.
@@ -78,7 +75,7 @@ public interface ManagedStatusOperation {
 	void scale(UUID scaled);
 
 	/**
-	 * Component is deactivated.
+	 * Component is deactivated. Deactivation retries are performed on failure.
 	 * 
 	 * @return true if the component was successfully deactivated, false
 	 *         otherwise
@@ -97,7 +94,15 @@ public interface ManagedStatusOperation {
 	void remove();
 
 	/**
-	 * Component is shutdown removing it from service.
+	 * Component is deactivated. No deactivation retries are performed for a
+	 * suspend operation.
+	 */
+	void suspend();
+
+	/**
+	 * Component is removed from service. Similar to a {@link #remove()}
+	 * operation, however, unlike remove shutdown can be applied to a component
+	 * having any non-terminal managed status value.
 	 * 
 	 */
 	void shutdown();
@@ -112,20 +117,18 @@ public interface ManagedStatusOperation {
 	 * 
 	 * @return a MaintenanceOperationResult
 	 */
-	MaintenanceOperationResult check(SortedSet<MaintenanceOperation> ops);
+	<T extends MaintenanceOperation> MaintenanceOperationResult check(SortedSet<T> ops);
 
 	/**
-	 * Performs a special maintenance check specifically for a TaskSchedule,
+	 * Performs a special maintenance check specifically for TaskSchedules,
 	 * separate from the component defined maintenance checks performed by the
-	 * {@link #check(SortedSet)} operation. This allows a scheduler that has
-	 * encountered an error condition to request a maintenance check on itself.
-	 * This is necessary because any error condition raised in the scheduler has
-	 * more than likely short circuited the normal scheduled maintenance checks.
+	 * {@link #check(SortedSet)} operation. This allows schedule checks to be
+	 * made outside of normal component maintenance.
 	 * 
-	 * @param op
-	 *            the scheduler check operation
+	 * @param ops
+	 *            a sorted set of the scheduler check operations
 	 * @return a MaintenanceOperationResult
 	 */
-	MaintenanceOperationResult schedulerCheck(SchedulerCheck op);
+	MaintenanceOperationResult schedulerCheck(SortedSet<ScheduleCheck> ops);
 
 }

@@ -54,6 +54,7 @@ import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.OutOfService;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Removing;
 import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.FAILED;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Activate;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Check;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Deactivate;
@@ -61,9 +62,9 @@ import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOper
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Remove;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.SchedulerCheck;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Suspend;
 import static gov.pnnl.proven.cluster.lib.module.util.LoggerResource.currentThreadLog;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -89,7 +90,7 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMainten
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.SchedulerCheck;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
 
 @Decorator
@@ -109,7 +110,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	ManagedComponent mc;
 
 	/**
-	 * Maximum retry attempts for status operations allowing them.
+	 * Maximum retry attempts for a status operation.
 	 */
 	private static final int MAX_RETRY_ATTEMPTS = 5;
 
@@ -140,13 +141,14 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	private ManagedStatus verifyRetries(ManagedStatus status) {
 
 		ManagedStatus ret = status;
+
 		UUID id = mc.getId();
 
 		if (ManagedStatus.isRetry(status)) {
 			if (retries.containsKey(id)) {
 				int count = retries.get(id).get(status);
 				if (count >= MAX_RETRY_ATTEMPTS) {
-					status = Failed;
+					ret = Failed;
 				} else {
 					retries.get(id).put(status, count + 1);
 				}
@@ -189,7 +191,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 
 		boolean ret = true;
 		UUID id = mc.getId();
-		
+
 		if (ManagedStatus.isRetry(status)) {
 			if (retries.containsKey(id)) {
 				if (retries.get(id).get(status) > 0) {
@@ -197,7 +199,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 				}
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -218,6 +220,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 		boolean opSuccess = false;
 		log.debug("Decorator activate started");
 		ManagedStatus inStatus = mc.getStatus();
+
 		if (Activate.verifyOperation(inStatus)) {
 			mc.setStatus(Activating);
 
@@ -236,7 +239,8 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			}
 
 		} else {
-			log.warn("Activate operation not performed.  Incompatible input status: " + mc.getStatus());
+			log.warn("Activate operation not performed.  Incompatible input status: " + mc.getStatus()
+					+ "\n For component: " + mc.getDoId());
 
 		}
 		log.debug("Decorator activate completed");
@@ -261,27 +265,34 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 
 		log.debug(currentThreadLog("START DEACTIVATE DECORATOR"));
 
-		boolean opSuccess = false;
+		boolean opSuccess = true;
 		log.debug("Decorator deactivate started");
 		ManagedStatus inStatus = mc.getStatus();
+
 		if (Deactivate.verifyOperation(mc.getStatus())) {
-			mc.setStatus(Deactivating);
 
-			try {
-				opSuccess = mc.deactivate();
-			} catch (Exception e) {
-				mc.setStatus(inStatus);
-				throw new StatusOperationException(Deactivate, e);
-			}
+			// Only perform if not already Offline
+			if (mc.getStatus() != Offline) {
 
-			if (opSuccess) {
-				mc.setStatus(Offline);
-				resetRetries(FailedDeactivateRetry);
-			} else {
-				mc.setStatus(verifyRetries(FailedDeactivateRetry));
+				mc.setStatus(Deactivating);
+
+				try {
+					opSuccess = mc.deactivate();
+				} catch (Exception e) {
+					mc.setStatus(inStatus);
+					throw new StatusOperationException(Deactivate, e);
+				}
+
+				if (opSuccess) {
+					mc.setStatus(Offline);
+					resetRetries(FailedDeactivateRetry);
+				} else {
+					mc.setStatus(verifyRetries(FailedDeactivateRetry));
+				}
 			}
 		} else {
-			log.warn("Deactivate operation not performed.  Incompatible input status: " + mc.getStatus());
+			log.warn("Deactivate operation not performed.  Incompatible input status: " + mc.getStatus()
+					+ "\n For component: " + mc.getDoId());
 		}
 		log.debug("Decorator deactivate completed");
 		log.debug(currentThreadLog("END DEACTIVATE DECORATOR"));
@@ -309,7 +320,8 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			mc.setStatus(Failed);
 
 		} else {
-			log.warn("Fail operation not performed.  Incompatible input status: " + mc.getStatus());
+			log.warn("Fail operation not performed.  Incompatible input status: " + mc.getStatus()
+					+ "\n For component: " + mc.getDoId());
 		}
 		log.debug("Decorator fail completed");
 		log.debug(currentThreadLog("END FAIL DECORATOR"));
@@ -335,7 +347,8 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			mc.setStatus(OutOfService);
 
 		} else {
-			log.warn("Remove operation not performed.  Incompatible input status: " + mc.getStatus());
+			log.warn("Remove operation not performed.  Incompatible input status: " + mc.getStatus()
+					+ "\n For component: " + mc.getDoId());
 		}
 		log.debug("Decorator remove completed");
 		log.debug(currentThreadLog("END REMOVE DECORATOR"));
@@ -343,7 +356,38 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	}
 
 	/**
-	 * @see ManagedStatusOperation#remove()
+	 * @see ManagedStatusOperation#suspend()
+	 */
+	@Override
+	public void suspend() {
+
+		log.debug(currentThreadLog("START SUSPEND DECORATOR"));
+
+		log.debug("Decorator suspend started");
+		if (Suspend.verifyOperation(mc.getStatus())) {
+
+			if (mc.getStatus() != Offline) {
+
+				mc.setStatus(Deactivating);
+				try {
+					mc.deactivate(); // Component specific
+				} catch (Exception e) {
+					mc.setStatus(Offline);
+					throw new StatusOperationException(Suspend, e);
+				}
+				mc.setStatus(Offline);
+			}
+
+		} else {
+			log.warn("Shutdown operation not performed. Incompatible input status: " + mc.getStatus()
+					+ "\n For component: " + mc.getDoId());
+		}
+		log.debug("Decorator shutdown completed");
+		log.debug(currentThreadLog("END SHUTDOWN DECORATOR"));
+	}
+
+	/**
+	 * @see ManagedStatusOperation#shutdown()
 	 */
 	@Override
 	public void shutdown() {
@@ -362,59 +406,64 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			mc.setStatus(OutOfService);
 
 		} else {
-			log.warn("Shutdown operation not performed.  Incompatible input status: " + mc.getStatus());
+			log.warn("Shutdown operation not performed. Incompatible input status: " + mc.getStatus()
+					+ "\n For component: " + mc.getDoId());
 		}
 		log.debug("Decorator shutdown completed");
 		log.debug(currentThreadLog("END SHUTDOWN DECORATOR"));
-
 	}
 
 	/**
 	 * @see ManagedStatusOperation#check(ComponentMaintenance)
 	 */
 	@Override
-	public MaintenanceOperationResult check(SortedSet<MaintenanceOperation> ops) {
+	public <T extends MaintenanceOperation> MaintenanceOperationResult check(SortedSet<T> ops) {
 
 		log.debug(currentThreadLog("START CHECK DECORATOR"));
-
 		log.debug("Decorator check started");
 		MaintenanceOperationResult opResult = new MaintenanceOperationResult();
-		ManagedStatus inStatus = mc.getStatus();
 
-		if (Check.verifyOperation(inStatus)) {
-			mc.setStatus(CheckingStatus);
-			try {
+		if (!ops.isEmpty()) {
 
-				// Reset operation's result for a new invocation
-				ops.forEach((op) -> {
-					op.getResult().resetDefault();
-				});
+			ManagedStatus inStatus = mc.getStatus();
 
-				opResult = mc.check(ops);
+			// Reset all operation results for a new check. This will not cause
+			// a
+			// re-sort (add causes a re-sort), thus order of operation execution
+			// is
+			// maintained as set by previous check.
+			ops.forEach((op) -> {
+				op.getResult().resetDefault();
+			});
 
-			} catch (Exception e) {
-				mc.setStatus(inStatus);
-				throw new StatusOperationException(Check, e);
+			if (Check.verifyOperation(inStatus)) {
+				mc.setStatus(CheckingStatus);
+				try {
+
+					opResult = mc.check(ops);
+
+				} catch (Exception e) {
+					mc.setStatus(inStatus);
+					throw new StatusOperationException(Check, e);
+				}
+
+				ManagedStatus status = opResult.getSeverity().getStatus();
+				if (status != FailedOnlineRetry) {
+					resetRetries(FailedOnlineRetry);
+				} else {
+					status = verifyRetries(FailedOnlineRetry);
+				}
+				mc.setStatus(status);
 			}
 
-			ManagedStatus status = opResult.getSeverity().getStatus();
-			if (status != FailedOnlineRetry) {
-				resetRetries(FailedOnlineRetry);
-			}
 			else {
-				status = verifyRetries(FailedOnlineRetry);	
+				log.warn("Check operation not performed. Incompatible input status: " + mc.getStatus()
+						+ "\n For component: " + mc.getDoId());
 			}
-			mc.setStatus(status);
-			
-		} else if (!ManagedStatus.isMaintained(inStatus)) {
-			opResult = new MaintenanceOperationResult(FAILED,
-					MaintenanceOperationSeverity.getSeverityByStatus(inStatus), Optional.empty());
-		} else {
-			log.warn("Check operation not performed.  Input status: " + mc.getStatus());
+
 		}
 		log.debug("Decorator check completed");
 		log.debug(currentThreadLog("END CHECK DECORATOR"));
-
 		return opResult;
 	}
 
@@ -422,51 +471,85 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	 * @see ManagedStatusOperation#schedulerCheck(SchedulerCheck)
 	 */
 	@Override
-	public MaintenanceOperationResult schedulerCheck(SchedulerCheck op) {
+	public MaintenanceOperationResult schedulerCheck(SortedSet<ScheduleCheck> ops) {
 
 		log.debug(currentThreadLog("START SCHEDULER CHECK DECORATOR"));
-
 		log.debug("Decorator SchedulerCheck started");
 		MaintenanceOperationResult opResult = new MaintenanceOperationResult();
 
-		/**
-		 * If this is an initial scheduler check then record the component's
-		 * current status as it's "pre-check" status. If the initial operation
-		 * or remaining retries pass, then the components's status will be reset
-		 * back to this pre-check status.
-		 */
-		ManagedStatus inStatus = mc.getStatus();
-		if (isInitialOperation(FailedSchedulerRetry)) {
-			op.setPreCheckStatus(inStatus);
-		}
+		if (!ops.isEmpty()) {
 
-		if (SchedulerCheck.verifyOperation(inStatus)) {
-			mc.setStatus(CheckingScheduler);
-			try {
+			/**
+			 * Reset all operation results for a new check. This will not cause
+			 * a re-sort (add causes a re-sort), thus order of operation
+			 * execution is maintained as set by previous check.
+			 * 
+			 * If this is an initial scheduler check then record the component's
+			 * current status as it's "pre-check" status. If the initial
+			 * operation or a remaining retry passes, then the components's
+			 * status will be reset back to this "pre-check" status. This is
+			 * necessary for scheduler checks because these checks are performed
+			 * separately from component maintenance, and will block component
+			 * maintenance until a scheduler issue is resolved. If there are no
+			 * issues or a issue is resolved then this "pre-check status can be
+			 * used by component maintenance which follows the scheduler checks.
+			 */
 
+			ManagedStatus inStatus = mc.getStatus();
+			ops.forEach((op) -> {
 				op.getResult().resetDefault();
-				opResult = mc.schedulerCheck(op);
+				if (isInitialOperation(FailedSchedulerRetry)) {
+					op.setPreCheckStatus(inStatus);
+				}
+			});
 
-			} catch (Exception e) {
-				mc.setStatus(inStatus);
-				throw new StatusOperationException(SchedulerCheck, e);
-			}
-			
-			ManagedStatus status = opResult.getSeverity().getStatus();
-			if (status != FailedSchedulerRetry) {
-				resetRetries(FailedSchedulerRetry);
-			}
-			else {
-				status = verifyRetries(FailedSchedulerRetry);	
-			}
-			mc.setStatus(status);
+			if (SchedulerCheck.verifyOperation(inStatus)) {
 
-		} else if (!ManagedStatus.isMaintained(inStatus)) {
-			opResult = new MaintenanceOperationResult(FAILED,
-					MaintenanceOperationSeverity.getSeverityByStatus(inStatus), Optional.empty());
-		} else {
-			log.warn("SchedulerCheck operation not performed.  Input status: " + mc.getStatus());
+				mc.setStatus(CheckingScheduler);
+
+				try {
+
+					opResult = mc.schedulerCheck(ops);
+
+				} catch (Exception e) {
+					mc.setStatus(inStatus);
+					throw new StatusOperationException(SchedulerCheck, e);
+				}
+
+				ManagedStatus status = opResult.getSeverity().getStatus();
+
+				if (status != FailedSchedulerRetry) {
+					resetRetries(FailedSchedulerRetry);
+				} else {
+					status = verifyRetries(FailedSchedulerRetry);
+				}
+
+				// At this point the status can only be another retry,
+				// a non-recoverable, or online (i.e. all checks PASSED). Online
+				// indicates component should be set back to its "pre-check"
+				// status,
+				// which can be retrieved from one of it's operations (they
+				// should
+				// all have the same "pre-check" value).
+				if (opResult.getStatus() == PASSED) {
+					mc.setStatus(ops.first().getPreCheckStatus());
+				} else {
+					mc.setStatus(status);
+				}
+
+				// This will trigger a registry notification to unregister
+				// component
+				// from the maintenance registry as it is no longer being
+				// maintained.
+			} else if (!ManagedStatus.isRecoverable(inStatus)) {
+				opResult = new MaintenanceOperationResult(FAILED,
+						MaintenanceOperationSeverity.getSeverityByStatus(inStatus), Optional.empty());
+			} else {
+				log.warn("SchedulerCheck operation not performed.  Input status: " + mc.getStatus());
+			}
+
 		}
+
 		log.debug("Decorator SchedulerCheck completed");
 		log.debug(currentThreadLog("END SCHEDULER CHECK DECORATOR"));
 

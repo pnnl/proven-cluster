@@ -37,88 +37,84 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
+package gov.pnnl.proven.cluster.lib.module.module;
 
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Unknown;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
-
-import java.util.Optional;
-
-import javax.annotation.PostConstruct;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Busy;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.CheckedOffline;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Offline;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Ready;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.interceptor.StatusDecorator;
 
 /**
- * Checks a ManagedComponent's scheduler.
+ * Represents possible status values for a ProvenModule.
  * 
- * Returns {@code MaintenanceOperationStatus#PASSED} if the schedule is running
- * or has been cancelled. Schedule cancellation is a managed event.
- * 
- * Returns {@code MaintenanceOperationStatus#PASSED} if the schedule has failed
- * to an unmanaged exception
- * 
- * Returns {@code MaintenanceOperationStatus#FAILED} if the schedule has been
- * stopped due to an error.
+ * @see ProvenModule
  * 
  * @author d3j766
  *
  */
-public class SchedulerCheck extends MaintenanceOperation {
+public enum ModuleStatus {
 
 	/**
-	 * Contains ManagedStatus value of the operator before the initial
-	 * SchedulerCheck operation has been performed. Meaning, a status value of
-	 * {@code ManagedStatus#Recoverable}, NOT including
-	 * {@code ManagedStatus#FailedSchedulerRetry}. This value is managed by
-	 * {@link StatusDecorator#schedulerCheck(SchedulerCheck)}.
+	 * Indicates the module has been deployed, but has not been started. This is
+	 * the starting state. It can transition to {@link #Running}.
 	 * 
-	 * @see #validPreCheckStatus(ManagedStatus)
 	 */
-	private ManagedStatus preCheckStatus = Unknown;
-
-	public SchedulerCheck() {
-		super();
-	}
-
-	@PostConstruct
-	public void init() {
-		log.debug("Inside SchedulerCheck contructor");
-	}
-
-	@Override
-	public MaintenanceOperationResult checkAndRepair() {
-		log.debug("Performing maintenance operation: " + opName());
-		return new MaintenanceOperationResult(PASSED, Available, Optional.empty());
-	}
-
-	@Override
-	public MaintenanceOperationSeverity maximumSeverity() {
-		return MaintenanceOperationSeverity.Severe;
-	}
-
-	@Override
-	public int priority() {
-		return MaintenanceCheck.Priority.HIGH;
-	}
-
-	public boolean validPreCheckStatus(ManagedStatus status) {
-		return ((status.isRecoverable(status)) && (status != ManagedStatus.FailedSchedulerRetry));
-	}
+	Deployed,
 
 	/**
-	 * @return the preCheckStatus
+	 * Indicates the component has successfully been started and is running. All
+	 * associated components are operating normally. It can transition to
+	 * {@link #Suspended} or {@link #Shutdown}.
 	 */
-	public ManagedStatus getPreCheckStatus() {
-		return preCheckStatus;
-	}
+	Running,
 
 	/**
-	 * @param preCheckStatus the preCheckStatus to set
+	 * Indicates the module has been suspended. All associated components are
+	 * deactivated. It can transition to {@link #Running} or {@link #Shutdown}.
 	 */
-	public void setPreCheckStatus(ManagedStatus preCheckStatus) {
-		this.preCheckStatus = preCheckStatus;
+	Suspended,
+
+	/**
+	 * Indicates the module has been shutdown. All associated components are
+	 * removed from service. This is a terminal state.
+	 */
+	Shutdown,
+
+	/**
+	 * Indicates status of the module is not known based on its current
+	 * ManagedStatus value. This may be due to its ManagedStatus being
+	 * in-transition or failed retries are being attempted. The status will not
+	 * be known until the transition or retries are completed.
+	 * 
+	 * @see ManagedStatus
+	 */
+	Unknown;
+
+	/**
+	 * Determines the module status based on the provided ManagedStatus.
+	 * 
+	 * @param ms
+	 *            the ManagedStatus
+	 * @return the ModuleStatus
+	 */
+	public static ModuleStatus fromManagedStatus(ManagedStatus ms) {
+
+		ModuleStatus ret = Unknown;
+
+		if (!ManagedStatus.isRecoverable(ms)) {
+			ret = Shutdown;
+		} else if (Offline == ms) {
+			ret = Suspended;
+		} else if (Online == ms || Busy == ms || CheckedOffline == ms) {
+			ret = Running;
+		} else if (Ready == ms) {
+			ret = Deployed;
+		}
+
+		return ret;
 	}
-	
+
 }

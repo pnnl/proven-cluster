@@ -42,25 +42,31 @@ package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 import java.util.Optional;
 
 public class MaintenanceOperationResult {
-	
+
 	MaintenanceOperationStatus status;
 	MaintenanceOperationSeverity severity;
 	Optional<Throwable> cause;
-	
+
 	public MaintenanceOperationResult() {
 		resetDefault();
 	}
+
+	public MaintenanceOperationResult(MaintenanceOperationStatus status, MaintenanceOperationSeverity severity) {
+		this(status, severity, Optional.empty());
+	}
 	
-	public MaintenanceOperationResult(MaintenanceOperationStatus status, MaintenanceOperationSeverity severity, Optional<Throwable> cause) {
+	public MaintenanceOperationResult(MaintenanceOperationStatus status, MaintenanceOperationSeverity severity,
+			Optional<Throwable> cause) {
+		this();
 		this.status = status;
 		this.severity = severity;
 		this.cause = cause;
 	}
-		
+
 	public void resetDefault() {
 		status = MaintenanceOperationStatus.NOT_INVOKED;
-		severity = MaintenanceOperationSeverity.Undetermined;
-		cause = Optional.empty();		
+		severity = MaintenanceOperationSeverity.Noop;
+		cause = Optional.empty();
 	}
 
 	/**
@@ -71,7 +77,8 @@ public class MaintenanceOperationResult {
 	}
 
 	/**
-	 * @param status the status to set
+	 * @param status
+	 *            the status to set
 	 */
 	public void setStatus(MaintenanceOperationStatus status) {
 		this.status = status;
@@ -85,7 +92,8 @@ public class MaintenanceOperationResult {
 	}
 
 	/**
-	 * @param severity the severity to set
+	 * @param severity
+	 *            the severity to set
 	 */
 	public void setSeverity(MaintenanceOperationSeverity severity) {
 		this.severity = severity;
@@ -99,13 +107,11 @@ public class MaintenanceOperationResult {
 	}
 
 	/**
-	 * @param cause the cause to set
+	 * @param cause
+	 *            the cause to set
 	 */
 	public void setCause(Optional<Throwable> cause) {
 		this.cause = cause;
 	}
 
-
-	
-	
 }

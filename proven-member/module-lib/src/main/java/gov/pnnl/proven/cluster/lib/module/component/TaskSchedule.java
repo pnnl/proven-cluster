@@ -41,10 +41,11 @@ package gov.pnnl.proven.cluster.lib.module.component;
 
 import static gov.pnnl.proven.cluster.lib.member.MemberUtils.exCause;
 import static gov.pnnl.proven.cluster.lib.member.MemberUtils.exCauseName;
-import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Fail;
 import static gov.pnnl.proven.cluster.lib.module.util.LoggerResource.currentThreadLog;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -52,7 +53,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -64,7 +64,6 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.SchedulerCheck;
 import gov.pnnl.proven.cluster.lib.module.messenger.RegistryReporter;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MemberRegistryAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
@@ -87,7 +86,7 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 
 	private static final long serialVersionUID = 1L;
 
-	public static final int MAX_SKIPPED_BEFORE_REPORTING_DEFAULT = 10;
+	public static final int MAX_SKIPPED_BEFORE_REPORTING_DEFAULT = 5;
 
 	@Inject
 	Logger log;
@@ -110,22 +109,14 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 	protected Event<MessageEvent> eventInstance;
 
 	/**
-	 * Scheduler MaintenanceOperation. This will be used to perform all
-	 * scheduler maintenance, if it encounters an unmanaged error condition.
-	 */
-	@Inject
-	SchedulerCheck schedulerCheck;
-
-	/**
-	 * (Optional) Schedule owner.
+	 * (Optional) Schedule operator (i.e. owner of the scheduler)
 	 */
 	protected Optional<ManagedComponent> operatorOpt = Optional.empty();
 
-	// Status properties
+	// Properties used by maintenance check to determine scheduler status.
 	ScheduleStatus status = ScheduleStatus.STOPPED;
-	boolean isCancelled = false;
-	boolean isFail = false;
-	Optional<Throwable> failureOpt = Optional.empty();
+	int failureCount = 0;
+	List<Throwable> failures = new ArrayList<>();
 
 	public static final String SM_EXECUTOR_SERVICE = "concurrent/ScheduledTasks";
 
@@ -153,12 +144,6 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 	 * @see {@link Scheduler#activateOnStartup()}
 	 */
 	protected boolean activateOnStartup;
-
-	/**
-	 * (Optional) The registered supplier. May be empty for tasks that do not
-	 * require an input supplier.
-	 */
-	// protected Optional<Supplier<T>> supplierOpt = Optional.empty();
 
 	// Registry reporting properties
 	protected MessageEvent reported = null;
@@ -203,12 +188,6 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 		return maxSkippedBeforeReporting;
 	}
 
-	// @Override
-	// public void setMaxSkippedBeforeReporting(int max) {
-	// maxSkippedBeforeReporting = max;
-	// calculateRegistryOverdueMillis();
-	// }
-
 	@Override
 	public void calculateRegistryOverdueMillis() {
 		long delay = getTimeUnit().toMillis(getDelay());
@@ -247,21 +226,19 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 	 * Starts the fixed delay scheduler. Tasks will continue to be run as long
 	 * as an unmanaged error condition (this includes either an Error or
 	 * unmanaged Exceptions) does not cause it to be stopped. An error condition
-	 * triggers the StatusOperation
+	 * triggers a fail StatusOperation.
 	 */
 	public void start() {
 
 		synchronized (status) {
 			if (status == ScheduleStatus.STOPPED) {
-				isCancelled = false;
-				isFail = false;
-				failureOpt = Optional.empty();
+				failureCount = 0;
+				failures.clear();
 				applyJitter();
 				scheduledFuture = scheduler.scheduleWithFixedDelay(() -> {
 					log.debug(currentThreadLog("START SCHEDULER STARTED"));
 					try {
 						log.debug("Scheduled task started");
-						//throw new NullPointerException();
 						apply();
 						log.debug("Scheduled task completed normally");
 					} catch (Throwable e) {
@@ -271,11 +248,13 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 								|| (e instanceof InterruptedException)) {
 							log.warn("Scheduled task managed execution exception: \n" + exCauseName(e));
 							exCause(e).printStackTrace();
-							// TODO okay?
 						} else if ((e instanceof Error) || (e instanceof Exception)) {
-							log.warn("Scheduled task execution encountered an unmanaged Throwable: " + exCauseName(e));
+							log.error("Scheduled task execution encountered an unmanaged error condition: "
+									+ exCauseName(e) + "\nScheduler: " + this.getClass() + " \nOperator:"
+									+ this.operatorOpt.get().getDoId());
 							exCause(e).printStackTrace();
-							//fail(e);
+							failureCount++;
+							failures.add(e);
 						}
 					}
 
@@ -298,40 +277,22 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 				scheduledFuture.cancel(true);
 				scheduledFuture = null;
 			}
-
-			isCancelled = true;
 			status = ScheduleStatus.STOPPED;
-
 		}
 		log.debug("Task scheduler stopped");
 	}
 
-	private void fail(Throwable e) {
-		if (operatorOpt.isPresent()) {
-
-			ManagedComponent operator = operatorOpt.get();
-
-			if (Fail.verifyOperation(operator.getStatus())) {
-				operatorOpt.get().fail();
-			}
-		}
+	public void restart() {
+		stop();
+		start();
 	}
 
 	/**
-	 * Registers supplier.
+	 * Registers operator.
 	 */
 	public void register(ManagedComponent operator) {
 		this.operatorOpt = Optional.of(operator);
-		this.schedulerCheck.addOperator(operator);
 	}
-
-	// /**
-	// * Registers supplier.
-	// */
-	// public void register(ManagedComponent operator, Supplier<T> supplier) {
-	// this.operator = operator;
-	// this.supplierOpt = Optional.of(supplier);
-	// }
 
 	/**
 	 * Applies task of type T
@@ -383,6 +344,20 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 
 	public void setActivateOnStartup(boolean activateOnStartup) {
 		this.activateOnStartup = activateOnStartup;
+	}
+
+	/**
+	 * @return the failureCount
+	 */
+	public int getFailureCount() {
+		return failureCount;
+	}
+
+	/**
+	 * @return the failures
+	 */
+	public List<Throwable> getFailures() {
+		return failures;
 	}
 
 }

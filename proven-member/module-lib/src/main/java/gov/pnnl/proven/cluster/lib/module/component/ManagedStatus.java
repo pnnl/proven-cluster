@@ -146,8 +146,8 @@ public enum ManagedStatus {
 
 	/**
 	 * A failed state, indicating component has encountered an error condition
-	 * either during deactivation. Deactivation retries may be attempted from
-	 * this state.
+	 * during deactivation. Deactivation retries may be attempted from this
+	 * state.
 	 */
 	FailedDeactivateRetry(false),
 
@@ -158,9 +158,9 @@ public enum ManagedStatus {
 	Failed(false),
 
 	/**
-	 * Transition status, indicating the component has failed and is being
-	 * removed from service. Any cleanup activities will be done as part of the
-	 * removal process.
+	 * Transition status, indicating the component has failed and/or is being
+	 * shutdown and is being removed from service. Any cleanup activities will
+	 * be done as part of the removal process.
 	 */
 	Removing(true),
 
@@ -247,13 +247,6 @@ public enum ManagedStatus {
 	}
 
 	/**
-	 * Returns true if provided status value is a {@code #Recoverable} status.
-	 */
-	public static boolean isMaintained(ManagedStatus status) {
-		return isRecoverable(status);
-	}
-
-	/**
 	 * Returns true if provided status value is a "retry" status value. Meaning,
 	 * the status value is a failed state allowing for retry attempt to rectify
 	 * failure.
@@ -262,7 +255,7 @@ public enum ManagedStatus {
 
 		boolean ret = false;
 
-		final ManagedStatus[] retries = { FailedOnlineRetry, FailedSchedulerRetry, FailedActivateRetry,
+		final ManagedStatus[] retries = { FailedOnlineRetry, FailedActivateRetry, FailedSchedulerRetry,
 				FailedDeactivateRetry };
 		if (!status.isTransition()) {
 			for (ManagedStatus retry : retries) {

@@ -39,6 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger;
 
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Shutdown;
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Suspended;
+
 import java.lang.annotation.Annotation;
 import java.util.List;
 
@@ -51,8 +54,10 @@ import org.slf4j.Logger;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 /**
  * Sends {@code StatusMessages} on a fixed delay schedule.
@@ -72,6 +77,11 @@ public class StatusSchedule extends TaskSchedule<StatusMessages> {
 	@Inject
 	Logger log;
 
+	// If this doesn't work, inject member component registry
+	@Inject
+	@Module
+	ProvenModule pm;
+
 	public StatusSchedule() {
 	}
 
@@ -83,7 +93,6 @@ public class StatusSchedule extends TaskSchedule<StatusMessages> {
 	public void destroyMessenger() {
 	}
 
-	
 	/**
 	 * Sends the {@code ScheduledMessage}.
 	 * 
@@ -93,36 +102,46 @@ public class StatusSchedule extends TaskSchedule<StatusMessages> {
 	protected void apply() {
 
 		if (operatorOpt.isPresent()) {
-			
-			ManagedComponent operator = operatorOpt.get(); 
-			
+
+			ManagedComponent operator = operatorOpt.get();
 			Annotation[] qualifiers = {};
 			StatusMessages sms = operator.reportStatus();
 
-			// Send operation messages
-			for (StatusOperationMessage sm : sms.getMessages()) {
+			// If module has been suspended or shutdown then suspend or shutdown
+			// this component. Otherwise, proceed normally and send the
+			// component's messages.
+			if (pm.retrieveModuleStatus() == Suspended) {
+				operator.suspend();
+			} else if (pm.retrieveModuleStatus() == Shutdown) {
+				operator.shutdown();
 
-				if (sm.getQualifiers().isPresent()) {
-					List<Annotation> qualifierList = sm.getQualifiers().get();
-					qualifiers = new Annotation[qualifierList.size()];
-					qualifiers = sm.getQualifiers().get().toArray(qualifiers);
-				}
+			} else {
+				// Go ahead and send messages. Module is either Running or
+				// in-transition state (i.e. Unknown)
+				for (StatusOperationMessage sm : sms.getMessages()) {
 
-				if (sm.isAsync()) {
-					log.debug("ASYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
-					log.debug("BEFORE ASYNC FIRE ******");
-					eventInstance.select(qualifiers).fireAsync(sm.getEvent());
-					log.debug("AFTER ASYNC FIRE ******");
+					if (sm.getQualifiers().isPresent()) {
+						List<Annotation> qualifierList = sm.getQualifiers().get();
+						qualifiers = new Annotation[qualifierList.size()];
+						qualifiers = sm.getQualifiers().get().toArray(qualifiers);
+					}
 
-				} else {
-					log.debug("SYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
-					log.debug("BEFORE ASYNC FIRE ******");
-					eventInstance.select(qualifiers).fire(sm.getEvent());
-					log.debug("AFTER ASYNC FIRE ******");
+					if (sm.isAsync()) {
+						log.debug("ASYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
+						log.debug("BEFORE ASYNC FIRE ******");
+						eventInstance.select(qualifiers).fireAsync(sm.getEvent());
+						log.debug("AFTER ASYNC FIRE ******");
+
+					} else {
+						log.debug("SYNC FIRE : " + sm.getEvent().getClass().getSimpleName());
+						log.debug("BEFORE ASYNC FIRE ******");
+						eventInstance.select(qualifiers).fire(sm.getEvent());
+						log.debug("AFTER ASYNC FIRE ******");
+					}
 				}
 			}
 
-			// Report to registry
+			// Always report operator's status to registry
 			StatusEvent event = sms.getStatusEvent();
 			event.setRegistryOverdueMillis(registryOverdueMillis);
 			notifyRegistry(event, true);

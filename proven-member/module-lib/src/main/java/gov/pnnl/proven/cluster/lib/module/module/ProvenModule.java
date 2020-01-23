@@ -81,7 +81,7 @@ import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
  */
 @ApplicationScoped
 @Module
-public abstract class ProvenModule extends ManagedComponent implements ModuleOperation {
+public abstract class ProvenModule extends ManagedComponent {
 
 	@Inject
 	Logger log;
@@ -91,7 +91,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 	@Inject
 	@Eager
 	MemberComponentRegistry mcr;
-	
+
 	// Set of active managers selected for this module
 	Set<Class<?>> activeManagers;
 
@@ -108,6 +108,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 
 	@PostConstruct
 	public void init() {
+		createManagers();
 	}
 
 	public synchronized <T extends ManagerComponent> T getOrCreateManager(Class<T> clazz) {
@@ -177,6 +178,10 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 		return ret;
 	}
 
+	public ModuleStatus retrieveModuleStatus() {
+		return ModuleStatus.fromManagedStatus(status);
+	}
+
 	public static UUID retrieveModuleId() {
 		if (null == moduleId) {
 			moduleId = UUID.randomUUID();
@@ -195,9 +200,7 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 		return moduleName;
 	}
 
-	@Override
-	public void startup() {
-
+	public void createManagers() {
 		log.debug("ProvenModule startup message observed");
 
 		// Get list of managers to activate
@@ -226,49 +229,6 @@ public abstract class ProvenModule extends ManagedComponent implements ModuleOpe
 		}
 
 		log.info("ProvenModule startup completed.");
-	}
-
-	@Override
-	public void suspend() {
-
-		// Make sure pre-destroy callbacks are in place for cleanup. This should
-		// be the same as what is called for an out of service status change.
-		log.debug("ProvenModule suspend message observed, deactivating all managers");
-		for (ManagedComponent mc : createdComponents.values()) {
-			if (ManagerComponent.class.isAssignableFrom(mc.getClass())) {
-				mc.deactivate();
-			}
-		}
-		log.info("ProvenModule suspend completed.");
-	}
-
-	@Override
-	public void shutdown() {
-
-		log.debug("ProvenModule shutdown message observed");
-
-		// Make sure pre-destroy callbacks are in place for cleanup, if
-		// necessary. This should be the same as what is called for an out of
-		// service status change.
-		for (ManagedComponent mc : createdComponents.values()) {
-			if (ManagerComponent.class.isAssignableFrom(mc.getClass())) {
-				componentProvider.destroy(mc);
-			}
-		}
-
-		// Log shutdown message
-		log.info("ProvenModule shutdown completed.");
-	}
-
-	@Override
-	public void checkMember(MemberEvent event) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void checkCluster(ClusterEvent event) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override

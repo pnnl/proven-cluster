@@ -47,7 +47,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
  * component. The severity aligns to a {@code ManagedStatus} value which may be
  * assigned to the managed component.
  * 
- * The enum constants are ordered by severity from high to low. This order MUST
+ * These constants are ordered by severity from high to low. This order MUST
  * be maintained to ensure maintenance operations are invoked in correct order.
  * That is, maintenance operations with higher severity should be performed
  * before maintenance operations with lower severity.
@@ -61,11 +61,12 @@ public enum MaintenanceOperationSeverity {
 
 	Fatal(OutOfService, 0),
 	Severe(Failed, 10),
-	Error(FailedOnlineRetry, 20),
-	Warn(CheckedOffline, 30),
-	Unavailable(Busy, 40),
-	Available(Online, 50),
-	Undetermined(Unknown, 60);
+	ScheduleError(FailedSchedulerRetry, 20),
+	OnlineError(FailedOnlineRetry, 30),
+	Warn(CheckedOffline, 40),
+	Unavailable(Busy, 50),
+	Available(Online, 60),
+	Noop(Unknown, 70);
 
 	private final ManagedStatus status;
 	private final int order;
@@ -88,7 +89,7 @@ public enum MaintenanceOperationSeverity {
 	
 	public static MaintenanceOperationSeverity getSeverityByStatus(ManagedStatus status) {
 
-		MaintenanceOperationSeverity ret = Undetermined;
+		MaintenanceOperationSeverity ret = Noop;
 
 		for (MaintenanceOperationSeverity ms : MaintenanceOperationSeverity.values()) {
 			if (status == ms.getStatus()) {

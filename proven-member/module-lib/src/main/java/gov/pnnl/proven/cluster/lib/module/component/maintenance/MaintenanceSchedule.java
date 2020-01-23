@@ -52,6 +52,8 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
@@ -108,18 +110,30 @@ public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
 
 		if (operatorOpt.isPresent()) {
 
+			log.debug("Maintenance schedule APPLY for: " + operatorOpt.get().getDoId());
+
 			ManagedComponent operator = operatorOpt.get();
 
-			// Get maintenance information from supplier
-			ComponentMaintenance cm = operator.scheduledMaintenance();
-			SortedSet<MaintenanceOperation> ops = mr.getOps(operator);
+			// Get Scheduler maintenance information from operator
+			SortedSet<ScheduleCheck> sOps = mr.getScheduleOps(operator);
 
-			// Perform checks
-			MaintenanceOperationResult result = operator.check(ops);
+			// Get component maintenance information from operator
+			SortedSet<MaintenanceOperation> cOps = mr.getOps(operator);
 
-			// Create new maintenance event and set as reporting
-			MaintenanceEvent event = new MaintenanceEvent(operator, result, ops, registryOverdueMillis);
-			notifyRegistry(event, false);
+			// First perform scheduler checks. Report only if FAILED
+			MaintenanceOperationResult result = operator.schedulerCheck(sOps);
+			if (result.getStatus() == MaintenanceOperationStatus.FAILED) {
+				MaintenanceEvent event = new MaintenanceEvent(operator, result, sOps, registryOverdueMillis);
+				notifyRegistry(event, false);
+			}
+
+			// Perform component checks only if scheduler checks PASSED and
+			// report.
+			if (result.getStatus() == MaintenanceOperationStatus.PASSED) {
+				result = operator.check(cOps);
+				MaintenanceEvent event = new MaintenanceEvent(operator, result, sOps, registryOverdueMillis);
+				notifyRegistry(event, false);
+			}
 		}
 
 	}
@@ -127,8 +141,7 @@ public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
 	@Override
 	public boolean isReportable(MessageEvent event) {
 
-		MaintenanceOperationSeverity reportedSeverity = (null == reported())
-				? (MaintenanceOperationSeverity.Undetermined)
+		MaintenanceOperationSeverity reportedSeverity = (null == reported()) ? (MaintenanceOperationSeverity.Noop)
 				: (((MaintenanceEvent) reported()).getResult().getSeverity());
 		MaintenanceOperationSeverity reportingSeverity = ((MaintenanceEvent) event).getResult().getSeverity();
 

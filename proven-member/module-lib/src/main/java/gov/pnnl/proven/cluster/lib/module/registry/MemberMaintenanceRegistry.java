@@ -39,12 +39,11 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -59,11 +58,14 @@ import org.apache.commons.collections.buffer.CircularFifoBuffer;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidMaintenanceOperationException;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceHeartbeatCheck;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceScheduleCheck;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.StatusScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
 
@@ -90,6 +92,9 @@ public class MemberMaintenanceRegistry {
 
 	// Component maintenance operations
 	private Map<ManagedComponent, SortedSet<MaintenanceOperation>> componentOperations = new HashMap<>();
+
+	// Schedule maintenance operations
+	private Map<ManagedComponent, SortedSet<ScheduleCheck>> scheduleOperations = new HashMap<>();
 
 	/**
 	 * Component's historical data. Stores MaintenanceEvent objects in a limited
@@ -122,10 +127,18 @@ public class MemberMaintenanceRegistry {
 	private Map<String, CircularFifoBuffer> operationEventData = new HashMap<>();
 
 	/**
-	 * Identifies maintenance all components must perform.
+	 * Identifies common maintenance all components must perform during a
+	 * {@link ManagedStatusOperation#check(SortedSet)} status operation.
 	 */
-	private static final Set<Class<?>> requiredMaintenance = new HashSet<>(
-			Arrays.asList(MaintenanceHeartbeatCheck.class));
+	private static final Set<Class<?>> commonMaintenance = new HashSet<>();
+
+	/**
+	 * Identifies scheduler maintenance all components must perform during a
+	 * {@link ManagedStatusOperation#schedulerCheck(SortedSet)} status
+	 * operation.
+	 */
+	private static final Set<Class<?>> schedulerMaintenance = new HashSet<>(
+			Arrays.asList(MaintenanceScheduleCheck.class, StatusScheduleCheck.class));
 
 	public MemberMaintenanceRegistry() {
 	}
@@ -142,8 +155,9 @@ public class MemberMaintenanceRegistry {
 	}
 
 	/**
-	 * Registers {@code ComponentMaintenance} with the registry. The provided
-	 * maintenance will augment previous registrations, if any.
+	 * For a managed component, registers provided ComponentMaintenance with the
+	 * registry. The provided maintenance will augment previous registrations,
+	 * if any.
 	 * 
 	 * Use {@code #removeOps(ManagedComponent)} before
 	 * {@code #register(ComponentMaintenance)} to replace an existing
@@ -161,7 +175,7 @@ public class MemberMaintenanceRegistry {
 	 */
 	public void register(ManagedComponent operator, ComponentMaintenance cm) {
 
-		//ManagedComponent operator = cm.getOperator();
+		// ManagedComponent operator = cm.getOperator();
 
 		// First check to ensure all maintenance operations are valid
 		for (Class<?> clazz : cm.getMaintenanceOps()) {
@@ -169,62 +183,44 @@ public class MemberMaintenanceRegistry {
 				throw new InvalidMaintenanceOperationException(
 						clazz.getSimpleName() + " is not a MaintenanceOperation");
 			}
-
 		}
 
-		// Ensure required maintenance is included
-		cm.getMaintenanceOps().addAll(requiredMaintenance);
+		// Ensure comon maintenance is included
+		cm.getMaintenanceOps().addAll(commonMaintenance);
 
 		// Create sorted set of the maintenance operations
 		// Sorted by severity from high to low
-		SortedSet<MaintenanceOperation> newOps = new TreeSet<>((mo1, mo2) -> {
+		SortedSet<MaintenanceOperation> mOps = new TreeSet<>(new MaintenanceOperationComparator());
 
-			int equals = 0;
-			int lessThan = -1;
-			int greaterThan = 1;
-
-			// Preserve equality and avoid duplicate operations in set
-			if (mo1.equals(mo2))
-				return equals;
-
-			int val = mo1.maximumSeverity().getOrder() - mo2.maximumSeverity().getOrder();
-			if (val < 0)
-				return lessThan;
-			if (val > 0)
-				return greaterThan;
-
-			val = mo1.getResult().getStatus().getOrder() - mo2.getResult().getStatus().getOrder();
-			if (val < 0)
-				return lessThan;
-			if (val > 0)
-				return greaterThan;
-
-			val = mo1.getResult().getSeverity().getOrder() - mo2.getResult().getSeverity().getOrder();
-			if (val < 0)
-				return lessThan;
-			if (val > 0)
-				return greaterThan;
-
-			if (!mo1.opName().equals(mo2.opName())) {
-				return mo1.opName().compareTo(mo2.opName());
-			}
-			return mo1.getOperator().getId().compareTo(mo2.getOperator().getId());
-
-		});
+		// Create component operations
 		for (Class<?> opClazz : cm.getMaintenanceOps()) {
-			newOps.add(createOp(operator, opClazz));
+			mOps.add(createOp(operator, opClazz));
 		}
 
-		// Add to map (augment if it already exists)
+		// Add operations
 		synchronized (componentOperations) {
 
 			SortedSet<MaintenanceOperation> val = componentOperations.get(operator);
 			if (null == val) {
-				componentOperations.put(operator, newOps);
+				componentOperations.put(operator, mOps);
 			} else {
-				val.addAll(newOps);
+				val.addAll(mOps);
 			}
+		}
 
+		// Add schedule operations - this is only done once
+		synchronized (scheduleOperations) {
+
+			if (!scheduleOperations.containsKey(operator)) {
+
+				SortedSet<ScheduleCheck> sOps = new TreeSet<>(new MaintenanceOperationComparator());
+
+				for (Class<?> opClazz : schedulerMaintenance) {
+					sOps.add((ScheduleCheck) createOp(operator, opClazz));
+				}
+
+				scheduleOperations.put(operator, sOps);
+			}
 		}
 	}
 
@@ -281,6 +277,51 @@ public class MemberMaintenanceRegistry {
 
 		return ret;
 
+	}
+
+	/**
+	 * Returns the {@code SortedSet} of the common {@code MaintenanceOperation}s
+	 * for a given ManagedComponent. The set is sorted by
+	 * {@code MaintenanceSeverity} of the operation, from high to low severity.
+	 * 
+	 * @param operator
+	 *            the managed component responsible for performing the
+	 *            maintenance operations.
+	 * @return a sorted set of the common maintenance operations. An empty set
+	 *         is returned, if there are no common operations.
+	 * 
+	 */
+	public SortedSet<MaintenanceOperation> getCommonOps(ManagedComponent operator) {
+
+		SortedSet<MaintenanceOperation> ret = new TreeSet<MaintenanceOperation>();
+		if (componentOperations.containsKey(operator)) {
+			ret = componentOperations.get(operator);
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Returns the {@code SortedSet} of the schedule
+	 * {@code MaintenanceOperation}s for a given ManagedComponent. The set is
+	 * sorted by {@code MaintenanceSeverity} of the operation, from high to low
+	 * severity.
+	 * 
+	 * @param operator
+	 *            the managed component responsible for performing the
+	 *            maintenance operations.
+	 * @return a sorted set of the schedule maintenance operations. An empty set
+	 *         is returned if there are no operations.
+	 * 
+	 */
+	public SortedSet<ScheduleCheck> getScheduleOps(ManagedComponent operator) {
+
+		SortedSet<ScheduleCheck> ret = new TreeSet<ScheduleCheck>();
+		if (scheduleOperations.containsKey(operator)) {
+			ret = scheduleOperations.get(operator);
+		}
+
+		return ret;
 	}
 
 	/**
@@ -366,8 +407,9 @@ public class MemberMaintenanceRegistry {
 	}
 
 	/**
-	 * Unregisters MaintenanceOperations for a registered component. This also
-	 * includes stopping component's maintenance schedule.
+	 * Unregisters MaintenanceOperations for a registered component. This
+	 * includes both the general component maintenance as well as its scheduler
+	 * maintenance. Unregister will stop a component's maintenance schedule.
 	 * 
 	 * Request is ignored if component isn't found with provided identifier.
 	 * 
@@ -386,20 +428,71 @@ public class MemberMaintenanceRegistry {
 
 		if (null != operator) {
 
+			// Ensure maintenance scheduler has been stopped. If here because of
+			// a shutdown operation, the scheduler may still be running.
 			operator.getMaintenanceSchedule().stop();
 
 			synchronized (componentOperations) {
 
-				// Cleanup - remove operator an its operations
+				// Cleanup - remove operator and its operations
 				SortedSet<MaintenanceOperation> mos = componentOperations.get(operator);
 				Iterator<MaintenanceOperation> moIt = mos.iterator();
 				while (moIt.hasNext()) {
 					MaintenanceOperation mo = moIt.next();
-					mos.remove(mo);
 					moProvider.destroy(mo);
 				}
 				componentOperations.remove(operator);
 			}
+
+			synchronized (scheduleOperations) {
+
+				// Cleanup - remove operator and its operations
+				SortedSet<ScheduleCheck> sos = scheduleOperations.get(operator);
+				Iterator<ScheduleCheck> soIt = sos.iterator();
+				while (soIt.hasNext()) {
+					ScheduleCheck mo = soIt.next();
+					moProvider.destroy(mo);
+				}
+				scheduleOperations.remove(operator);
+			}
+		}
+	}
+
+	static class MaintenanceOperationComparator implements Comparator<MaintenanceOperation> {
+
+		@Override
+		public int compare(MaintenanceOperation mo1, MaintenanceOperation mo2) {
+
+			int equals = 0;
+			int lessThan = -1;
+			int greaterThan = 1;
+
+			// Preserve equality and avoid duplicate operations in set
+			if (mo1.equals(mo2))
+				return equals;
+
+			int val = mo1.maxSeverity().getOrder() - mo2.maxSeverity().getOrder();
+			if (val < 0)
+				return lessThan;
+			if (val > 0)
+				return greaterThan;
+
+			val = mo1.getResult().getStatus().getOrder() - mo2.getResult().getStatus().getOrder();
+			if (val < 0)
+				return lessThan;
+			if (val > 0)
+				return greaterThan;
+
+			val = mo1.getResult().getSeverity().getOrder() - mo2.getResult().getSeverity().getOrder();
+			if (val < 0)
+				return lessThan;
+			if (val > 0)
+				return greaterThan;
+
+			if (!mo1.opName().equals(mo2.opName())) {
+				return mo1.opName().compareTo(mo2.opName());
+			}
+			return mo1.getOperator().getId().compareTo(mo2.getOperator().getId());
 
 		}
 	}

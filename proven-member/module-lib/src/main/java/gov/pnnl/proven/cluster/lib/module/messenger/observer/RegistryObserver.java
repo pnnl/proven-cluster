@@ -78,9 +78,9 @@ public class RegistryObserver {
 	public void init() {
 	}
 
-	public void status(@ObservesAsync @MemberRegistry StatusEvent event, @Eager MemberComponentRegistry mcr) {
+	public void statusChange(@ObservesAsync @MemberRegistry StatusEvent event, @Eager MemberComponentRegistry mcr) {
 
-		log.debug("(Observing) Inside registry status reporting operation for: " + event.getDoId());
+		log.debug("(Observing) Inside registry status/reporting operation for: " + event.getDoId());
 		mcr.recordStatus(event);
 
 		// If component is in a terminal state, then unregister.
@@ -88,18 +88,17 @@ public class RegistryObserver {
 			mcr.unregister(UUID.fromString(event.getComponentId()));
 		}
 	}
-
+		
 	public void maintenance(@Observes @MemberRegistry MaintenanceEvent event,
 			@Eager MemberMaintenanceRegistry mmr) {
 
-		log.debug("(Observing) Inside registry maintenance reporting operation for: " + event.getDoId());
+		log.debug("(Observing) Inside registry maintenance/reporting operation for: " + event.getDoId());
 		mmr.recordMaintenance(event);
 
 		// If no longer a maintained component, then unregister.
-		if (!ManagedStatus.isMaintained(event.getResult().getSeverity().getStatus())) {
+		if (!ManagedStatus.isRecoverable(event.getResult().getSeverity().getStatus())) {
 			mmr.unregister(UUID.fromString(event.getComponentId()));
 		}
 
 	}
-
 }

@@ -47,10 +47,12 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 
+import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
+
 /**
  * Default maintenance check for ManagedComponents. It is used by components
  * without any other registered maintenance checks. When reporting to the
- * {@code MemberComponentRegistry}, this check simply indicates the component
+ * {@code MemberMaintenanceRegistry}, this check simply indicates the component
  * has a working maintenance scheduler.
  * 
  * @author d3j766
@@ -71,11 +73,11 @@ public class MaintenanceHeartbeatCheck extends MaintenanceOperation {
 	@Override
 	public MaintenanceOperationResult checkAndRepair() {
 		log.debug("Performing maintenance operation: " + opName() );
-		return new MaintenanceOperationResult(PASSED, maximumSeverity(), Optional.empty());
+		return new MaintenanceOperationResult(PASSED, maxSeverity(), Optional.empty());
 	}
 
 	@Override
-	public MaintenanceOperationSeverity maximumSeverity() {
+	public MaintenanceOperationSeverity maxSeverity() {
 		return Available;
 	}
 

@@ -39,27 +39,29 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Deployed;
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Running;
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Suspended;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ShutdownEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StartupEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.SuspendEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 @ApplicationScoped
 @Eager
 public class ModuleObserver {
-	
+
 	@Inject
 	Logger log;
 
@@ -70,32 +72,36 @@ public class ModuleObserver {
 	public void init() {
 	}
 
-	public void startup(@Observes @Module StartupEvent event, @Module ProvenModule pm) {
+	public void moduleStartup(@Observes @Module StartupEvent event, @Module ProvenModule pm) {
 		log.debug("(Observing) Inside startup event");
-		pm.startup();
-		pm.activate();
-		pm.getStatusSchedule().start();
-		pm.getMaintenanceSchedule().start();
+
+		ModuleStatus status = pm.retrieveModuleStatus();
+
+		if ((status == Deployed) || (status == Suspended)) {
+			pm.activate();
+			pm.getStatusSchedule().start();
+			pm.getMaintenanceSchedule().start();
+		}
 	}
 
-	public void suspend(@Observes @Module SuspendEvent event, @Module ProvenModule pm) {
+	public void moduleSuspend(@Observes @Module SuspendEvent event, @Module ProvenModule pm) {
 		log.debug("(Observing) Inside suspend event");
-		pm.suspend();
+
+		ModuleStatus status = pm.retrieveModuleStatus();
+
+		if (status == Running) {
+			pm.suspend();
+		}
 	}
 
-	public void shutdown(@Observes @Module ShutdownEvent event, @Module ProvenModule pm) {
+	public void moduleShutdown(@Observes @Module ShutdownEvent event, @Module ProvenModule pm) {
 		log.debug("(Observing) Inside shutdown event");
-		pm.shutdown();
-	}
 
-	public void checkMember(@ObservesAsync @Module MemberEvent event, @Module ProvenModule pm) {
-		log.debug("(Observing) Inside check member event");
-		pm.checkMember(event);
-	}
+		ModuleStatus status = pm.retrieveModuleStatus();
 
-	public void checkCluster(@ObservesAsync @Module ClusterEvent event, @Module ProvenModule pm) {
-		log.debug("(Observing) Inside check cluster event");
-		pm.checkCluster(event);
+		if ((status == Running) || (status == Suspended)) {
+			pm.shutdown();
+		}
 	}
 
 }

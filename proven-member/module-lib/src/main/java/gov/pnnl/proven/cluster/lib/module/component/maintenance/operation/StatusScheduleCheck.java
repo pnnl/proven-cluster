@@ -37,67 +37,37 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
-
-import java.util.UUID;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ISet;
-
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 
 /**
- * Provides a Component Registry at the Member level.
+ * Checks a ManagedComponent's status schedule.
  * 
  * @author d3j766
  *
  */
-@ApplicationScoped
-@Eager
-public class MemberComponentRegistry {
+public class StatusScheduleCheck extends ScheduleCheck {
 
 	@Inject
 	Logger log;
 
-	@Inject
-	ClusterComponentRegistry ccr;
-
-	@Inject
-	HazelcastInstance hzi;
-
-	/**
-	 * Contains the set of Hazelcast member's reporting module components.
-	 */
-	ISet<ManagedComponent> components;
-
-	@PostConstruct
-	public void initialize() {
-		log.debug("Inside MemberComponentRegistry PostConstruct");
-	}
-
-	public MemberComponentRegistry() {
-		System.out.println("Inside MemberComponentRegistry constructor");
-	}
-
-	public void recordStatus(StatusEvent event) {
-		//TODO
-		// record status information
+	public StatusScheduleCheck() {
+		super();
 	}
 	
-	public void unregister(UUID componentId) {
-		//TODO
-		// Ungegister
-		// Stop scheduler
-		// Also stop maintenance schedule for good measure 
+	@PostConstruct
+	public void init() {
+		log.debug("Inside MaintenanceScheduleCheck contructor");
 	}
 
+	@Override
+	protected TaskSchedule<?>  getSchedule() {
+		return operator.getStatusSchedule();
+	}
 }

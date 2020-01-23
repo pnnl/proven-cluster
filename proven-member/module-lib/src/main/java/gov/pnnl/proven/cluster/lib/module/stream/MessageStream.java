@@ -118,4 +118,5 @@ public class MessageStream extends StreamComponent {
 	public HazelcastInstance getHzi() {
 		return hzi;
 	}
+
 }

@@ -69,6 +69,7 @@ import javax.inject.Qualifier;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
 import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 
 /**
  * Used to qualify status event messages, indicating the message is for a
@@ -99,7 +100,7 @@ public @interface StatusOperation {
 		/**
 		 * A component may activate if it is in one of the enumerated states.
 		 */
-		Activate(Ready, Offline, FailedActivateRetry),
+		Activate(true, Ready, Offline, FailedActivateRetry),
 
 		/**
 		 * A parent's scale operation to create or recycle is triggered by a
@@ -107,49 +108,68 @@ public @interface StatusOperation {
 		 * recycled component will be of the same type that triggered the scale
 		 * operation.
 		 */
-		Scale(Busy, FailedOnlineRetry, NonRecoverable),
+		Scale(true, Busy, FailedOnlineRetry, NonRecoverable),
 
 		/**
 		 * A component may be deactivated if it is in one of the enumerated
 		 * states.
 		 */
-		Deactivate(Recoverable),
+		Deactivate(true, Recoverable),
 
 		/**
 		 * A component may fail if it is in one of the enumerated states.
 		 */
-		Fail(Recoverable),
+		Fail(true, Recoverable),
 
 		/**
 		 * A parent may remove a child component from service if the child is in
 		 * one of the enumerated states.
 		 */
-		Remove(Failed),
+		Remove(true, Failed),
 
 		/**
-		 * A parent may shutdown a child component removing it from service if
-		 * the child is in one of the enumerated states.
+		 * A component will be suspended if the module's status is Suspended.
+		 * The suspend operation will deactivate the component. Unlike the
+		 * deactivate operation, no retries are allowed for suspend.
 		 */
-		Shutdown(NonTerminal),
+		Suspend(false, Recoverable),
 
 		/**
-		 * Maintenance will be performed on a component if it is in one of the
-		 * enumerated states.
+		 * A component will be shutdown if the module's status is Shutdown. The
+		 * shutdown operation will remove the component from service.
 		 */
-		Check(Online, Busy, FailedOnlineRetry, CheckedOffline),
+		Shutdown(false, NonTerminal),
 
 		/**
-		 * Maintenance check specifically for a TaskSchedule. This check is only
-		 * performed if the scheduler encounters an unmanaged error condition.
-		 * 
-		 * @see TaskSchedule#start()
+		 * Component Maintenance checks, they will be performed for a component
+		 * if it's in one of the enumerated states.
 		 */
-		SchedulerCheck(Recoverable);
+		Check(false, Online, Busy, FailedOnlineRetry, CheckedOffline),
 
+		/**
+		 * Maintenance check specifically for a component's TaskSchedule
+		 * members.
+		 */
+		SchedulerCheck(false, Recoverable);
+
+		private final boolean observed;
 		private final Set<ManagedStatus> validStatus;
 
-		Operation(ManagedStatus... validStatus) {
+		/**
+		 * StatusOperation constructor.
+		 * 
+		 * @param observed
+		 *            indicated operation is triggered by an event observer
+		 * @param validStatus
+		 *            list of valid ManagedStatus values for the operation
+		 */
+		Operation(boolean observed, ManagedStatus... validStatus) {
+			this.observed = observed;
 			this.validStatus = new HashSet<>(Arrays.asList(validStatus));
+		}
+
+		public boolean isObserved() {
+			return observed;
 		}
 
 		/**

@@ -37,70 +37,37 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 
-import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
-
-import javax.annotation.Priority;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
 
-import org.apache.jena.atlas.logging.Log;
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 
-@LockedStatusOperation
-@Interceptor
-@Priority(value = Interceptor.Priority.APPLICATION)
-public class LockedStatusOperationInterceptor {
-	
+/**
+ * Checks a ManagedComponent's maintenance schedule.
+ * 
+ * @author d3j766
+ *
+ */
+public class MaintenanceScheduleCheck extends ScheduleCheck {
+
 	@Inject
 	Logger log;
 
-	@AroundInvoke
-	public Object authorize(InvocationContext ic) throws Exception {
+	public MaintenanceScheduleCheck() {
+		super();
+	}
 
-		Object ret = null;
-		Object target = ic.getTarget();
-		boolean isManagedComponent = (target instanceof ManagedComponent);
+	@PostConstruct
+	public void init() {
+		log.debug("Inside MaintenanceScheduleCheck contructor");
+	}
 
-		// Ignore if not a managed component
-		if (!isManagedComponent) {
-			return ic.proceed();
-		}
-
-		ManagedComponent mc = (ManagedComponent) target;
-		String op = ic.getMethod().getName().toLowerCase();
-		String shutdownOp = Shutdown.toString().toLowerCase();
-		log.debug("Locked status operation: " + op);
-
-		// For shutdown, wait for lock acquisition
-		if (op.equals(shutdownOp)) {
-
-			try {
-				mc.acquireStatusLockWait();
-				ret = ic.proceed();
-			} finally {
-				mc.releaseStatusLock();
-			}
-
-		} else {
-
-			// Only proceed if lock acquired without waiting
-			if (mc.acquireStatusLockNoWait()) {
-				try {
-					ret = ic.proceed();
-				} finally {
-					mc.releaseStatusLock();
-				}
-			}
-
-		}
-
-		return ret;
+	@Override
+	protected TaskSchedule<?> getSchedule() {
+		return operator.getMaintenanceSchedule();
 	}
 }

@@ -37,67 +37,72 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import java.util.UUID;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Suspend;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
+import javax.annotation.Priority;
 import javax.inject.Inject;
+import javax.interceptor.AroundInvoke;
+import javax.interceptor.Interceptor;
+import javax.interceptor.InvocationContext;
 
 import org.slf4j.Logger;
 
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ISet;
-
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 
-/**
- * Provides a Component Registry at the Member level.
- * 
- * @author d3j766
- *
- */
-@ApplicationScoped
-@Eager
-public class MemberComponentRegistry {
+@LockedStatusOperation
+@Interceptor
+@Priority(value = Interceptor.Priority.APPLICATION)
+public class StatusLockInterceptor {
 
 	@Inject
 	Logger log;
 
-	@Inject
-	ClusterComponentRegistry ccr;
+	@AroundInvoke
+	public Object authorize(InvocationContext ic) throws Exception {
 
-	@Inject
-	HazelcastInstance hzi;
+		Object ret = null;
+		Object target = ic.getTarget();
+		boolean isManagedComponent = (target instanceof ManagedComponent);
 
-	/**
-	 * Contains the set of Hazelcast member's reporting module components.
-	 */
-	ISet<ManagedComponent> components;
+		// Ignore if not a managed component
+		if (!isManagedComponent) {
+			return ic.proceed();
+		}
 
-	@PostConstruct
-	public void initialize() {
-		log.debug("Inside MemberComponentRegistry PostConstruct");
+		ManagedComponent mc = (ManagedComponent) target;
+		String op = ic.getMethod().getName().toLowerCase();
+		String shutdownOp = Shutdown.toString().toLowerCase();
+		String suspendOp = Suspend.toString().toLowerCase();
+
+		log.debug("Locked status operation: " + op);
+
+		// For shutdown, wait for lock acquisition
+		if ((op.equals(shutdownOp)) || (op.equals(suspendOp))) {
+
+			try {
+				mc.acquireStatusLockWait();
+				ret = ic.proceed();
+			} finally {
+				mc.releaseStatusLock();
+			}
+
+		} else {
+
+			// Only proceed if lock acquired without waiting
+			if (mc.acquireStatusLockNoWait()) {
+				try {
+					ret = ic.proceed();
+				} finally {
+					mc.releaseStatusLock();
+				}
+			}
+
+		}
+
+		return ret;
 	}
-
-	public MemberComponentRegistry() {
-		System.out.println("Inside MemberComponentRegistry constructor");
-	}
-
-	public void recordStatus(StatusEvent event) {
-		//TODO
-		// record status information
-	}
-	
-	public void unregister(UUID componentId) {
-		//TODO
-		// Ungegister
-		// Stop scheduler
-		// Also stop maintenance schedule for good measure 
-	}
-
 }

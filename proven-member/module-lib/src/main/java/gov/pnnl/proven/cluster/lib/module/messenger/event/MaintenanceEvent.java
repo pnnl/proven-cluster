@@ -49,7 +49,6 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.interceptor.StatusDecorator;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 
 /**
@@ -61,15 +60,15 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 public class MaintenanceEvent extends ComponentEvent {
 
 	MaintenanceOperationResult result;
-	boolean isUnmaintainedSeverity;
-	Optional<String> failedOpOpt = Optional.empty();
+	boolean isMaintenanceSeverity;
 	List<String> allOps = new ArrayList<>();
+	List<String> failedOps = new ArrayList<>();
 	List<String> passedOps = new ArrayList<>();
 	List<String> notInvokedOps = new ArrayList<>();
 	long registryOverdueMillis;
 
-	public MaintenanceEvent(ManagedComponent mc, MaintenanceOperationResult result, SortedSet<MaintenanceOperation> ops,
-			long registryOverdueMillis) {
+	public <T extends MaintenanceOperation> MaintenanceEvent(ManagedComponent mc, MaintenanceOperationResult result,
+			SortedSet<T> ops, long registryOverdueMillis) {
 
 		super(mc);
 		this.result = result;
@@ -79,7 +78,7 @@ public class MaintenanceEvent extends ComponentEvent {
 			MaintenanceOperationStatus mos = op.getResult().getStatus();
 			switch (mos) {
 			case FAILED:
-				failedOpOpt = Optional.of(op.opName());
+				failedOps.add(op.opName());
 				break;
 			case PASSED:
 				passedOps.add(op.opName());
@@ -89,21 +88,20 @@ public class MaintenanceEvent extends ComponentEvent {
 				break;
 			}
 		});
-		isUnmaintainedSeverity = unmaintainedSeverity();
+		isMaintenanceSeverity = severityCausedByMaintenance();
 	}
 
 	/**
-	 * Determines if the severity was caused by a non-maintained managed
-	 * component. Meaning, the severity result was not caused by a failed
-	 * maintenance operation. It was the result of a maintenance request for a
-	 * component whose status indicates maintenance is no longer required (i.e.
-	 * unmaintained)
+	 * Determines if the severity was the result of a maintenance operation(s).
+	 * If no operations were invoked then severity is not maintenance related.
+	 * This may be caused by a managed components status being changed to an
+	 * incompatible status for a check status operation.
 	 *
 	 * @see ManagedStatus, {@link StatusDecorator#check(SortedSet)}
 	 * 
 	 */
-	public boolean unmaintainedSeverity() {
-		return ((!ManagedStatus.isMaintained(result.getSeverity().getStatus())) && (!failedOpOpt.isPresent()));
+	public boolean severityCausedByMaintenance() {
+		return (notInvokedOps.size() == allOps.size());
 	}
 
 	/**
@@ -126,13 +124,6 @@ public class MaintenanceEvent extends ComponentEvent {
 	 */
 	public void setRegistryOverdueMillis(long registryOverdueMillis) {
 		this.registryOverdueMillis = registryOverdueMillis;
-	}
-
-	/**
-	 * @return the failedOpOpt
-	 */
-	public Optional<String> getFailedOpOpt() {
-		return failedOpOpt;
 	}
 
 	/**

@@ -37,29 +37,115 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.module;
+package gov.pnnl.proven.cluster.lib.module.component.maintenance.operation;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.ScheduleError;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Severe;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.FAILED;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.*;
+
+import java.util.Optional;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 
 /**
- * Identifies {@code ProvenModule} operations.
+ * Checks a ManagedComponent's TaskSchedules. Repair attempts (i.e. restart)
+ * will be made if scheduler has encountered unmanaged task exceptions greater
+ * then {@link #MAX_CONSECUTIVE_FAILURES}
  * 
- * @see ProvenModule
+ * Returns {@code MaintenanceOperationStatus#PASSED} and
+ * {@code MaintenanceOperationSeverity#Available} if scheduler is operating
+ * normally.
+ * 
+ * Returns {@code MaintenanceOperationStatus#FAILED} and
+ * {@code MaintenanceOperationSeverity#ScheduleError} if scheduler has
+ * encountered unmanaged task exceptions greater then
+ * {@link #MAX_CONSECUTIVE_FAILURES} AND restart repair was successful.
+ * 
+ * Returns {@code MaintenanceOperationStatus#FAILED} and
+ * {@code MaintenanceOperationSeverity#Severe} if scheduler has
+ * encountered unmanaged task exceptions greater then
+ * {@link #MAX_CONSECUTIVE_FAILURES} AND restart repair was NOT successful.
  * 
  * @author d3j766
  *
  */
-public interface ModuleOperation {
+public abstract class ScheduleCheck extends MaintenanceOperation {
+
+	@Inject
+	Logger log;
+
+	private static final int MAX_CONSECUTIVE_FAILURES = 3;
+
+	private ManagedStatus preCheckStatus = Unknown;
 	
-	void startup();
-	
-	void suspend();
-	
-	void shutdown();
-	
-	void checkMember(MemberEvent event);
-	
-	void checkCluster(ClusterEvent event);
+	public ScheduleCheck() {
+		super();
+	}
+
+	@PostConstruct
+	public void init() {
+		log.debug("Inside ScheduleCheck contructor");
+	}
+
+	protected abstract TaskSchedule<?> getSchedule();
+
+	@Override
+	public MaintenanceOperationResult checkAndRepair() {
+
+		log.debug("Performing maintenance operation: " + opName());
+
+		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
+		TaskSchedule<?> schedule = getSchedule();
+
+		try {
+
+			if (scheduleFailure()) {
+				schedule.restart();
+				ret = new MaintenanceOperationResult(FAILED, ScheduleError);
+			}
+
+		} catch (Exception e) {
+			ret = new MaintenanceOperationResult(FAILED, Severe, Optional.of(e));
+		}
+
+		return ret;
+	}
+
+	@Override
+	public MaintenanceOperationSeverity maxSeverity() {
+		return MaintenanceOperationSeverity.Severe;
+	}
+
+	@Override
+	public int priority() {
+		return MaintenanceCheck.Priority.HIGH;
+	}
+
+	private boolean scheduleFailure() {
+		return getSchedule().getFailureCount() >= MAX_CONSECUTIVE_FAILURES;
+	}
+
+	/**
+	 * @return the preCheckStatus
+	 */
+	public ManagedStatus getPreCheckStatus() {
+		return preCheckStatus;
+	}
+
+	/**
+	 * @param preCheckStatus the preCheckStatus to set
+	 */
+	public void setPreCheckStatus(ManagedStatus preCheckStatus) {
+		this.preCheckStatus = preCheckStatus;
+	}
 	
 }
