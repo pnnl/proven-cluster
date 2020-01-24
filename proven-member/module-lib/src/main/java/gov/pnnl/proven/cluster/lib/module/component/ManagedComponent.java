@@ -238,6 +238,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	@PreDestroy
 	public void managedComponentDestroy() {
 		log.debug("ProvenComponent PreDestroy..." + this.getClass().getSimpleName());
+		opObserver.unregister(this);
 	}
 
 	public boolean acquireStatusLockNoWait() {
