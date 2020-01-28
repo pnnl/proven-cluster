@@ -85,7 +85,7 @@ public class RegistryObserver {
 
 		// If component is in a terminal state, then unregister.
 		if (ManagedStatus.isTerminal(event.getRequestorStatus())) {
-			mcr.unregister(UUID.fromString(event.getComponentId()));
+			mcr.unregister(event.getComponentId());
 		}
 	}
 		
@@ -97,7 +97,7 @@ public class RegistryObserver {
 
 		// If no longer a maintained component, then unregister.
 		if (!ManagedStatus.isRecoverable(event.getResult().getSeverity().getStatus())) {
-			mmr.unregister(UUID.fromString(event.getComponentId()));
+			mmr.unregister(event.getComponentId());
 		}
 
 	}

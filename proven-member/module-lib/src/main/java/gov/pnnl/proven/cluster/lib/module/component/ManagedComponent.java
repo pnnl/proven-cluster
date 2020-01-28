@@ -156,7 +156,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected String doId;
 	protected UUID managerId;
 	protected UUID creatorId;
-	protected String memberId;
+	protected UUID memberId;
 	protected UUID moduleId;
 
 	// Address properties
@@ -210,7 +210,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().toString();
 		clusterGroup = hzi.getConfig().getGroupConfig().getName();
 		host = hzi.getCluster().getLocalMember().getAddress().getHost();
-		memberId = hzi.getCluster().getLocalMember().getUuid();
+		memberId = UUID.fromString(hzi.getCluster().getLocalMember().getUuid());
 
 		// Register with the observer
 		opObserver.register(this);
@@ -276,7 +276,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return host;
 	}
 
-	public String getMemberId() {
+	public UUID getMemberId() {
 		return memberId;
 	}
 

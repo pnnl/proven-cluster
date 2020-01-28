@@ -91,13 +91,8 @@ public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
 
 	private MaintenanceOperationEvent createOpEvent(MaintenanceOperation mo) {
 
-		MaintenanceOperationEvent moe = new MaintenanceOperationEvent(mo.getOperator());
-		moe.setOpName(mo.opName());
-		moe.setResult(mo.getResult());
-		moe.setStartTime(mo.getStartTime());
-		moe.setEndTime(mo.getEndTime());
-		moe.setInvocations(mo.getInvocations());
-
+		MaintenanceOperationEvent moe = new MaintenanceOperationEvent(mo);
+		
 		return moe;
 	}
 

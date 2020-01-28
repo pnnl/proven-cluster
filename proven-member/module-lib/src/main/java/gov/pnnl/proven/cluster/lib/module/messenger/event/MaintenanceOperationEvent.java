@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.messenger.event;
 import java.util.UUID;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 
@@ -59,9 +60,16 @@ public class MaintenanceOperationEvent extends ComponentEvent {
 	protected long endTime;
 	protected long invocations = 0;
 
-	public MaintenanceOperationEvent(ManagedComponent mc) {
-		super(mc);
+
+	public MaintenanceOperationEvent(MaintenanceOperation mo) {
+		super(mo.getOperator());
+		setOpName(mo.opName());
+		setResult(mo.getResult());
+		setStartTime(mo.getStartTime());
+		setEndTime(mo.getEndTime());
+		setInvocations(mo.getInvocations());
 	}
+
 
 	/**
 	 * @return the opName

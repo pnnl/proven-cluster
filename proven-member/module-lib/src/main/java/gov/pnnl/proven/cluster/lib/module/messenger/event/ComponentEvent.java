@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
+import java.util.UUID;
+
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
@@ -52,11 +54,11 @@ public abstract class ComponentEvent extends MessageEvent {
 
 	String clusterGroup;
 	String host;
-	String memberId;
+	UUID memberId;
 	String containerName;
-	String moduleId;
+	UUID moduleId;
 	ComponentType componentType;
-	String componentId;
+	UUID componentId;
 	String doId;
 	Class<? extends ManagedComponent> clazz;
 
@@ -65,9 +67,9 @@ public abstract class ComponentEvent extends MessageEvent {
 		host = c.getHost();
 		memberId = c.getMemberId();
 		containerName = c.getContainerName();
-		moduleId = c.getModuleId().toString();
+		moduleId = c.getModuleId();
 		componentType = c.getComponentType();
-		componentId = c.getId().toString();
+		componentId = c.getId();
 		doId = c.getDoId();
 		clazz = c.getClass();
 	}
@@ -80,7 +82,7 @@ public abstract class ComponentEvent extends MessageEvent {
 		return host;
 	}
 
-	public String getMemberId() {
+	public UUID getMemberId() {
 		return memberId;
 	}
 
@@ -88,7 +90,7 @@ public abstract class ComponentEvent extends MessageEvent {
 		return containerName;
 	}
 
-	public String getModuleId() {
+	public UUID getModuleId() {
 		return moduleId;
 	}
 
@@ -96,7 +98,7 @@ public abstract class ComponentEvent extends MessageEvent {
 		return componentType;
 	}
 
-	public String getComponentId() {
+	public UUID getComponentId() {
 		return componentId;
 	}
 
