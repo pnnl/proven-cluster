@@ -209,10 +209,6 @@ public abstract class PipelineRequest extends RequestComponent {
 		super();
 	}
 
-	public ComponentType getComponentType() {
-		return ComponentType.PipelineRequest;
-	}
-
 	public PipelineRequestType getPipelineType() {
 		return pipelineType;
 	}

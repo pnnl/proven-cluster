@@ -64,10 +64,4 @@ public class RequestManager extends ManagerComponent {
 		System.out.println(methods.toString());
 
 	}
-
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.RequestManager;
-	}
-
 }

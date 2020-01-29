@@ -101,11 +101,6 @@ public class PipelineJob extends RequestComponent {
 		this.dd = dd;
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.PipelineJob;
-	}
-
 	//@Override
 	public boolean activate() {
 

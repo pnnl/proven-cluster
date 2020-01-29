@@ -75,6 +75,8 @@ import org.slf4j.Logger;
 import com.hazelcast.core.HazelcastInstance;
 
 import fish.payara.micro.PayaraMicro;
+import fish.payara.micro.PayaraMicroRuntime;
+import fish.payara.micro.cdi.Outbound;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
@@ -119,7 +121,7 @@ import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
  */
 @Managed
 public abstract class ManagedComponent implements ManagedStatusOperation, ScheduledMaintenance {
-
+	
 	@Inject
 	Logger log;
 
@@ -158,6 +160,9 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected UUID creatorId;
 	protected UUID memberId;
 	protected UUID moduleId;
+	protected Class<?> componentType;
+	protected boolean isModule = false;
+	protected boolean isManager = false;
 
 	// Address properties
 	protected String clusterGroup;
@@ -184,12 +189,29 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected Map<UUID, ManagedComponent> createdComponents;
 
 	public ManagedComponent() {
+		
+		Class<?> myClass = this.getClass();
+		System.out.println("############## BEGIN CLASS CONSTRUCTOR ##############");
+		System.out.println("MY CLASS NAME: " + myClass.getName());
+		System.out.println("MY CLASS NAME SIMPLE: " + myClass.getSimpleName());
+		System.out.println("MY CLASS NAME CANONICAL: " + myClass.getCanonicalName());
+		System.out.println("MY CLASS NAME CANONICAL: " + myClass.getSuperclass().getName());
+		System.out.println("MY CLASS NAME CANONICAL: " + myClass.getSuperclass().getSimpleName());
+		System.out.println("MY CLASS NAME CANONICAL: " + myClass.getSuperclass().getCanonicalName());
+		System.out.println("############## END CLASS CONSTRUCTOR ##############");
+		
+		
 		containerName = PayaraMicro.getInstance().getInstanceName();
 		id = UUID.randomUUID();
 		group = new HashSet<>();
 		moduleId = ProvenModule.retrieveModuleId();
 		moduleName = ProvenModule.retrieveModuleName();
-		if (getComponentType() == ComponentType.ProvenModule) {
+		// Note: WELD specific; proxies are sub classes
+		componentType = this.getClass().getSuperclass();
+		isModule = ProvenModule.class.isAssignableFrom(componentType);
+		isManager = ManagerComponent.class.isAssignableFrom(componentType);
+		
+		if (isModule) {
 			this.id = moduleId;
 			this.creatorId = moduleId;
 			this.managerId = moduleId;
@@ -205,9 +227,9 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	@PostConstruct
 	public void managedComponentInit() {
-
+		
 		// Member properties dependent on other injection members
-		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().toString();
+		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().getSimpleName();
 		clusterGroup = hzi.getConfig().getGroupConfig().getName();
 		host = hzi.getCluster().getLocalMember().getAddress().getHost();
 		memberId = UUID.fromString(hzi.getCluster().getLocalMember().getUuid());
@@ -240,7 +262,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		log.debug("ProvenComponent PreDestroy..." + this.getClass().getSimpleName());
 		opObserver.unregister(this);
 	}
-
+	
 	public boolean acquireStatusLockNoWait() {
 		log.debug(currentThreadLog("ACQUIRING LOCK NO WAIT"));
 		return statusLock.tryLock();
@@ -287,6 +309,10 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	public UUID getModuleId() {
 		return moduleId;
 	}
+	
+	public Class<?> getComponentType() {
+		return componentType;
+	}
 
 	public String getModuleName() {
 		return moduleName;
@@ -299,8 +325,6 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	public Set<ComponentGroup> getComponentGroups() {
 		return group;
 	}
-
-	public abstract ComponentType getComponentType();
 
 	public String getDoId() {
 		return doId;
@@ -341,7 +365,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	private void enableComponent(ManagedComponent mc) {
-
+		
 		// If the caller is a manager component, then use its identifier,
 		// otherwise pass through the manager identifier for the caller to the
 		// new component.

@@ -83,9 +83,4 @@ public class PipelineManager extends ManagerComponent {
 		return true;
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.PipelineManager;
-	}
-
 }

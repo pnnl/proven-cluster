@@ -94,11 +94,6 @@ public class RequestExchange extends ExchangeComponent {
 		log.debug("DefaultConstructer for RequestExchange");
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.RequestExchange;
-	}
-
 	@PreDestroy
 	void destroy() {
 	}

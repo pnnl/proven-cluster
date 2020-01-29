@@ -87,11 +87,6 @@ public class ExchangeManager extends ManagerComponent {
 		super();
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.ExchangeManager;
-	}
-
 	/**
 	 * Creates and adds a new request exchange component to the manager.
 	 */

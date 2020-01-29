@@ -125,11 +125,6 @@ public class DisclosureEntries extends DisclosureComponent {
 		log.debug("DefaultConstructer for DisclosureBuffer");
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.DisclosureEntries;
-	}
-
 	private void startReader(boolean replace) {
 
 		synchronized (reader) {

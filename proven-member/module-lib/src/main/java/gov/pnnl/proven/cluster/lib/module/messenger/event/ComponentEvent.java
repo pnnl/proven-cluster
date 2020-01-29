@@ -57,7 +57,7 @@ public abstract class ComponentEvent extends MessageEvent {
 	UUID memberId;
 	String containerName;
 	UUID moduleId;
-	ComponentType componentType;
+	Class<?> componentType;
 	UUID componentId;
 	String doId;
 	Class<? extends ManagedComponent> clazz;
@@ -94,7 +94,7 @@ public abstract class ComponentEvent extends MessageEvent {
 		return moduleId;
 	}
 
-	public ComponentType getComponentType() {
+	public Class<?> getComponentType() {
 		return componentType;
 	}
 

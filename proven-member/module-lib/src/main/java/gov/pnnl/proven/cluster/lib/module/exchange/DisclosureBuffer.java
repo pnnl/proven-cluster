@@ -130,11 +130,6 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	}
 
 	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.DisclosureBuffer;
-	}
-
-	@Override
 	protected void itemProcessor(ReadResultSet<DisclosureProxy> items) {
 
 		if (items.size() >= 0) {

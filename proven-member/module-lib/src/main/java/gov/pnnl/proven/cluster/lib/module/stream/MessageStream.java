@@ -86,11 +86,6 @@ public class MessageStream extends StreamComponent {
 		super();
 		log.debug("DefaultConstructer for MessageStream");
 	}
-
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.MessageStream;
-	}
 	
 	public void configure(DisclosureDomain dd, MessageStreamType mst) {
 		this.streamName = mst.getStreamName(dd);

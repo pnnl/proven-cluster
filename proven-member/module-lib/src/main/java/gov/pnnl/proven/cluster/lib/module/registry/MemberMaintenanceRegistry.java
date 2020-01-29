@@ -114,7 +114,7 @@ public class MemberMaintenanceRegistry {
 	 * 
 	 * TODO - Add this to a cluster version and store in IMDG
 	 */
-	private Map<ComponentType, CircularFifoBuffer> componentTypeEventData = new HashMap<>();
+	private Map<Class<?>, CircularFifoBuffer> componentTypeEventData = new HashMap<>();
 
 	/**
 	 * Maintenance Operation's historical data. Stores MaintenanceOperationEvent
@@ -377,7 +377,7 @@ public class MemberMaintenanceRegistry {
 	private void addComponentTypeEvent(MaintenanceOperationEvent me) {
 
 		synchronized (componentTypeEventData) {
-			ComponentType key = me.getComponentType();
+			Class<?> key = me.getComponentType();
 			CircularFifoBuffer val = componentTypeEventData.get(key);
 			if (null == val) {
 				val = new CircularFifoBuffer(MAINTENANCE_EVENT_LIMIT);

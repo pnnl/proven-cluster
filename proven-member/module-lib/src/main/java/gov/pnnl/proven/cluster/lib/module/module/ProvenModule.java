@@ -231,9 +231,4 @@ public abstract class ProvenModule extends ManagedComponent {
 		log.info("ProvenModule startup completed.");
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.ProvenModule;
-	}
-
 }

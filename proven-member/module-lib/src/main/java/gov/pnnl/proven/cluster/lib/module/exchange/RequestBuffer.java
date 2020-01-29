@@ -98,11 +98,6 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 		log.debug("DefaultConstructer for ExchangeBuffer");
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.RequestBuffer;
-	}
-
 	public BufferedItemState[] itemStates() {
 		return SUPPORTED_ITEM_STATES;
 	}

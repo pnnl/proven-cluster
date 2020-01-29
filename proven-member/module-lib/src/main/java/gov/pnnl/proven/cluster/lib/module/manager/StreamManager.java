@@ -107,11 +107,6 @@ public class StreamManager extends ManagerComponent {
 		super();
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.StreamManager;
-	}
-
 	public MessageStreamProxy getMessageStreamProxy(DisclosureDomain domain, MessageStreamType streamType) {
 
 		// Create all message streams for domain

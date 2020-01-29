@@ -50,10 +50,4 @@ public class RegisteredRequest extends RequestComponent {
 		super();
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.RegisteredRequest;
-	}
-
-
 }

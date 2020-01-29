@@ -74,9 +74,4 @@ public class ServiceBuffer extends ExchangeComponent {
 		log.debug("Default Constructer for ServiceBuffer");
 	}
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.ServiceBuffer;
-	}
-
 }
