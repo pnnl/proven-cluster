@@ -37,35 +37,67 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.module.registry;
+
+import java.util.UUID;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ISet;
+
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
+
 /**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
-
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import javax.inject.Qualifier;
-
-/**
- * Identifies a registry component, used to qualify event messages intended for
- * registries.
- * 
- * @see RegistryComponent
+ * Provides a Component Registry at the Member level.
  * 
  * @author d3j766
  *
- * 
  */
-@Documented
-@Qualifier
-@Retention(RUNTIME)
-@Target({ PARAMETER, TYPE })
-public @interface MemberRegistry {
+@ApplicationScoped
+@Eager
+public class ModuleComponentRegistry {
+
+	@Inject
+	Logger log;
+
+	@Inject
+	ClusterComponentRegistry ccr;
+
+	@Inject
+	HazelcastInstance hzi;
+
+	/**
+	 * Contains the set of Hazelcast member's reporting module components.
+	 */
+	ISet<ManagedComponent> components;
+
+	@PostConstruct
+	public void initialize() {
+		log.debug("Inside MemberComponentRegistry PostConstruct");
+	}
+
+	public ModuleComponentRegistry() {
+		System.out.println("Inside MemberComponentRegistry constructor");
+	}
+
+	public void recordStatus(StatusEvent event) {
+		//TODO
+		// record status information
+	}
+	
+	public void unregister(UUID componentId) {
+		//TODO
+		// Ungegister
+		// Stop scheduler
+		// Also stop maintenance schedule for good measure 
+	}
 
 }

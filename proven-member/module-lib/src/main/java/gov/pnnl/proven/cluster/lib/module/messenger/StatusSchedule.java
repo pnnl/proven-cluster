@@ -70,7 +70,7 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
  * @author d3j766
  *
  */
-public class StatusSchedule extends TaskSchedule<StatusMessages> {
+public class StatusSchedule extends TaskSchedule {
 
 	private static final long serialVersionUID = 1L;
 

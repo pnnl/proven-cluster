@@ -37,63 +37,9 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
+package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
-import java.util.Date;
+import javax.enterprise.util.AnnotationLiteral;
 
-import javax.annotation.Priority;
-import javax.decorator.Decorator;
-import javax.decorator.Delegate;
-import javax.inject.Inject;
-import javax.interceptor.Interceptor;
-
-import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceCheck;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
-
-@Decorator
-@Priority(value = Interceptor.Priority.APPLICATION)
-public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
-
-	@Inject
-	Logger log;
-
-	@Inject
-	@Eager
-	ModuleMaintenanceRegistry mr;
-
-	@Inject
-	@Delegate
-	MaintenanceOperation mo;
-
-	/**
-	 * @see MaintenanceCheck#checkAndRepair()
-	 */
-	@Override
-	public MaintenanceOperationResult checkAndRepair() {
-
-		mo.setStartTime(new Date().getTime());
-		MaintenanceOperationResult result = mo.checkAndRepair();
-		mo.setResult(result);
-		mo.setEndTime(new Date().getTime());
-		mo.setInvocations(mo.getInvocations() + 1);
-		mr.recordMaintenanceOperation(createOpEvent(mo));
-
-		return result;
-	}
-
-	private MaintenanceOperationEvent createOpEvent(MaintenanceOperation mo) {
-
-		MaintenanceOperationEvent moe = new MaintenanceOperationEvent(mo);
-		
-		return moe;
-	}
-
+public abstract class ModuleRegistryAnnotationLiteral extends AnnotationLiteral<ModuleRegistry> implements ModuleRegistry {
 }

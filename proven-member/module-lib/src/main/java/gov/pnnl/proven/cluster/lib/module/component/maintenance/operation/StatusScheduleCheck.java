@@ -67,7 +67,7 @@ public class StatusScheduleCheck extends ScheduleCheck {
 	}
 
 	@Override
-	protected TaskSchedule<?>  getSchedule() {
+	protected TaskSchedule  getSchedule() {
 		return operator.getStatusSchedule();
 	}
 }

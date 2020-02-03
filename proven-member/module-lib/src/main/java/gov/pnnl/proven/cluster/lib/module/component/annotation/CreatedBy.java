@@ -37,63 +37,43 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import java.util.Date;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import javax.annotation.Priority;
-import javax.decorator.Decorator;
-import javax.decorator.Delegate;
-import javax.inject.Inject;
-import javax.interceptor.Interceptor;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceCheck;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
-
-@Decorator
-@Priority(value = Interceptor.Priority.APPLICATION)
-public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
-
-	@Inject
-	Logger log;
-
-	@Inject
-	@Eager
-	ModuleMaintenanceRegistry mr;
-
-	@Inject
-	@Delegate
-	MaintenanceOperation mo;
+/**
+ * Restricts injection context of a managed component to the provided class
+ * types. The provided class types must still adhere to the requirement of being
+ * either another {@code ManagedComponent} or a {@code ComponentManager}. This
+ * annotation is ignored if not used with a {@code ManagedComponent}.
+ * 
+ * @author d3j766
+ *
+ * @see ManagedComponent, ComponentManager, ProvenComponent
+ * 
+ */
+@Documented
+@Retention(RUNTIME)
+@Target({ TYPE })
+public @interface CreatedBy {
 
 	/**
-	 * @see MaintenanceCheck#checkAndRepair()
+	 * (Optional) Restricts injection context of a managed component to the
+	 * provided class types. The provided class types must still adhere to the
+	 * requirement of being either another {@code ManagedComponent} or a
+	 * {@code ComponentManager}.
+	 * 
+	 * @see Managed
+	 * 
 	 */
-	@Override
-	public MaintenanceOperationResult checkAndRepair() {
-
-		mo.setStartTime(new Date().getTime());
-		MaintenanceOperationResult result = mo.checkAndRepair();
-		mo.setResult(result);
-		mo.setEndTime(new Date().getTime());
-		mo.setInvocations(mo.getInvocations() + 1);
-		mr.recordMaintenanceOperation(createOpEvent(mo));
-
-		return result;
-	}
-
-	private MaintenanceOperationEvent createOpEvent(MaintenanceOperation mo) {
-
-		MaintenanceOperationEvent moe = new MaintenanceOperationEvent(mo);
-		
-		return moe;
-	}
+	Class<?>[] value() default {};
 
 }

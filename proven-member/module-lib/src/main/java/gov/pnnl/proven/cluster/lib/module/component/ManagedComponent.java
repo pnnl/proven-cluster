@@ -77,6 +77,7 @@ import com.hazelcast.core.HazelcastInstance;
 import fish.payara.micro.PayaraMicro;
 import fish.payara.micro.PayaraMicroRuntime;
 import fish.payara.micro.cdi.Outbound;
+import fish.payara.micro.data.InstanceDescriptor;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
@@ -103,7 +104,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry;
 
 /**
  * 
@@ -120,8 +121,8 @@ import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
  * 
  */
 @Managed
-public abstract class ManagedComponent implements ManagedStatusOperation, ScheduledMaintenance {
-	
+public abstract class ManagedComponent implements ManagedStatusOperation, ScheduledMaintenance, Creator {
+
 	@Inject
 	Logger log;
 
@@ -131,11 +132,14 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected MemberProperties mp;
 
 	@Inject
+	protected PayaraMicroRuntime pmr;
+
+	@Inject
 	protected HazelcastInstance hzi;
 
 	@Inject
 	@Eager
-	protected MemberComponentRegistry mcr;
+	protected ModuleComponentRegistry mcr;
 
 	@Inject
 	@Managed
@@ -166,7 +170,9 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	// Address properties
 	protected String clusterGroup;
+	protected InstanceDescriptor clusterGroup2;
 	protected String host;
+	protected String hostAddress;
 	protected String containerName;
 	protected String moduleName;
 	protected Set<ComponentGroup> group;
@@ -188,8 +194,18 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	protected Map<UUID, ManagedComponent> createdComponents;
 
+	/**
+	 * Creator component. Identifies the creator of a ManagedComponent. All
+	 * ManagedComponents have a creator, with the exception of ProvenModule.
+	 */
+	ManagedComponent creator;
+
+	/**
+	 * Creation queue. Contains requests for component creation.
+	 */
+
 	public ManagedComponent() {
-		
+
 		Class<?> myClass = this.getClass();
 		System.out.println("############## BEGIN CLASS CONSTRUCTOR ##############");
 		System.out.println("MY CLASS NAME: " + myClass.getName());
@@ -199,8 +215,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		System.out.println("MY CLASS NAME CANONICAL: " + myClass.getSuperclass().getSimpleName());
 		System.out.println("MY CLASS NAME CANONICAL: " + myClass.getSuperclass().getCanonicalName());
 		System.out.println("############## END CLASS CONSTRUCTOR ##############");
-		
-		
+
 		containerName = PayaraMicro.getInstance().getInstanceName();
 		id = UUID.randomUUID();
 		group = new HashSet<>();
@@ -210,7 +225,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		componentType = this.getClass().getSuperclass();
 		isModule = ProvenModule.class.isAssignableFrom(componentType);
 		isManager = ManagerComponent.class.isAssignableFrom(componentType);
-		
+
 		if (isModule) {
 			this.id = moduleId;
 			this.creatorId = moduleId;
@@ -227,12 +242,16 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	@PostConstruct
 	public void managedComponentInit() {
-		
+
+		// Get payara runtime description
+		InstanceDescriptor instance = pmr.getLocalDescriptor();
+
 		// Member properties dependent on other injection members
 		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().getSimpleName();
-		clusterGroup = hzi.getConfig().getGroupConfig().getName();
-		host = hzi.getCluster().getLocalMember().getAddress().getHost();
-		memberId = UUID.fromString(hzi.getCluster().getLocalMember().getUuid());
+		clusterGroup = instance.getInstanceGroup();
+		host = instance.getHostName().getHostName();
+		hostAddress = instance.getHostName().getHostAddress();
+		memberId = UUID.fromString(instance.getMemberUUID());
 
 		// Register with the observer
 		opObserver.register(this);
@@ -262,7 +281,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		log.debug("ProvenComponent PreDestroy..." + this.getClass().getSimpleName());
 		opObserver.unregister(this);
 	}
-	
+
 	public boolean acquireStatusLockNoWait() {
 		log.debug(currentThreadLog("ACQUIRING LOCK NO WAIT"));
 		return statusLock.tryLock();
@@ -298,6 +317,10 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return host;
 	}
 
+	public String getHostAddress() {
+		return hostAddress;
+	}
+
 	public UUID getMemberId() {
 		return memberId;
 	}
@@ -309,7 +332,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	public UUID getModuleId() {
 		return moduleId;
 	}
-	
+
 	public Class<?> getComponentType() {
 		return componentType;
 	}
@@ -365,7 +388,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	private void enableComponent(ManagedComponent mc) {
-		
+
 		// If the caller is a manager component, then use its identifier,
 		// otherwise pass through the manager identifier for the caller to the
 		// new component.
@@ -375,7 +398,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			mc.setManagerId(getManagerId());
 		}
 
-		// Creator is always the caller's identifier
+		// Creator is always the caller
+		creator = this;
 		mc.setCreatorId(getId());
 
 		// Activate scheduled messenger
@@ -392,6 +416,10 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	protected void setManagerId(UUID managerId) {
 		this.managerId = managerId;
+	}
+
+	public ManagedComponent getCreator() {
+		return creator;
 	}
 
 	public UUID getCreatorId() {
@@ -433,7 +461,17 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		}
 
 	}
-
+	
+	
+	/**
+	 * @see ManagedStatusOperation#activate()
+	 */
+	@Override
+	@LockedStatusOperation
+	public void create(CreationRequest cr) {
+		log.debug("No create operation implementation for :: " + this.getComponentType());
+	}
+	
 	/**
 	 * @see ManagedStatusOperation#activate()
 	 */
@@ -448,7 +486,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * @see ManagedStatusOperation#scale()
 	 */
 	@Override
-	public void scale(UUID scaled) {
+	public void scale() {
 		log.warn("No scale operation implementation for a scalable component provided :: " + this.getComponentType());
 	}
 
@@ -719,6 +757,11 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	@Override
 	public ComponentMaintenance scheduledMaintenance() {
 		return new ComponentMaintenance(this);
+	}
+
+	@Override
+	public void configure(List<Object> config) {
+		log.debug("No configure for post creation for :: " + this.getComponentType());
 	}
 
 	public int hashCode() {

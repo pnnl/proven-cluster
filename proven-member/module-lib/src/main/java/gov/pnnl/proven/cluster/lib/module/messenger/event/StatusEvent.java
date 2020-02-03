@@ -58,7 +58,7 @@ public class StatusEvent extends ComponentEvent {
 	ManagedStatus requestorStatus;
 	UUID managerId;
 	UUID creatorId;
-	Set<UUID> created = new HashSet<>();
+	Set<UUID> created;
 	long registryOverdueMillis;
 
 	public StatusEvent(ManagedComponent mc) {

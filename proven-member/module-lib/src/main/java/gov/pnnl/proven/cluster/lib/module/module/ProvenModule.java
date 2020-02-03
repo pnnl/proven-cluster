@@ -66,7 +66,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry;
 
 /**
  * Represents a Proven module and is responsible for activation/deactivation of
@@ -87,10 +87,6 @@ public abstract class ProvenModule extends ManagedComponent {
 	Logger log;
 
 	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
-
-	@Inject
-	@Eager
-	MemberComponentRegistry mcr;
 
 	// Set of active managers selected for this module
 	Set<Class<?>> activeManagers;

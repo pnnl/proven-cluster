@@ -67,7 +67,7 @@ public class MaintenanceScheduleCheck extends ScheduleCheck {
 	}
 
 	@Override
-	protected TaskSchedule<?> getSchedule() {
+	protected TaskSchedule getSchedule() {
 		return operator.getMaintenanceSchedule();
 	}
 }

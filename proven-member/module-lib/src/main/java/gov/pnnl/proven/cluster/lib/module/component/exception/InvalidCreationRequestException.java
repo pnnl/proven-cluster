@@ -37,24 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-/**
- * Provides a Request Registry at Member level.
- * 
- * @author d3j766
- *
- */
-@ApplicationScoped
-public class MemberRequestRegistry {
+public class InvalidCreationRequestException extends RuntimeException {
 
-	@Inject
-	ClusterRequestRegistry crr;
+	private static final long serialVersionUID = 1L;
 
-	public MemberRequestRegistry() {
+	public InvalidCreationRequestException() {
+		super();
 	}
 
+	public InvalidCreationRequestException(String message) {
+		super(message);
+	}
+
+	public InvalidCreationRequestException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

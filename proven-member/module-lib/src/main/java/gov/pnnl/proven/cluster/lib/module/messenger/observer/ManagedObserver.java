@@ -109,17 +109,14 @@ public class ManagedObserver {
 	public void scale(@ObservesAsync @Managed @StatusOperation(operation = Scale) StatusOperationEvent event) {
 
 		log.debug("(Observing) Inside scale operation");
-
+		
 		UUID opCandidateId = event.getOpCandidateId(); // child
-		if (isRegistered(event.getRequestorId())) {
-			ManagedComponent mc = registeredObservers.get(event.getRequestorId()); // parent
-			Optional<ManagedComponent> scaledOpt = mc.getCreated(opCandidateId);
-			if (scaledOpt.isPresent()) {
-				ManagedComponent scaled = scaledOpt.get();
-				log.debug("SCALING FOR CREATED: " + scaled.getDoId() + " CREATOR: " + event.getDoId());
-				mc.scale(opCandidateId);
-			}
-		}
+		if (isRegistered(opCandidateId)) {
+			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
+			log.debug("SCALING FOR CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
+			mc.scale();
+		}		
+		
 	}
 
 	public void deactivate(

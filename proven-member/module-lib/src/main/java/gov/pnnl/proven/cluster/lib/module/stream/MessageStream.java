@@ -51,7 +51,8 @@ import com.hazelcast.core.IMap;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Configuration;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
 /**
@@ -63,7 +64,8 @@ import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
  * @see ComponentManager
  *
  */
-@ManagedBy(value = { StreamManager.class })
+@CreatedBy(value = { StreamManager.class })
+@Configuration(value={DisclosureDomain.class, MessageStreamType.class})
 public class MessageStream extends StreamComponent {
 
 	static Logger log = LoggerFactory.getLogger(MessageStream.class);
@@ -87,6 +89,7 @@ public class MessageStream extends StreamComponent {
 		log.debug("DefaultConstructer for MessageStream");
 	}
 	
+	//@Override
 	public void configure(DisclosureDomain dd, MessageStreamType mst) {
 		this.streamName = mst.getStreamName(dd);
 		this.dd = dd;

@@ -37,67 +37,57 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import java.util.UUID;
+import java.util.List;
+import java.util.Optional;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ISet;
-
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
+
 /**
- * Provides a Component Registry at the Member level.
+ * Represents a request for creation of a new ManagedComponent.  
  * 
  * @author d3j766
  *
  */
-@ApplicationScoped
-@Eager
-public class MemberComponentRegistry {
+public class CreationRequest {
 
-	@Inject
-	Logger log;
-
-	@Inject
-	ClusterComponentRegistry ccr;
-
-	@Inject
-	HazelcastInstance hzi;
+	Class<? extends ManagedComponent> clazz;
+	Optional<StatusEvent> statusOpt;
+	boolean scaleRequest;
+	Optional<List<Object>> config;
 
 	/**
-	 * Contains the set of Hazelcast member's reporting module components.
+	 * Indicates a request to create a new component.
+	 * 
+	 * @param clazz
+	 *            type of component to create.
 	 */
-	ISet<ManagedComponent> components;
-
-	@PostConstruct
-	public void initialize() {
-		log.debug("Inside MemberComponentRegistry PostConstruct");
+	public CreationRequest(Class<? extends ManagedComponent> clazz) {
+		this(clazz, Optional.empty());
 	}
 
-	public MemberComponentRegistry() {
-		System.out.println("Inside MemberComponentRegistry constructor");
+	/**
+	 * Indicates a request to create a new component. Configuration, if
+	 * required, is provided.
+	 * 
+	 * @param clazz
+	 *            type of component to create.
+	 * @param config
+	 *            (Optional) list of configuration objects to apply post
+	 *            creation. Components must provide their required objects using
+	 *            the
+	 */
+	public CreationRequest(Class<? extends ManagedComponent> clazz, Optional<List<Object>> config) {
+		
 	}
 
-	public void recordStatus(StatusEvent event) {
-		//TODO
-		// record status information
-	}
-	
-	public void unregister(UUID componentId) {
-		//TODO
-		// Ungegister
-		// Stop scheduler
-		// Also stop maintenance schedule for good measure 
+	public CreationRequest(Class<? extends ManagedComponent> clazz, List<Object> config,
+			Optional<StatusEvent> statusOpt) {
+		this.clazz = clazz;
+		this.statusOpt = statusOpt;
+		scaleRequest = statusOpt.isPresent();
 	}
 
 }

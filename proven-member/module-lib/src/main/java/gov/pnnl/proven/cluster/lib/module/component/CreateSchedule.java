@@ -37,44 +37,45 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import javax.inject.Inject;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 
 /**
- * Restricts injection context of a managed component to the provided class
- * types. The provided class types must still adhere to the requirement of being
- * either another {@code ManagedComponent} or a {@code ComponentManager}. This
- * annotation is ignored if not used with {@code ManagedComponent}.
+ * Performs managed component creation.
  * 
  * @author d3j766
  *
- * @see ManagedComponent, ComponentManager, ProvenComponent
- * 
  */
-@Documented
-@Retention(RUNTIME)
-@Target({ TYPE })
-public @interface ManagedBy {
+public class CreateSchedule extends TaskSchedule {
+
+	private static final long serialVersionUID = 1L;
+
+	@Inject
+	Logger log;
+
+	public CreateSchedule() {
+	}
 
 	/**
-	 * (Optional) Restricts injection context of a managed component to the
-	 * provided class types. The provided class types must still adhere to the
-	 * requirement of being either another {@code ManagedComponent} or a
-	 * {@code ComponentManager}. This annotation is only read from the managed
-	 * component.
-	 * 
-	 * @see Managed
-	 * 
+	 * Performs component creation
 	 */
-	Class<?>[] value() default {};
+	@Override
+	protected void apply() {
+
+		if (operatorOpt.isPresent()) {
+
+		}
+
+	}
+
+	@Override
+	public boolean isReportable(MessageEvent event) {
+		return false;
+	}
 
 }

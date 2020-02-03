@@ -91,7 +91,7 @@ public class ScheduledTaskInterceptor implements Serializable {
 		// OK to proceed
 		ctx.proceed();
 		Object result = ctx.getTarget();
-		TaskSchedule<?> scheduledTask = (TaskSchedule<?>) result;
+		TaskSchedule scheduledTask = (TaskSchedule) result;
 		Scheduler schedule;
 		
 		
@@ -112,7 +112,7 @@ public class ScheduledTaskInterceptor implements Serializable {
 
 	}
 
-	private void addScheduleProperties(TaskSchedule<?> st, Scheduler t) {
+	private void addScheduleProperties(TaskSchedule st, Scheduler t) {
 		st.setDelay(t.delay());
 		st.setTimeUnit(t.timeUnit());
 		st.setJitterPercent(t.jitterPercent());

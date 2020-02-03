@@ -65,7 +65,7 @@ import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 import gov.pnnl.proven.cluster.lib.module.messenger.RegistryReporter;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MemberRegistryAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleRegistryAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 
 /**
@@ -82,7 +82,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
  *
  */
 @Scheduler
-public abstract class TaskSchedule<T> implements RegistryReporter, Serializable {
+public abstract class TaskSchedule implements RegistryReporter, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -210,10 +210,10 @@ public abstract class TaskSchedule<T> implements RegistryReporter, Serializable 
 			reported = event;
 
 			if (isAsync) {
-				eventInstance.select(new MemberRegistryAnnotationLiteral() {
+				eventInstance.select(new ModuleRegistryAnnotationLiteral() {
 				}).fireAsync(event);
 			} else {
-				eventInstance.select(new MemberRegistryAnnotationLiteral() {
+				eventInstance.select(new ModuleRegistryAnnotationLiteral() {
 				}).fire(event);
 			}
 

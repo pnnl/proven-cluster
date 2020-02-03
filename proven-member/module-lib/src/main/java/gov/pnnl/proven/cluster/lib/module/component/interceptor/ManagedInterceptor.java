@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedBy;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
@@ -149,7 +149,7 @@ public class ManagedInterceptor {
 				}
 
 				// So far so good - check if ManagedBy restriction is in place
-				ManagedBy mb = ic.getAnnotation(ManagedBy.class);
+				CreatedBy mb = ic.getAnnotation(CreatedBy.class);
 				if (null != mb) {
 					List<Class<?>> restrictions = Arrays.asList(mb.value());
 					if (!restrictions.isEmpty()) {

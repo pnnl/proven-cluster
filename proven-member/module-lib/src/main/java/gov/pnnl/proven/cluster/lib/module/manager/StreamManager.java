@@ -203,7 +203,7 @@ public class StreamManager extends ManagerComponent {
 	 *            the disclosure domain
 	 */
 	private void createStreams(DisclosureDomain dd) {
-
+		
 		synchronized (domainStreams) {
 			if (!isManagedDomain(dd)) {
 				Set<MessageStream> messageStreams = new HashSet<MessageStream>();
@@ -227,6 +227,7 @@ public class StreamManager extends ManagerComponent {
 		// Initialize managed streams with Proven's default domain streams
 		log.debug("Creating default Proven managed streams");
 		//domainStreams = new HashMap<DisclosureDomain, Set<MessageStream>>();
+		//MessageStream ms = createComponent(MessageStream.class);
 		return true;
 	}
 

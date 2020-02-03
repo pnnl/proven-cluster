@@ -98,15 +98,21 @@ public @interface StatusOperation {
 	enum Operation {
 
 		/**
+		 * A component may create new managed components if it is in one of the
+		 * enumerated states.
+		 */
+		Create(false, Ready, Online),
+
+		/**
 		 * A component may activate if it is in one of the enumerated states.
 		 */
 		Activate(true, Ready, Offline, FailedActivateRetry),
 
 		/**
-		 * A parent's scale operation to create or recycle is triggered by a
-		 * child component that is in one of the enumerated states. The new or
-		 * recycled component will be of the same type that triggered the scale
-		 * operation.
+		 * A parent's {@link #create} operation to create new or recycle is
+		 * triggered by a child component that is in one of the enumerated
+		 * states. The new or recycled component will be of the same type that
+		 * triggered the scale operation.
 		 */
 		Scale(true, Busy, FailedOnlineRetry, NonRecoverable),
 

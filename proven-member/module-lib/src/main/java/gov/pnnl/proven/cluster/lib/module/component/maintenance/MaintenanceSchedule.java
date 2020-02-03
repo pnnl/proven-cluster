@@ -56,7 +56,8 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 
 /**
  * Performs maintenance checks provided by the registered supplier.
@@ -66,7 +67,7 @@ import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
  * @author d3j766
  *
  */
-public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
+public class MaintenanceSchedule extends TaskSchedule {
 
 	private static final long serialVersionUID = 1L;
 
@@ -75,7 +76,7 @@ public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
 
 	@Inject
 	@Eager
-	MemberMaintenanceRegistry mr;
+	ModuleMaintenanceRegistry mr;
 
 	/**
 	 * If true, indicates a components default maintenance has been registered.
@@ -113,6 +114,8 @@ public class MaintenanceSchedule extends TaskSchedule<ComponentMaintenance> {
 			log.debug("Maintenance schedule APPLY for: " + operatorOpt.get().getDoId());
 
 			ManagedComponent operator = operatorOpt.get();
+			
+			operator.createComponent(MessageStream.class);
 
 			// Get Scheduler maintenance information from operator
 			SortedSet<ScheduleCheck> sOps = mr.getScheduleOps(operator);

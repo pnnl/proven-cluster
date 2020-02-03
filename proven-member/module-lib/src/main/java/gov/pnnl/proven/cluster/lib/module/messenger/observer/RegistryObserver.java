@@ -51,12 +51,12 @@ import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.MemberRegistry;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleRegistry;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberMaintenanceRegistry;
-import gov.pnnl.proven.cluster.lib.module.registry.MemberComponentRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry;
 
 /**
  * Observer methods for registry events.
@@ -78,7 +78,7 @@ public class RegistryObserver {
 	public void init() {
 	}
 
-	public void statusChange(@ObservesAsync @MemberRegistry StatusEvent event, @Eager MemberComponentRegistry mcr) {
+	public void statusChange(@ObservesAsync @ModuleRegistry StatusEvent event, @Eager ModuleComponentRegistry mcr) {
 
 		log.debug("(Observing) Inside registry status/reporting operation for: " + event.getDoId());
 		mcr.recordStatus(event);
@@ -89,8 +89,8 @@ public class RegistryObserver {
 		}
 	}
 		
-	public void maintenance(@Observes @MemberRegistry MaintenanceEvent event,
-			@Eager MemberMaintenanceRegistry mmr) {
+	public void maintenance(@Observes @ModuleRegistry MaintenanceEvent event,
+			@Eager ModuleMaintenanceRegistry mmr) {
 
 		log.debug("(Observing) Inside registry maintenance/reporting operation for: " + event.getDoId());
 		mmr.recordMaintenance(event);

@@ -75,6 +75,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.decorator.Decorator;
 import javax.decorator.Delegate;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.interceptor.Interceptor;
 
@@ -92,9 +93,11 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 
 @Decorator
 @Priority(value = Interceptor.Priority.APPLICATION)
+@Dependent
 public abstract class StatusDecorator implements ManagedStatusOperation {
 
 	@Inject
@@ -253,8 +256,39 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	 * @see ManagedStatusOperation#deactivate()
 	 */
 	@Override
-	public void scale(UUID scaled) {
-		// TODO
+	public void scale() {
+		
+		log.debug(currentThreadLog("START SCALE DECORATOR"));
+
+//		log.debug("Decorator scale started");
+//		ManagedStatus inStatus = mc.getStatus();
+//
+//		if (Activate.verifyOperation(inStatus)) {
+//			mc.setStatus(Activating);
+//
+//			try {
+//				mc.createComponent(MessageStream.class);
+//				opSuccess = mc.activate();
+//			} catch (Exception e) {
+//				mc.setStatus(inStatus);
+//				throw new StatusOperationException(Activate, e);
+//			}
+//
+//			if (opSuccess) {
+//				mc.setStatus(Online);
+//				resetRetries(FailedActivateRetry);
+//			} else {
+//				mc.setStatus(verifyRetries(FailedActivateRetry));
+//			}
+//
+//		} else {
+//			log.warn("Activate operation not performed.  Incompatible input status: " + mc.getStatus()
+//					+ "\n For component: " + mc.getDoId());
+//
+//		}
+//		log.debug("Decorator activate completed");
+//		log.debug(currentThreadLog("END ACTIVATE DECORATOR"));
+
 	}
 
 	/**

@@ -4,9 +4,7 @@ allprojects {
 	version = '2.0.0-SNAPSHOT'
 	group = 'gov.pnnl.proven.cluster'
 
-	task gradleVersion {
-		doLast {  println "Gradle version $gradle.gradleVersion" }
-	}
+	task gradleVersion { doLast {  println "Gradle version $gradle.gradleVersion" } }
 
 	task provenVersion {
 		doLast {
@@ -14,7 +12,6 @@ allprojects {
 			println "$name"
 		}
 	}
-	
 }
 
 buildscript {
@@ -71,6 +68,7 @@ subprojects {
 		}
 
 		eclipse {
+			classpath { downloadSources=true }
 			wtp {
 				facet {
 					facet name: 'jst.web', version: '3.1'
@@ -84,16 +82,15 @@ subprojects {
 			webXml = null
 		}
 
-		configurations { 
+		configurations {
 			war {}
-			shadow {} 
+			shadow {}
 		}
 
-		artifacts { 
+		artifacts {
 			war tasks.war
 			shadow tasks.shadowJar
 		}
-			
 	}
 
 	// non-module projects
@@ -108,7 +105,7 @@ subprojects {
 				}
 			}
 		}
-		
+
 	}
 
 	sourceCompatibility = 1.8
@@ -135,8 +132,8 @@ subprojects {
 		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
 		compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
 		compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
-		compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.6' 
-		
+		compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.6'
+
 		if (!isMemberProject) {
 			compile project(':proven-member')
 		}
@@ -168,8 +165,8 @@ project('proven-member:module-lib') {
 	dependencies {
 		compile project(':proven-member:disclosure-lib')
 		compile project(':proven-member:stream-lib')
-		//compile project(':proven-member:pipeline-lib') 
-	} 
+		//compile project(':proven-member:pipeline-lib')
+	}
 }
 
 project('proven-member:hybrid-lib') {

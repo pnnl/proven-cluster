@@ -37,63 +37,44 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import java.util.Date;
+import java.util.List;
 
-import javax.annotation.Priority;
-import javax.decorator.Decorator;
-import javax.decorator.Delegate;
-import javax.inject.Inject;
-import javax.interceptor.Interceptor;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Configuration;
 
-import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceCheck;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
-
-@Decorator
-@Priority(value = Interceptor.Priority.APPLICATION)
-public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
-
-	@Inject
-	Logger log;
-
-	@Inject
-	@Eager
-	ModuleMaintenanceRegistry mr;
-
-	@Inject
-	@Delegate
-	MaintenanceOperation mo;
+public interface Creator {
+	
 
 	/**
-	 * @see MaintenanceCheck#checkAndRepair()
+	 * Creates a new ManagedComponent.
 	 */
-	@Override
-	public MaintenanceOperationResult checkAndRepair() {
+	ManagedComponent create(CreationRequest request);
 
-		mo.setStartTime(new Date().getTime());
-		MaintenanceOperationResult result = mo.checkAndRepair();
-		mo.setResult(result);
-		mo.setEndTime(new Date().getTime());
-		mo.setInvocations(mo.getInvocations() + 1);
-		mr.recordMaintenanceOperation(createOpEvent(mo));
+	/**
+	 * Performs component configuration.
+	 * 
+	 * @param config
+	 *            list of objects used by component for its configuration.
+	 * 
+	 * @See
+	 */
+	void configure(List<Object> config);
 
-		return result;
-	}
+	/**
+	 * Indicates if the ManagedComponent is configurable. That is, it has
+	 * specified its configuration with a {@link Configuration} annotation.
+	 * 
+	 * @return true if component has specified a configuration, false otherwise.
+	 */
+	boolean configurable();
 
-	private MaintenanceOperationEvent createOpEvent(MaintenanceOperation mo) {
-
-		MaintenanceOperationEvent moe = new MaintenanceOperationEvent(mo);
-		
-		return moe;
-	}
+	/**
+	 * Provides the component's configuration, if any.
+	 * 
+	 * @return the list of configuration types for the component. List will be
+	 *         empty if no configuration specified for the component.
+	 */
+	List<Class<?>> configuration();
 
 }

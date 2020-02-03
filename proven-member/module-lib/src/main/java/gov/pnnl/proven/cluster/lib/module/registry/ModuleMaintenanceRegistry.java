@@ -56,7 +56,6 @@ import javax.inject.Inject;
 
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
@@ -83,7 +82,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEv
  */
 @ApplicationScoped
 @Eager
-public class MemberMaintenanceRegistry {
+public class ModuleMaintenanceRegistry {
 
 	public static final int MAINTENANCE_EVENT_LIMIT = 1000;
 
@@ -140,7 +139,7 @@ public class MemberMaintenanceRegistry {
 	private static final Set<Class<?>> schedulerMaintenance = new HashSet<>(
 			Arrays.asList(MaintenanceScheduleCheck.class, StatusScheduleCheck.class));
 
-	public MemberMaintenanceRegistry() {
+	public ModuleMaintenanceRegistry() {
 	}
 
 	/**
@@ -336,9 +335,6 @@ public class MemberMaintenanceRegistry {
 
 	/**
 	 * Records a maintenance event.
-	 * 
-	 * If event indicates component no longer requires maintenance, then it's
-	 * registry is removed and its maintenance schedule is stopped.
 	 * 
 	 * @param me
 	 *            the maintenance event to record.

@@ -96,7 +96,7 @@ public abstract class ScheduleCheck extends MaintenanceOperation {
 		log.debug("Inside ScheduleCheck contructor");
 	}
 
-	protected abstract TaskSchedule<?> getSchedule();
+	protected abstract TaskSchedule getSchedule();
 
 	@Override
 	public MaintenanceOperationResult checkAndRepair() {
@@ -104,7 +104,7 @@ public abstract class ScheduleCheck extends MaintenanceOperation {
 		log.debug("Performing maintenance operation: " + opName());
 
 		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
-		TaskSchedule<?> schedule = getSchedule();
+		TaskSchedule schedule = getSchedule();
 
 		try {
 
