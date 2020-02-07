@@ -50,9 +50,8 @@ import com.hazelcast.core.IMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Configuration;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
 /**

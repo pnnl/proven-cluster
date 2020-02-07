@@ -56,7 +56,6 @@ import javax.naming.NamingException;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
@@ -99,7 +98,6 @@ public abstract class ProvenModule extends ManagedComponent {
 
 	public ProvenModule() {
 		super();
-		status = ManagedStatus.Ready;
 	}
 
 	@PostConstruct
@@ -175,7 +173,7 @@ public abstract class ProvenModule extends ManagedComponent {
 	}
 
 	public ModuleStatus retrieveModuleStatus() {
-		return ModuleStatus.fromManagedStatus(status);
+		return ModuleStatus.fromManagedStatus(getStatus());
 	}
 
 	public static UUID retrieveModuleId() {

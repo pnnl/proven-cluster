@@ -47,7 +47,6 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProviderAnnotationLiteral;
 

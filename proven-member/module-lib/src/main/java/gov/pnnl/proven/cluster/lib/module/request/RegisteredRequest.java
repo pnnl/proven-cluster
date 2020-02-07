@@ -41,8 +41,6 @@ package gov.pnnl.proven.cluster.lib.module.request;
 
 import javax.inject.Inject;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
-
 public class RegisteredRequest extends RequestComponent {
 
 	@Inject

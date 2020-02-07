@@ -49,7 +49,6 @@ import org.slf4j.LoggerFactory;
 import com.hazelcast.jet.Job;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 
 /**
  * The result of a {@code PipelineRequest} invocation.

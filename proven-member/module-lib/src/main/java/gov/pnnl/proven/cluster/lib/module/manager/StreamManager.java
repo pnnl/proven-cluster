@@ -60,7 +60,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
@@ -207,7 +207,7 @@ public class StreamManager extends ManagerComponent {
 		synchronized (domainStreams) {
 			if (!isManagedDomain(dd)) {
 				Set<MessageStream> messageStreams = new HashSet<MessageStream>();
-				for (MessageStreamType mst : MessageStreamType.values()) {					
+				for (MessageStreamType mst : MessageStreamType.values()) {	
 					MessageStream ms = createComponent(MessageStream.class);
 					ms.configure(dd, mst);
 					messageStreams.add(ms);

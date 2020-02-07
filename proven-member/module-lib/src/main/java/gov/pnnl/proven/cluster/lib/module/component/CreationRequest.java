@@ -39,55 +39,134 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-
+import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationRequestException;
 
 /**
- * Represents a request for creation of a new ManagedComponent.  
+ * Represents a request for the creation of a new ManagedComponent.
+ * 
+ * The class constructor will verify that the request is valid, if not an
+ * exception will be thrown.
+ * 
+ * @see {@link #CreationRequest(Class, List)}
  * 
  * @author d3j766
  *
  */
 public class CreationRequest {
 
-	Class<? extends ManagedComponent> clazz;
-	Optional<StatusEvent> statusOpt;
-	boolean scaleRequest;
-	Optional<List<Object>> config;
-
 	/**
-	 * Indicates a request to create a new component.
-	 * 
-	 * @param clazz
-	 *            type of component to create.
+	 * Component type to create
 	 */
-	public CreationRequest(Class<? extends ManagedComponent> clazz) {
-		this(clazz, Optional.empty());
-	}
+	private Class<? extends ManagedComponent> clazz;
+	private Optional<UUID> scaleSource;
 
 	/**
-	 * Indicates a request to create a new component. Configuration, if
-	 * required, is provided.
+	 * List of configuration objects, if any.
+	 */
+	private List<Object> config;
+
+	/**
+	 * A request used to create a new managed component.
 	 * 
 	 * @param clazz
 	 *            type of component to create.
 	 * @param config
 	 *            (Optional) list of configuration objects to apply post
-	 *            creation. Components must provide their required objects using
-	 *            the
+	 *            creation.
+	 * 
+	 * @throws InvalidCreationRequestException
+	 *             if provided configuration does not match configuration
+	 *             expected for the provided component type, or provided
+	 *             component type is null, or provided configuration list is
+	 *             null.
 	 */
-	public CreationRequest(Class<? extends ManagedComponent> clazz, Optional<List<Object>> config) {
-		
+	public CreationRequest(Class<? extends ManagedComponent> clazz, Object... config) {
+		this(clazz, Optional.empty(), config);
 	}
 
-	public CreationRequest(Class<? extends ManagedComponent> clazz, List<Object> config,
-			Optional<StatusEvent> statusOpt) {
-		this.clazz = clazz;
-		this.statusOpt = statusOpt;
-		scaleRequest = statusOpt.isPresent();
+	/**
+	 * A request used to create a new managed component.
+	 * 
+	 * @param clazz
+	 *            type of component to create.
+	 * 
+	 * @param scaleSource
+	 *            (Optional) the component identifier of the managed component
+	 *            that triggered a scale request for creation of the new managed
+	 *            component.
+	 * @param config
+	 *            (Optional) list of configuration objects to apply post
+	 *            creation.
+	 * 
+	 * @throws InvalidCreationRequestException
+	 *             if provided configuration does not match configuration
+	 *             expected for the provided component type, or provided
+	 *             component type is null, or provided scaleSource is null, or
+	 *             provided configuration list is null.
+	 */
+	public CreationRequest(Class<? extends ManagedComponent> clazz, Optional<UUID> scaleSource, Object... config) {
+
+		if (!isValidRequest(clazz, scaleSource, config)) {
+			throw new InvalidCreationRequestException();
+		} else {
+			this.clazz = clazz;
+			this.config = Arrays.asList(config);
+		}
+
+	}
+
+	private boolean isValidRequest(Class<? extends ManagedComponent> clazz, Optional<UUID> scaleSource,
+			Object[] config) {
+
+		boolean ret = true;
+
+		if ((null != clazz) && (null != scaleSource) && (null != config)) {
+
+			List<Class<?>> expected = Creator.configuration(clazz);
+			int expectedSize = expected.size();
+
+			// List must be same size
+			if (config.length != expectedSize) {
+				ret = false;
+			} else {
+
+				if (!expected.isEmpty()) {
+					for (int i = 0; i < expectedSize; i++) {
+						if (!expected.get(i).equals(config[i].getClass())) {
+							ret = false;
+						}
+					}
+				}
+			}
+		}
+
+		return ret;
+	}
+
+	/**
+	 * @return the clazz
+	 */
+	public Class<? extends ManagedComponent> getClazz() {
+		return clazz;
+	}
+
+	/**
+	 * @return the scaleSource
+	 */
+	public Optional<UUID> getScaleSource() {
+		return scaleSource;
+	}
+
+	/**
+	 * @return the config
+	 */
+	public List<Object> getConfig() {
+		return config;
 	}
 
 }

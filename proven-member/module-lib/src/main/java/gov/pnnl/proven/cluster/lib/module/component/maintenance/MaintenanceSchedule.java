@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Running;
+
 import java.util.Optional;
 import java.util.SortedSet;
 
@@ -54,10 +56,12 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 
 /**
  * Performs maintenance checks provided by the registered supplier.
@@ -75,6 +79,10 @@ public class MaintenanceSchedule extends TaskSchedule {
 	Logger log;
 
 	@Inject
+	@Module
+	ProvenModule pm;
+
+	@Inject
 	@Eager
 	ModuleMaintenanceRegistry mr;
 
@@ -82,7 +90,7 @@ public class MaintenanceSchedule extends TaskSchedule {
 	 * If true, indicates a components default maintenance has been registered.
 	 * False, otherwise.
 	 */
-	boolean defaultRegistered = false;
+	private boolean defaultRegistered = false;
 
 	public MaintenanceSchedule() {
 	}
@@ -114,8 +122,6 @@ public class MaintenanceSchedule extends TaskSchedule {
 			log.debug("Maintenance schedule APPLY for: " + operatorOpt.get().getDoId());
 
 			ManagedComponent operator = operatorOpt.get();
-			
-			operator.createComponent(MessageStream.class);
 
 			// Get Scheduler maintenance information from operator
 			SortedSet<ScheduleCheck> sOps = mr.getScheduleOps(operator);
@@ -130,15 +136,20 @@ public class MaintenanceSchedule extends TaskSchedule {
 				notifyRegistry(event, false);
 			}
 
-			// Perform component checks only if scheduler checks PASSED and
-			// report.
-			if (result.getStatus() == MaintenanceOperationStatus.PASSED) {
-				result = operator.check(cOps);
-				MaintenanceEvent event = new MaintenanceEvent(operator, result, sOps, registryOverdueMillis);
-				notifyRegistry(event, false);
-			}
-		}
+			// Only apply component maintenance if module is running.
+			ModuleStatus ms = pm.retrieveModuleStatus();
+			if (ms == Running) {
 
+				// Perform component checks only if scheduler checks PASSED
+				if (result.getStatus() == MaintenanceOperationStatus.PASSED) {
+					result = operator.check(cOps);
+					MaintenanceEvent event = new MaintenanceEvent(operator, result, sOps, registryOverdueMillis);
+					notifyRegistry(event, false);
+				}
+
+			}
+
+		}
 	}
 
 	@Override

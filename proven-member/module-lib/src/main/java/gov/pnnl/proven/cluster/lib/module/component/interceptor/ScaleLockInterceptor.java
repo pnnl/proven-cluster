@@ -37,62 +37,72 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Optional;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import javax.annotation.Priority;
+import javax.inject.Inject;
+import javax.interceptor.AroundInvoke;
+import javax.interceptor.Interceptor;
+import javax.interceptor.InvocationContext;
 
-import javax.enterprise.util.Nonbinding;
+import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
 
-/**
- * Indicates the annotated type is a scalable component. Provided member
- * properties are used to define the scaling configuration.
- * 
- * @author d3j766
- *
- */
-@Documented
-@Retention(RUNTIME)
-@Target({ TYPE })
-public @interface Scalable {
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 
-	/**
-	 * (Optional) The number of components allowed to be created as a result of
-	 * a specific component's status indicating it can no longer support new
-	 * task processing. Failed and/or busy states will trigger a scale operation
-	 * to create a new component(s) of the same type.
-	 * 
-	 * Default is 1 per triggering component.
-	 * 
-	 * see ManagedComponentStatus
-	 * 
-	 */
-	@Nonbinding
-	int alowedPerComponent() default 1;
+@LockedStatusOperation
+@Interceptor
+@Priority(value = Interceptor.Priority.APPLICATION)
+public class ScaleLockInterceptor {
 
-	/**
-	 * (Optional) Initial number of components at startup, a count below this
-	 * setting will trigger a scale operation.  
-	 * 
-	 * Default is 1.
-	 */
-	@Nonbinding
-	int initialCount() default 1;
+	@Inject
+	Logger log;
 
-	/**
-	 * (Optional) Indicates maximum number of {@link ManagedStatus#Online}
-	 * components for this scalable type.
-	 * 
-	 * Default is 5.
-	 */
-	@Nonbinding
-	int maxCount() default 5;
+	@AroundInvoke
+	public Object lockCreateOperation(InvocationContext ic) throws Exception {
+
+		Object ret = null;
+		Object target = ic.getTarget();
+		boolean isManagedComponent = (target instanceof ManagedComponent);
+
+		// Ignore if not a managed component
+		if (!isManagedComponent) {
+			return ic.proceed();
+		}
+
+		// Get Managed component and CreationRequest
+		ManagedComponent mc = (ManagedComponent) target;
+		Object[] params = (Object[]) ic.getParameters();
+		CreationRequest cr = (CreationRequest) params[0];
+		Optional<ManagedComponent> mcOpt = Optional.empty();
+
+		if (cr.getScaleSource().isPresent()) {
+			mc.getCreated(cr.getScaleSource().get());
+		}
+
+		log.debug("lockCreateOperation for creation of component type: " + cr.getClazz().getSimpleName());
+
+		/**
+		 * If create triggered by a scale request then lock both parent and its
+		 * source candidate
+		 * 
+		 * If create not triggered by a scale request then lock only parent
+		 */
+		try {
+			mc.acquireLockWait(STATUS_LOCK);
+
+			ret = ic.proceed();
+		} finally {
+			mc.releaseLock(STATUS_LOCK);
+		}
+
+		return ret;
+	}
 
 }

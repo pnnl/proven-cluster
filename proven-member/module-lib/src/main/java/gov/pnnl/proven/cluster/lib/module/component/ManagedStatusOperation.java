@@ -48,6 +48,7 @@ import java.util.UUID;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
 
 /**
  * Identifies {@code ManagedComponent} status operations.
@@ -61,28 +62,22 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Schedu
  */
 public interface ManagedStatusOperation {
 
-
 	/**
-	 * CreationRequest is queued to component for processing by it's create scheduler.
+	 * Components may request a scale operation be performed by their parent component.
+	 * The new component will be of the same type as the component making the
+	 * request. 
 	 * 
-	 * @see CreateSchedule 
+	 * @see StatusOperation#operation(){@link #requestScale()}
+	 * 
 	 */
-	void create(CreationRequest request);
-	
+	void requestScale();
+
 	/**
 	 * Component is activated.
 	 * 
 	 * @return true if the component was successfully activated, false otherwise
 	 */
 	boolean activate();
-
-	/**
-	 * Triggers a scaling request to be registered with the scaled component's
-	 * creator. The creator will perform the actual scaling, that is, creation
-	 * of a new component of the same type as the component making the request.
-	 * 
-	 */
-	void scale();
 
 	/**
 	 * Component is deactivated. Deactivation retries are performed on failure.

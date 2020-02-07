@@ -60,6 +60,7 @@ import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOper
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Deactivate;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Fail;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Remove;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.RequestScale;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.SchedulerCheck;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Suspend;
@@ -93,7 +94,6 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 
 @Decorator
 @Priority(value = Interceptor.Priority.APPLICATION)
@@ -213,15 +213,36 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	}
 
 	/**
+	 * @see ManagedStatusOperation#requestScale()
+	 */
+	@Override
+	public void requestScale() {
+
+		log.debug(currentThreadLog("START REQUEST SCALE DECORATOR"));
+		if (RequestScale.verifyOperation(mc.getStatus())) {
+
+			try {
+
+			} catch (Exception e) {
+				mc.setStatus(Failed);
+				throw new StatusOperationException(Fail, e);
+			}
+
+		} else {
+			log.warn("RequestScale operation not performed.  Incompatible input status: " + mc.getStatus()
+					+ "\n For component: " + mc.getDoId());
+		}
+		log.debug(currentThreadLog("END REQUEST SCALE DECORATOR"));
+	}
+
+	/**
 	 * @see ManagedStatusOperation#activate()
 	 */
 	@Override
 	public boolean activate() {
 
 		log.debug(currentThreadLog("START ACTIVATE DECORATOR"));
-
 		boolean opSuccess = false;
-		log.debug("Decorator activate started");
 		ManagedStatus inStatus = mc.getStatus();
 
 		if (Activate.verifyOperation(inStatus)) {
@@ -246,7 +267,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 					+ "\n For component: " + mc.getDoId());
 
 		}
-		log.debug("Decorator activate completed");
 		log.debug(currentThreadLog("END ACTIVATE DECORATOR"));
 
 		return opSuccess;
@@ -256,51 +276,10 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	 * @see ManagedStatusOperation#deactivate()
 	 */
 	@Override
-	public void scale() {
-		
-		log.debug(currentThreadLog("START SCALE DECORATOR"));
-
-//		log.debug("Decorator scale started");
-//		ManagedStatus inStatus = mc.getStatus();
-//
-//		if (Activate.verifyOperation(inStatus)) {
-//			mc.setStatus(Activating);
-//
-//			try {
-//				mc.createComponent(MessageStream.class);
-//				opSuccess = mc.activate();
-//			} catch (Exception e) {
-//				mc.setStatus(inStatus);
-//				throw new StatusOperationException(Activate, e);
-//			}
-//
-//			if (opSuccess) {
-//				mc.setStatus(Online);
-//				resetRetries(FailedActivateRetry);
-//			} else {
-//				mc.setStatus(verifyRetries(FailedActivateRetry));
-//			}
-//
-//		} else {
-//			log.warn("Activate operation not performed.  Incompatible input status: " + mc.getStatus()
-//					+ "\n For component: " + mc.getDoId());
-//
-//		}
-//		log.debug("Decorator activate completed");
-//		log.debug(currentThreadLog("END ACTIVATE DECORATOR"));
-
-	}
-
-	/**
-	 * @see ManagedStatusOperation#deactivate()
-	 */
-	@Override
 	public boolean deactivate() {
 
 		log.debug(currentThreadLog("START DEACTIVATE DECORATOR"));
-
 		boolean opSuccess = true;
-		log.debug("Decorator deactivate started");
 		ManagedStatus inStatus = mc.getStatus();
 
 		if (Deactivate.verifyOperation(mc.getStatus())) {
@@ -328,7 +307,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			log.warn("Deactivate operation not performed.  Incompatible input status: " + mc.getStatus()
 					+ "\n For component: " + mc.getDoId());
 		}
-		log.debug("Decorator deactivate completed");
 		log.debug(currentThreadLog("END DEACTIVATE DECORATOR"));
 
 		return opSuccess;
@@ -341,7 +319,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	public void fail() {
 
 		log.debug(currentThreadLog("START FAIL DECORATOR"));
-		log.debug("Decorator fail started");
 		if (Fail.verifyOperation(mc.getStatus())) {
 			mc.setStatus(Failing);
 
@@ -357,7 +334,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			log.warn("Fail operation not performed.  Incompatible input status: " + mc.getStatus()
 					+ "\n For component: " + mc.getDoId());
 		}
-		log.debug("Decorator fail completed");
 		log.debug(currentThreadLog("END FAIL DECORATOR"));
 	}
 
@@ -368,8 +344,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	public void remove() {
 
 		log.debug(currentThreadLog("START REMOVE DECORATOR"));
-
-		log.debug("Decorator remove started");
 		if (Remove.verifyOperation(mc.getStatus())) {
 			mc.setStatus(Removing);
 			try {
@@ -384,7 +358,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			log.warn("Remove operation not performed.  Incompatible input status: " + mc.getStatus()
 					+ "\n For component: " + mc.getDoId());
 		}
-		log.debug("Decorator remove completed");
 		log.debug(currentThreadLog("END REMOVE DECORATOR"));
 
 	}
@@ -396,8 +369,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	public void suspend() {
 
 		log.debug(currentThreadLog("START SUSPEND DECORATOR"));
-
-		log.debug("Decorator suspend started");
 		if (Suspend.verifyOperation(mc.getStatus())) {
 
 			if (mc.getStatus() != Offline) {
@@ -416,8 +387,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			log.warn("Shutdown operation not performed. Incompatible input status: " + mc.getStatus()
 					+ "\n For component: " + mc.getDoId());
 		}
-		log.debug("Decorator shutdown completed");
-		log.debug(currentThreadLog("END SHUTDOWN DECORATOR"));
+		log.debug(currentThreadLog("END SUSPEND DECORATOR"));
 	}
 
 	/**
@@ -427,8 +397,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	public void shutdown() {
 
 		log.debug(currentThreadLog("START SHUTDOWN DECORATOR"));
-
-		log.debug("Decorator shutdown started");
 		if (Shutdown.verifyOperation(mc.getStatus())) {
 			mc.setStatus(Removing);
 			try {
@@ -443,7 +411,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			log.warn("Shutdown operation not performed. Incompatible input status: " + mc.getStatus()
 					+ "\n For component: " + mc.getDoId());
 		}
-		log.debug("Decorator shutdown completed");
 		log.debug(currentThreadLog("END SHUTDOWN DECORATOR"));
 	}
 
@@ -454,7 +421,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	public <T extends MaintenanceOperation> MaintenanceOperationResult check(SortedSet<T> ops) {
 
 		log.debug(currentThreadLog("START CHECK DECORATOR"));
-		log.debug("Decorator check started");
 		MaintenanceOperationResult opResult = new MaintenanceOperationResult();
 
 		if (!ops.isEmpty()) {
@@ -496,7 +462,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			}
 
 		}
-		log.debug("Decorator check completed");
 		log.debug(currentThreadLog("END CHECK DECORATOR"));
 		return opResult;
 	}
@@ -508,7 +473,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	public MaintenanceOperationResult schedulerCheck(SortedSet<ScheduleCheck> ops) {
 
 		log.debug(currentThreadLog("START SCHEDULER CHECK DECORATOR"));
-		log.debug("Decorator SchedulerCheck started");
 		MaintenanceOperationResult opResult = new MaintenanceOperationResult();
 
 		if (!ops.isEmpty()) {
@@ -583,8 +547,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 			}
 
 		}
-
-		log.debug("Decorator SchedulerCheck completed");
 		log.debug(currentThreadLog("END SCHEDULER CHECK DECORATOR"));
 
 		return opResult;

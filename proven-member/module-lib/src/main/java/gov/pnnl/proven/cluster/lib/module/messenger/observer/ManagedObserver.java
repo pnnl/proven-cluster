@@ -43,7 +43,7 @@ import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOper
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Deactivate;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Fail;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Remove;
-import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Scale;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.RequestScale;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -96,67 +96,64 @@ public class ManagedObserver {
 
 	public void activate(@ObservesAsync @Managed @StatusOperation(operation = Activate) StatusOperationEvent event) {
 
-		log.debug("(Observing) Inside activate operation");
-
-		UUID opCandidateId = event.getOpCandidateId(); // child
-		if (isRegistered(opCandidateId)) {
-			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
-			log.debug("ACTIVATING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
-			mc.activate();
+		log.debug("(Observing) Activate operation");
+		Optional<ManagedComponent> observer = getObserver(event);
+		if (observer.isPresent()) {
+			observer.get().activate();
 		}
+
 	}
 
-	public void scale(@ObservesAsync @Managed @StatusOperation(operation = Scale) StatusOperationEvent event) {
+	public void scale(@ObservesAsync @Managed @StatusOperation(operation = RequestScale) StatusOperationEvent event) {
 
-		log.debug("(Observing) Inside scale operation");
-		
-		UUID opCandidateId = event.getOpCandidateId(); // child
-		if (isRegistered(opCandidateId)) {
-			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
-			log.debug("SCALING FOR CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
-			mc.scale();
-		}		
-		
+		log.debug("(Observing) RequestScale operation");
+		Optional<ManagedComponent> observer = getObserver(event);
+		if (observer.isPresent()) {
+			observer.get().requestScale();
+		}
+
 	}
 
 	public void deactivate(
 			@ObservesAsync @Managed @StatusOperation(operation = Deactivate) StatusOperationEvent event) {
 
-		log.debug("(Observing) Inside deactivate operation");
-
-		UUID opCandidateId = event.getOpCandidateId(); // child
-		if (isRegistered(opCandidateId)) {
-			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
-			log.debug("DEACTIVATING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
-			mc.deactivate();
+		log.debug("(Observing) Deactivate operation");
+		Optional<ManagedComponent> observer = getObserver(event);
+		if (observer.isPresent()) {
+			observer.get().deactivate();
 		}
 
 	}
 
 	public void fail(@ObservesAsync @Managed @StatusOperation(operation = Fail) StatusOperationEvent event) {
 
-		log.debug("(Observing) Inside fail operation");
-
-		UUID opCandidateId = event.getOpCandidateId(); // child
-		if (isRegistered(opCandidateId)) {
-			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
-			log.debug("FAILING CREATED: " + mc.getDoId() + " CREATOR: " + event.getDoId());
-			mc.fail();
+		log.debug("(Observing) Fail operation");
+		Optional<ManagedComponent> observer = getObserver(event);
+		if (observer.isPresent()) {
+			observer.get().fail();
 		}
 
 	}
 
 	public void remove(@ObservesAsync @Managed @StatusOperation(operation = Remove) StatusOperationEvent event) {
 
-		log.debug("(Observing) Inside remove operation");
-
-		UUID opCandidateId = event.getOpCandidateId(); // child
-		if (isRegistered(opCandidateId)) {
-			ManagedComponent mc = registeredObservers.get(event.getOpCandidateId());
-			log.debug("REMOVING CREATED: " + event.getDoId() + " CREATOR: " + mc.getDoId());
-			mc.remove();
+		log.debug("(Observing) Remove operation");
+		Optional<ManagedComponent> observer = getObserver(event);
+		if (observer.isPresent()) {
+			observer.get().remove();
 		}
 
+	}
+
+	private Optional<ManagedComponent> getObserver(StatusOperationEvent event) {
+
+		Optional<ManagedComponent> ret = Optional.empty();
+		UUID opCandidateId = event.getOpCandidateId(); // child
+		if (isRegistered(opCandidateId)) {
+			ret = Optional.of(registeredObservers.get(event.getOpCandidateId()));
+		}
+
+		return ret;
 	}
 
 }

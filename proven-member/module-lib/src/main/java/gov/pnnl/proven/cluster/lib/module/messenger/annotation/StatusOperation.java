@@ -66,10 +66,10 @@ import java.util.Set;
 
 import javax.inject.Qualifier;
 
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
+import gov.pnnl.proven.cluster.lib.module.component.Creator;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
-import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 
 /**
  * Used to qualify status event messages, indicating the message is for a
@@ -98,23 +98,24 @@ public @interface StatusOperation {
 	enum Operation {
 
 		/**
-		 * A component may create new managed components if it is in one of the
-		 * enumerated states.
+		 * A parent's {@link Creator#scale(CreationRequest)} operation for
+		 * creation of or recycling of a managed component is triggered by a
+		 * child component that is in one of the enumerated states. The new or
+		 * recycled component will be of the same type as the child that
+		 * triggered the scale request.
+		 * 
+		 * The {@link ManagedStatus#Online} status is a distinct case used to
+		 * ensure that Scalable components do not fall below there
+		 * {@code Scalable#initialCount()}. Otherwise, scale operation should
+		 * only be triggered by components with a managed status indicating they
+		 * are no longer factoring into a component's capacity calculation.
 		 */
-		Create(false, Ready, Online),
+		RequestScale(true, Busy, Online, NonRecoverable),
 
 		/**
 		 * A component may activate if it is in one of the enumerated states.
 		 */
 		Activate(true, Ready, Offline, FailedActivateRetry),
-
-		/**
-		 * A parent's {@link #create} operation to create new or recycle is
-		 * triggered by a child component that is in one of the enumerated
-		 * states. The new or recycled component will be of the same type that
-		 * triggered the scale operation.
-		 */
-		Scale(true, Busy, FailedOnlineRetry, NonRecoverable),
 
 		/**
 		 * A component may be deactivated if it is in one of the enumerated

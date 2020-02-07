@@ -37,62 +37,66 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
+import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Suspend;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import javax.annotation.Priority;
+import javax.inject.Inject;
+import javax.interceptor.AroundInvoke;
+import javax.interceptor.Interceptor;
+import javax.interceptor.InvocationContext;
 
-import javax.enterprise.util.Nonbinding;
+import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 
-/**
- * Indicates the annotated type is a scalable component. Provided member
- * properties are used to define the scaling configuration.
- * 
- * @author d3j766
- *
- */
-@Documented
-@Retention(RUNTIME)
-@Target({ TYPE })
-public @interface Scalable {
+@LockedStatusOperation
+@Interceptor
+@Priority(value = Interceptor.Priority.APPLICATION)
+public class CreateLockInterceptor {
 
-	/**
-	 * (Optional) The number of components allowed to be created as a result of
-	 * a specific component's status indicating it can no longer support new
-	 * task processing. Failed and/or busy states will trigger a scale operation
-	 * to create a new component(s) of the same type.
-	 * 
-	 * Default is 1 per triggering component.
-	 * 
-	 * see ManagedComponentStatus
-	 * 
-	 */
-	@Nonbinding
-	int alowedPerComponent() default 1;
+	@Inject
+	Logger log;
 
-	/**
-	 * (Optional) Initial number of components at startup, a count below this
-	 * setting will trigger a scale operation.  
-	 * 
-	 * Default is 1.
-	 */
-	@Nonbinding
-	int initialCount() default 1;
+	@AroundInvoke
+	public Object lockStatusOperation(InvocationContext ic) throws Exception {
 
-	/**
-	 * (Optional) Indicates maximum number of {@link ManagedStatus#Online}
-	 * components for this scalable type.
-	 * 
-	 * Default is 5.
-	 */
-	@Nonbinding
-	int maxCount() default 5;
+		Object ret = null;
+		Object target = ic.getTarget();
+		boolean isManagedComponent = (target instanceof ManagedComponent);
 
+		// Ignore if not a managed component
+		if (!isManagedComponent) {
+			return ic.proceed();
+		}
+
+		ManagedComponent mc = (ManagedComponent) target;
+		String op = ic.getMethod().getName().toLowerCase();
+		String shutdownOp = Shutdown.toString().toLowerCase();
+		String suspendOp = Suspend.toString().toLowerCase();
+
+		log.debug("Locked status operation: " + op);
+
+		// For shutdown or Suspend, wait for lock acquisition
+		if ((op.equals(shutdownOp)) || (op.equals(suspendOp))) {
+
+			try {
+				mc.acquireLockWait(STATUS_LOCK);
+				mc.acquireLockWait(CREATED_LOCK);
+				ret = ic.proceed();
+			} finally {
+				mc.releaseLock(ComponentLock.CREATED_LOCK);
+				mc.releaseLock(ComponentLock.STATUS_LOCK);
+			}
+
+		} 
+		
+		return ret;
+	}
 }

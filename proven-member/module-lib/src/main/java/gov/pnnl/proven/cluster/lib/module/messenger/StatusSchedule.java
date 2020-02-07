@@ -77,7 +77,6 @@ public class StatusSchedule extends TaskSchedule {
 	@Inject
 	Logger log;
 
-	// If this doesn't work, inject member component registry
 	@Inject
 	@Module
 	ProvenModule pm;

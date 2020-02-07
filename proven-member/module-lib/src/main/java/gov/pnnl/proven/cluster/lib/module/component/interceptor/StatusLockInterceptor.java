@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Suspend;
 
@@ -62,7 +63,7 @@ public class StatusLockInterceptor {
 	Logger log;
 
 	@AroundInvoke
-	public Object authorize(InvocationContext ic) throws Exception {
+	public Object lockStatusOperation(InvocationContext ic) throws Exception {
 
 		Object ret = null;
 		Object target = ic.getTarget();
@@ -80,24 +81,24 @@ public class StatusLockInterceptor {
 
 		log.debug("Locked status operation: " + op);
 
-		// For shutdown, wait for lock acquisition
+		// For shutdown or Suspend, wait for lock acquisition
 		if ((op.equals(shutdownOp)) || (op.equals(suspendOp))) {
 
 			try {
-				mc.acquireStatusLockWait();
+				mc.acquireLockWait(STATUS_LOCK);
 				ret = ic.proceed();
 			} finally {
-				mc.releaseStatusLock();
+				mc.releaseLock(STATUS_LOCK);
 			}
 
 		} else {
 
-			// Only proceed if lock acquired without waiting
-			if (mc.acquireStatusLockNoWait()) {
+			// Only proceed if lock acquired without wait
+			if (mc.acquireLockNoWait(STATUS_LOCK)) {
 				try {
 					ret = ic.proceed();
 				} finally {
-					mc.releaseStatusLock();
+					mc.releaseLock(STATUS_LOCK);
 				}
 			}
 

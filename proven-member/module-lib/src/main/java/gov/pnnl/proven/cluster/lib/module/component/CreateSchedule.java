@@ -39,11 +39,16 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Running;
+
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 /**
  * Performs managed component creation.
@@ -58,6 +63,10 @@ public class CreateSchedule extends TaskSchedule {
 	@Inject
 	Logger log;
 
+	@Inject
+	@Module
+	ProvenModule pm;
+
 	public CreateSchedule() {
 	}
 
@@ -69,8 +78,18 @@ public class CreateSchedule extends TaskSchedule {
 
 		if (operatorOpt.isPresent()) {
 
-		}
+			log.debug("Maintenance schedule APPLY for: " + operatorOpt.get().getDoId());
 
+			ManagedComponent operator = operatorOpt.get();
+
+			/**
+			 * Only apply component creation if module is running.
+			 */
+			ModuleStatus ms = pm.retrieveModuleStatus();
+			if (ms == Running) {
+
+			}
+		}
 	}
 
 	@Override

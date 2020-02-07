@@ -37,51 +37,33 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
+package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-/**
- * Enumeration of module component types. A convenience listing of the possible
- * module component types.
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import javax.interceptor.InterceptorBinding;
+
+/** 
+ * Indicates the annotated method requires locking for ManagedComponent
+ * creation. Both the creator's status and the creator's current collection of
+ * created components will be locked.
  * 
- * @see ManagedComponent
+ * This only applies to methods of a {@code ManagedComponent} type. Other types
+ * will be ignored.
  * 
  * @author d3j766
  *
  */
-public enum ComponentType {
-	
-	// Module
-	ProvenModule,
-	
-	// Registry
-	ClusterComponentRegistry,
-	ClusterRequestRegistry,
-	MemberComponentRegistry,
-	MemberRequestRegistry,
-	ScheduledEventRegistry,
+@Documented
+@InterceptorBinding
+@Retention(RUNTIME)
+@Target({ METHOD, TYPE })
+public @interface LockedCreateOperation {
 
-	// Manager
-	ExchangeManager,
-	RequestManager,
-	StreamManager,
-	PipelineManager,
-
-	// Disclosure
-	DisclosureEntries,
-
-	// Exchange
-	ExchangeBuffer,
-	RequestExchange,
-	DisclosureBuffer,
-	RequestBuffer,
-	ServiceBuffer,
-
-	// Request
-	RegisteredRequest,
-	PipelineRequest,
-	PipelineJob,
-
-	// Stream
-	MessageStream,
-			
 }
