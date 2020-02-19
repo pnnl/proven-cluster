@@ -39,138 +39,132 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import java.util.Arrays;
-import java.util.List;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
-import javax.enterprise.inject.InjectionException;
-import javax.enterprise.inject.Intercepted;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.InjectionPoint;
+import javax.decorator.Decorator;
+import javax.decorator.Delegate;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import javax.interceptor.AroundConstruct;
 import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
+import gov.pnnl.proven.cluster.lib.module.component.CreationResponse;
+import gov.pnnl.proven.cluster.lib.module.component.Creator;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
-import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationRequestException;
 
-/**
- * Verifies injection of a {@code Managed} component is being injected by a
- * {@code ProvenModule} or another {@code Managed} component that can be traced
- * back to a {@code ProvenModule}. An {@code InjectionException} is thrown if
- * this is not the case.
- * 
- * Ensures correct utilization of {@code Managed} annotation.
- * 
- * @author d3j766
- * 
- */
-@Managed
-@Interceptor
+@Decorator
 @Priority(value = Interceptor.Priority.APPLICATION)
-public class ManagedInterceptor {
-
-	static Logger log = LoggerFactory.getLogger(ManagedInterceptor.class);
-
-	@Inject
-	@Intercepted
-	private Bean<?> intercepted;
+@Dependent
+public abstract class CreatorDecorator implements Creator {
 
 	@Inject
-	InjectionPoint ip;
+	Logger log;
 
-	@AroundConstruct
-	public Object verifyManagedComponent(InvocationContext ctx) throws Exception {
+	@Inject
+	@Delegate
+	@Managed
+	ManagedComponent mc;
 
-		log.debug("ManagedComponentInterceptor - BEFORE construction.");
-		log.debug("Intercepted component :: " + intercepted.getBeanClass().getName());
+	@PostConstruct
+	public void statusDecoratorPostConstruct() {
+		log.debug("Inside creator decorator post construct");
+	}
 
-		Class<?> ic = intercepted.getBeanClass();
+	@Override
+	public <T extends ManagedComponent> CreationResponse<T> create(CreationRequest<T> request) {
 
-		// Proven Module - no checks, this is top of hierarchy
-		if (ProvenModule.class.isAssignableFrom(ic)) {
-			log.debug("Proven Module : " + ic.getSimpleName());
+		CreationResponse<T> ret;
+
+		try {
+			mc.acquireLockWait(STATUS_LOCK);
+			mc.acquireLockWait(CREATED_LOCK);
+			ret = mc.create(request);
+		} finally {
+			mc.releaseLock(CREATED_LOCK);
+			mc.releaseLock(STATUS_LOCK);
 		}
 
-		else {
+		return ret;
+	}
 
-			Bean<?> ipBean = ip.getBean();
-			Class<?> ipClass = ipBean.getBeanClass();
-			boolean isIpModule = false;
-			boolean isIpManager = false;
+	@Override
+	public <T extends ManagedComponent> Optional<CreationResponse<T>> scale(CreationRequest<T> request) {
 
-			if ((null != ipBean) && (ProvenModule.class.isAssignableFrom(ipClass))) {
-				isIpModule = true;
-			}
+		Optional<CreationResponse<T>> response = Optional.empty();
+		
+		try {
 
-			// Injecting ManagerComponent
-			if (ManagerComponent.class.isAssignableFrom(ic)) {
+			mc.acquireLockWait(STATUS_LOCK);
+			mc.acquireLockWait(CREATED_LOCK);
 
-				if ((null != ipBean) && (ProvenModule.class.isAssignableFrom(ipClass))) {
-					isIpModule = true;
-				}
+			/**
+			 * Get lock on scale candidate component.
+			 * 
+			 * Because the CANDIDATE_LOCK has already been acquired, the
+			 * candidate cannot be removed/destroyed (if it does exists) until
+			 * this lock has been released.
+			 */
+			if (!request.getScaleSource().isPresent()) {
+				throw new InvalidCreationRequestException(
+						"Creation request for scale operation was missing source candidate component identifier.");
+			} else {
 
-				if (!isIpModule) {
-					throw new InjectionException(
-							"Injection point for a @Managed manager component must be a proven module");
-				}
-			}
+				// Proceed if the candidate still exists
+				Optional<ManagedComponent> scaleCandidateOpt = mc.getCreated(request.getScaleSource().get());
+				if (scaleCandidateOpt.isPresent()) {
 
-			// Injecting non-manager component
-			else {
+					ManagedComponent source = scaleCandidateOpt.get();
+					try {
 
-				// Verify that it's is a managed component
-				if (!ManagedComponent.class.isAssignableFrom(ic)) {
-					throw new InjectionException("Intercepted bean must be managed component");
-				}
+						source.acquireLockWait(STATUS_LOCK);
+						
+						if (mc.validScaleCandidate(source)) {
 
-				// Verify a manager component is requesting the new managed
-				// component.
-				// Bean<?> ipBean = ip.getBean();
-				if ((null != ipBean) && (ManagerComponent.class.isAssignableFrom(ipClass))) {
-					isIpManager = true;
-				}
+							response = mc.scale(request);	
 
-				// If not a manager, verify it is another managed component
-				// performing the injection.
-				if (!isIpManager) {
-					Managed mc = ipClass.getAnnotation(Managed.class);
-					if (null == mc) {
-						throw new InjectionException(
-								"Injection point for managed component is not a manager component or another managed component");
-					}
-				}
-
-				// So far so good - check if ManagedBy restriction is in place
-				CreatedBy mb = ic.getAnnotation(CreatedBy.class);
-				if (null != mb) {
-					List<Class<?>> restrictions = Arrays.asList(mb.value());
-					if (!restrictions.isEmpty()) {
-						if (!restrictions.contains(ipBean.getBeanClass())) {
-							throw new InjectionException("Injection point for " + ic.toString()
-									+ " not allowed due to ManagedBy restriction");
+							/**
+							 * Increment scaled count for source scale candidate
+							 * by the number of components created by the scale
+							 * operation provided by the response.
+							 */
+							source.setScaledCount(source.getScaledCount() + response.get().createdCount());
 						}
+					} finally {
+						source.releaseLock(STATUS_LOCK);
 					}
 				}
-
-				log.debug("ManagedComponent verified for:: " + ip.getBean().getBeanClass().getSimpleName());
-
 			}
+
+		} finally {
+			mc.releaseLock(CREATED_LOCK);
+			mc.releaseLock(STATUS_LOCK);
+		}
+		
+		return response;
+	}
+
+	@Override
+	public void configure(List<Object> config) {
+
+		if (!Creator.validConfiguration(mc.getComponentType(), config)) {
+			throw new IllegalArgumentException(
+					"Invalid configuration passed to configure method for component type: " + mc.getComponentType());
 		}
 
-		// OK to proceed
-		Object result = ctx.proceed();
-
-		log.debug("ManagedComponentInterceptor - AFTER construction.");
-
-		return result;
+		// Configuration okay, perform configure
+		mc.configure(config);
 	}
 
 }

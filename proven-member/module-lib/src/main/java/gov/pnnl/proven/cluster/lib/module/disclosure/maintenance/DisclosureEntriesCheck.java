@@ -37,33 +37,56 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.disclosure.maintenance;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Unavailable;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.FAILED;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
-import javax.interceptor.InterceptorBinding;
+import org.slf4j.Logger;
 
-/** 
- * Indicates the annotated method requires locking for ManagedComponent
- * creation. Both the creator's status and the creator's current collection of
- * created components will be locked.
- * 
- * This only applies to methods of a {@code ManagedComponent} type. Other types
- * will be ignored.
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
+
+/**
  * 
  * @author d3j766
  *
  */
-@Documented
-@InterceptorBinding
-@Retention(RUNTIME)
-@Target({ METHOD, TYPE })
-public @interface LockedCreateOperation {
+public class DisclosureEntriesCheck extends MaintenanceOperation {
+
+	@Inject
+	Logger log;
+
+	public DisclosureEntriesCheck() {
+		super();
+	}
+
+	@PostConstruct
+	public void init() {
+		log.debug("Inside DisclosureEntriesCheck contructor");
+	}
+
+	@Override
+	public MaintenanceOperationResult checkAndRepair() {
+
+		log.debug("Performing maintenance operation: " + opName());
+
+		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
+
+		ret = new MaintenanceOperationResult(FAILED, Unavailable);
+
+		return ret;
+	}
+
+	@Override
+	public MaintenanceOperationSeverity maxSeverity() {
+		return MaintenanceOperationSeverity.Severe;
+	}
 
 }

@@ -63,8 +63,9 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureEntryType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
+import gov.pnnl.proven.cluster.lib.module.disclosure.maintenance.DisclosureEntriesCheck;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureBuffer;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
@@ -81,7 +82,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInte
  * @see RequestExchange
  *
  */
-@Scalable
+@Scalable(maxCount=10)
 public class DisclosureEntries extends DisclosureComponent {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureEntries.class);
@@ -454,5 +455,9 @@ public class DisclosureEntries extends DisclosureComponent {
 		localDisclosure = db;
 	}
 
+	@Override
+	public ComponentMaintenance scheduledMaintenance() {
+		return new ComponentMaintenance(this, DisclosureEntriesCheck.class);
+	}
 
 }

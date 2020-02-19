@@ -52,7 +52,6 @@ import com.hazelcast.core.ISet;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**

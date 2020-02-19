@@ -37,34 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+public class InvalidStatusModificationException extends RuntimeException {
 
-import javax.interceptor.InterceptorBinding;
+	private static final long serialVersionUID = 1L;
 
-/**
- * Indicates the annotated method requires locking for ManagedComponent creation
- * that was triggered by a scale request. The creator's status, the scale
- * candidate's status, and the creator's current collection of created
- * components will all be locked.
- * 
- * This only applies to methods of a {@code ManagedComponent} type. Other types
- * will be ignored.
- * 
- * @author d3j766
- *
- */
-@Documented
-@InterceptorBinding
-@Retention(RUNTIME)
-@Target({ METHOD, TYPE })
-public @interface LockedScaleOperation {
+	public InvalidStatusModificationException() {
+		super();
+	}
 
+	public InvalidStatusModificationException(String message) {
+		super(message);
+	}
+
+	public InvalidStatusModificationException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

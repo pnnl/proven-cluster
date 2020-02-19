@@ -104,7 +104,7 @@ public class ManagedObserver {
 
 	}
 
-	public void scale(@ObservesAsync @Managed @StatusOperation(operation = RequestScale) StatusOperationEvent event) {
+	public void requestScale(@ObservesAsync @Managed @StatusOperation(operation = RequestScale) StatusOperationEvent event) {
 
 		log.debug("(Observing) RequestScale operation");
 		Optional<ManagedComponent> observer = getObserver(event);

@@ -71,7 +71,7 @@ public abstract class MaintenanceOperation implements MaintenanceCheck {
 	protected long endTime = new Date().getTime();
 	protected long invocations = 0;
 
-	MaintenanceOperation() {
+	public MaintenanceOperation() {
 		this.opName = this.getClass().getName();
 		this.result = new MaintenanceOperationResult();
 	}

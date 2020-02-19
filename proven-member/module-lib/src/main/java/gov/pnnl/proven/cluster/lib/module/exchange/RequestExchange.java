@@ -46,6 +46,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 
 /**
@@ -77,9 +78,9 @@ public class RequestExchange extends ExchangeComponent {
 	void init() {
 		log.debug("Post construct for RequestExchange");
 
-		db = createComponent(DisclosureBuffer.class);
-		rb = createComponent(RequestBuffer.class);
-
+		db = create(new CreationRequest<DisclosureBuffer>(DisclosureBuffer.class)).get();
+		rb = create(new CreationRequest<RequestBuffer>(RequestBuffer.class)).get();
+		
 		// Connect disclosure/exchange buffers supporting local transfers within
 		// a request exchange
 		db.addLocalExchange(rb);

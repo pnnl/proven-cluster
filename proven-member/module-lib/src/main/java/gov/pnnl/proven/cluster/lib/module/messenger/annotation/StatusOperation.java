@@ -106,7 +106,7 @@ public @interface StatusOperation {
 		 * 
 		 * The {@link ManagedStatus#Online} status is a distinct case used to
 		 * ensure that Scalable components do not fall below there
-		 * {@code Scalable#initialCount()}. Otherwise, scale operation should
+		 * {@code Scalable#initialCount()}. Otherwise, a scale operation should
 		 * only be triggered by components with a managed status indicating they
 		 * are no longer factoring into a component's capacity calculation.
 		 */

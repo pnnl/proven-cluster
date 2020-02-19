@@ -64,6 +64,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
@@ -307,18 +308,18 @@ public abstract class PipelineRequest extends RequestComponent {
 	private void createDomainJobs() {
 		List<DisclosureDomain> managedDomains = sm.getManagedDomains();
 		for (DisclosureDomain dd : managedDomains) {
-			PipelineJob pj = createComponent(PipelineJob.class);
+			PipelineJob pj = create(new CreationRequest<PipelineJob>(PipelineJob.class)).get();
 			pj.addRequest(this, dd);
 		}
 	}
 
 	private void createProvenJob() {
-		PipelineJob pj = createComponent(PipelineJob.class);
+		PipelineJob pj = create(new CreationRequest<PipelineJob>(PipelineJob.class)).get();
 		pj.addRequest(this, DomainProvider.getProvenDisclosureDomain());
 	}
 
 	private void createCustomJob() {
-		PipelineJob pj = createComponent(PipelineJob.class);
+		PipelineJob pj = create(new CreationRequest<PipelineJob>(PipelineJob.class)).get();
 		pj.addRequest(this, null);
 	}
 

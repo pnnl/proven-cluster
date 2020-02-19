@@ -56,16 +56,12 @@ import javax.naming.NamingException;
 
 import org.slf4j.Logger;
 
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.ClusterEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MemberEvent;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry;
 
 /**
  * Represents a Proven module and is responsible for activation/deactivation of
@@ -108,7 +104,7 @@ public abstract class ProvenModule extends ManagedComponent {
 	public synchronized <T extends ManagerComponent> T getOrCreateManager(Class<T> clazz) {
 
 		T ret;
-		Optional<T> manager = getManager(clazz);
+		Optional<T> manager = getCreated(clazz);
 		if (manager.isPresent()) {
 			ret = manager.get();
 		} else {
@@ -120,7 +116,7 @@ public abstract class ProvenModule extends ManagedComponent {
 	public synchronized <T extends ManagerComponent> List<T> getOrCreateManagers(Class<T> clazz) {
 
 		List<T> ret;
-		Optional<List<T>> managers = getManagers(clazz);
+		Optional<List<T>> managers = getAllCreated(clazz);
 		if (managers.isPresent()) {
 			ret = managers.get();
 		} else {
@@ -137,39 +133,8 @@ public abstract class ProvenModule extends ManagedComponent {
 			throw new ProducesInactiveManagerException(
 					"Cannot produce manager: " + clazz.getSimpleName() + " It has been configured as inactive.");
 		}
-		T manager = createComponent(clazz);
+		T manager = create(new CreationRequest<T>(clazz)).get();
 		return manager;
-	}
-
-	private <T extends ManagerComponent> Optional<T> getManager(Class<T> manager) {
-		Optional<T> ret = Optional.empty();
-		for (ManagedComponent mc : createdComponents.values()) {
-			// CDI bean proxy is subclass
-			if (manager.isAssignableFrom(mc.getClass())) {
-				ret = Optional.of((T) mc);
-				break;
-			}
-		}
-
-		return ret;
-	}
-
-	private <T extends ManagerComponent> Optional<List<T>> getManagers(Class<T> manager) {
-
-		Optional<List<T>> ret = Optional.empty();
-		List<T> managerList = new ArrayList<>();
-
-		for (ManagedComponent mc : createdComponents.values()) {
-			// CDI bean proxy is subclass
-			if (manager.isAssignableFrom(mc.getClass())) {
-				managerList.add((T) mc);
-			}
-		}
-
-		if (!managerList.isEmpty()) {
-			ret = Optional.of(managerList);
-		}
-		return ret;
 	}
 
 	public ModuleStatus retrieveModuleStatus() {

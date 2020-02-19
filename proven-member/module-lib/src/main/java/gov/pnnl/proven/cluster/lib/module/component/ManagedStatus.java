@@ -231,16 +231,13 @@ public enum ManagedStatus {
 
 		boolean ret = true;
 
-		final ManagedStatus[] nonRecoverable = { Failed, OutOfService, NonRecoverable };
-		if (!status.isTransition()) {
-			for (ManagedStatus failedStatus : nonRecoverable) {
-				if (failedStatus == status) {
-					ret = false;
-					break;
-				}
+		final ManagedStatus[] nonRecoverable = { Failing, Failed, Removing, OutOfService, NonRecoverable };
+
+		for (ManagedStatus failedStatus : nonRecoverable) {
+			if (failedStatus == status) {
+				ret = false;
+				break;
 			}
-		} else {
-			ret = false;
 		}
 
 		return ret;

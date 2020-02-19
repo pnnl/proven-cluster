@@ -40,19 +40,19 @@
 
 package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-public class StatusLockException extends RuntimeException {
+public class MissingConfigureImplementationException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
-	public StatusLockException() {
+	public MissingConfigureImplementationException() {
 		super();
 	}
 
-	public StatusLockException(String message) {
+	public MissingConfigureImplementationException(String message) {
 		super(message);
 	}
 
-	public StatusLockException(String message, Throwable e) {
+	public MissingConfigureImplementationException(String message, Throwable e) {
 		super(message, e);
 	}
 	

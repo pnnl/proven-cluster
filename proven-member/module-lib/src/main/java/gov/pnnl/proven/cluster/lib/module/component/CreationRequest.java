@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -52,28 +54,47 @@ import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationReq
  * The class constructor will verify that the request is valid, if not an
  * exception will be thrown.
  * 
+ * @param T type of ManagedComponent to create
+ * 
  * @see {@link #CreationRequest(Class, List)}
  * 
  * @author d3j766
  *
  */
-public class CreationRequest {
-
+public class CreationRequest<T extends ManagedComponent> {
+	
 	/**
 	 * Component type to create
 	 */
-	private Class<? extends ManagedComponent> clazz;
+	private Class<T> subtype;
+
+	/**
+	 * (Optional) If present, indicates the creation request is a for a
+	 * {@code Creator#scale(CreationRequest)} operation. The scaleSource value
+	 * is the component that triggered the scale request. If not present, this
+	 * request is for a {@code Creator#create(CreationRequest)} operation.
+	 */
 	private Optional<UUID> scaleSource;
 
 	/**
-	 * List of configuration objects, if any.
+	 * List of configuration objects, if any. Empty list indicates no
+	 * configuration.
 	 */
 	private List<Object> config;
 
 	/**
+	 * List of qualifiers for instance creation, if any.
+	 * 
+	 * Default is no qualifiers.
+	 * 
+	 */
+	private List<Annotation> qualifiers = new ArrayList<>(); 
+	
+
+	/**
 	 * A request used to create a new managed component.
 	 * 
-	 * @param clazz
+	 * @param subtype
 	 *            type of component to create.
 	 * @param config
 	 *            (Optional) list of configuration objects to apply post
@@ -85,14 +106,14 @@ public class CreationRequest {
 	 *             component type is null, or provided configuration list is
 	 *             null.
 	 */
-	public CreationRequest(Class<? extends ManagedComponent> clazz, Object... config) {
-		this(clazz, Optional.empty(), config);
+	public CreationRequest(Class<T> subtype, Object... config) {
+		this(subtype, Optional.empty(), config);
 	}
 
 	/**
 	 * A request used to create a new managed component.
 	 * 
-	 * @param clazz
+	 * @param subtype
 	 *            type of component to create.
 	 * 
 	 * @param scaleSource
@@ -109,50 +130,28 @@ public class CreationRequest {
 	 *             component type is null, or provided scaleSource is null, or
 	 *             provided configuration list is null.
 	 */
-	public CreationRequest(Class<? extends ManagedComponent> clazz, Optional<UUID> scaleSource, Object... config) {
+	public CreationRequest(Class<T> subtype, Optional<UUID> scaleSource, Object... config) {
 
-		if (!isValidRequest(clazz, scaleSource, config)) {
+		if (!isValidRequest(subtype, scaleSource, config)) {
 			throw new InvalidCreationRequestException();
 		} else {
-			this.clazz = clazz;
+			this.subtype = subtype;
+			this.scaleSource = scaleSource;
 			this.config = Arrays.asList(config);
 		}
 
 	}
 
-	private boolean isValidRequest(Class<? extends ManagedComponent> clazz, Optional<UUID> scaleSource,
-			Object[] config) {
-
-		boolean ret = true;
-
-		if ((null != clazz) && (null != scaleSource) && (null != config)) {
-
-			List<Class<?>> expected = Creator.configuration(clazz);
-			int expectedSize = expected.size();
-
-			// List must be same size
-			if (config.length != expectedSize) {
-				ret = false;
-			} else {
-
-				if (!expected.isEmpty()) {
-					for (int i = 0; i < expectedSize; i++) {
-						if (!expected.get(i).equals(config[i].getClass())) {
-							ret = false;
-						}
-					}
-				}
-			}
-		}
-
-		return ret;
+	private boolean isValidRequest(Class<T> subtype, Optional<UUID> scaleSource, Object[] config) {
+		return ((null != subtype) && (null != scaleSource) && (null != config)
+				&& Creator.validConfiguration(subtype, Arrays.asList(config)));
 	}
 
 	/**
-	 * @return the clazz
+	 * @return the subtype
 	 */
-	public Class<? extends ManagedComponent> getClazz() {
-		return clazz;
+	public Class<T> getSubtype() {
+		return subtype;
 	}
 
 	/**
@@ -169,4 +168,18 @@ public class CreationRequest {
 		return config;
 	}
 
+	/**
+	 * @return the qualifiers
+	 */
+	public List<Annotation> getQualifiers() {
+		return qualifiers;
+	}
+
+	/**
+	 * @param qualifiers the qualifiers to set
+	 */
+	public void setQualifiers(List<Annotation> qualifiers) {
+		this.qualifiers = qualifiers;
+	}
+	
 }

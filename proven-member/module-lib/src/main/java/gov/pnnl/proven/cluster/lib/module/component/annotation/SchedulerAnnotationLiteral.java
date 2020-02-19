@@ -39,10 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import java.util.concurrent.TimeUnit;
-
 import javax.enterprise.util.AnnotationLiteral;
-import javax.enterprise.util.Nonbinding;
 
 /**
  * {@code Messenger} implementation.

@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
@@ -88,12 +90,26 @@ public class MessageStream extends StreamComponent {
 		log.debug("DefaultConstructer for MessageStream");
 	}
 	
-	//@Override
-	public void configure(DisclosureDomain dd, MessageStreamType mst) {
+	@Override
+	public void configure(List<Object> config) {		
+
+		DisclosureDomain dd = (DisclosureDomain) config.get(0); 
+		MessageStreamType mst = (MessageStreamType) config.get(1);
+		
 		this.streamName = mst.getStreamName(dd);
 		this.dd = dd;
 		this.mst = mst;
 		this.stream = hzi.getMap(streamName);
+	}
+	
+	@Override 
+	public Object[] configuration() {
+		
+		Object[] ret = new Object[2];
+		ret[0] = dd;
+		ret[1] = mst;
+		
+		return ret;
 	}
 
 	public String getStreamName() {

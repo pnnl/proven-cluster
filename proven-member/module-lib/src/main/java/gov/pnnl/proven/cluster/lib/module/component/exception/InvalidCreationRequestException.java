@@ -40,6 +40,9 @@
 
 package gov.pnnl.proven.cluster.lib.module.component.exception;
 
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+
 public class InvalidCreationRequestException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
@@ -49,6 +52,10 @@ public class InvalidCreationRequestException extends RuntimeException {
 	}
 
 	public InvalidCreationRequestException(String message) {
+		super(message);
+	}
+	
+	public <T extends ManagedComponent> InvalidCreationRequestException(String message, CreationRequest<T> cr) {
 		super(message);
 	}
 

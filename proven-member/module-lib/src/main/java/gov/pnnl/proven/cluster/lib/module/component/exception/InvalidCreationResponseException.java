@@ -37,72 +37,30 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import java.util.Optional;
-
-import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
-
-import org.slf4j.Logger;
-
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 
-@LockedStatusOperation
-@Interceptor
-@Priority(value = Interceptor.Priority.APPLICATION)
-public class ScaleLockInterceptor {
+public class InvalidCreationResponseException extends RuntimeException {
 
-	@Inject
-	Logger log;
+	private static final long serialVersionUID = 1L;
 
-	@AroundInvoke
-	public Object lockCreateOperation(InvocationContext ic) throws Exception {
-
-		Object ret = null;
-		Object target = ic.getTarget();
-		boolean isManagedComponent = (target instanceof ManagedComponent);
-
-		// Ignore if not a managed component
-		if (!isManagedComponent) {
-			return ic.proceed();
-		}
-
-		// Get Managed component and CreationRequest
-		ManagedComponent mc = (ManagedComponent) target;
-		Object[] params = (Object[]) ic.getParameters();
-		CreationRequest cr = (CreationRequest) params[0];
-		Optional<ManagedComponent> mcOpt = Optional.empty();
-
-		if (cr.getScaleSource().isPresent()) {
-			mc.getCreated(cr.getScaleSource().get());
-		}
-
-		log.debug("lockCreateOperation for creation of component type: " + cr.getClazz().getSimpleName());
-
-		/**
-		 * If create triggered by a scale request then lock both parent and its
-		 * source candidate
-		 * 
-		 * If create not triggered by a scale request then lock only parent
-		 */
-		try {
-			mc.acquireLockWait(STATUS_LOCK);
-
-			ret = ic.proceed();
-		} finally {
-			mc.releaseLock(STATUS_LOCK);
-		}
-
-		return ret;
+	public InvalidCreationResponseException() {
+		super();
 	}
 
+	public InvalidCreationResponseException(String message) {
+		super(message);
+	}
+	
+	public <T extends ManagedComponent> InvalidCreationResponseException(String message, CreationRequest<T> cr) {
+		super(message);
+	}
+
+	public InvalidCreationResponseException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

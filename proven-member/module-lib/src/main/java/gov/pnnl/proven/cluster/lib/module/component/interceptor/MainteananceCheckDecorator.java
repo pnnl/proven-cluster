@@ -53,8 +53,6 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceCheck;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
 

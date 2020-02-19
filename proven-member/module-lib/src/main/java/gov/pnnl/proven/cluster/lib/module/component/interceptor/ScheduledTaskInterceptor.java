@@ -59,7 +59,7 @@ import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 
 /**
- * Adds meta-data properties to scheduler.
+ * Adds meta-data properties to TaskSchedule.
  * 
  * 
  * @author d3j766

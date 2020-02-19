@@ -37,32 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+public class MissingConfigurationImplementationException extends RuntimeException {
 
-import javax.interceptor.InterceptorBinding;
+	private static final long serialVersionUID = 1L;
 
-/**
- * Indicates the annotated method requires locking of a component's collection
- * of created components.
- * 
- * This only applies to methods of a {@code ManagedComponent} type. Other types
- * will be ignored.
- * 
- * @author d3j766
- *
- */
-@Documented
-@InterceptorBinding
-@Retention(RUNTIME)
-@Target({ METHOD, TYPE })
-public @interface LockedCreatedOperation {
+	public MissingConfigurationImplementationException() {
+		super();
+	}
 
+	public MissingConfigurationImplementationException(String message) {
+		super(message);
+	}
+
+	public MissingConfigurationImplementationException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

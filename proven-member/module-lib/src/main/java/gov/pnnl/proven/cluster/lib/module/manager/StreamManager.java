@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.event.ObservesAsync;
@@ -61,9 +60,8 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.DomainEvent;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
@@ -208,8 +206,8 @@ public class StreamManager extends ManagerComponent {
 			if (!isManagedDomain(dd)) {
 				Set<MessageStream> messageStreams = new HashSet<MessageStream>();
 				for (MessageStreamType mst : MessageStreamType.values()) {	
-					MessageStream ms = createComponent(MessageStream.class);
-					ms.configure(dd, mst);
+					CreationRequest<MessageStream> cr = new CreationRequest<>(MessageStream.class, dd, mst);
+					MessageStream ms = create(cr).get();
 					messageStreams.add(ms);
 				}
 				domainStreams.put(dd, messageStreams);
@@ -222,7 +220,6 @@ public class StreamManager extends ManagerComponent {
 	}
 
 	@Override
-	@LockedStatusOperation
 	public boolean activate() {
 		// Initialize managed streams with Proven's default domain streams
 		log.debug("Creating default Proven managed streams");

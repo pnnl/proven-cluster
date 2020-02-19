@@ -55,7 +55,6 @@ import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 import javax.interceptor.InterceptorBinding;
 
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.messenger.StatusSchedule;
 
 /**

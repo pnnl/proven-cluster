@@ -85,11 +85,11 @@ public class StatusSchedule extends TaskSchedule {
 	}
 
 	@PostConstruct
-	public void initMessenger() {
+	public void initStatusSchedule() {
 	}
 
 	@PreDestroy
-	public void destroyMessenger() {
+	public void destroyStatusSchedule() {
 	}
 
 	/**
@@ -106,9 +106,11 @@ public class StatusSchedule extends TaskSchedule {
 			Annotation[] qualifiers = {};
 			StatusMessages sms = operator.reportStatus();
 
-			// If module has been suspended or shutdown then suspend or shutdown
-			// this component. Otherwise, proceed normally and send the
-			// component's messages.
+			/**
+			 * If module has been suspended or shutdown then suspend or shutdown
+			 * this component. Otherwise, proceed normally and send the
+			 * component's messages.
+			 */
 			if (pm.retrieveModuleStatus() == Suspended) {
 				operator.suspend();
 			} else if (pm.retrieveModuleStatus() == Shutdown) {

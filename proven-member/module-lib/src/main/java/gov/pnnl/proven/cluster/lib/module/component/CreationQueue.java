@@ -37,73 +37,104 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
-import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
-import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Suspend;
+import static gov.pnnl.proven.cluster.lib.module.component.Creator.scalable;
+import static gov.pnnl.proven.cluster.lib.module.component.Creator.scaleMaxCount;
 
-import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-import org.slf4j.Logger;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
+/**
+ * Manages creation requests for a ManagedComponent.
+ * 
+ * Simple wrapper around BlockingQueue. For scale requests, enforces a limit on
+ * the number of scale requests that can be in the queue at any one time for a
+ * creator and it's scalable candidate type. {@link Scalable#maxCount()} of the
+ * scalable candidate is the limit for a creator. Non-scalable requests are not
+ * limited.
+ *
+ * @param T
+ *            type of ManagedComponent queued for creation
+ * 
+ * @author d3j766
+ *
+ *
+ */
+public class CreationQueue<T extends ManagedComponent> {
 
-@LockedStatusOperation
-@Interceptor
-@Priority(value = Interceptor.Priority.APPLICATION)
-public class StatusLockInterceptor {
+	private Map<SimpleEntry<UUID, Class<T>>, Integer> scaleRequests = new HashMap<>();
 
-	@Inject
-	Logger log;
+	private BlockingQueue<SimpleEntry<UUID, CreationRequest<T>>> requestQueue = new LinkedBlockingQueue<>();
 
-	@AroundInvoke
-	public Object lockStatusOperation(InvocationContext ic) throws Exception {
+	public CreationQueue() {
+	}
 
-		Object ret = null;
-		Object target = ic.getTarget();
-		boolean isManagedComponent = (target instanceof ManagedComponent);
+	/**
+	 * Adds the provided request to the request queue and updates the creator's
+	 * count for the component type being created. If addition will violate
+	 * scale limit, the request is not added and method returns false.
+	 * 
+	 * @param creator
+	 *            identifier of component making the request
+	 * @param cr
+	 *            the CreationRequest
+	 * @return true if the request was added, false otherwise
+	 */
+	public boolean addRequest(UUID creator, CreationRequest<T> cr) {
 
-		// Ignore if not a managed component
-		if (!isManagedComponent) {
-			return ic.proceed();
-		}
+		boolean ret = false;
 
-		ManagedComponent mc = (ManagedComponent) target;
-		String op = ic.getMethod().getName().toLowerCase();
-		String shutdownOp = Shutdown.toString().toLowerCase();
-		String suspendOp = Suspend.toString().toLowerCase();
+		Class<T> sourceType = cr.getSubtype();
 
-		log.debug("Locked status operation: " + op);
+		boolean validRequest = true;
 
-		// For shutdown or Suspend, wait for lock acquisition
-		if ((op.equals(shutdownOp)) || (op.equals(suspendOp))) {
+		if (scalable(sourceType)) {
 
-			try {
-				mc.acquireLockWait(STATUS_LOCK);
-				ret = ic.proceed();
-			} finally {
-				mc.releaseLock(STATUS_LOCK);
-			}
+			synchronized (scaleRequests) {
+				int scaleMaxCount = scaleMaxCount(sourceType);
+				int requestCount = 0;
+				SimpleEntry<UUID, Class<T>> sre = new SimpleEntry<>(creator, sourceType);
+				if (!scaleRequests.containsKey(sre)) {
+					scaleRequests.put(sre, 0);
+				} else {
+					requestCount = scaleRequests.get(sre);
+				}
 
-		} else {
-
-			// Only proceed if lock acquired without wait
-			if (mc.acquireLockNoWait(STATUS_LOCK)) {
-				try {
-					ret = ic.proceed();
-				} finally {
-					mc.releaseLock(STATUS_LOCK);
+				if (requestCount >= scaleMaxCount) {
+					validRequest = false;
+				} else {
+					scaleRequests.put(sre, requestCount + 1);
 				}
 			}
+		}
 
+		if (validRequest) {
+			ret = requestQueue.add(new SimpleEntry<UUID, CreationRequest<T>>(creator, cr));
 		}
 
 		return ret;
+
 	}
+
+	public CreationRequest<T> removeRequest() throws InterruptedException {
+
+		// Blocks if queue is empty
+		SimpleEntry<UUID, CreationRequest<T>> ret = requestQueue.take();
+
+		synchronized (scaleRequests) {
+			SimpleEntry<UUID, Class<T>> sre = new SimpleEntry<>(ret.getKey(), ret.getValue().getSubtype());
+			int requestCount = scaleRequests.get(sre);
+			scaleRequests.put(sre, requestCount--);
+		}
+
+		return ret.getValue();
+	}
+
 }

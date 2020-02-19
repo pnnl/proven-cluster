@@ -40,6 +40,7 @@
 package gov.pnnl.proven.cluster.lib.module.component.maintenance;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -60,7 +61,11 @@ public class ComponentMaintenance {
 	}
 
 	public ComponentMaintenance(ManagedComponent operator) {
-		this.operator = operator;
+		this(operator, new ArrayList<Class<?>>());
+	}
+		
+	public ComponentMaintenance(ManagedComponent operator, Class<?>... maintenanceOps ) {
+		this(operator, Arrays.asList(maintenanceOps));
 	}
 		
 	public ComponentMaintenance(ManagedComponent operator, List<Class<?>> maintenanceOps) {

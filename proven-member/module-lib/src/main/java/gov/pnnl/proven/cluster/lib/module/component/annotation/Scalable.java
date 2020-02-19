@@ -53,7 +53,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
 
 /**
  * Indicates the annotated type is a scalable component. Provided member
- * properties are used to define the scaling configuration.
+ * properties are used to define it's scaling configuration.
  * 
  * @author d3j766
  *
@@ -65,32 +65,48 @@ public @interface Scalable {
 
 	/**
 	 * (Optional) The number of components allowed to be created as a result of
-	 * a specific component's status indicating it can no longer support new
-	 * task processing. Failed and/or busy states will trigger a scale operation
-	 * to create a new component(s) of the same type.
+	 * a specific component's status value that indicates it can no longer
+	 * support new task processing. Failed and/or busy states will trigger a
+	 * scale operation to create a new component(s) of the same type.
 	 * 
 	 * Default is 1 per triggering component.
 	 * 
-	 * see ManagedComponentStatus
+	 * Allowed count must be greater then 0. If this is not the case an
+	 * InvalidScalableConfigurationException will be thrown when Scalable
+	 * component is created
+	 * 
+	 * see ManagedComponentStatus,
+	 * {@link StatusOperation.Operation#RequestScale}
 	 * 
 	 */
 	@Nonbinding
-	int alowedPerComponent() default 1;
+	int allowedCount() default 1;
 
 	/**
-	 * (Optional) Initial number of components at startup, a count below this
-	 * setting will trigger a scale operation.  
+	 * (Optional) Minimum number of {@link ManagedStatus#Online} components for
+	 * this scalable type. A count below this setting will trigger a scale
+	 * operation.
 	 * 
 	 * Default is 1.
+	 * 
+	 * Min count must be greater then 0 and it must be less then or equal to max
+	 * count. If this is not the case an InvalidScalableConfigurationException
+	 * will be thrown when Scalable component is created
+	 * 
 	 */
 	@Nonbinding
-	int initialCount() default 1;
+	int minCount() default 1;
 
 	/**
 	 * (Optional) Indicates maximum number of {@link ManagedStatus#Online}
 	 * components for this scalable type.
 	 * 
 	 * Default is 5.
+	 * 
+	 * Max count must be greater then 0 and it must be greater then or equal to min
+	 * count. If this is not the case an InvalidScalableConfigurationException
+	 * will be thrown when Scalable component is created
+	 *  
 	 */
 	@Nonbinding
 	int maxCount() default 5;

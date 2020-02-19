@@ -58,7 +58,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
-import gov.pnnl.proven.cluster.lib.module.component.ComponentType;
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
@@ -100,8 +100,8 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 		log.debug("Post construct for DisclosureBuffer");
 
-		de = createComponent(DisclosureEntries.class);
-
+		de = create(new CreationRequest<DisclosureEntries>(DisclosureEntries.class)).get();
+		
 		// Create buffer instance
 		buffer = hzi.getRingbuffer(getDoId());
 		log.debug("Disclosure Buffer created. DO-ID:: " + DistributedObjectUtil.getName(buffer));
@@ -189,6 +189,5 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	void addLocalExchange(RequestBuffer rb) {
 		localExchange = rb;
 	}
-
 
 }

@@ -37,44 +37,96 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.module.component;
 
-package gov.pnnl.proven.cluster.lib.module.component.exception;
+import java.util.ArrayList;
+import java.util.List;
 
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation;
+import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationResponseException;
 
-public class StatusOperationException extends RuntimeException {
+/**
+ * Represents the creation response for a creation request.
+ * 
+ * @param T
+ *            type of ManagedComponent(s) created
+ * 
+ * @see CreationRequest
+ * 
+ * @author d3j766
+ *
+ */
+public class CreationResponse<T extends ManagedComponent> {
 
-	private static final long serialVersionUID = 1L;
+	/**
+	 * Source request
+	 */
+	private CreationRequest<T> request;
 
-	private Operation op;
+	/**
+	 * List of created components
+	 */
+	private List<T> created = new ArrayList<>();
 
-	public StatusOperationException() {
-		super();
+	/**
+	 * The response contains the source request and created components.
+	 * 
+	 * @param request
+	 *            the source request
+	 * @param created
+	 *            list of created components
+	 * 
+	 * @throws InvalidCreationResponseException
+	 *             if provided created list is empty. The response must have one
+	 *             or more created components. An empty list indicates an issue
+	 *             with the request or the creation operation itself.
+	 */
+	public CreationResponse(CreationRequest<T> request, List<T> created) {
+
+		this.request = request;
+		this.created = created;
+
+		if (created.isEmpty()) {
+			throw new InvalidCreationResponseException("A creation response must have at least one created component",
+					request);
+		}
 	}
 
-	public StatusOperationException(Operation op) {
-		super();
-		this.op = op;
+	/**
+	 * Retrieves the created component.
+	 * 
+	 * If multiple components were created, this retrieves the first component
+	 * from the created list.
+	 * 
+	 * @return the created component
+	 * 
+	 */
+	public T get() {
+		return created.get(0);
+	}
+	
+	public int createdCount() {
+		return created.size();
+	}
+	
+	/**
+	 * @return true if more then one component was created.
+	 */
+	public boolean multiple() {
+		return created.size() > 1;
 	}
 
-	public StatusOperationException(Operation op, String message) {
-		super(message);
-		this.op = op;
+	/**
+	 * @return the created components
+	 */
+	public List<T> getCreated() {
+		return created;
 	}
 
-	public StatusOperationException(Operation op, Throwable e) {
-		super(e);
-		this.op = op;
-
-	}
-
-	public StatusOperationException(Operation op, String message, Throwable e) {
-		super(message, e);
-		this.op = op;
-	}
-
-	public Operation getOp() {
-		return op;
+	/**
+	 * @return the request
+	 */
+	public CreationRequest<T> getRequest() {
+		return request;
 	}
 
 }

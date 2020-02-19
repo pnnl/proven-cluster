@@ -129,7 +129,7 @@ public class MaintenanceSchedule extends TaskSchedule {
 			// Get component maintenance information from operator
 			SortedSet<MaintenanceOperation> cOps = mr.getOps(operator);
 
-			// First perform scheduler checks. Report only if FAILED
+			// First perform scheduler checks. Report to registry only if FAILED
 			MaintenanceOperationResult result = operator.schedulerCheck(sOps);
 			if (result.getStatus() == MaintenanceOperationStatus.FAILED) {
 				MaintenanceEvent event = new MaintenanceEvent(operator, result, sOps, registryOverdueMillis);

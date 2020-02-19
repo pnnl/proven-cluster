@@ -37,66 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Shutdown;
-import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.Suspend;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
+public class LockAcquireException extends Exception {
 
-import org.slf4j.Logger;
+	private static final long serialVersionUID = 1L;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.LockedStatusOperation;
-
-@LockedStatusOperation
-@Interceptor
-@Priority(value = Interceptor.Priority.APPLICATION)
-public class CreateLockInterceptor {
-
-	@Inject
-	Logger log;
-
-	@AroundInvoke
-	public Object lockStatusOperation(InvocationContext ic) throws Exception {
-
-		Object ret = null;
-		Object target = ic.getTarget();
-		boolean isManagedComponent = (target instanceof ManagedComponent);
-
-		// Ignore if not a managed component
-		if (!isManagedComponent) {
-			return ic.proceed();
-		}
-
-		ManagedComponent mc = (ManagedComponent) target;
-		String op = ic.getMethod().getName().toLowerCase();
-		String shutdownOp = Shutdown.toString().toLowerCase();
-		String suspendOp = Suspend.toString().toLowerCase();
-
-		log.debug("Locked status operation: " + op);
-
-		// For shutdown or Suspend, wait for lock acquisition
-		if ((op.equals(shutdownOp)) || (op.equals(suspendOp))) {
-
-			try {
-				mc.acquireLockWait(STATUS_LOCK);
-				mc.acquireLockWait(CREATED_LOCK);
-				ret = ic.proceed();
-			} finally {
-				mc.releaseLock(ComponentLock.CREATED_LOCK);
-				mc.releaseLock(ComponentLock.STATUS_LOCK);
-			}
-
-		} 
-		
-		return ret;
+	public LockAcquireException() {
+		super();
 	}
+
+	public LockAcquireException(String message) {
+		super(message);
+	}
+
+	public LockAcquireException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

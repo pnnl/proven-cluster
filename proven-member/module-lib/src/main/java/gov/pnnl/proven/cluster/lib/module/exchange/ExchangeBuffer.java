@@ -358,6 +358,9 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 				try {
 					buffer.addAllAsync(items, OverflowPolicy.OVERWRITE).get();
 				} catch (InterruptedException | ExecutionException e) {
+					if (e instanceof InterruptedException) {
+						Thread.currentThread().interrupt();
+					}
 					ret = false;
 					e.printStackTrace();
 				}

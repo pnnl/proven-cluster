@@ -38,65 +38,22 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.lib.module.manager;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-import java.util.HashSet;
-import java.util.Set;
+public class InvalidScalableConfigurationException extends RuntimeException {
 
-import javax.annotation.PostConstruct;
+	private static final long serialVersionUID = 1L;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
-import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
-
-/**
- * A component manager responsible for managing a set of {@code RequestExchange}
- * components that support the disclosure and processing of module requests.
- * 
- * @author d3j766
- * 
- * @see ComponentManager, RequestExchange
- *
- */
-@Scalable
-public class ExchangeManager extends ManagerComponent {
-
-	static Logger log = LoggerFactory.getLogger(ExchangeManager.class);
-
-	public static final int MIN_REQUEST_EXCHANGES = 4;
-
-	/**
-	 * Set of managed request exchange instances that provide access to
-	 * disclosure and exchange buffers supporting request processing.
-	 */
-	private Set<RequestExchange> res;
-
-	@PostConstruct
-	public void initialize() {
-		// Initialize manager with a new RequestExchange component
-		log.debug("Creating initial request exchange component");
-		res = new HashSet<RequestExchange>();
-		createExchange();
-
-	}
-
-	public ExchangeManager() {
+	public InvalidScalableConfigurationException() {
 		super();
 	}
 
-	/**
-	 * Creates and adds a new request exchange component to the manager.
-	 */
-	private void createExchange() {
-
-		for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
-			// RequestExchange re = reProvider.get();
-			RequestExchange re = create(new CreationRequest<RequestExchange>(RequestExchange.class)).get(); 
-			res.add(re);
-		}
+	public InvalidScalableConfigurationException(String message) {
+		super(message);
 	}
 
+	public InvalidScalableConfigurationException(String message, Throwable e) {
+		super(message, e);
+	}
+	
 }

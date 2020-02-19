@@ -37,64 +37,23 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component;
 
-import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Running;
+package gov.pnnl.proven.cluster.lib.module.component.exception;
 
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
-import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
-
-/**
- * Performs managed component creation.
- * 
- * @author d3j766
- *
- */
-public class CreateSchedule extends TaskSchedule {
+public class StatusLockAcquireException extends LockAcquireException {
 
 	private static final long serialVersionUID = 1L;
 
-	@Inject
-	Logger log;
-
-	@Inject
-	@Module
-	ProvenModule pm;
-
-	public CreateSchedule() {
+	public StatusLockAcquireException() {
+		super();
 	}
 
-	/**
-	 * Performs component creation
-	 */
-	@Override
-	protected void apply() {
-
-		if (operatorOpt.isPresent()) {
-
-			log.debug("Maintenance schedule APPLY for: " + operatorOpt.get().getDoId());
-
-			ManagedComponent operator = operatorOpt.get();
-
-			/**
-			 * Only apply component creation if module is running.
-			 */
-			ModuleStatus ms = pm.retrieveModuleStatus();
-			if (ms == Running) {
-
-			}
-		}
+	public StatusLockAcquireException(String message) {
+		super(message);
 	}
 
-	@Override
-	public boolean isReportable(MessageEvent event) {
-		return false;
+	public StatusLockAcquireException(String message, Throwable e) {
+		super(message, e);
 	}
-
+	
 }

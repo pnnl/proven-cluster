@@ -42,7 +42,6 @@ package gov.pnnl.proven.cluster.lib.module.messenger;
 import java.util.HashSet;
 import java.util.Set;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 public class StatusMessages {

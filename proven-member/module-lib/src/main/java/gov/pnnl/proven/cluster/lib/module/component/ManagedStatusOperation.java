@@ -39,16 +39,11 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component;
 
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Ready;
-
 import java.util.SortedSet;
-import java.util.UUID;
 
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
 
 /**
  * Identifies {@code ManagedComponent} status operations.
@@ -63,17 +58,16 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
 public interface ManagedStatusOperation {
 
 	/**
-	 * Components may request a scale operation be performed by their parent component.
-	 * The new component will be of the same type as the component making the
-	 * request. 
+	 * Components may request a scale operation be performed by their parent
+	 * component. The new component will be of the same type as the component
+	 * making the request.
 	 * 
-	 * @see StatusOperation#operation(){@link #requestScale()}
-	 * 
+	 * @return true if the request was sucessfully submitted, false otherwise.
 	 */
-	void requestScale();
+	boolean requestScale();
 
 	/**
-	 * Component is activated.
+	 * Component activation.
 	 * 
 	 * @return true if the component was successfully activated, false otherwise
 	 */
@@ -118,7 +112,7 @@ public interface ManagedStatusOperation {
 	 * performed operations.
 	 * 
 	 * @param ops
-	 *            the set of maintenance operations to perform.
+	 *            the set of maintenance operations to perform.  
 	 * 
 	 * @return a MaintenanceOperationResult
 	 */

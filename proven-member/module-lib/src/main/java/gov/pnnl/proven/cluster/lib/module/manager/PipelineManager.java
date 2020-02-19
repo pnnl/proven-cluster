@@ -47,6 +47,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProviderAnnotationLiteral;
 
@@ -64,22 +65,19 @@ public class PipelineManager extends ManagerComponent {
 	@Inject
 	Logger log;
 
-	@PostConstruct
-	public void initialize() {
-	}
-
 	public PipelineManager() {
 		super();
 	}
 	
-	//@Override
-	public boolean activate() {
-		// Load PipelineRequest implementations as managed components
-		List<PipelineRequest> prs = createComponents(PipelineRequest.class,
-				new PipelineRequestProviderAnnotationLiteral() {
-				});
+	@PostConstruct
+	public void initialize() {
+
+		// Create all managed pipeline requests
+		CreationRequest<PipelineRequest> cr = new CreationRequest<>(PipelineRequest.class);
+		cr.getQualifiers().add(new PipelineRequestProviderAnnotationLiteral() {});
+		List<PipelineRequest> prs = create(cr).getCreated();
 		log.info(prs.size() + " PipelineRequests created by PipelineManager: " + this.getDoId());
-		return true;
 	}
+
 
 }

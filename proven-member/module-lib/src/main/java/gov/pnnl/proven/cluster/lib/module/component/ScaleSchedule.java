@@ -37,31 +37,71 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.component.annotation;
+package gov.pnnl.proven.cluster.lib.module.component;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Running;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import javax.inject.Inject;
 
-import javax.interceptor.InterceptorBinding;
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 /**
- * Indicates the annotated method requires locking of the component's status.
- * 
- * This only applies to methods of a {@code ManagedComponent} type. Other types
- * will be ignored.
+ * Performs managed component scaling.
  * 
  * @author d3j766
  *
  */
-@Documented
-@InterceptorBinding
-@Retention(RUNTIME)
-@Target({ METHOD, TYPE })
-public @interface LockedStatusOperation {
+public class ScaleSchedule extends TaskSchedule {
+
+	private static final long serialVersionUID = 1L;
+
+	@Inject
+	Logger log;
+
+	@Inject
+	@Module
+	ProvenModule pm;
+
+	public ScaleSchedule() {
+	}
+
+	/**
+	 * Performs scale operation
+	 */
+	@Override
+	protected void apply() {
+
+		if (operatorOpt.isPresent()) {
+
+			log.debug("Scale schedule APPLY for: " + operatorOpt.get().getDoId());
+
+			ManagedComponent operator = operatorOpt.get();
+
+			/**
+			 * Only apply component scaling if module is running.
+			 */
+			ModuleStatus ms = pm.retrieveModuleStatus();
+			if (ms == Running) {
+
+				// Blocks if creation queue is empty.  
+				try {
+					operator.scale(operator.removeScaleRequest());
+				} catch (InterruptedException e) {
+					// Preserve evidence of the interruption.
+					Thread.currentThread().interrupt();
+				}
+			}
+		}
+	}
+
+	@Override
+	public boolean isReportable(MessageEvent event) {
+		return false;
+	}
 
 }
