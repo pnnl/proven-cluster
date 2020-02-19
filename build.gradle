@@ -22,8 +22,10 @@ buildscript {
 subprojects {
 
 	ext.javaEEVersion = "8.0"
-	ext.jetVersion = "3.0"
-	ext.jetHazelcastVersion = "3.12"
+	//ext.jetVersion = "3.0"
+	ext.jetVersion = "3.2.2"
+	//ext.jetHazelcastVersion = "3.12"
+	ext.jetHazelcastVersion = "3.12.6"
 	ext.payaraVersion = "5.192"
 	ext.payaraHazelcastVersion = "3.12"
 	ext.payaraJerseyVersion = "2.28"
