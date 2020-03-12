@@ -56,38 +56,42 @@ import javax.naming.NamingException;
 
 import org.slf4j.Logger;
 
+import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**
- * Represents a Proven module and is responsible for activation/deactivation of
- * {@code ManagerComponent}s. Implementations represent the module applications.
+ * A Proven Module is the root component of a module's {@code ManagedComponent}
+ * tree. That is, all managed components are either directly or indirectly child
+ * components of a ProvenModule. At module startup this component is created,
+ * other component creation follows. Specifically, a ProvenModule is responsible
+ * for creating all active managers which in turn are responsible for creating
+ * their managed components
  * 
- * A Proven Module is the root of a managed component tree. That is, all managed
- * components are {@code Dependent} either directly or indirectly on the Proven
- * Module.
+ * @see ManagerComponent, ActiveManagers
  * 
  * @author d3j766
  *
  */
 @ApplicationScoped
 @Module
-public abstract class ProvenModule extends ManagedComponent {
+public abstract class ProvenModule extends ModuleComponent {
 
 	@Inject
 	Logger log;
 
+	@Inject
+	protected PayaraMicroRuntime pmr;
+	
 	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
 
 	// Set of active managers selected for this module
 	Set<Class<?>> activeManagers;
-
-	// Module identifier
-	private static UUID moduleId;
 
 	// Module name
 	private static String moduleName;
@@ -98,6 +102,10 @@ public abstract class ProvenModule extends ManagedComponent {
 
 	@PostConstruct
 	public void init() {
+		UUID memberId = UUID.fromString(pmr.getLocalDescriptor().getMemberUUID());
+		UUID moduleId, managerId, creatorId;
+		moduleId = managerId = creatorId = this.id;
+		entryLocation(new EntryLocation(memberId, moduleId, managerId, creatorId));
 		createManagers();
 	}
 
@@ -139,13 +147,6 @@ public abstract class ProvenModule extends ManagedComponent {
 
 	public ModuleStatus retrieveModuleStatus() {
 		return ModuleStatus.fromManagedStatus(getStatus());
-	}
-
-	public static UUID retrieveModuleId() {
-		if (null == moduleId) {
-			moduleId = UUID.randomUUID();
-		}
-		return moduleId;
 	}
 
 	public static String retrieveModuleName() {

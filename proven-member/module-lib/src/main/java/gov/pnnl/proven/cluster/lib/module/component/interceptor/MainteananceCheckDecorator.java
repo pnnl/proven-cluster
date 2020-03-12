@@ -53,7 +53,7 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceCheck;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
+import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceOperationResultEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
 
 @Decorator
@@ -87,9 +87,9 @@ public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
 		return result;
 	}
 
-	private MaintenanceOperationEvent createOpEvent(MaintenanceOperation mo) {
+	private MaintenanceOperationResultEntry createOpEvent(MaintenanceOperation mo) {
 
-		MaintenanceOperationEvent moe = new MaintenanceOperationEvent(mo);
+		MaintenanceOperationResultEntry moe = new MaintenanceOperationResultEntry(mo);
 		
 		return moe;
 	}

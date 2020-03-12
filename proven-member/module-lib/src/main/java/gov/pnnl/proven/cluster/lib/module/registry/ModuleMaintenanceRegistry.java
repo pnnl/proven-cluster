@@ -65,8 +65,6 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.StatusScheduleCheck;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
 
 /**
  * Retains registered {@code MaintenanceOperation}s performed by a
@@ -99,7 +97,7 @@ public class ModuleMaintenanceRegistry {
 	 * Component's historical data. Stores MaintenanceEvent objects in a limited
 	 * buffer.
 	 * 
-	 * Key = Component DO Identifier, Value = buffer
+	 * Key = Component's id, Value = buffer
 	 * 
 	 * TODO - Add this to a cluster version and store in IMDG
 	 */
@@ -184,7 +182,7 @@ public class ModuleMaintenanceRegistry {
 			}
 		}
 
-		// Ensure comon maintenance is included
+		// Ensure common maintenance is included
 		cm.getMaintenanceOps().addAll(commonMaintenance);
 
 		// Create sorted set of the maintenance operations
@@ -339,14 +337,14 @@ public class ModuleMaintenanceRegistry {
 	 * @param me
 	 *            the maintenance event to record.
 	 */
-	public void recordMaintenance(MaintenanceEvent me) {
+	public void recordMaintenance(MaintenanceResultEntry me) {
 		addComponentEvent(me);
 	}
 
-	private void addComponentEvent(MaintenanceEvent me) {
+	private void addComponentEvent(MaintenanceResultEntry me) {
 
 		synchronized (componentEventData) {
-			String key = me.getDoId();
+			String key = me.getcId().toString();
 			CircularFifoBuffer val = componentEventData.get(key);
 			if (null == val) {
 				val = new CircularFifoBuffer(MAINTENANCE_EVENT_LIMIT);
@@ -360,20 +358,20 @@ public class ModuleMaintenanceRegistry {
 	}
 
 	/**
-	 * Records a maintenance operation event.
+	 * Records results of a maintenance operation.
 	 * 
 	 * @param me
 	 *            the maintenance operation event to record.
 	 */
-	public void recordMaintenanceOperation(MaintenanceOperationEvent moe) {
+	public void recordMaintenanceOperation(MaintenanceOperationResultEntry moe) {
 		addComponentTypeEvent(moe);
 		addOperationEvent(moe);
 	}
 
-	private void addComponentTypeEvent(MaintenanceOperationEvent me) {
+	private void addComponentTypeEvent(MaintenanceOperationResultEntry me) {
 
 		synchronized (componentTypeEventData) {
-			Class<?> key = me.getComponentType();
+			Class<?> key = me.getcType();
 			CircularFifoBuffer val = componentTypeEventData.get(key);
 			if (null == val) {
 				val = new CircularFifoBuffer(MAINTENANCE_EVENT_LIMIT);
@@ -386,7 +384,7 @@ public class ModuleMaintenanceRegistry {
 
 	}
 
-	private void addOperationEvent(MaintenanceOperationEvent me) {
+	private void addOperationEvent(MaintenanceOperationResultEntry me) {
 
 		synchronized (operationEventData) {
 			String key = me.getOpName();

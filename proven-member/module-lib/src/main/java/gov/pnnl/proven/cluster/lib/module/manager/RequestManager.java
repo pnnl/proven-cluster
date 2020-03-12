@@ -42,7 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.lang.reflect.Method;
 
-import gov.pnnl.proven.cluster.lib.module.request.ModuleRequest;
+import gov.pnnl.proven.cluster.lib.module.request.module.ModuleRequest;
 
 public class RequestManager extends ManagerComponent {
 

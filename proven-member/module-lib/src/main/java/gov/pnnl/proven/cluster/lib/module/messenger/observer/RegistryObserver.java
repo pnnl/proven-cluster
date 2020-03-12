@@ -39,8 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
-import java.util.UUID;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -52,11 +50,10 @@ import org.slf4j.Logger;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleRegistry;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.MaintenanceOperationEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
+import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceResultEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
 
 /**
  * Observer methods for registry events.
@@ -78,27 +75,21 @@ public class RegistryObserver {
 	public void init() {
 	}
 
-	public void statusChange(@ObservesAsync @ModuleRegistry StatusEvent event, @Eager ModuleComponentRegistry mcr) {
-
-		log.debug("(Observing) Inside registry status/reporting operation for: " + event.getDoId());
-		mcr.recordStatus(event);
-
-		// If component is in a terminal state, then unregister.
-		if (ManagedStatus.isTerminal(event.getRequestorStatus())) {
-			mcr.unregister(event.getComponentId());
-		}
+	public void componentEntry(@ObservesAsync @ModuleRegistry ComponentEntry event,
+			@Eager ModuleComponentRegistry mcr) {
+		log.debug("(Observing) Inside registry component status/reporting operation");
+		mcr.record(event);
 	}
-		
-	public void maintenance(@Observes @ModuleRegistry MaintenanceEvent event,
+
+	public void maintenanceEntry(@Observes @ModuleRegistry MaintenanceResultEntry event,
 			@Eager ModuleMaintenanceRegistry mmr) {
 
-		log.debug("(Observing) Inside registry maintenance/reporting operation for: " + event.getDoId());
+		log.debug("(Observing) Inside registry maintenance/reporting operation");
 		mmr.recordMaintenance(event);
 
 		// If no longer a maintained component, then unregister.
 		if (!ManagedStatus.isRecoverable(event.getResult().getSeverity().getStatus())) {
-			mmr.unregister(event.getComponentId());
+			mmr.unregister(event.getcId());
 		}
-
 	}
 }

@@ -56,8 +56,8 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 
 /**
  * Sends {@code StatusMessages} on a fixed delay schedule.
@@ -104,7 +104,7 @@ public class StatusSchedule extends TaskSchedule {
 
 			ManagedComponent operator = operatorOpt.get();
 			Annotation[] qualifiers = {};
-			StatusMessages sms = operator.reportStatus();
+			StatusOperationMessages sms = operator.reportStatus();
 
 			/**
 			 * If module has been suspended or shutdown then suspend or shutdown
@@ -119,7 +119,7 @@ public class StatusSchedule extends TaskSchedule {
 			} else {
 				// Go ahead and send messages. Module is either Running or
 				// in-transition state (i.e. Unknown)
-				for (StatusOperationMessage sm : sms.getMessages()) {
+				for (StatusOperationMessage sm : sms.getOpMessages()) {
 
 					if (sm.getQualifiers().isPresent()) {
 						List<Annotation> qualifierList = sm.getQualifiers().get();
@@ -142,9 +142,9 @@ public class StatusSchedule extends TaskSchedule {
 				}
 			}
 
-			// Always report operator's status to registry
-			StatusEvent event = sms.getStatusEvent();
-			event.setRegistryOverdueMillis(registryOverdueMillis);
+			// Notify operator's status to registry
+			ComponentEntry event = sms.getEntry();
+			event.setOverdueMillis(registryOverdueMillis);
 			notifyRegistry(event, true);
 
 		}
@@ -155,8 +155,8 @@ public class StatusSchedule extends TaskSchedule {
 	public boolean isReportable(MessageEvent event) {
 
 		ManagedStatus reportedStatus = (null == reported()) ? (ManagedStatus.Unknown)
-				: (((StatusEvent) reported()).getRequestorStatus());
-		ManagedStatus reportingStatus = ((StatusEvent) event).getRequestorStatus();
+				: (((ComponentEntry) reported()).getcStatus());
+		ManagedStatus reportingStatus = ((ComponentEntry) event).getcStatus();
 		return ((reportingStatus != reportedStatus));
 	}
 

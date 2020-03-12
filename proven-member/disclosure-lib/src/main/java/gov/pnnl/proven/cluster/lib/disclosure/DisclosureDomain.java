@@ -55,25 +55,25 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 
 /**
  * Information disclosed by external clients to a Proven Cluster are organized
- * under domain names. A valid domain name used by Proven must have a recognized
- * top-level domain as defined in {@code DomainValidator}.
+ * and stored by domain name. A valid domain name used by Proven must have a
+ * recognized top-level domain as defined in {@code DomainValidator}.
  * 
  * @author d3j766
  *
  * @see DomainValidator
- * @since
  * 
  */
 public class DisclosureDomain implements IdentifiedDataSerializable, Serializable {
 
 	private static final long serialVersionUID = 1L;
+
 	static Logger log = LoggerFactory.getLogger(DisclosureDomain.class);
 
 	/**
 	 * Domain name.
 	 */
-	String domain;
-	
+	protected String domain;
+
 	public DisclosureDomain() {
 	}
 
@@ -86,17 +86,21 @@ public class DisclosureDomain implements IdentifiedDataSerializable, Serializabl
 		}
 		this.domain = domain;
 	}
-	
+
 	public DisclosureDomain(DisclosureDomain dd) {
 		this.domain = dd.domain;
 	}
-	
+
 	public static boolean isValidDomain(String domain) {
 		return DomainValidator.getInstance().isValid(domain);
 	}
-	
+
 	public String getDomain() {
 		return domain;
+	}
+
+	public String toString() {
+		return getDomain();
 	}
 
 	public String getReverseDomain() {
@@ -104,10 +108,10 @@ public class DisclosureDomain implements IdentifiedDataSerializable, Serializabl
 		String[] parts = domain.split("\\.");
 		int end = 0;
 		int start = parts.length;
-		
+
 		while (start > end) {
-			ret += parts[start-1];
-			if ((start -1) != end) {
+			ret += parts[start - 1];
+			if ((start - 1) != end) {
 				ret += ".";
 			}
 			start--;
@@ -154,7 +158,7 @@ public class DisclosureDomain implements IdentifiedDataSerializable, Serializabl
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeUTF(this.domain);
 	}
-	
+
 	@Override
 	public int getFactoryId() {
 		return ProvenMessageIDSFactory.FACTORY_ID;
@@ -163,7 +167,6 @@ public class DisclosureDomain implements IdentifiedDataSerializable, Serializabl
 	@Override
 	public int getId() {
 		return ProvenMessageIDSFactory.DISCLOSURE_DOMAIN_TYPE;
-	}	
+	}
 
-	
 }

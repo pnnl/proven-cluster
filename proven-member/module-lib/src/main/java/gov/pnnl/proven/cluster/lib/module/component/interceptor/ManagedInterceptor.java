@@ -39,8 +39,11 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import javax.annotation.Priority;
 import javax.enterprise.inject.InjectionException;
@@ -49,6 +52,7 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.interceptor.AroundConstruct;
+import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 
@@ -56,10 +60,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**
  * Verifies injection of a {@code Managed} component is being injected by a
@@ -93,10 +101,15 @@ public class ManagedInterceptor {
 		log.debug("Intercepted component :: " + intercepted.getBeanClass().getName());
 
 		Class<?> ic = intercepted.getBeanClass();
+		boolean moduleComponent = false;
 
-		// Proven Module - no checks, this is top of hierarchy
+		/**
+		 * If a ProvenModule - no pre/post construct checks are necessary, this
+		 * is root of tree
+		 */
 		if (ProvenModule.class.isAssignableFrom(ic)) {
-			log.debug("Proven Module : " + ic.getSimpleName());
+			moduleComponent = true;
+			log.debug("Managed interceptor for a Proven Module : " + ic.getSimpleName());
 		}
 
 		else {
@@ -167,6 +180,30 @@ public class ManagedInterceptor {
 
 		// OK to proceed
 		Object result = ctx.proceed();
+
+		/**
+		 * Set location values for constructed component if it is not the module
+		 * component. The module component, being the root component, has
+		 * already been initialized and its location values are passed down the
+		 * tree.
+		 */
+		if (!moduleComponent) {
+
+			Object target = ctx.getTarget();
+			ManagedComponent mc = (ManagedComponent) target;
+
+			Managed managed = (Managed) ip.getQualifiers().stream()
+					.filter((q) -> Managed.class.isAssignableFrom(q.getClass())).findAny().get();
+
+			//@formatter:off
+			mc.entryLocation(new EntryLocation(
+					UUID.fromString(managed.memberId()), 
+					UUID.fromString(managed.moduleId()), 
+					UUID.fromString(managed.managerId()),
+					UUID.fromString(managed.creatorId())));
+			//@formatter:on
+
+		}
 
 		log.debug("ManagedComponentInterceptor - AFTER construction.");
 

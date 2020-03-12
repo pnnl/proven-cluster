@@ -53,6 +53,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ModuleEvent;
@@ -74,7 +75,6 @@ import gov.pnnl.proven.cluster.lib.module.module.exception.NoModuleImplementatio
  */
 @Singleton
 @Startup
-@DependsOn({ "MemberProperties" })
 public class ModuleManager {
 
 	static Logger logger = LoggerFactory.getLogger(ModuleManager.class);
@@ -85,10 +85,18 @@ public class ModuleManager {
 	@Inject
 	@Module
 	Event<ModuleEvent> mse;
-	
+
 	@PostConstruct
 	public void initialize() throws ModuleStartupException {
 		logger.info("Enter PostConstruct for " + this.getClass().getSimpleName());
+
+		/**
+		 * Load and validate member properties. Will throw runtime exception if
+		 * property settings are invalid.
+		 */
+		@SuppressWarnings("unused")
+		MemberProperties props = MemberProperties.getInstance();
+
 		sendStartupMessage();
 		logger.info("Leave PostConstruct for " + this.getClass().getSimpleName());
 	}
@@ -109,7 +117,7 @@ public class ModuleManager {
 			mse.fire(ms);
 		}
 	}
-	
+
 	public void sendShutdownMessage() throws ModuleStartupException {
 		ShutdownEvent ms = new ShutdownEvent();
 		mse.fire(ms);

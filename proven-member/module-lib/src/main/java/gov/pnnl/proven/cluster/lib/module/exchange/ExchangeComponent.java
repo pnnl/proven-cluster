@@ -39,17 +39,26 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.inject.Inject;
 
+import org.slf4j.Logger;
+
+import com.hazelcast.core.IQueue;
+
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.IntegerProp;
 
 /**
  * 
- * Represents exchange components. These components are responsible for
- * exchanging disclosed data to domain message streams, as well as exchanging
- * disclosed service requests to {@code ServiceBuffer}(s) for execution.
+ * Represents an exchange component. These components are responsible for
+ * exchanging disclosed message information inside the cluster with other
+ * {@code ManagedComponent}s, including other exchange components, for
+ * processing and storage purposes.
+ * 
+ * @see EntryProperty
  * 
  * @author d3j766
  *
@@ -57,11 +66,22 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
  */
 public abstract class ExchangeComponent extends ManagedComponent {
 
-	static Logger log = LoggerFactory.getLogger(ExchangeComponent.class);
+	@Inject
+	Logger log;
+
+	/**
+	 * Staging queue.  
+	 */
+	IQueue<BufferedItem> exchangeQueue;
+	
+	/**
+	 * Entry property definitions
+	 */
+	public static final IntegerProp REMAINING_CAPACITY_PERCENT = new IntegerProp("remainingCapacityPercent");
 
 	public ExchangeComponent() {
 		super();
-		group.add(ComponentGroup.Exchange);
+		group = ComponentGroup.Exchange;
 	}
 
 }

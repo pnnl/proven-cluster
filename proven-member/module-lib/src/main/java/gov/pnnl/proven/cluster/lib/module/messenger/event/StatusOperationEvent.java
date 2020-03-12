@@ -43,7 +43,7 @@ import java.util.UUID;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
-public class StatusOperationEvent extends StatusEvent {
+public class StatusOperationEvent extends ComponentEvent {
 
 	UUID opCandidateId;
 

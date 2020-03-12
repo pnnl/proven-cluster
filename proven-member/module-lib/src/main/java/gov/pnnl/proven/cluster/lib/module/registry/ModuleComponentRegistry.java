@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.registry;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Schedule;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -52,10 +53,9 @@ import com.hazelcast.core.ISet;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 
 /**
- * Provides a Component Registry at the Member level.
+ * Component Registry at the Module level.
  * 
  * @author d3j766
  *
@@ -87,12 +87,15 @@ public class ModuleComponentRegistry {
 		System.out.println("Inside MemberComponentRegistry constructor");
 	}
 
-	public void recordStatus(StatusEvent event) {
+	public void record(ComponentEntry event) {
 		//TODO
 		// record status information
 	}
 	
+	@Schedule(dayOfWeek="Sun", hour="0")
 	public void unregister(UUID componentId) {
+		
+		
 		//TODO
 		// Ungegister
 		// Stop scheduler

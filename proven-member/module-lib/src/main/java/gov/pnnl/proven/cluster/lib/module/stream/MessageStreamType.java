@@ -57,11 +57,11 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
  * provided by Proven. Every disclosure domain will have its own set of message
  * streams as defined here, this includes the Proven disclosure domain as well.
  * 
- * Each stream type supports one or more {@code MessageGroup}s. Attempts to
- * add message content for a group not supported by the stream will not be
- * allowed.
+ * Each stream type supports one or more {@code MessageContent} types as defined
+ * in their {@code MessageContentGroup}. Attempts to add message content for a group
+ * not supported by the stream will not be allowed.
  * 
- * @see ProvenMessage, MessageGroup, MessageContent, DisclosureDomain,
+ * @see ProvenMessage, MessageContent, MessageContentGroup, DisclosureDomain,
  *      {@link DomainProvider#getProvenDisclosureDomain()}
  * 
  * @author d3j766
@@ -103,17 +103,17 @@ public enum MessageStreamType {
 	public List<MessageContentGroup> getMessageGroups() {
 		return messageGroups;
 	}
-	
+
 	public List<MessageContent> getMessageContents() {
-		
+
 		List<MessageContent> ret = new ArrayList<MessageContent>();
-		
+
 		for (MessageContentGroup mg : getMessageGroups()) {
 			for (MessageContent mc : mg.getMessageContents()) {
 				ret.add(mc);
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -129,7 +129,7 @@ public enum MessageStreamType {
 				}
 			}
 		}
-		
+
 		return ret;
 	}
 

@@ -49,7 +49,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.event.ObservesAsync;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -60,9 +59,6 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.DomainEvent;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
@@ -82,11 +78,6 @@ import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 public class StreamManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(StreamManager.class);
-	
-	// (Observer) - Missing domain
-	public void job(@ObservesAsync @Managed DomainEvent event) {
-		// TODO
-	}
 
 	/**
 	 * Set of managed message stream instances that provide access to the
@@ -96,7 +87,7 @@ public class StreamManager extends ManagerComponent {
 	private Map<DisclosureDomain, Set<MessageStream>> domainStreams;
 
 	@PostConstruct
-	public void initialize() {		
+	public void initialize() {
 		domainStreams = new HashMap<DisclosureDomain, Set<MessageStream>>();
 		createStreams(DomainProvider.getProvenDisclosureDomain());
 	}
@@ -201,11 +192,11 @@ public class StreamManager extends ManagerComponent {
 	 *            the disclosure domain
 	 */
 	private void createStreams(DisclosureDomain dd) {
-		
+
 		synchronized (domainStreams) {
 			if (!isManagedDomain(dd)) {
 				Set<MessageStream> messageStreams = new HashSet<MessageStream>();
-				for (MessageStreamType mst : MessageStreamType.values()) {	
+				for (MessageStreamType mst : MessageStreamType.values()) {
 					CreationRequest<MessageStream> cr = new CreationRequest<>(MessageStream.class, dd, mst);
 					MessageStream ms = create(cr).get();
 					messageStreams.add(ms);
@@ -223,8 +214,8 @@ public class StreamManager extends ManagerComponent {
 	public boolean activate() {
 		// Initialize managed streams with Proven's default domain streams
 		log.debug("Creating default Proven managed streams");
-		//domainStreams = new HashMap<DisclosureDomain, Set<MessageStream>>();
-		//MessageStream ms = createComponent(MessageStream.class);
+		// domainStreams = new HashMap<DisclosureDomain, Set<MessageStream>>();
+		// MessageStream ms = createComponent(MessageStream.class);
 		return true;
 	}
 

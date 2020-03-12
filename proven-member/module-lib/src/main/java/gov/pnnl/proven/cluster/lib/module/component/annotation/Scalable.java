@@ -103,10 +103,11 @@ public @interface Scalable {
 	 * 
 	 * Default is 5.
 	 * 
-	 * Max count must be greater then 0 and it must be greater then or equal to min
-	 * count. If this is not the case an InvalidScalableConfigurationException
-	 * will be thrown when Scalable component is created
-	 *  
+	 * Max count must be greater then 0 and it must be greater then or equal to
+	 * min count. If this is not the case an
+	 * InvalidScalableConfigurationException will be thrown when Scalable
+	 * component is created
+	 * 
 	 */
 	@Nonbinding
 	int maxCount() default 5;

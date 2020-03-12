@@ -66,7 +66,7 @@ public enum MaintenanceOperationSeverity {
 	Warn(CheckedOffline, 40),
 	Unavailable(Busy, 50),
 	Available(Online, 60),
-	Noop(Unknown, 70);
+	Noop(Online, 70);
 
 	private final ManagedStatus status;
 	private final int order;

@@ -54,7 +54,8 @@ import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationReq
  * The class constructor will verify that the request is valid, if not an
  * exception will be thrown.
  * 
- * @param T type of ManagedComponent to create
+ * @param T
+ *            type of ManagedComponent to create
  * 
  * @see {@link #CreationRequest(Class, List)}
  * 
@@ -62,7 +63,7 @@ import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationReq
  *
  */
 public class CreationRequest<T extends ManagedComponent> {
-	
+
 	/**
 	 * Component type to create
 	 */
@@ -71,8 +72,10 @@ public class CreationRequest<T extends ManagedComponent> {
 	/**
 	 * (Optional) If present, indicates the creation request is a for a
 	 * {@code Creator#scale(CreationRequest)} operation. The scaleSource value
-	 * is the component that triggered the scale request. If not present, this
-	 * request is for a {@code Creator#create(CreationRequest)} operation.
+	 * is the component that triggered the scale request (i.e.
+	 * {@code ManagedStatusOperation#requestScale()}. If not present, this
+	 * represents an asynchronous request for a
+	 * {@code Creator#create(CreationRequest)} operation.
 	 */
 	private Optional<UUID> scaleSource;
 
@@ -88,11 +91,17 @@ public class CreationRequest<T extends ManagedComponent> {
 	 * Default is no qualifiers.
 	 * 
 	 */
-	private List<Annotation> qualifiers = new ArrayList<>(); 
-	
+	private List<Annotation> qualifiers = new ArrayList<>();
 
 	/**
-	 * A request used to create a new managed component.
+	 * A request used to create a new managed component. This request does not
+	 * include a scale source, therefore does not result in a scale operation.
+	 * 
+	 * @param manager
+	 *            manager id of the component to create.
+	 * 
+	 * @param creator
+	 *            creator id of the component to create.
 	 * 
 	 * @param subtype
 	 *            type of component to create.
@@ -111,7 +120,14 @@ public class CreationRequest<T extends ManagedComponent> {
 	}
 
 	/**
-	 * A request used to create a new managed component.
+	 * A request used to create a new managed component. This request may
+	 * include a scale source, if so, it will result in a scale operation.
+	 * 
+	 * @param manager
+	 *            manager id of the component to create.
+	 * 
+	 * @param creator
+	 *            creator id of the component to create.
 	 * 
 	 * @param subtype
 	 *            type of component to create.
@@ -131,10 +147,11 @@ public class CreationRequest<T extends ManagedComponent> {
 	 *             provided configuration list is null.
 	 */
 	public CreationRequest(Class<T> subtype, Optional<UUID> scaleSource, Object... config) {
-
 		if (!isValidRequest(subtype, scaleSource, config)) {
 			throw new InvalidCreationRequestException();
 		} else {
+			// this.manager = manager;
+			// this.creator = creator;
 			this.subtype = subtype;
 			this.scaleSource = scaleSource;
 			this.config = Arrays.asList(config);
@@ -176,10 +193,11 @@ public class CreationRequest<T extends ManagedComponent> {
 	}
 
 	/**
-	 * @param qualifiers the qualifiers to set
+	 * @param qualifiers
+	 *            the qualifiers to set
 	 */
 	public void setQualifiers(List<Annotation> qualifiers) {
 		this.qualifiers = qualifiers;
 	}
-	
+
 }

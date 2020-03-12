@@ -39,74 +39,96 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.messenger.event;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.UUID;
 
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 
 /**
- * Provides information related to {@code ModuleComponent}s.
+ * An event message providing information for a {@code ManagedComponent}
  * 
  * @author d3j766
  *
  */
-public abstract class ComponentEvent extends MessageEvent {
+public abstract class ComponentEvent extends MessageEvent implements IdentifiedDataSerializable, Serializable {
 
-	String clusterGroup;
-	String host;
-	String hostAddress;
-	UUID memberId;
-	String containerName;
-	UUID moduleId;
-	Class<?> componentType;
-	UUID componentId;
-	String doId;
+	private static final long serialVersionUID = 1L;
+
+	UUID cId;
+	Class<?> cType;
+	String cName;
+	ManagedStatus cStatus;
 
 	public ComponentEvent(ManagedComponent c) {
-		clusterGroup = c.getClusterGroup();
-		host = c.getHost();
-		hostAddress = c.getHostAddress();
-		memberId = c.getMemberId();
-		containerName = c.getContainerName();
-		moduleId = c.getModuleId();
-		componentType = c.getComponentType();
-		componentId = c.getId();
-		doId = c.getDoId();
+		this.cId = c.getId();
+		this.cType = c.getType();
+		this.cName = c.getName();
+		this.cStatus = c.getStatus();
 	}
 
-	public String getClusterGroup() {
-		return clusterGroup;
+	/**
+	 * @return the cId
+	 */
+	public UUID getcId() {
+		return cId;
 	}
 
-	public String getHost() {
-		return host;
+	/**
+	 * @return the cType
+	 */
+	public Class<?> getcType() {
+		return cType;
 	}
 
-	public String getHostAddress() {
-		return hostAddress;
+	/**
+	 * @return the cName
+	 */
+	public String getcName() {
+		return cName;
 	}
 
-	public UUID getMemberId() {
-		return memberId;
+	/**
+	 * @return the cStatus
+	 */
+	public ManagedStatus getcStatus() {
+		return cStatus;
 	}
 
-	public String getContainerName() {
-		return containerName;
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		this.cId = UUID.fromString(in.readUTF());
+		try {
+			this.cType = Class.forName(in.readUTF());
+		} catch (ClassNotFoundException e) {
+			throw new IOException("Unable to read ComponentEvent's class type", e);
+		}
+		this.cName = in.readUTF();
+		this.cStatus = ManagedStatus.valueOf(in.readUTF());
 	}
 
-	public UUID getModuleId() {
-		return moduleId;
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(cId.toString());
+		out.writeUTF(cType.getName());
+		out.writeUTF(cName);
+		out.writeUTF(cStatus.toString());
 	}
 
-	public Class<?> getComponentType() {
-		return componentType;
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
 	}
 
-	public UUID getComponentId() {
-		return componentId;
-	}
-
-	public String getDoId() {
-		return doId;
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.COMPONENT_EVENT_TYPE;
 	}
 
 }

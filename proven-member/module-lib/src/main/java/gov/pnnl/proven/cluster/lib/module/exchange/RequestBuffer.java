@@ -52,8 +52,7 @@ import com.hazelcast.ringbuffer.Ringbuffer;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
-import gov.pnnl.proven.cluster.lib.module.request.RequestProxy;
-import gov.pnnl.proven.cluster.lib.module.service.ServiceBuffer;
+import gov.pnnl.proven.cluster.lib.module.request.module.RequestProxy;
 
 /**
  * A managed component supporting the collection and processing of
@@ -75,6 +74,7 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 	public static final BufferedItemState[] SUPPORTED_ITEM_STATES = { BufferedItemState.New,
 			BufferedItemState.Disclosed, BufferedItemState.Complete, BufferedItemState.Fail };
 
+	String doId;
 	Ringbuffer<RequestProxy<?>> buffer;
 	IExecutorService serviceBuffer;
 	DisclosureBuffer localDisclosure;
@@ -88,7 +88,8 @@ public class RequestBuffer extends ExchangeBuffer<RequestProxy<?>> {
 		log.debug("Post construct for ExchangeBuffer");
 		// TODO Add default declarative configurations for buffers
 		// TODO Integrate buffer id's into their names
-		buffer = hzi.getRingbuffer(getDoId());
+		doId = entryIdentifier().getReverseDomain();
+		buffer = hzi.getRingbuffer(doId);
 	}
 
 	@Inject

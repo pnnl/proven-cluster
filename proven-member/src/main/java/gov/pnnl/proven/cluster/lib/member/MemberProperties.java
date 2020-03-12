@@ -43,18 +43,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.member.exception.MemberConfigurationException;
 
 /**
- * 
  * Stores properties for a proven cluster member. For each module startup
- * process, a module's startup bean depends on this bean to successfully acquire
- * the member properties. These properties are defined in the
+ * process, these properties are used. The properties are defined in the
  * {@code proven-system-properties} file. Unsuccessful acquisition and/or
  * verification of these properties will short circuit a module's startup
  * process.
@@ -67,14 +64,15 @@ import gov.pnnl.proven.cluster.lib.member.exception.MemberConfigurationException
  * @author d3j766
  *
  */
-@Singleton
 public class MemberProperties {
 
 	static Logger log = LoggerFactory.getLogger(MemberProperties.class);
 
 	private static final char PROPERTY_LIST_DELIMITER = ',';
 
-	// member
+	/**
+	 * Proven Member properties
+	 */
 	private static final String MEMBER_INSTALL_ROOT_PROP = "proven.member.install.root";
 	private static final String MEMBER_PROVEN_INF_DIR = "PROVEN-INF/";
 	private static final String MEMBER_PROVEN_INF_DEPLOY_DIR = MEMBER_PROVEN_INF_DIR + "deploy/";
@@ -92,27 +90,46 @@ public class MemberProperties {
 	private static final String MEMBER_HAZELCAST_CONFIG_FILE = MEMBER_PROVEN_INF_DIR
 			+ MEMBER_HAZELCAST_CONFIG_FILE_NAME;
 
-	// hazelcast
+	/**
+	 * Hazelcast properties
+	 */
 	private static final String HAZELCAST_MEMBERS_PROP = "proven.hazelcast.members";
 	private static final String HAZELCAST_MEMBER_PORT_PROP = "proven.hazelcast.member.port";
 	private static final String HAZELCAST_GROUP_NAME = "proven.hazelcast.group.name";
 
-	// hazelcast jet
+	/**
+	 * Hazelcast jet properties
+	 */
 	private static final String JET_INSTANCE_NETWORK_ADDRESSES = "proven.jet.instance.network.addresses";
 	private static final String JET_INSTANCE_TEST_PORT = "proven.jet.instance.test.port";
 	private static final String JET_GROUP_NAME = "proven.jet.group.name";
 
-	// module-lib
+	/**
+	 * module-lib properties
+	 */
 	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed.component.max.retries";
 
-	// hybrid
+	/**
+	 * hybrid-module properties
+	 */
 	private static final String HYBRID_T3_SERVICE_URL = "proven.module.hybrid.t3.serviceUrl";
 
+	/**
+	 * Singleton instance of MemberProperties
+	 */
+	private static MemberProperties instance = null;
+
+	/**
+	 * (Required) Installation root path must be provided.
+	 */
 	private String installRoot;
 
-	@PostConstruct
-	public void init() throws RuntimeException {
+	private MemberProperties() {
 
+		/**
+		 * Get and configure installation root path. If not provided throw
+		 * exception.
+		 */
 		installRoot = System.getProperty(MEMBER_INSTALL_ROOT_PROP);
 		if (null == installRoot) {
 			throw new MemberConfigurationException("Missing " + MEMBER_INSTALL_ROOT_PROP + " value");
@@ -123,7 +140,25 @@ public class MemberProperties {
 		}
 	}
 
-	// Member property methods
+	public static MemberProperties getInstance() {
+
+		/**
+		 * Create singleton, if necessary
+		 */
+		if (null == instance) {
+			instance = new MemberProperties();
+		}
+
+		return instance;
+	}
+
+	/**
+	 * Convenience methods to retrieve property values.
+	 */
+
+	//////////////////////////////////////////////////////
+	// MEMBER PROPERTY METHODS
+
 	public File getInstallRootDir() {
 		return new File(installRoot);
 	}
@@ -158,6 +193,47 @@ public class MemberProperties {
 
 	public File getHazelcastConfigFile() {
 		return new File(installRoot, MEMBER_HAZELCAST_CONFIG_FILE);
+	}
+
+	//////////////////////////////////////////////////////
+	// HAZELCAST PROPERTY METHODS
+
+	public List<String> getHazelcastMembers() {
+		return getPropertyValues(HAZELCAST_MEMBERS_PROP, String.class);
+	}
+
+	public String getHazelcastGroupName() {
+		return getPropertyValue(HAZELCAST_GROUP_NAME, String.class);
+	}
+
+	public Integer getHazelcastMemberPort() {
+		return getPropertyValue(HAZELCAST_MEMBER_PORT_PROP, Integer.class);
+	}
+
+	//////////////////////////////////////////////////////
+	// HAZELCAST JET PROPERTY METHODS
+	public List<String> getJetInstanceAddresses() {
+		return getPropertyValues(JET_INSTANCE_NETWORK_ADDRESSES, String.class);
+	}
+
+	public Integer getJetInstanceTestPort() {
+		return getPropertyValue(JET_INSTANCE_TEST_PORT, Integer.class);
+	}
+
+	public String getJetGroupName() {
+		return getPropertyValue(JET_GROUP_NAME, String.class);
+	}
+
+	//////////////////////////////////////////////////////
+	// MODULE-LIB PROPERTY METHODS
+	public Integer getManagedComponentMaxRetries() {
+		return getPropertyValue(MANAGED_COMPONENT_MAX_RETRIES, Integer.class);
+	}
+
+	//////////////////////////////////////////////////////
+	// HYBRID MODULE PROPERTY METHODS
+	public String getHybridT3ServiceUrl() {
+		return getPropertyValue(HYBRID_T3_SERVICE_URL, String.class);
 	}
 
 	/**
@@ -223,42 +299,6 @@ public class MemberProperties {
 		}
 
 		return ret;
-	}
-
-	// Hazelcast property methods
-	public List<String> getHazelcastMembers() {
-		return getPropertyValues(HAZELCAST_MEMBERS_PROP, String.class);
-	}
-
-	public String getHazelcastGroupName() {
-		return getPropertyValue(HAZELCAST_GROUP_NAME, String.class);
-	}
-
-	public Integer getHazelcastMemberPort() {
-		return getPropertyValue(HAZELCAST_MEMBER_PORT_PROP, Integer.class);
-	}
-
-	// Hazelcast Jet property methods
-	public List<String> getJetInstanceAddresses() {
-		return getPropertyValues(JET_INSTANCE_NETWORK_ADDRESSES, String.class);
-	}
-
-	public Integer getJetInstanceTestPort() {
-		return getPropertyValue(JET_INSTANCE_TEST_PORT, Integer.class);
-	}
-
-	public String getJetGroupName() {
-		return getPropertyValue(JET_GROUP_NAME, String.class);
-	}
-	
-	// module-lib property methods
-	public Integer getManagedComponentMaxRetries() {
-		return getPropertyValue(MANAGED_COMPONENT_MAX_RETRIES, Integer.class);
-	}
-	
-	// Hybrid module property methods
-	public String getHybridT3ServiceUrl() {
-		return getPropertyValue(HYBRID_T3_SERVICE_URL, String.class);
 	}
 
 }

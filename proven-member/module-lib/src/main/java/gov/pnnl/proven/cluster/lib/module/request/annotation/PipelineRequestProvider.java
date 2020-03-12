@@ -53,8 +53,8 @@ import javax.inject.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
+import gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequest;
+import gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequestType;
 
 /**
  * Identifies annotated type as a {@code PipelineRequest} provider and informs

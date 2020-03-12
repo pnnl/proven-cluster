@@ -39,29 +39,35 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.LS;
 
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
 /**
  * 
- * Represents a component that performs message stream activities to support the operation of a
- * the Proven module.
+ * Components performing {@code MessageStream} storage and processing activities
+ * in support of the the operation of a Proven module.
  * 
  * @author d3j766
  *
- * @see ManagedComponent
+ * @see StreamManager, MessageStream
  *
  */
-public abstract class StreamComponent extends ManagedComponent {	
+public abstract class StreamComponent extends ManagedComponent {
 
-	static Logger log = LoggerFactory.getLogger(StreamComponent.class);
+	@Inject
+	Logger log;
 
 	public StreamComponent() {
 		super();
-		group.add(ComponentGroup.Stream);
+		group = ComponentGroup.Stream;
 	}
-	
+
 }

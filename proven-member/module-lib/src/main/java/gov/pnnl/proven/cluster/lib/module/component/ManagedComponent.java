@@ -43,12 +43,15 @@ import static gov.pnnl.proven.cluster.lib.module.component.Creator.scalable;
 import static gov.pnnl.proven.cluster.lib.module.component.Creator.scaleAllowedCount;
 import static gov.pnnl.proven.cluster.lib.module.component.Creator.scaleMaxCount;
 import static gov.pnnl.proven.cluster.lib.module.component.Creator.scaleMinCount;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.CheckedOffline;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Failed;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Offline;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Online;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedStatus.Unknown;
 import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Noop;
 import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.FAILED;
 import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation.RequestScale;
@@ -71,6 +74,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -78,21 +82,18 @@ import org.slf4j.Logger;
 
 import com.hazelcast.core.HazelcastInstance;
 
-import fish.payara.micro.PayaraMicro;
-import fish.payara.micro.PayaraMicroRuntime;
-import fish.payara.micro.data.InstanceDescriptor;
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
+import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreatedModificationException;
 import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationRequestException;
 import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidScalableConfigurationException;
 import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidStatusModificationException;
 import gov.pnnl.proven.cluster.lib.module.component.exception.MissingConfigurationImplementationException;
-import gov.pnnl.proven.cluster.lib.module.component.interceptor.StatusDecorator;
+import gov.pnnl.proven.cluster.lib.module.component.interceptor.ManagedInterceptor;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.MaintenanceSchedule;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ScheduledMaintenance;
@@ -101,24 +102,28 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.ScheduleCheck;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.StatusMessages;
 import gov.pnnl.proven.cluster.lib.module.messenger.StatusOperationMessage;
+import gov.pnnl.proven.cluster.lib.module.messenger.StatusOperationMessages;
 import gov.pnnl.proven.cluster.lib.module.messenger.StatusSchedule;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.Operation;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperationAnnotationLiteral;
-import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryDomain;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryReporter;
 
 /**
  * 
  * Base module component. Represents managed components within a Proven
  * application module, this includes the {@code ProvenModule} component itself.
  * Each component performs specific tasks to support a module's operation. These
- * components are registered with both their local and clustered registries. A
- * {@code ManagedComponent} may share its resources (compute and data) across
- * the cluster.
+ * components are registered with both their local, member, and cluster
+ * registries. A {@code ManagedComponent} may share its resources (compute and
+ * data) across the cluster.
  * 
  * @author d3j766
  *
@@ -126,24 +131,22 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
  * 
  */
 @Managed
-public abstract class ManagedComponent implements ManagedStatusOperation, ScheduledMaintenance, Creator {
+public abstract class ManagedComponent implements ManagedStatusOperation, ScheduledMaintenance, Creator, EntryReporter {
 
 	@Inject
 	Logger log;
 
-	private static final String BASE_NAME = "component.proven.pnnl.gov";
+	String test;
 
-	@Inject
-	protected MemberProperties mp;
-
-	@Inject
-	protected PayaraMicroRuntime pmr;
+	public void setTest(String test) {
+		this.test = test;
+	}
 
 	@Inject
 	protected HazelcastInstance hzi;
 
 	@Inject
-	@Managed
+	@Any
 	protected Instance<ManagedComponent> componentProvider;
 
 	@Inject
@@ -162,25 +165,24 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	@Eager
 	protected ManagedObserver opObserver;
 
-	// Identifier properties
+	/**
+	 * Member properties
+	 */
+	protected MemberProperties mp = MemberProperties.getInstance();
+
+	// Component properties
 	protected UUID id;
-	protected String doId;
-	protected UUID managerId;
-	protected UUID creatorId;
-	protected UUID memberId;
-	protected UUID moduleId;
-	protected Class<? extends ManagedComponent> componentType;
+	protected Class<? extends ManagedComponent> type;
+	protected String moduleName = ProvenModule.retrieveModuleName();
+	protected ComponentGroup group;
 	protected boolean isModule = false;
 	protected boolean isManager = false;
 
-	// Address properties
-	protected String clusterGroup;
-	protected InstanceDescriptor clusterGroup2;
-	protected String host;
-	protected String hostAddress;
-	protected String containerName;
-	protected String moduleName;
-	protected Set<ComponentGroup> group;
+	/**
+	 * Component location, this is initialized in
+	 * {@link ManagedInterceptor#verifyManagedComponent(javax.interceptor.InvocationContext)}
+	 */
+	EntryLocation location;
 
 	// Status and lock properties
 	private ManagedStatus status = Unknown;
@@ -208,10 +210,10 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * Created (i.e. child) components. The Map contains the component's ID as
 	 * the key and object as value.
 	 */
-	private Map<UUID, ManagedComponent> createdComponents;
+	private Map<UUID, ManagedComponent> createdComponents = new HashMap<>();
 
 	/**
-	 * Creation queue. Contains requests for component creation. Create schedule
+	 * Creation queue. Contains requests for component creation. Scale scheduler
 	 * is the consumer of this queue. {@code CreationQueue#removeRequest()} will
 	 * block waiting for new creation requests to be added.
 	 * 
@@ -222,24 +224,11 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	public ManagedComponent() {
 
-		containerName = PayaraMicro.getInstance().getInstanceName();
 		id = UUID.randomUUID();
-		group = new HashSet<>();
-		moduleId = ProvenModule.retrieveModuleId();
-		moduleName = ProvenModule.retrieveModuleName();
 		// Note: WELD specific; proxies are sub classes
-		componentType = (Class<? extends ManagedComponent>) this.getClass().getSuperclass();
-		isModule = ProvenModule.class.isAssignableFrom(componentType);
-		isManager = ManagerComponent.class.isAssignableFrom(componentType);
-
-		if (isModule) {
-			this.id = moduleId;
-			this.creatorId = moduleId;
-			this.managerId = moduleId;
-			this.group.add(ComponentGroup.Module);
-		}
-		group.add(ComponentGroup.Managed);
-		createdComponents = new HashMap<>();
+		type = (Class<? extends ManagedComponent>) this.getClass().getSuperclass();
+		isModule = ProvenModule.class.isAssignableFrom(type);
+		isManager = ManagerComponent.class.isAssignableFrom(type);
 
 		// Indicates component is being created - status is set to Ready in
 		// PostConstruct callback
@@ -249,37 +238,27 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	@PostConstruct
 	public void managedComponentInit() {
 
-		// Get payara runtime description
-		InstanceDescriptor instance = pmr.getLocalDescriptor();
-
-		// Member properties dependent on other injection members
-		doId = new DisclosureDomain(BASE_NAME).getReverseDomain() + "." + id + "_" + getComponentType().getSimpleName();
-		clusterGroup = instance.getInstanceGroup();
-		host = instance.getHostName().getHostName();
-		hostAddress = instance.getHostName().getHostAddress();
-		memberId = UUID.fromString(instance.getMemberUUID());
-
-		// Register with the observer
-		opObserver.register(this);
-
 		// Set and verify scalable properties, if any
 		if (this.getClass().isAnnotationPresent(Scalable.class)) {
-			if (Creator.scalable(getComponentType())) {
-				if (!Creator.isValidScaleConfiguration(getComponentType())) {
-					throw new InvalidScalableConfigurationException(getComponentType().getSimpleName());
+			if (Creator.scalable(getType())) {
+				if (!Creator.isValidScaleConfiguration(getType())) {
+					throw new InvalidScalableConfigurationException(getName());
 				}
 			}
 		}
 
-		// Register with status scheduler
+		// Register with the managed observer
+		opObserver.register(this);
+
+		// Register with status schedule
 		statusSchedule.register(this);
 
-		// Register default maintenance
+		// Register with maintenance schedule
 		maintenanceSchedule.register(this);
-		
-		// Register with scale scheduler
+
+		// Register with scale schedule
 		scaleSchedule.register(this);
-		
+
 		// Starting status for a managed component
 		setStatus(ManagedStatus.Ready);
 	}
@@ -347,48 +326,24 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	}
 
-	public String getClusterGroup() {
-		return clusterGroup;
+	public Class<? extends ManagedComponent> getType() {
+		return type;
 	}
 
-	public String getHost() {
-		return host;
-	}
-
-	public String getHostAddress() {
-		return hostAddress;
-	}
-
-	public UUID getMemberId() {
-		return memberId;
-	}
-
-	public String getContainerName() {
-		return containerName;
-	}
-
-	public UUID getModuleId() {
-		return moduleId;
-	}
-
-	public Class<? extends ManagedComponent> getComponentType() {
-		return componentType;
-	}
-
-	public String getModuleName() {
-		return moduleName;
+	public String getName() {
+		return getType().getSimpleName();
 	}
 
 	public UUID getId() {
 		return id;
 	}
 
-	public Set<ComponentGroup> getComponentGroups() {
+	public ComponentGroup getComponentGroup() {
 		return group;
 	}
 
-	public String getDoId() {
-		return doId;
+	public String getDomainLabel() {
+		return getComponentGroup().getGroupLabel();
 	}
 
 	public boolean isScalable() {
@@ -403,8 +358,16 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	/**
+	 * If locked it must have been previously acquired by same thread, if not
+	 * throw an exception.
+	 * 
 	 * @param scaledCount
-	 *            the scaledCount to set
+	 *            the number of scaled components triggered by this component.
+	 * 
+	 * @throws InvalidStatusModificationException
+	 *             if caller does not have a status lock for the component being
+	 *             modified.
+	 * 
 	 */
 	public void setScaledCount(int scaledCount) {
 
@@ -415,14 +378,9 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 				statusLock.unlock();
 			}
 		} else {
-			throw new InvalidStatusModificationException("Not lock owner for component: " + getDoId());
+			throw new InvalidStatusModificationException("Not lock owner for component: " + entryIdentifier());
 		}
-
 	}
-
-	/**
-	 * @return the allowedCount
-	 */
 
 	public StatusSchedule getStatusSchedule() {
 		return statusSchedule;
@@ -436,20 +394,16 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return scaleSchedule;
 	}
 
+	public void stopSchedules() {
+		getStatusSchedule().stop();
+		getMaintenanceSchedule().stop();
+		getScaleSchedule().stop();
+	}
+
 	private void enableComponent(ManagedComponent mc) {
 
-		// If the caller is a manager component, then use its identifier,
-		// otherwise pass through the manager identifier for the caller to the
-		// new component.
-		if (this instanceof ManagerComponent) {
-			mc.setManagerId(getId());
-		} else {
-			mc.setManagerId(getManagerId());
-		}
-
-		// Creator is always the caller
+		// Assign Creator (always the caller)
 		mc.creator = this;
-		mc.setCreatorId(getId());
 
 		// Activate scheduled messenger
 		mc.getStatusSchedule().start();
@@ -462,12 +416,16 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	}
 
-	public UUID getManagerId() {
-		return managerId;
+	public UUID getMemberId() {
+		return location.getMemberId();
 	}
 
-	protected void setManagerId(UUID managerId) {
-		this.managerId = managerId;
+	public UUID getModuleId() {
+		return location.getModuleId();
+	}
+
+	public UUID getManagerId() {
+		return location.getManagerId();
 	}
 
 	public ManagedComponent getCreator() {
@@ -475,11 +433,32 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	public UUID getCreatorId() {
-		return creatorId;
+		return location.getCreatorId();
 	}
 
-	protected void setCreatorId(UUID creatorId) {
-		this.creatorId = creatorId;
+	/**
+	 * If locked it must have been previously acquired by same thread, if not
+	 * throw an exception.
+	 * 
+	 * @param mc
+	 *            managed component to add
+	 * 
+	 * @throws InvalidCreatedModificationException
+	 *             if caller does not have a created lock for the component
+	 *             being modified.
+	 * 
+	 */
+	public void addCreated(ManagedComponent mc) {
+
+		if (createdLock.tryLock()) {
+			try {
+				this.createdComponents.put(mc.getId(), mc);
+			} finally {
+				createdLock.unlock();
+			}
+		} else {
+			throw new InvalidCreatedModificationException("Not lock owner for component: " + entryIdentifier());
+		}
 	}
 
 	public Set<UUID> getCreatedIds() {
@@ -513,7 +492,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		Optional<T> ret = Optional.empty();
 
 		for (ManagedComponent mc : createdComponents.values()) {
-			if (clazz.equals(mc.getComponentType())) {
+			if (clazz.equals(mc.getType())) {
 				ret = Optional.of((T) mc);
 				break;
 			}
@@ -540,7 +519,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 		for (ManagedComponent mc : createdComponents.values()) {
 			// CDI bean proxy is subclass
-			if (clazz.equals(mc.getComponentType())) {
+			if (clazz.equals(mc.getType())) {
 				cList.add((T) mc);
 			}
 		}
@@ -567,9 +546,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	/**
-	 * Lock should have been previously acquired, if not throw an exception.
-	 * Only decorated methods in StatusDecorator should be modifying a
-	 * component's status.
+	 * If locked it must have been previously acquired by same thread, if not
+	 * throw an exception.
 	 * 
 	 * @param status
 	 *            component's new status value
@@ -577,10 +555,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 *             if caller does not have a status lock for the component being
 	 *             modified.
 	 * 
-	 * @see StatusDecorator
-	 * 
 	 */
-	public void setStatus(ManagedStatus status) throws InvalidStatusModificationException {
+	public void setStatus(ManagedStatus status) {
 
 		if (statusLock.tryLock()) {
 			try {
@@ -589,9 +565,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 				statusLock.unlock();
 			}
 		} else {
-			throw new InvalidStatusModificationException("Not lock owner for component: " + getDoId());
+			throw new InvalidStatusModificationException("Not lock owner for component: " + entryIdentifier());
 		}
-
 	}
 
 	/**
@@ -605,7 +580,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		 * New creation request for component triggering scale operation (i.e.
 		 * this component)
 		 */
-		CreationRequest request = new CreationRequest(getComponentType(), Optional.of(getId()), configuration());
+		CreationRequest request = new CreationRequest(getType(), Optional.of(getId()), configuration());
 
 		/**
 		 * Request is added to Creator's creation queue
@@ -618,7 +593,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	public boolean activate() {
-		log.debug("No activation operation implementation for :: " + this.getComponentType());
+		log.debug("No activation operation implementation for :: " + this.getType());
 		return true;
 	}
 
@@ -627,7 +602,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	public boolean deactivate() {
-		log.debug("No deactivate operation implementation for :: " + this.getComponentType());
+		log.debug("No deactivate operation implementation for :: " + this.getType());
 		return true;
 	}
 
@@ -636,7 +611,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	public void remove() {
-		log.debug("No remove operation implementation for :: " + this.getComponentType());
+		log.debug("No remove operation implementation for :: " + this.getType());
 	}
 
 	/**
@@ -644,7 +619,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	public void suspend() {
-		log.debug("No suspend operation implementation for :: " + this.getComponentType());
+		log.debug("No suspend operation implementation for :: " + this.getType());
 	}
 
 	/**
@@ -652,7 +627,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	public void shutdown() {
-		log.debug("No shutdown operation implementation for :: " + this.getComponentType());
+		log.debug("No shutdown operation implementation for :: " + this.getType());
 	}
 
 	/**
@@ -660,7 +635,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	public void fail() {
-		log.debug("No fail operation implementation for :: " + this.getComponentType());
+		log.debug("No fail operation implementation for :: " + this.getType());
 	}
 
 	/**
@@ -669,73 +644,74 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	@Override
 	public <T extends MaintenanceOperation> MaintenanceOperationResult check(SortedSet<T> ops) {
 
-		log.debug("Check operation for :: " + this.getComponentType());
+		log.debug("Check operation for :: " + this.getType());
 
-		// Assume all checks pass
-		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available, Optional.empty());
+		// Assume NOOP
+		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Noop, Optional.empty());
 
-		// Record any failed operations.
-		Set<T> opFailures = new HashSet<>();
+		if (!ops.isEmpty()) {
 
-		/**
-		 * Process operations. They are ordered by high to low max severity.
-		 * 
-		 * Processing will terminate if:
-		 * 
-		 * (1) All operations PASSED
-		 * 
-		 * (2) An operation FAILED with max severity
-		 * 
-		 * (3) Current operation to be processed has a lower max severity then a
-		 * previous FAILED operation.
-		 */
-		MaintenanceOperationSeverity maxFailSeverity = null;
-		for (T op : ops) {
+			ret = new MaintenanceOperationResult(PASSED, Available, Optional.empty());
 
-			if (null != maxFailSeverity) {
-				if (maxFailSeverity.isHigherSeverity(op.maxSeverity())) {
+			// Record any failed operations.
+			Set<T> opFailures = new HashSet<>();
+
+			/**
+			 * Process operations. They are ordered by high to low max severity.
+			 * 
+			 * Processing will terminate if:
+			 * 
+			 * (1) All operations PASSED
+			 * 
+			 * (2) An operation FAILED with its max severity
+			 * 
+			 * (3) Current operation to be processed has a lower max severity
+			 * then a previous FAILED operation.
+			 */
+			for (T op : ops) {
+
+				if (ret.getSeverity().isHigherSeverity(op.maxSeverity())) {
 					break; // (3)
 				}
-			}
 
-			// Perform the check
-			MaintenanceOperationResult opResult = op.checkAndRepair();
+				// Perform the check
+				MaintenanceOperationResult opResult = op.checkAndRepair();
 
-			// Did not pass maintenance check
-			if (opResult.getStatus() == FAILED) {
+				// Did not pass (i.e. failed) maintenance check
+				if (opResult.getStatus() == FAILED) {
 
-				MaintenanceOperationSeverity opSeverity = opResult.getSeverity();
+					// Get severity of failure
+					MaintenanceOperationSeverity opSeverity = opResult.getSeverity();
 
-				opFailures.add(op);
+					// Record failure
+					opFailures.add(op);
 
-				// Update return value, if necessary
-				if (opSeverity.isHigherSeverity(ret.getSeverity())) {
-					ret = opResult;
-				}
+					// Update return value to higher severity, if necessary
+					if (opSeverity.isHigherSeverity(ret.getSeverity())) {
+						ret = opResult;
+					}
 
-				// Break if max severity for failure
-				if (opSeverity.isSameSeverity(op.maxSeverity())) {
-					break; // (2)
-				}
-
-				// Update maxFailSeverity, if necessary
-				if (null != maxFailSeverity) {
-					if (opSeverity.isHigherSeverity(maxFailSeverity)) {
-						maxFailSeverity = opSeverity;
+					// Break if max severity for operation
+					if (opSeverity.isSameSeverity(op.maxSeverity())) {
+						break; // (2)
 					}
 				}
+			} // (1)
 
+			// Update sorted list for a failed operation. Remove followed by add
+			// to
+			// re-sort. This will ensure the failed operation is performed
+			// before
+			// other operations having equal or lower severity level during the
+			// next
+			// scheduled maintenance check. At any one time, there can be at
+			// most
+			// one failed operation.
+			if (!opFailures.isEmpty()) {
+				ops.removeAll(opFailures);
+				ops.addAll(opFailures);
 			}
-		} // (1)
 
-		// Update sorted list for a failed operation. Remove followed by add to
-		// re-sort. This will ensure the failed operation is performed before
-		// other operations having equal or lower severity level during the next
-		// scheduled maintenance check. At any one time, there can be at most
-		// one failed operation.
-		if (!opFailures.isEmpty()) {
-			ops.removeAll(opFailures);
-			ops.addAll(opFailures);
 		}
 
 		return ret;
@@ -762,17 +738,18 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 *         for a required status operation).
 	 */
 	@SuppressWarnings("serial")
-	public StatusMessages reportStatus() {
+	public StatusOperationMessages reportStatus() {
 
-		log.debug("REPORTING STATUS:: " + getStatus() + " FOR:: " + getDoId());
+		log.debug("REPORTING STATUS:: " + getStatus() + " FOR:: " + entryIdentifier());
 
-		StatusEvent reportingStatus = new StatusEvent(this);
-		ManagedStatus currentStatus = reportingStatus.getRequestorStatus();
+		// ComponentEntry reportingStatus = new ComponentEntry(this);
+		ComponentEntry reportingStatus = entry();
+		ManagedStatus currentStatus = reportingStatus.getcStatus();
 
 		// This is not a locked operation. Therefore, status may change
 		// during the method and/or before observance. The operation will be
 		// re-verified on observer end to account for this possibility.
-		StatusMessages sms = new StatusMessages(reportingStatus);
+		StatusOperationMessages sms = new StatusOperationMessages(reportingStatus);
 		Stack<SimpleEntry<Operation, StatusOperationEvent>> ops = new Stack<>();
 
 		// Only report on non-transitional status values
@@ -800,8 +777,10 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 				if (opEntry.isPresent()) {
 
 					Operation operation = opEntry.get().getKey();
+
 					qualifiers.add(new ManagedAnnotationLiteral() {
 					});
+
 					qualifiers.add(new StatusOperationAnnotationLiteral() {
 						@Override
 						public Operation operation() {
@@ -877,7 +856,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * Return list of scale candidates. Candidate is only included if it is
 	 * valid ( @see {@link #validScaleCandidate(ManagedComponent)} ) and there
 	 * is remaining capacity to support its creation taking into consideration
-	 * other candidates of the same type that have already selected.
+	 * other candidates of the same type that have already been selected.
 	 */
 	private List<UUID> scaleOperationCandidates() {
 
@@ -890,14 +869,14 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 				// Update type counts
 				int typeCount = 1;
-				if (typeCounts.containsKey(mc.getComponentType())) {
-					typeCount = typeCounts.get(mc.getComponentType()) + 1;
-					typeCounts.put(mc.getComponentType(), typeCount);
+				if (typeCounts.containsKey(mc.getType())) {
+					typeCount = typeCounts.get(mc.getType()) + 1;
+					typeCounts.put(mc.getType(), typeCount);
 				} else {
-					typeCounts.put(mc.getComponentType(), typeCount);
+					typeCounts.put(mc.getType(), typeCount);
 				}
 
-				if ((scaleCapacity(mc.getComponentType()) + typeCount) < scaleMaxCount(mc.getComponentType())) {
+				if ((scaleCapacity(mc.getType()) + typeCount) < scaleMaxCount(mc.getType())) {
 					ret.add(mc.getId());
 				}
 			}
@@ -919,7 +898,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 		// Must be scalable to generate a scale request
 		// if (candidate.isScalable()) {
-		if (Creator.scalable(candidate.getComponentType())) {
+		if (Creator.scalable(candidate.getType())) {
 
 			// Parent must be Online in order to create new components
 			if (pStatus == Online) {
@@ -930,7 +909,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 					// Online is used to ensure not below initial count
 					if (cStatus == Online) {
 
-						if ((hasScaleAttempts(candidate)) && (isBelowMinimumCapacity(candidate.getComponentType()))) {
+						if ((hasScaleAttempts(candidate)) && (isBelowMinimumCapacity(candidate.getType()))) {
 							ret = true;
 						}
 
@@ -938,7 +917,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 					// Other status values should be non-factors in capacity
 					// calculation.
 					else {
-						if ((hasScaleAttempts(candidate)) && (hasScaleCapacity(candidate.getComponentType()))) {
+						if ((hasScaleAttempts(candidate)) && (hasScaleCapacity(candidate.getType()))) {
 							ret = true;
 						}
 					}
@@ -965,8 +944,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 		boolean ret = false;
 
-		if (scalable(candidate.getComponentType())) {
-			ret = ((scaleAllowedCount(candidate.getComponentType()) - candidate.scaledCount) > 0);
+		if (scalable(candidate.getType())) {
+			ret = ((scaleAllowedCount(candidate.getType()) - candidate.scaledCount) > 0);
 		}
 
 		return ret;
@@ -989,7 +968,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		int onlineCount = 0;
 		if (scalable(candidateType)) {
 			for (ManagedComponent mc : createdComponents.values()) {
-				if (mc.getComponentType().equals(candidateType)) {
+				if (mc.getType().equals(candidateType)) {
 					if (mc.getStatus() == Online) {
 						onlineCount++;
 					}
@@ -1086,30 +1065,95 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		log.debug("Create operation, creation for type :: " + request.getSubtype().getSimpleName());
 
 		List<T> created = new ArrayList<>();
-		Class<T> subtype = (Class<T>) request.getSubtype();
-		Annotation[] qualifiers = request.getQualifiers().toArray(new Annotation[0]);
 
-		Instance<T> instance = componentProvider.select(subtype, qualifiers);
-		if (instance.isResolvable()) {
-			created.add(instance.get());
-		} else if (instance.isAmbiguous()) {
-			Iterator<T> mcItr = instance.iterator();
-			while (mcItr.hasNext()) {
-				T mc = mcItr.next();
-				created.add(mc);
+		try {
+
+			acquireLockWait(STATUS_LOCK);
+			acquireLockWait(CREATED_LOCK);
+
+			Class<T> subtype = (Class<T>) request.getSubtype();
+
+			// Add Managed qualifier and convert to Array
+			request.getQualifiers().add(getManagedQualifier());
+			Annotation[] qualifiers = request.getQualifiers().toArray(new Annotation[0]);
+
+			// Get ManagedComponent instance
+			Instance<T> instance = componentProvider.select(subtype, qualifiers);
+
+			//@formatter:off
+			log.debug("CREATE: INJECTION STATUS \n" + 
+			"\t RESOLVABLE: "  + (true == instance.isResolvable() ? "YES" : "NO") + "\n" + 
+			"\t AMBIGUOUS: "   + (true == instance.isAmbiguous() ? "YES" : "NO") + "\n" + 
+			"\t UNSATISFIED: " + (true == instance.isUnsatisfied() ? "YES" : "NO")); 
+			//@formatter:on		
+
+			if (instance.isResolvable()) {
+				created.add(instance.get());
+			} else if (instance.isAmbiguous()) {
+				Iterator<T> mcItr = instance.iterator();
+				while (mcItr.hasNext()) {
+					T mc = mcItr.next();
+					created.add(mc);
+				}
+			} else { // InvalidRequest
+				throw new InvalidCreationRequestException("Creation request injection could not be satisfied", request);
 			}
-		} else { // InvalidRequest
-			throw new InvalidCreationRequestException("Creation request injection could not be satisfied", request);
-		}
 
-		// Initialize components and add to creator's created collection
-		for (T mc : created) {
-			mc.configure(request.getConfig());
-			createdComponents.put(mc.getId(), mc);
-			enableComponent(mc);
+			/**
+			 * Initialize components and add to creator's created collection.
+			 * Because the CREATED lock has already been acquired, it's not
+			 * essential to use addCreated() method. However, addition of new
+			 * items should always use the addCreated() method to ensure
+			 * collection is locked for modification.
+			 */
+			for (T mc : created) {
+				mc.configure(request.getConfig());
+				addCreated(mc);
+				enableComponent(mc);
+			}
+
+		} finally {
+			releaseLock(CREATED_LOCK);
+			releaseLock(STATUS_LOCK);
 		}
 
 		return new CreationResponse<T>(request, created);
+	}
+
+	@SuppressWarnings("serial")
+	private ManagedAnnotationLiteral getManagedQualifier() {
+
+		return new ManagedAnnotationLiteral() {
+
+			@Override
+			public String memberId() {
+				return getMemberId().toString();
+			}
+
+			@Override
+			public String moduleId() {
+				return getModuleId().toString();
+			}
+
+			@Override
+			public String managerId() {
+
+				// Assume this is a manager
+				String ret = getId().toString();
+
+				// If not a manager, then pass it down the tree
+				if (!isManager) {
+					ret = getManagerId().toString();
+				}
+
+				return ret;
+			}
+
+			@Override
+			public String creatorId() {
+				return getCreatorId().toString();
+			}
+		};
 	}
 
 	/**
@@ -1119,7 +1163,63 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	public <T extends ManagedComponent> Optional<CreationResponse<T>> scale(CreationRequest<T> request) {
 
 		log.debug("Creator scale operation, scaling for type :: " + request.getSubtype().getSimpleName());
-		return Optional.of(create(request));
+
+		// return Optional.of(create(request));
+		Optional<CreationResponse<T>> response = Optional.empty();
+
+		try {
+
+			acquireLockWait(STATUS_LOCK);
+			acquireLockWait(CREATED_LOCK);
+
+			/**
+			 * Get lock on scale candidate component.
+			 * 
+			 * Because the CANDIDATE_LOCK has already been acquired, the
+			 * candidate cannot be removed/destroyed (if it does exists) until
+			 * this lock has been released.
+			 */
+			if (!request.getScaleSource().isPresent()) {
+				throw new InvalidCreationRequestException(
+						"Creation request for scale operation was missing source candidate component identifier.");
+			} else {
+
+				// Proceed if the candidate still exists
+				Optional<ManagedComponent> scaleCandidateOpt = getCreated(request.getScaleSource().get());
+				if (scaleCandidateOpt.isPresent()) {
+
+					ManagedComponent source = scaleCandidateOpt.get();
+
+					try {
+
+						source.acquireLockWait(STATUS_LOCK);
+
+						if (validScaleCandidate(source)) {
+
+							// response = mc.scale(request);
+							response = Optional.of(create(request));
+
+							/**
+							 * Increment scaled count for source scale candidate
+							 * by the number of components created by the scale
+							 * operation provided by the response, if present.
+							 */
+							if (response.isPresent()) {
+								source.setScaledCount(source.getScaledCount() + response.get().createdCount());
+							}
+						}
+					} finally {
+						source.releaseLock(STATUS_LOCK);
+					}
+				}
+			}
+
+		} finally {
+			releaseLock(CREATED_LOCK);
+			releaseLock(STATUS_LOCK);
+		}
+
+		return response;
 	}
 
 	/**
@@ -1132,11 +1232,62 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	public Object[] configuration() {
 
-		if (Creator.configurable(getComponentType())) {
-			throw new MissingConfigurationImplementationException("Component type: " + getComponentType());
+		if (Creator.configurable(getType())) {
+			throw new MissingConfigurationImplementationException("Component type: " + getType());
 		}
 
 		return new Object[] {};
+	}
+
+	/**
+	 * @see EntryReporter#entry()
+	 */
+	@Override
+	public ComponentEntry entry() {
+		return new ComponentEntry(this);
+	}
+
+	/**
+	 * @see EntryReporter#entryIdentifier()
+	 */
+	@Override
+	public EntryDomain entryIdentifier() {
+		return new EntryDomain(this);
+	}
+
+	/**
+	 * @see EntryReporter#entryLocation()
+	 */
+	@Override
+	public void entryLocation(EntryLocation location) {
+		this.location = location;
+	}
+
+	/**
+	 * @see EntryReporter#entryLocation()
+	 */
+	@Override
+	public EntryLocation entryLocation() {
+
+		//@formatter:off
+		log.debug("LOCATION COORDINATES: " + entryIdentifier() + "\n" + 
+	      "\t MEMBER: "  + (null == getMemberId()  ? "NULL" : getMemberId())  + "\n" + 
+		  "\t MODULE: "  + (null == getModuleId()  ? "NULL" : getModuleId())  + "\n" + 
+	      "\t MANAGER: " + (null == getManagerId() ? "NULL" : getManagerId()) + "\n" +  
+	      "\t CREATOR: " + (null == getCreatorId() ? "NULL" : getCreatorId()) + "\n");
+		//@formatter:on
+
+		return location;
+	}
+
+	/**
+	 * @see EntryReporter#entryProperties()
+	 * 
+	 *      Default is no properties
+	 */
+	@Override
+	public EntryProperties entryProperties() {
+		return new EntryProperties();
 	}
 
 	public int hashCode() {

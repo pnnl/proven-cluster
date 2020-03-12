@@ -45,6 +45,8 @@ import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.ContextFactory;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
+import static gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequestType.*;
+
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
@@ -57,12 +59,10 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequest;
 import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
+import gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequest;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-
-import static gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType.*;
 
 import java.io.Serializable;
 import java.util.AbstractMap;

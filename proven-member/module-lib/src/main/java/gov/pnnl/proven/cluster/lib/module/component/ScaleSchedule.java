@@ -78,8 +78,8 @@ public class ScaleSchedule extends TaskSchedule {
 
 		if (operatorOpt.isPresent()) {
 
-			log.debug("Scale schedule APPLY for: " + operatorOpt.get().getDoId());
-
+			log.debug("Scale schedule APPLY for: " + operatorOpt.get().entryIdentifier());
+			
 			ManagedComponent operator = operatorOpt.get();
 
 			/**
@@ -88,9 +88,26 @@ public class ScaleSchedule extends TaskSchedule {
 			ModuleStatus ms = pm.retrieveModuleStatus();
 			if (ms == Running) {
 
-				// Blocks if creation queue is empty.  
+
 				try {
-					operator.scale(operator.removeScaleRequest());
+
+					// Blocks if creation queue is empty.
+					CreationRequest<?> request = operator.removeScaleRequest();
+
+					/**
+					 *  Determine operation from request and invoke
+					 */
+		
+					// Scale operation
+					if (request.getScaleSource().isPresent()) {
+						operator.scale(request);
+					}
+					
+					// Asynchronous create operation
+					else {
+						operator.create(request);
+					}
+					
 				} catch (InterruptedException e) {
 					// Preserve evidence of the interruption.
 					Thread.currentThread().interrupt();

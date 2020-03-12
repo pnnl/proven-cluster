@@ -73,8 +73,6 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
  * type. Schedule properties are defined by {@code Scheduler} annotation at
  * injection point. Scheduled tasks must register their supplier of T.
  * 
- * @param T
- *            the type of the registered task
  * 
  * @see Scheduler
  * 
@@ -251,7 +249,7 @@ public abstract class TaskSchedule implements RegistryReporter, Serializable {
 						} else if ((e instanceof Error) || (e instanceof Exception)) {
 							log.error("Scheduled task execution encountered an unmanaged error condition: "
 									+ exCauseName(e) + "\nScheduler: " + this.getClass() + " \nOperator:"
-									+ this.operatorOpt.get().getDoId());
+									+ this.operatorOpt.get().entryIdentifier());
 							exCause(e).printStackTrace();
 							failureCount++;
 							failures.add(e);

@@ -20,6 +20,9 @@ proven.jet.group.name=jet
 
 # module-lib
 proven.lib.module.managed.component.max.retries=3
+proven.lib.module.managed.component.exchange.queue.capacity=10000
+proven.lib.module.managed.component.exchange.buffer.capacity=1000
+proven.lib.module.managed.component.exchange.service.buffer.capacity=100
 
 # hybrid module
 proven.module.hybrid.t3.serviceUrl=http://localhost:8889/bigdata

@@ -82,89 +82,93 @@ public abstract class CreatorDecorator implements Creator {
 		log.debug("Inside creator decorator post construct");
 	}
 
-	@Override
-	public <T extends ManagedComponent> CreationResponse<T> create(CreationRequest<T> request) {
-
-		CreationResponse<T> ret;
-
-		try {
-			mc.acquireLockWait(STATUS_LOCK);
-			mc.acquireLockWait(CREATED_LOCK);
-			ret = mc.create(request);
-		} finally {
-			mc.releaseLock(CREATED_LOCK);
-			mc.releaseLock(STATUS_LOCK);
-		}
-
-		return ret;
-	}
-
-	@Override
-	public <T extends ManagedComponent> Optional<CreationResponse<T>> scale(CreationRequest<T> request) {
-
-		Optional<CreationResponse<T>> response = Optional.empty();
-		
-		try {
-
-			mc.acquireLockWait(STATUS_LOCK);
-			mc.acquireLockWait(CREATED_LOCK);
-
-			/**
-			 * Get lock on scale candidate component.
-			 * 
-			 * Because the CANDIDATE_LOCK has already been acquired, the
-			 * candidate cannot be removed/destroyed (if it does exists) until
-			 * this lock has been released.
-			 */
-			if (!request.getScaleSource().isPresent()) {
-				throw new InvalidCreationRequestException(
-						"Creation request for scale operation was missing source candidate component identifier.");
-			} else {
-
-				// Proceed if the candidate still exists
-				Optional<ManagedComponent> scaleCandidateOpt = mc.getCreated(request.getScaleSource().get());
-				if (scaleCandidateOpt.isPresent()) {
-
-					ManagedComponent source = scaleCandidateOpt.get();
-					try {
-
-						source.acquireLockWait(STATUS_LOCK);
-						
-						if (mc.validScaleCandidate(source)) {
-
-							response = mc.scale(request);	
-
-							/**
-							 * Increment scaled count for source scale candidate
-							 * by the number of components created by the scale
-							 * operation provided by the response.
-							 */
-							source.setScaledCount(source.getScaledCount() + response.get().createdCount());
-						}
-					} finally {
-						source.releaseLock(STATUS_LOCK);
-					}
-				}
-			}
-
-		} finally {
-			mc.releaseLock(CREATED_LOCK);
-			mc.releaseLock(STATUS_LOCK);
-		}
-		
-		return response;
-	}
-
-	@Override
-	public void configure(List<Object> config) {
-
-		if (!Creator.validConfiguration(mc.getComponentType(), config)) {
-			throw new IllegalArgumentException(
-					"Invalid configuration passed to configure method for component type: " + mc.getComponentType());
-		}
-
-		// Configuration okay, perform configure
-		mc.configure(config);
-	}
+//	@Override
+//	public <T extends ManagedComponent> CreationResponse<T> create(CreationRequest<T> request) {
+//
+//		CreationResponse<T> ret;
+//
+//		try {
+//			mc.acquireLockWait(STATUS_LOCK);
+//			mc.acquireLockWait(CREATED_LOCK);
+//
+//			ret = mc.create(request);
+//
+//		} finally {
+//			mc.releaseLock(CREATED_LOCK);
+//			mc.releaseLock(STATUS_LOCK);
+//		}
+//
+//		return ret;
+//	}
+//
+//	@Override
+//	public <T extends ManagedComponent> Optional<CreationResponse<T>> scale(CreationRequest<T> request) {
+//
+//		Optional<CreationResponse<T>> response = Optional.empty();
+//
+//		try {
+//
+//			mc.acquireLockWait(STATUS_LOCK);
+//			mc.acquireLockWait(CREATED_LOCK);
+//
+//			/**
+//			 * Get lock on scale candidate component.
+//			 * 
+//			 * Because the CANDIDATE_LOCK has already been acquired, the
+//			 * candidate cannot be removed/destroyed (if it does exists) until
+//			 * this lock has been released.
+//			 */
+//			if (!request.getScaleSource().isPresent()) {
+//				throw new InvalidCreationRequestException(
+//						"Creation request for scale operation was missing source candidate component identifier.");
+//			} else {
+//
+//				// Proceed if the candidate still exists
+//				Optional<ManagedComponent> scaleCandidateOpt = mc.getCreated(request.getScaleSource().get());
+//				if (scaleCandidateOpt.isPresent()) {
+//
+//					ManagedComponent source = scaleCandidateOpt.get();
+//					try {
+//
+//						source.acquireLockWait(STATUS_LOCK);
+//
+//						if (mc.validScaleCandidate(source)) {
+//
+//							response = mc.scale(request);
+//
+//							/**
+//							 * Increment scaled count for source scale candidate
+//							 * by the number of components created by the scale
+//							 * operation provided by the response, if present.
+//							 */
+//							if (response.isPresent()) {
+//								source.setScaledCount(source.getScaledCount() + response.get().createdCount());
+//							}
+//						}
+//					} finally {
+//						source.releaseLock(STATUS_LOCK);
+//					}
+//				}
+//			}
+//
+//		} finally {
+//			mc.releaseLock(CREATED_LOCK);
+//			mc.releaseLock(STATUS_LOCK);
+//		}
+//
+//		return response;
+//	}
+//
+//	@Override
+//	public void configure(List<Object> config) {
+//
+//		if (!Creator.validConfiguration(mc.getType(), config)) {
+//			throw new IllegalArgumentException(
+//					"Invalid configuration passed to configure method for component type: " + mc.getType());
+//		}
+//
+//		// Configuration okay, perform configure
+//		mc.configure(config);
+//	}
 
 }

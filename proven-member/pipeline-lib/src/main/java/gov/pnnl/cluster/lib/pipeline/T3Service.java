@@ -70,6 +70,7 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 
 
 /**
@@ -81,8 +82,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 public class T3Service {
 
 	private static Logger log = LoggerFactory.getLogger(T3Service.class);
-	
-	private static final String T3_SERVICE_URL_PROP = "proven.hybrid.t3.serviceUrl";
 
 	private RemoteRepositoryManager repoManager;
 	private RemoteRepository repo;
@@ -123,7 +122,8 @@ public class T3Service {
 	 * @return {@link ContextFactory}
 	 */
 	public static ContextFactory<T3Service> t3Service() {
-		String serviceUrl = System.getProperty(T3_SERVICE_URL_PROP);
+		MemberProperties props = MemberProperties.getInstance();
+		String serviceUrl = props.getHybridT3ServiceUrl();
 		return ContextFactory.withCreateFn(x -> T3Service.newT3Service(serviceUrl)).toNonCooperative().withLocalSharing();
 	}
 

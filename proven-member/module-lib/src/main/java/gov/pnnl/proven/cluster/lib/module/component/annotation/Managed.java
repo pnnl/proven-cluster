@@ -52,8 +52,15 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.UUID;
 
+import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
+import javax.interceptor.InterceptorBinding;
+
+import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**
  * Identifies the bean as a managed component. Meaning, the component's creation
@@ -65,16 +72,62 @@ import javax.inject.Qualifier;
  * restricted list of {@code ManagerComponent}(s) that are allowed to serve as
  * as managers of the new {@code Managed} component.
  * 
+ * Annotation member values make up the {@code EntryLocation} for the managed
+ * component. Values are required for component construction, providing its
+ * location in the cluster. If annotation is used as an event message qualifier,
+ * the member values are unused.
+ * 
  * @author d3j766
  *
- * @see ProvenModule, ManagerComponent, ManagedBy
+ * @see ProvenModule, ManagerComponent, ManagedBy, EntryLocation
  * 
  */
 @Documented
 @Inherited
 @Qualifier
-// @InterceptorBinding
+@InterceptorBinding
 @Retention(RUNTIME)
 @Target({ TYPE, FIELD, METHOD, PARAMETER })
 public @interface Managed {
+
+	/**
+	 * (Optional) Identifies the {@code EntryLocation#MEMBER} coordinate value
+	 * for this managed component. This must be a string representation of a
+	 * {@code UUID} value.
+	 * 
+	 * see EntryLocation, UUID
+	 */
+	@Nonbinding
+	String memberId() default ManagedAnnotationLiteral.UNUSED;
+
+	/**
+	 * (Optional) Identifies the {@code EntryLocation#MODULE} coordinate value
+	 * for this managed component. This must be a string representation of a
+	 * {@code UUID} value.
+	 * 
+	 * see EntryLocation
+	 */
+	@Nonbinding
+	String moduleId() default ManagedAnnotationLiteral.UNUSED;
+
+	/**
+	 * (Optional) Identifies the {@code EntryLocation#MANAGER} coordinate value
+	 * for this managed component. This must be a string representation of a
+	 * {@code UUID} value.
+	 * 
+	 * see EntryLocation
+	 */
+	@Nonbinding
+	String managerId() default ManagedAnnotationLiteral.UNUSED;
+
+	/**
+	 * (Optional) Identifies the {@code EntryLocation#CREATOR} coordinate value
+	 * for this managed component. This must be a string representation of a
+	 * {@code UUID} value.
+	 * 
+	 * see EntryLocation
+	 */
+	@Nonbinding
+	String creatorId() default ManagedAnnotationLiteral.UNUSED;
+
 }

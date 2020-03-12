@@ -41,5 +41,38 @@ package gov.pnnl.proven.cluster.lib.module.component.annotation;
 
 import javax.enterprise.util.AnnotationLiteral;
 
+/**
+ * AnnotationLiteral for Managed annotations.
+ * 
+ * Note: Implementations used for managed component construction must override
+ * members, providing valid {@code EntryLocation} coordinates for the component
+ * being created.
+ * 
+ * @author d3j766
+ *
+ */
 public abstract class ManagedAnnotationLiteral extends AnnotationLiteral<Managed> implements Managed {
+	
+	public static final String UNUSED = "unused";
+
+	@Override
+	public String memberId() {
+		return UNUSED;
+	}
+
+	@Override
+	public String moduleId() {
+		return UNUSED;
+	}
+
+	@Override
+	public String managerId() {
+		return UNUSED;
+	}
+
+	@Override
+	public String creatorId() {
+		return UNUSED;
+	}
+
 }

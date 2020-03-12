@@ -59,9 +59,12 @@ public interface DomainProvider extends Serializable {
 
 	static Logger log = LoggerFactory.getLogger(DomainProvider.class);
 
+	// Domain label separator
+	static final String LS = ".";
+	
 	static final String PROVEN_DOMAIN = "proven.pnnl.gov";
 	static final String COMMON_SUB_DOMAIN = "common";
-	static final String PROVEN_DISCLOSURE_DOMAIN = COMMON_SUB_DOMAIN + "." + PROVEN_DOMAIN;
+	static final String PROVEN_DISCLOSURE_DOMAIN = COMMON_SUB_DOMAIN + LS + PROVEN_DOMAIN;
 
 	DisclosureDomain getDomain();
 

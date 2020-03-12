@@ -49,11 +49,13 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 /**
  * 
  * These components are responsible for managing (creation, activation,
- * deactivation, and monitoring) of {@code ManagedComponents}.
+ * deactivation, and maintenance) a set of {@code ManagedComponents}. Managers
+ * can be enabled or disabled at module startup by a ProvenModule to include or
+ * exclude their set of components.
  * 
  * @author d3j766
  *
- * @see ComponentManager
+ * @see ProvenModule, ActiveManagers
  *
  */
 public abstract class ManagerComponent extends ManagedComponent {
@@ -63,9 +65,6 @@ public abstract class ManagerComponent extends ManagedComponent {
 
 	public ManagerComponent() {
 		super();
-		group.add(ComponentGroup.Manager);
-		setManagerId(getModuleId());
-		setCreatorId(getModuleId());
+		group = ComponentGroup.Manager;
 	}
-
 }

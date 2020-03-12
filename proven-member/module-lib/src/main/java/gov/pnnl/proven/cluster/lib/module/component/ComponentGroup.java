@@ -60,28 +60,22 @@ public enum ComponentGroup {
 	
 	Module(GroupLabel.MODULE_GROUP),
 
-	Registry(GroupLabel.REGISTRY_GROUP),
-
 	Manager(GroupLabel.MANAGER_GROUP),
-
-	Managed(GroupLabel.MANAGED_GROUP),
-
-	Disclosure(GroupLabel.DISCLOSURE_GROUP),
 
 	Exchange(GroupLabel.EXCHANGE_GROUP),
 
-	Request(GroupLabel.REQUEST_GROUP),
+	PipelineRequest(GroupLabel.PIPELINE_REQUEST_GROUP),
+	
+	ModuleRequest(GroupLabel.MODULE_REQUEST_GROUP),
 
 	Stream(GroupLabel.STREAM_GROUP);
 
 	private class GroupLabel {
 		private static final String MODULE_GROUP = "module";
-		private static final String REGISTRY_GROUP = "registry";
 		private static final String MANAGER_GROUP = "manager";
-		private static final String MANAGED_GROUP = "managed";
-		private static final String DISCLOSURE_GROUP = "disclosure";
 		private static final String EXCHANGE_GROUP = "exchange";
-		private static final String REQUEST_GROUP = "request";
+		private static final String PIPELINE_REQUEST_GROUP = "pipeline_request";
+		private static final String MODULE_REQUEST_GROUP = "moudlue_request";
 		private static final String STREAM_GROUP = "stream";
 	}
 

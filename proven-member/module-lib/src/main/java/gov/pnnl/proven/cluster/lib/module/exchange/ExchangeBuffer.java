@@ -57,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.ICompletableFuture;
+import com.hazelcast.core.IQueue;
 import com.hazelcast.ringbuffer.OverflowPolicy;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
@@ -252,6 +253,9 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * Indicates if the exchange buffer has the free space to accept addition of
 	 * new buffered items.
 	 * 
+	 * TODO this should be used by a MO check that will set status to BUSY if
+	 * free space is low.
+	 * 
 	 * @return true if new buffer items may be added, false otherwise.
 	 */
 	public boolean hasFreeSpace(BufferedItemState state) {
@@ -331,6 +335,16 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	}
 
 	/**
+	 * Provides R value (last read sequence number) for New buffer items.
+	 * 
+	 * @return the current R value
+	 * 
+	 */
+	public long getLastReadItemForExchange() {
+		return lastReadItemByState.get(BufferedItemState.New);
+	}
+
+	/**
 	 * Adds items to the exchange buffer.
 	 * 
 	 * @param items
@@ -356,7 +370,9 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 			if (items.size() <= fsp) {
 
 				try {
+					
 					buffer.addAllAsync(items, OverflowPolicy.OVERWRITE).get();
+					
 				} catch (InterruptedException | ExecutionException e) {
 					if (e instanceof InterruptedException) {
 						Thread.currentThread().interrupt();
@@ -382,8 +398,8 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * specified {@code BufferedItemState}.
 	 * 
 	 * @param {@code BufferedItemState} of the next item to read.
-	 * @return the items read. This method will block if there are no unprocessed
-	 *         items for the state provided.
+	 * @return the items read. This method will block if there are no
+	 *         unprocessed items for the state provided.
 	 * @throws BufferReaderInterruptedException
 	 *             if the thread was interrupted during the read operation.
 	 */

@@ -60,7 +60,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
-import gov.pnnl.proven.cluster.lib.module.disclosure.DisclosureEntries;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
@@ -89,6 +88,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	private RequestBuffer localExchange;
 	private CompletableFuture<Void> bufferSourceReader;
 
+	String doId;
 	DisclosureEntries de;
 
 	@Inject
@@ -100,10 +100,11 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 		log.debug("Post construct for DisclosureBuffer");
 
+		doId = entryIdentifier().getReverseDomain();
 		de = create(new CreationRequest<DisclosureEntries>(DisclosureEntries.class)).get();
 		
 		// Create buffer instance
-		buffer = hzi.getRingbuffer(getDoId());
+		buffer = hzi.getRingbuffer(doId);
 		log.debug("Disclosure Buffer created. DO-ID:: " + DistributedObjectUtil.getName(buffer));
 
 		// Start buffer readers
@@ -118,7 +119,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	@PreDestroy
 	void destroy() {
 		log.debug("Pre Destroy for DisclosureBuffer");
-		log.debug("Destroying DisclosureBuffer :: " + getDoId());
+		log.debug("Destroying DisclosureBuffer :: " + entryIdentifier());
 		log.debug("Destroying readers");
 		cancelReaders();
 	}

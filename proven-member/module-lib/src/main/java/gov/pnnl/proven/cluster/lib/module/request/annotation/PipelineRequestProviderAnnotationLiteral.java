@@ -41,7 +41,7 @@ package gov.pnnl.proven.cluster.lib.module.request.annotation;
 
 import javax.enterprise.util.AnnotationLiteral;
 
-import gov.pnnl.proven.cluster.lib.module.request.PipelineRequestType;
+import gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequestType;
 
 public abstract class PipelineRequestProviderAnnotationLiteral extends AnnotationLiteral<PipelineRequestProvider>
 		implements PipelineRequestProvider {

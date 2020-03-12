@@ -83,7 +83,6 @@ import javax.interceptor.Interceptor;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatusOperation;
@@ -221,21 +220,20 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	public boolean requestScale() {
 
 		boolean ret = false;
-		
+
 		log.debug(currentThreadLog("START REQUEST SCALE DECORATOR"));
 
 		try {
 			if (mc.acquireLockNoWait(STATUS_LOCK)) {
 
 				if (RequestScale.verifyOperation(mc.getStatus())) {
-					
+
 					if (mc.requestScale()) {
 						ret = true;
+					} else {
+						log.debug("Request scale operation could not be submitted, for: ", mc.entryIdentifier());
 					}
-					else {
-						log.debug("Request scale operation could not be submitted, for: ", mc.getDoId());						
-					}
-					
+
 				} else {
 					log.warn(incompatibleInputMessage(RequestScale));
 				}
@@ -245,9 +243,9 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 		} finally {
 			mc.releaseLock(STATUS_LOCK);
 		}
-		
+
 		log.debug(currentThreadLog("END REQUEST SCALE DECORATOR"));
-		
+
 		return ret;
 	}
 
@@ -368,9 +366,12 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 
 			if (mc.acquireLockNoWait(STATUS_LOCK)) {
 				if (Remove.verifyOperation(mc.getStatus())) {
+
 					mc.setStatus(Removing);
 					mc.remove(); // Component specific
 					mc.setStatus(OutOfService);
+					mc.stopSchedules();
+
 				} else {
 					log.warn(incompatibleInputMessage(Remove));
 				}
@@ -430,6 +431,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 				mc.setStatus(Removing);
 				mc.remove(); // Component specific
 				mc.setStatus(OutOfService);
+				mc.stopSchedules();
 
 			} else {
 				log.warn(incompatibleInputMessage(Shutdown));
@@ -450,7 +452,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 		log.debug(currentThreadLog("START CHECK DECORATOR"));
 		MaintenanceOperationResult opResult = new MaintenanceOperationResult();
 
-		// Only proceed if there MO's to perform
+		// Only proceed if there are MO's to perform
 		if (!ops.isEmpty()) {
 			/**
 			 * Reset all operation results for a new check. This will not cause
@@ -501,6 +503,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 		log.debug(currentThreadLog("START SCHEDULER CHECK DECORATOR"));
 		MaintenanceOperationResult opResult = new MaintenanceOperationResult();
 
+		// Only proceed if there are checks to perform
 		if (!ops.isEmpty()) {
 
 			/**
@@ -580,7 +583,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 	private String lockAcquireFailMessage(StatusOperation.Operation op) {
 		//@formatter:off
 		return "Status lock acuisition failed for: \n" + 
-		          "\t Component: " + mc.getDoId() + "\n" + 
+		          "\t Component: " + mc.entryIdentifier() + "\n" + 
 			      "\t Operation: " + op.toString();
 		//@formatter:on
 	}
@@ -589,7 +592,7 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 		//@formatter:off
 		return op.toString() + " operation not performed." +
 	           "Incompatible input status: " + mc.getStatus().toString() + 
-	           "\n For component: " + mc.getDoId();
+	           "\n For component: " + mc.entryIdentifier();
 		//@formatter:on
 	}
 
