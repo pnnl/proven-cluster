@@ -39,13 +39,11 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.module.hybrid;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
+import gov.pnnl.proven.cluster.lib.module.manager.PipelineManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
-@ApplicationScoped
-@ActiveManagers(managers = {StreamManager.class})
+@ActiveManagers(managers = { StreamManager.class, PipelineManager.class })
 public class HybridModule extends ProvenModule {
 }

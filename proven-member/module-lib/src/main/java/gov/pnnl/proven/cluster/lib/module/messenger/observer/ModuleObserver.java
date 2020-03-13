@@ -81,6 +81,7 @@ public class ModuleObserver {
 			pm.activate();
 			pm.getStatusSchedule().start();
 			pm.getMaintenanceSchedule().start();
+			pm.getScaleSchedule().start();
 		}
 	}
 

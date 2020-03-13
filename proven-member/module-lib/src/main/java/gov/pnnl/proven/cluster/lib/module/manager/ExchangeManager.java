@@ -58,7 +58,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
  * 
  * @author d3j766
  * 
- * @see ComponentManager, RequestExchange
+ * @see ManagerComponent, RequestExchange
  *
  */
 @Scalable

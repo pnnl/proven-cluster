@@ -127,11 +127,15 @@ public class CreationQueue<T extends ManagedComponent> {
 
 		// Blocks if queue is empty
 		SimpleEntry<UUID, CreationRequest<T>> ret = requestQueue.take();
+		Class<T> sourceType = ret.getValue().getSubtype();
 
 		synchronized (scaleRequests) {
-			SimpleEntry<UUID, Class<T>> sre = new SimpleEntry<>(ret.getKey(), ret.getValue().getSubtype());
-			int requestCount = scaleRequests.get(sre);
-			scaleRequests.put(sre, requestCount--);
+
+			if (scalable(sourceType)) {
+				SimpleEntry<UUID, Class<T>> sre = new SimpleEntry<>(ret.getKey(), ret.getValue().getSubtype());
+				int requestCount = scaleRequests.get(sre);
+				scaleRequests.put(sre, requestCount--);
+			}
 		}
 
 		return ret.getValue();

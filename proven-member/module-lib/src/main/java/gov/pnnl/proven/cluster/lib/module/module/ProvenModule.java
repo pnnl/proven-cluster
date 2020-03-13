@@ -39,8 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.module;
 
+import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,6 @@ import org.slf4j.Logger;
 import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
@@ -87,11 +87,11 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	@Inject
 	protected PayaraMicroRuntime pmr;
-	
+
 	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
 
 	// Set of active managers selected for this module
-	Set<Class<?>> activeManagers;
+	Set<Class<? extends ManagerComponent>> activeManagers = new HashSet<>();
 
 	// Module name
 	private static String moduleName;
@@ -106,36 +106,43 @@ public abstract class ProvenModule extends ModuleComponent {
 		UUID moduleId, managerId, creatorId;
 		moduleId = managerId = creatorId = this.id;
 		entryLocation(new EntryLocation(memberId, moduleId, managerId, creatorId));
-		createManagers();
 	}
 
-	public synchronized <T extends ManagerComponent> T getOrCreateManager(Class<T> clazz) {
+	public <T extends ManagerComponent> T produceManager(Class<T> clazz) {
 
 		T ret;
-		Optional<T> manager = getCreated(clazz);
-		if (manager.isPresent()) {
-			ret = manager.get();
-		} else {
-			ret = addManager(clazz);
+
+		try {
+			acquireLockWait(ComponentLock.CREATED_LOCK);
+
+			Optional<T> manager = getCreated(clazz);
+			if (manager.isPresent()) {
+				ret = manager.get();
+			} else {
+				ret = createManager(clazz);
+			}
+		} finally {
+			releaseLock(CREATED_LOCK);
 		}
+
 		return ret;
 	}
 
-	public synchronized <T extends ManagerComponent> List<T> getOrCreateManagers(Class<T> clazz) {
+	public <T extends ManagerComponent> List<T> produceManagers(Class<T> clazz) {
 
 		List<T> ret;
 		Optional<List<T>> managers = getAllCreated(clazz);
 		if (managers.isPresent()) {
 			ret = managers.get();
 		} else {
-			T manager = addManager(clazz);
+			T manager = produceManager(clazz);
 			ret = new ArrayList<>();
 			ret.add(manager);
 		}
 		return ret;
 	}
 
-	private <T extends ManagerComponent> T addManager(Class<T> clazz) {
+	private <T extends ManagerComponent> T createManager(Class<T> clazz) {
 
 		if (!activeManagers.contains(clazz)) {
 			throw new ProducesInactiveManagerException(
@@ -160,20 +167,46 @@ public abstract class ProvenModule extends ModuleComponent {
 		return moduleName;
 	}
 
-	public void createManagers() {
-		log.debug("ProvenModule startup message observed");
+	/**
+	 * Create module's active managers.
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public boolean activate() {
+
+		log.info("ProvenModule activation started");
+
+		boolean ret = true;
 
 		// Get list of managers to activate
 		ActiveManagers toActivate = this.getClass().getAnnotation(ActiveManagers.class);
-		if ((null != toActivate) && (toActivate.managers().length != 0)) {
-			activeManagers = new HashSet<Class<?>>(Arrays.asList(toActivate.managers()));
+
+		// Remove any non-manager types and move to a HashSet
+		Set<Class<? extends ManagerComponent>> active = new HashSet<>();
+		if (null != toActivate) {
+			for (Class<?> clazz : toActivate.managers()) {
+				if (ManagerComponent.class.isAssignableFrom(clazz)) {
+					active.add((Class<? extends ManagerComponent>) clazz);
+				}
+			}
+		}
+
+		// if ((null != toActivate) && (toActivate.managers().length != 0)) {
+		if ((null != toActivate) && (!active.isEmpty())) {
+			activeManagers = new HashSet<Class<? extends ManagerComponent>>(active);
+			// activeManagers = new HashSet<Class<? extends ManagerComponent>>(
+			// Arrays.asList((Class<? extends ManagerComponent>[])
+			// toActivate.managers()));
 		} else {
-			activeManagers = new HashSet<Class<?>>(ManagerFactory.getManagerTypes().keySet());
+			activeManagers = new HashSet<Class<? extends ManagerComponent>>(ManagerFactory.getManagerTypes().keySet());
+			// activeManagers = new HashSet<Class<? extends ManagerComponent>>(
+			// (Set<Class<? extends ManagerComponent>>)
+			// ManagerFactory.getManagerTypes().keySet());
 		}
 
 		// Verify required managers are present
-		Map<Class<?>, Boolean> allManagers = ManagerFactory.getManagerTypes();
-		for (Class<?> k : allManagers.keySet()) {
+		Map<Class<? extends ManagerComponent>, Boolean> allManagers = ManagerFactory.getManagerTypes();
+		for (Class<? extends ManagerComponent> k : allManagers.keySet()) {
 			if (allManagers.get(k)) {
 				if (!activeManagers.contains(k)) {
 					activeManagers.add(k);
@@ -182,13 +215,15 @@ public abstract class ProvenModule extends ModuleComponent {
 		}
 
 		// Create selected managers
-		for (Class<?> c : activeManagers) {
+		for (Class<? extends ManagerComponent> c : activeManagers) {
 			if (ManagerComponent.class.isAssignableFrom(c)) {
-				addManager((Class<ManagerComponent>) c);
+				createAsync(new CreationRequest(c));
 			}
 		}
 
-		log.info("ProvenModule startup completed.");
+		log.info("ProvenModule activation completed.");
+
+		return ret;
 	}
 
 }

@@ -45,7 +45,10 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
@@ -71,6 +74,9 @@ public class ManagerFactory {
 
 	@Inject
 	Logger log;
+	
+	@Inject 
+	BeanManager bm;
 
 	@Inject
 	@Module
@@ -80,15 +86,15 @@ public class ManagerFactory {
 	 * Provide a static Map of manager component types. Key is type and value
 	 * indicates if the manager is required at module startup.
 	 */
-	protected static Map<Class<?>, Boolean> managerTypes = new HashMap<>();
+	protected static Map<Class<? extends ManagerComponent>, Boolean> managerTypes = new HashMap<>();
 	static {
 		managerTypes.put(ExchangeManager.class, false);
-		managerTypes.put(PipelineManager.class, false);
+		managerTypes.put(PipelineManager.class, true);
 		managerTypes.put(RequestManager.class, false);
 		managerTypes.put(StreamManager.class, true);
 	}
 
-	public static Map<Class<?>, Boolean> getManagerTypes() {
+	public static Map<Class<? extends ManagerComponent>, Boolean> getManagerTypes() {
 		return managerTypes;
 	}
 
@@ -124,7 +130,7 @@ public class ManagerFactory {
 	}
 
 	private <T extends ManagerComponent> T retrieveManager(Class<T> clazz) {
-		return pm.getOrCreateManager(clazz);
+		return pm.produceManager(clazz);
 	}
 
 	@Produces
@@ -152,7 +158,7 @@ public class ManagerFactory {
 	}
 
 	private <T extends ManagerComponent> List<T> retrieveManagers(Class<T> clazz) {
-		return pm.getOrCreateManagers(clazz);
+		return pm.produceManagers(clazz);
 	}
 	
 }

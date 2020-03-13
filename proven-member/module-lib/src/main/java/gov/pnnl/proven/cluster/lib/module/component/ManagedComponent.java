@@ -1157,7 +1157,16 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	/**
-	 * @see Creator#scale()
+	 * 
+	 * @see Creator#createAsync(CreationRequest)
+	 */
+	@Override
+	public void createAsync(CreationRequest<ManagedComponent> request) {
+		creationQueue.addRequest(getId(), request);
+	}	
+	
+	/**
+	 * @see Creator#scale(CreationRequest)
 	 */
 	@Override
 	public <T extends ManagedComponent> Optional<CreationResponse<T>> scale(CreationRequest<T> request) {
@@ -1221,6 +1230,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 		return response;
 	}
+
 
 	/**
 	 * Default implementation returning an empty list meaning the component has

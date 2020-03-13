@@ -75,7 +75,7 @@ import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 public @interface ActiveManagers {
 
 	/**
-	 * (Required) List of manager types to be activated.  
+	 * (Required) List of manager types to be activated.
 	 */
 	Class<?>[] managers();
 

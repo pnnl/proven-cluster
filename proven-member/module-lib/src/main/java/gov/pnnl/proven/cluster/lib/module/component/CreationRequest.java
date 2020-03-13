@@ -62,8 +62,8 @@ import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationReq
  * @author d3j766
  *
  */
-public class CreationRequest<T extends ManagedComponent> {
 
+public class CreationRequest<T extends ManagedComponent> {
 	/**
 	 * Component type to create
 	 */

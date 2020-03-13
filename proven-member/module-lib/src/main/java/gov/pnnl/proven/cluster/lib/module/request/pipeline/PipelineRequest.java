@@ -320,12 +320,12 @@ public abstract class PipelineRequest extends PipelineRequestComponent {
 
 	// @Override
 	public boolean activate() {
-		if (pipelineType == PipelineRequestType.Domain)
-			createDomainJobs();
-		if (pipelineType == PipelineRequestType.Proven)
-			createProvenJob();
-		if (pipelineType == PipelineRequestType.Custom)
-			createCustomJob();
+//		if (pipelineType == PipelineRequestType.Domain)
+//			createDomainJobs();
+//		if (pipelineType == PipelineRequestType.Proven)
+//			createProvenJob();
+//		if (pipelineType == PipelineRequestType.Custom)
+//			createCustomJob();
 
 		return true;
 	}

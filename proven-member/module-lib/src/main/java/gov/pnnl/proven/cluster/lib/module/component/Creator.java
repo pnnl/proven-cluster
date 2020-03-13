@@ -44,6 +44,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.enterprise.event.ObservesAsync;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,28 +53,46 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Configuration;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationRequestException;
 import gov.pnnl.proven.cluster.lib.module.component.exception.MissingConfigureImplementationException;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 
 public interface Creator {
 
 	static Logger log = LoggerFactory.getLogger(Creator.class);
 
 	/**
-	 * Creates and returns a new CreationResponse<T> using the provided
-	 * CreationRequest.
+	 * Creates a ManagedComponent and returns a new CreationResponse<T>, using
+	 * the provided CreationRequest.
 	 * 
-	 * <b>Note:</b> Creation requests will be honored even if the module's status is
-	 * {@code ModuleStatus#Suspended} or {@code ModuleStatus#Shutdown}. The new
-	 * component(s) status will immediately be set to {@code ManagedStatus#Offline} (for
-	 * suspended) or {@code ManagedStatus#OutOfService} (for shutdown) at their
-	 * next status reporting interval.
+	 * <b>Note:</b> Creation requests will be honored even if the module's
+	 * status is {@code ModuleStatus#Suspended} or
+	 * {@code ModuleStatus#Shutdown}. The new component(s) status will
+	 * immediately be set to {@code ManagedStatus#Offline} (for suspended) or
+	 * {@code ManagedStatus#OutOfService} (for shutdown) at their next status
+	 * reporting interval.
 	 * 
 	 * @throws InvalidCreationRequestException
 	 *             if the provided creation request cannot be satisfied by the
 	 *             ManagedComponent's Instance Provider.
 	 * 
-	 * @see Instance, Provider, ModuleStatus
+	 * @see ModuleStatus
 	 */
 	<T extends ManagedComponent> CreationResponse<T> create(CreationRequest<T> request);
+
+	/**
+	 * Creates a ManagedComponent using the provided CreationRequest. The
+	 * request is forwarded to this components {@code ScaleSchedule} for execution.
+	 * The call returns immediately after the request has been forwarded.
+	 * 
+	 * <b>Note:</b> Creation requests will not be honored if the module's
+	 * status is not {@code ModuleStatus#Running}.
+	 * 
+	 * @throws InvalidCreationRequestException
+	 *             if the provided creation request cannot be satisfied by the
+	 *             ManagedComponent's Instance Provider.
+	 * 
+	 * @see ScaleSchedule, ModuleStatus
+	 */
+	 void createAsync(CreationRequest<ManagedComponent> request);
 
 	/**
 	 * Creates a new ManagedComponent using the provided CreationRequest.
