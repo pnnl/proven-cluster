@@ -150,7 +150,7 @@ public enum MessageStreamType {
 	private String buildStreamName(DisclosureDomain dd, String sLabel) {
 		String domainPart = dd.getReverseDomain();
 		String streamPart = sLabel;
-		return domainPart + "." + streamPart;
+		return domainPart + "." + streamPart + "." + "message";
 	}
 
 }

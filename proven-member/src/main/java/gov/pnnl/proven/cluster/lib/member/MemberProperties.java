@@ -107,7 +107,10 @@ public class MemberProperties {
 	/**
 	 * module-lib properties
 	 */
-	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed.component.max.retries";
+	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max.retries";
+	private static final String MEMBER_REGISTRY_DO_NAME = "proven.lib.module.registry.member.do_name";
+	private static final String CLUSTER_REGISTRY_DO_NAME = "proven.lib.module.registry.cluster.do_name";
+
 
 	/**
 	 * hybrid-module properties
@@ -228,6 +231,14 @@ public class MemberProperties {
 	// MODULE-LIB PROPERTY METHODS
 	public Integer getManagedComponentMaxRetries() {
 		return getPropertyValue(MANAGED_COMPONENT_MAX_RETRIES, Integer.class);
+	}
+	
+	public String getMemberRegistryDoName() {
+		return getPropertyValue(MEMBER_REGISTRY_DO_NAME, String.class);
+	}
+
+	public String getClusterRegistryDoName() {
+		return getPropertyValue(CLUSTER_REGISTRY_DO_NAME, String.class);
 	}
 
 	//////////////////////////////////////////////////////

@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
@@ -48,9 +49,21 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 import com.hazelcast.core.ISet;
+import com.hazelcast.core.ItemEvent;
+import com.hazelcast.core.ItemListener;
+import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.EntryRemovedListener;
+import com.hazelcast.map.listener.EntryUpdatedListener;
 
+import static gov.pnnl.proven.cluster.lib.module.registry.EntryDomain.*;
+
+import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.*;
+
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 
@@ -62,21 +75,35 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
  */
 @ApplicationScoped
 @Eager
-public class ModuleComponentRegistry {
+public class ModuleComponentRegistry
+		implements ItemListener<ComponentEntry>, EntryAddedListener<EntryLocation, Set<ComponentEntry>>,
+		EntryRemovedListener<EntryLocation, Set<ComponentEntry>>,
+		EntryUpdatedListener<EntryLocation, Set<ComponentEntry>> {
 
 	@Inject
 	Logger log;
 
 	@Inject
-	ClusterComponentRegistry ccr;
-
-	@Inject
 	HazelcastInstance hzi;
 
 	/**
-	 * Contains the set of Hazelcast member's reporting module components.
+	 * Member properties
 	 */
-	ISet<ManagedComponent> components;
+	MemberProperties props = MemberProperties.getInstance();
+
+	/**
+	 * Member registry
+	 */
+	ISet<ManagedComponent> memberComponents;
+
+	/**
+	 * Cluster registry
+	 */
+	IMap<EntryLocation, Set<ComponentEntry>> clusterCompoonents;
+
+	/**
+	 * Module registry
+	 */
 
 	@PostConstruct
 	public void initialize() {
@@ -88,18 +115,47 @@ public class ModuleComponentRegistry {
 	}
 
 	public void record(ComponentEntry event) {
-		//TODO
+		// TODO
 		// record status information
 	}
-	
-	@Schedule(dayOfWeek="Sun", hour="0")
+
+	@Schedule(dayOfWeek = "Sun", hour = "0")
 	public void unregister(UUID componentId) {
-		
-		
-		//TODO
+
+		// TODO
 		// Ungegister
 		// Stop scheduler
-		// Also stop maintenance schedule for good measure 
+		// Also stop maintenance schedule for good measure
+	}
+
+	@Override
+	public void entryUpdated(EntryEvent<EntryLocation, Set<ComponentEntry>> event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void entryRemoved(EntryEvent<EntryLocation, Set<ComponentEntry>> event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void entryAdded(EntryEvent<EntryLocation, Set<ComponentEntry>> event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void itemAdded(ItemEvent<ComponentEntry> item) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void itemRemoved(ItemEvent<ComponentEntry> item) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

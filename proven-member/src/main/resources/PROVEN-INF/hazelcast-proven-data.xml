@@ -36,15 +36,40 @@
 	<!-- PER_MEMBER by default (i.e. random selection) -->
 	<partition-group enabled="false"/>
 
-	<map name="gov.pnnl.proven.common.*">
+	<!-- Domain message stream configuration  -->
+	<map name="*.message">
 		<time-to-live-seconds>0</time-to-live-seconds>
-		<max-size policy="USED_HEAP_PERCENTAGE">75</max-size>
+		<max-size policy="USED_HEAP_PERCENTAGE">60</max-size>
 		<eviction-policy>LRU</eviction-policy>
 		<async-backup-count>1</async-backup-count>
 		<backup-count>0</backup-count>
 	</map>
-
-	<ringbuffer name="gov.pnnl.proven.component.*">
+	
+	<!--  Event journal configuration for domain message streams  -->
+	<event-journal enabled="true">
+		<mapName>*.message</mapName>
+		<capacity>10000</capacity>
+		<time-to-live-seconds>0</time-to-live-seconds>
+	</event-journal>
+	
+	<!-- Deprecated.  Remove after refactor of DisclosureEntries -->
+	<queue name="gov.pnnl.proven.external.disclosure">
+		<max-size>10000</max-size>
+		<async-backup-count>1</async-backup-count>
+		<backup-count>0</backup-count>
+		<empty-queue-ttl>-1</empty-queue-ttl>
+	</queue>
+	
+	<!-- This includes both staging and disclosure queues -->
+	<queue name="gov.pnnl.proven.component.exchange.*">
+		<max-size>10000</max-size>
+		<async-backup-count>1</async-backup-count>
+		<backup-count>0</backup-count>
+		<empty-queue-ttl>-1</empty-queue-ttl>
+	</queue>
+	
+	<!-- Exchange buffers.  Both disclosure and request. -->
+	<ringbuffer name="gov.pnnl.proven.component.exchange.*">
 		<capacity>1000</capacity>
 		<backup-count>0</backup-count>
 		<async-backup-count>1</async-backup-count>
@@ -52,12 +77,27 @@
 		<in-memory-format>BINARY</in-memory-format>
 	</ringbuffer>
 
-	<queue name="gov.pnnl.proven.external.disclosure">
-		<max-size>10000</max-size>
-		<async-backup-count>1</async-backup-count>
+	<!-- Member registry  -->
+	<set name="${proven.lib.module.registry.member.do_name}.*">
 		<backup-count>0</backup-count>
-		<empty-queue-ttl>-1</empty-queue-ttl>
-	</queue>
+		<async-backup-count>0</async-backup-count>
+		<max-size>0</max-size>
+		<item-listeners>
+			<item-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry</item-listener>
+		</item-listeners>
+	</set>
+
+	<!-- Cluster registry  -->
+	<map name="${proven.lib.module.registry.cluster.do_name}">
+		<backup-count>1</backup-count>
+		<async-backup-count>0</async-backup-count>
+		<time-to-live-seconds>0</time-to-live-seconds>
+		<in-memory-format>OBJECT</in-memory-format>
+		<max-size>0</max-size>
+		<entry-listeners>
+			<entry-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry</entry-listener>
+		</entry-listeners>
+	</map>
 
 	<serialization>
 		<data-serializable-factories>
@@ -66,11 +106,6 @@
 			</data-serializable-factory>
 		</data-serializable-factories>
 	</serialization>
-
-	<!--  By default, Jet sources are streams  -->
-	<event-journal enabled="true">
-		<mapName>default</mapName>
-	</event-journal>
 	
 
 	<!-- ##################################################################################### -->
