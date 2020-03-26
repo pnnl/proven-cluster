@@ -161,7 +161,7 @@ public class DisclosureData extends MessageConsumer implements MessageListener {
 
 	ProvenMessageResponse processMessage(ProvenMessage pm) {
 		ProvenMessageResponse pmr = new ProvenMessageResponse();
-		pmr = cs.influxWriteMeasurements(pm.getMeasurements());
+//EGS 3/23/2020		pmr = cs.influxWriteMeasurements(pm.getMeasurements());
 
 		return pmr;
 	}

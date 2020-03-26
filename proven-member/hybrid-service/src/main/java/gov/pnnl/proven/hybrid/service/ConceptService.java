@@ -1059,14 +1059,18 @@ public class ConceptService {
 
 	public ProvenMessageResponse influxQuery(ProvenMessage query) throws InvalidProvenMessageException {
 
-		ProvenMessageResponse pmr = influxQuery(query, false);
+		ProvenMessageResponse pmr = influxQuery(query, false, false);
 		return pmr;
 
 	}
 
 
-
-	public ProvenMessageResponse influxQuery(ProvenMessage query, boolean returnCsvFlag) throws InvalidProvenMessageException {
+    public ProvenMessageResponse debugInfluxQuery (ProvenMessage query) throws InvalidProvenMessageException {
+		ProvenMessageResponse pmr = influxQuery(query, false, true);
+		return pmr;
+    }
+    
+	public ProvenMessageResponse influxQuery(ProvenMessage query, boolean returnCsvFlag, boolean returnQueryStatement) throws InvalidProvenMessageException {
 		ProvenMessageResponse ret = null;
 		String space = " ";
 		String eq = "=";
@@ -1140,7 +1144,7 @@ public class ConceptService {
 				ret.setReason("Invalid or missing content.");
 				ret.setStatus(Status.BAD_REQUEST);
 				ret.setCode(Status.BAD_REQUEST.getStatusCode());
-				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" } " + qr.getError());
 
 			} else {
 				ret = new ProvenMessageResponse();
@@ -1163,6 +1167,10 @@ public class ConceptService {
 			ret.setCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
 			ret.setResponse("{ \"INFO\": \"idb server disabled in Proven configuration\" }");
 		}
+		if (returnQueryStatement) {
+		  ret.setResponse("Query Statement=" + queryStatement + "\n" + ret.getResponse() );
+			
+		}
 		// ret.setReason(reason);
 		// ret.setResponse(response);
 		return ret;
@@ -1174,104 +1182,104 @@ public class ConceptService {
 	//
 	// New write measurement routine
 	//
-	public ProvenMessageResponse influxWriteMeasurements(Collection<ProvenMeasurement> measurements) {
-		ProvenMessageResponse ret = null;
-		if (useIdb) {
-
-			// OLD Long startTime = System.currentTimeMillis();
-			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
-			// influxDB.enableBatch(BatchOptions.DEFAULT_BATCH_ACTIONS_LIMIT,
-			// BatchOptions.DEFAULT_BATCH_INTERVAL_DURATION, TimeUnit.SECONDS);
-			influxDB.enableBatch(20000, 20, TimeUnit.SECONDS);
-			for (ProvenMeasurement measurement : measurements) {
-
-				Set<ProvenMetric> pms = measurement.getMetrics();
-
-				if (measurement.getTimestamp() == null) {
-					ret = new ProvenMessageResponse();
-					ret.setStatus(Status.BAD_REQUEST);
-					ret.setReason("Invalid or missing message content type.  Measurement timestamp missing.");
-					ret.setCode(Status.BAD_REQUEST.getStatusCode());
-					ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-					return ret;
-				}
-				Point.Builder builder = Point.measurement(measurement.getMeasurementName())
-						.time(measurement.getTimestamp(), TimeUnit.SECONDS);
-
-				for (ProvenMetric pm : pms) {
-
-					if (pm.isMetadata()) {
-
-						builder.tag(pm.getLabel(), pm.getValue());
-
-						// System.out.println("TAG");
-						// System.out.println("------------------------------");
-						// System.out.println(pm.getLocalMetricName());
-						// System.out.println(pm.getLabelMetricValue());
-						// System.out.println("------------------------------");
-
-					} else {
-
-						try {
-							if (pm.getValueType().equals(MetricValueType.Integer)) {
-								builder.addField(pm.getLabel(), Integer.valueOf(pm.getValue()));
-
-							} else if (pm.getValueType().equals(MetricValueType.Long)) {
-								builder.addField(pm.getLabel(), Long.valueOf(pm.getValue()));
-
-							} else if (pm.getValueType().equals(MetricValueType.Float)) {
-								builder.addField(pm.getLabel(), Float.valueOf(pm.getValue()));
-
-							} else if (pm.getValueType().equals(MetricValueType.Double)) {
-								builder.addField(pm.getLabel(), Double.valueOf(pm.getValue()));
-
-							} else if (pm.getValueType().equals(MetricValueType.Boolean)) {
-								builder.addField(pm.getLabel(), Boolean.valueOf(pm.getValue()));
-							} else {
-								builder.addField(pm.getLabel(), pm.getValue());
-							}
-						} catch (NumberFormatException e) {
-							builder.addField(pm.getLabel(), pm.getValue());
-						}
-
-						// System.out.println("FIELD");
-						// System.out.println("------------------------------");
-						// System.out.println(pm.getLocalMetricName());
-						// System.out.println(pm.getLabelMetricValue());
-						// System.out.println("------------------------------");
-
-					}
-
-				}
-
-				//
-				// Add semantic links
-				//
-				builder.tag("hasProvenMessage", measurement.getProvenMessage().toString());
-				builder.tag("hasMeasurement", measurement.getProvenMessageMeasurement().toString());
-
-				// System.out.println("------------------------------");
-				// System.out.println("------------------------------");
-
-				influxDB.write(idbDB, idbRP, builder.build());
-				ret = new ProvenMessageResponse();
-				ret.setReason("success");
-				ret.setStatus(Status.CREATED);
-				ret.setCode(Status.CREATED.getStatusCode());
-				ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
-			}
-
-		} else {
-			ret = new ProvenMessageResponse();
-			ret.setReason("Time-series database unavailable or database adapter is disabled.");
-			ret.setStatus(Status.SERVICE_UNAVAILABLE);
-			ret.setCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
-			ret.setResponse("{ \"INFO\": \"idb server disabled in Proven configuration\" }");
-
-		}
-		return ret;
-
-	}
+//	public ProvenMessageResponse influxWriteMeasurements(Collection<ProvenMeasurement> measurements) {
+//		ProvenMessageResponse ret = null;
+//		if (useIdb) {
+//
+//			// OLD Long startTime = System.currentTimeMillis();
+//			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
+//			// influxDB.enableBatch(BatchOptions.DEFAULT_BATCH_ACTIONS_LIMIT,
+//			// BatchOptions.DEFAULT_BATCH_INTERVAL_DURATION, TimeUnit.SECONDS);
+//			influxDB.enableBatch(20000, 20, TimeUnit.SECONDS);
+//			for (ProvenMeasurement measurement : measurements) {
+//
+//				Set<ProvenMetric> pms = measurement.getMetrics();
+//
+//				if (measurement.getTimestamp() == null) {
+//					ret = new ProvenMessageResponse();
+//					ret.setStatus(Status.BAD_REQUEST);
+//					ret.setReason("Invalid or missing message content type.  Measurement timestamp missing.");
+//					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+//					ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+//					return ret;
+//				}
+//				Point.Builder builder = Point.measurement(measurement.getMeasurementName())
+//						.time(measurement.getTimestamp(), TimeUnit.SECONDS);
+//
+//				for (ProvenMetric pm : pms) {
+//
+//					if (pm.isMetadata()) {
+//
+//						builder.tag(pm.getLabel(), pm.getValue());
+//
+//						// System.out.println("TAG");
+//						// System.out.println("------------------------------");
+//						// System.out.println(pm.getLocalMetricName());
+//						// System.out.println(pm.getLabelMetricValue());
+//						// System.out.println("------------------------------");
+//
+//					} else {
+//
+//						try {
+//							if (pm.getValueType().equals(MetricValueType.Integer)) {
+//								builder.addField(pm.getLabel(), Integer.valueOf(pm.getValue()));
+//
+//							} else if (pm.getValueType().equals(MetricValueType.Long)) {
+//								builder.addField(pm.getLabel(), Long.valueOf(pm.getValue()));
+//
+//							} else if (pm.getValueType().equals(MetricValueType.Float)) {
+//								builder.addField(pm.getLabel(), Float.valueOf(pm.getValue()));
+//
+//							} else if (pm.getValueType().equals(MetricValueType.Double)) {
+//								builder.addField(pm.getLabel(), Double.valueOf(pm.getValue()));
+//
+//							} else if (pm.getValueType().equals(MetricValueType.Boolean)) {
+//								builder.addField(pm.getLabel(), Boolean.valueOf(pm.getValue()));
+//							} else {
+//								builder.addField(pm.getLabel(), pm.getValue());
+//							}
+//						} catch (NumberFormatException e) {
+//							builder.addField(pm.getLabel(), pm.getValue());
+//						}
+//
+//						// System.out.println("FIELD");
+//						// System.out.println("------------------------------");
+//						// System.out.println(pm.getLocalMetricName());
+//						// System.out.println(pm.getLabelMetricValue());
+//						// System.out.println("------------------------------");
+//
+//					}
+//
+//				}
+//
+//				//
+//				// Add semantic links
+//				//
+//				builder.tag("hasProvenMessage", measurement.getProvenMessage().toString());
+//				builder.tag("hasMeasurement", measurement.getProvenMessageMeasurement().toString());
+//
+//				// System.out.println("------------------------------");
+//				// System.out.println("------------------------------");
+//
+//				influxDB.write(idbDB, idbRP, builder.build());
+//				ret = new ProvenMessageResponse();
+//				ret.setReason("success");
+//				ret.setStatus(Status.CREATED);
+//				ret.setCode(Status.CREATED.getStatusCode());
+//				ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
+//			}
+//
+//		} else {
+//			ret = new ProvenMessageResponse();
+//			ret.setReason("Time-series database unavailable or database adapter is disabled.");
+//			ret.setStatus(Status.SERVICE_UNAVAILABLE);
+//			ret.setCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+//			ret.setResponse("{ \"INFO\": \"idb server disabled in Proven configuration\" }");
+//
+//		}
+//		return ret;
+//
+//	}
 
 
 	@SuppressWarnings("unchecked")
@@ -1316,7 +1324,7 @@ public class ConceptService {
 			String iokey = ioit.next();
 
 			if (iObject.get(iokey) instanceof String) {
-				ret.tag(iokey, (String) iObject.get(iokey));
+				ret.addField(iokey, (String) iObject.get(iokey));
 			} else if (iObject.get(iokey) instanceof Integer) {
 				ret.addField(iokey, Integer.valueOf((Integer) iObject.get(iokey)));
 			} else if (iObject.get(iokey) instanceof Long) {
@@ -1344,7 +1352,20 @@ public class ConceptService {
 		JSONArray forwardDifferenceArray = null;
 		JSONArray reverseDifferenceArray = null;
 		JSONObject inputObject = (JSONObject) commandObject.get("input");
-		String simulationid = inputObject.get("simulation_id").toString();
+		String simulationid = "";
+		if (inputObject.get("simulation_id") != null) {
+			simulationid = inputObject.get("simulation_id").toString();
+		}
+		
+		if ((simulationid.equalsIgnoreCase(""))) {
+			ret = new ProvenMessageResponse();
+			ret.setStatus(Status.BAD_REQUEST);
+			ret.setReason("Invalid or missing message content type.  Simulation id missing.");
+			ret.setCode(Status.BAD_REQUEST.getStatusCode());
+			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			return ret;
+		}
+		
 		JSONObject object = (JSONObject) inputObject.get("message");
 		@SuppressWarnings("unchecked")
 		Set<String> keys = object.keySet();
@@ -1352,7 +1373,23 @@ public class ConceptService {
 		while (it.hasNext()) {
 			String key = it.next();
 			if (key.equalsIgnoreCase("timestamp")) {
-				timestamp = (Long) object.get("timestamp");
+				if (object.get(key) instanceof Long) {
+					timestamp = (Long) object.get("timestamp");					
+				} else if (object.get(key) instanceof String) {
+					if (((String)object.get(key)).matches("-?\\d+(.\\d+)?")) {
+						timestamp = Long.parseLong((String)object.get(key));
+					
+					}
+					
+				}
+				if (timestamp == -1) {
+					ret = new ProvenMessageResponse();
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setReason("Invalid or missing message content type.  Invalid (non-numeric epoch value) or missing measurement timestamp.");
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+					return ret;
+				}
 
 			}
 			if (key.equalsIgnoreCase("difference_mrid")) {
@@ -1366,20 +1403,12 @@ public class ConceptService {
 			}
 
 		}
-
-		if ((timestamp == -1) || (simulationid.equalsIgnoreCase(""))) {
-			ret = new ProvenMessageResponse();
-			ret.setStatus(Status.BAD_REQUEST);
-			ret.setReason("Invalid or missing message content type.  Measurement timestamp or simulation id missing.");
-			ret.setCode(Status.BAD_REQUEST.getStatusCode());
-			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-			return ret;
-		}
+	
 
 		if ((forwardDifferenceArray == null) && (reverseDifferenceArray == null)) {
 			ret = new ProvenMessageResponse();
 			ret.setStatus(Status.BAD_REQUEST);
-			ret.setReason("Invalid or missing message content type.  Measurements missing.");
+			ret.setReason("Invalid or missing message content type. The forwarDifferenceArray or reverseDifferenceArray measurements are missing.");
 			ret.setCode(Status.BAD_REQUEST.getStatusCode());
 			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 			return ret;
@@ -1403,7 +1432,7 @@ public class ConceptService {
 				String fdkey = fdit.next();
 
 				if (fdobject.get(fdkey) instanceof String) {
-					builder.tag(fdkey, (String) fdobject.get(fdkey));
+					builder.addField(fdkey, (String) fdobject.get(fdkey));
 				} else if (fdobject.get(fdkey) instanceof Integer) {
 					builder.addField(fdkey, Integer.valueOf((Integer) fdobject.get(fdkey)));
 				} else if (fdobject.get(fdkey) instanceof Long) {
@@ -1420,13 +1449,22 @@ public class ConceptService {
 				}
 
 			}
+			try {
 			influxDB.write(idbDB, idbRP, builder.build());
+			} catch (Exception e) {
+				ret =  new ProvenMessageResponse();
+				ret.setReason("error");
+				ret.setStatus(Status.BAD_REQUEST);
+				ret.setCode(Status.BAD_REQUEST.getStatusCode());
+				ret.setResponse("{ \"ERROR\": \"Error interpreting measurement, possibly malformed JSON or no fields in measurement, command not recorded.\" }");
+				return ret;
+				
+			}
 			ret = new ProvenMessageResponse();
 			ret.setReason("success");
 			ret.setStatus(Status.CREATED);
 			ret.setCode(Status.CREATED.getStatusCode());
 			ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
-
 		}
 
 		@SuppressWarnings("unchecked")
@@ -1449,7 +1487,7 @@ public class ConceptService {
 				String rdkey = rdit.next();
 				// if (rdobject.get(rdkey) instanceof String) {
 				if (rdobject.get(rdkey) instanceof String) {
-					builder.tag(rdkey, (String) rdobject.get(rdkey));
+					builder.addField(rdkey, (String) rdobject.get(rdkey));
 				} else if (rdobject.get(rdkey) instanceof Integer) {
 					builder.addField(rdkey, Integer.valueOf((Integer) rdobject.get(rdkey)));
 				} else if (rdobject.get(rdkey) instanceof Long) {
@@ -1485,22 +1523,43 @@ public class ConceptService {
 		boolean hasMeasurementObject = false;
 		//		boolean hasMeasurementArray = false;
 		String measurementArrayKey = null;
-		String simulationid = messageObject.get("simulation_id").toString();
-		JSONObject messageContentsObject = (JSONObject) messageObject.get("message");
-		@SuppressWarnings("unchecked")
-		Set<String> messageContent_keys = messageContentsObject.keySet();
-		timestamp = (Long) messageContentsObject.get("timestamp");
-
-
-
-		if ((timestamp == -1) || (simulationid.equalsIgnoreCase(""))) {
+		String simulationid = "";
+		if (messageObject.get("simulation_id") != null) {
+			simulationid = messageObject.get("simulation_id").toString();
+		}
+		
+		if ((simulationid.equalsIgnoreCase(""))) {
 			ret = new ProvenMessageResponse();
 			ret.setStatus(Status.BAD_REQUEST);
-			ret.setReason("Invalid or missing message content type.  Measurement timestamp or simulation id missing.");
+			ret.setReason("Invalid or missing message content type.  Simulation id missing.");
 			ret.setCode(Status.BAD_REQUEST.getStatusCode());
 			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 			return ret;
 		}
+		
+		JSONObject messageContentsObject = (JSONObject) messageObject.get("message");
+		@SuppressWarnings("unchecked")
+		Set<String> messageContent_keys = messageContentsObject.keySet();
+		
+		if (messageContentsObject.get("timestamp") instanceof Long) {
+		   timestamp = (Long) messageContentsObject.get("timestamp");					
+		} else if (messageContentsObject.get("timestamp") instanceof String) {
+		   if (((String)messageContentsObject.get("timestamp")).matches("-?\\d+(.\\d+)?")) {
+					timestamp = Long.parseLong((String)messageContentsObject.get("timestamp"));
+		   }
+				
+		} 
+
+		if (timestamp == -1) {
+			ret = new ProvenMessageResponse();
+			ret.setStatus(Status.BAD_REQUEST);
+			ret.setReason("Invalid or missing message content type.  Invalid (non-numeric epoch value) or missing measurement timestamp.");
+			ret.setCode(Status.BAD_REQUEST.getStatusCode());
+			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			return ret;
+		}
+
+
 
 
 		@SuppressWarnings("unchecked")
@@ -1519,7 +1578,8 @@ public class ConceptService {
 
 				// Add instanceId tag, if any
 				if (null != instanceId) {
-					builder.tag("instance_id", instanceId);
+// 02/03/2020					builder.tag("instance_id", instanceId);
+					builder.addField("instance_id", instanceId);
 				}
 
 				// Add OUTPUT tag
@@ -1530,9 +1590,11 @@ public class ConceptService {
 
 					if (record.get(record_key) instanceof String) {
 						if (record_key.equalsIgnoreCase("measurement_mrid")) {
-							builder.tag(record_key, (String) record.get(record_key));
+							// 02/03/2020							builder.tag(record_key, (String) record.get(record_key));
+							builder.addField(record_key, (String) record.get(record_key));
 						} else {
-							builder.tag(record_key, (String) record.get(record_key));
+							// 02/03/2020							builder.tag(record_key, (String) record.get(record_key));
+							builder.addField(record_key, (String) record.get(record_key));
 						}
 					} else if (record.get(record_key) instanceof Integer) {
 						builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
@@ -1544,14 +1606,23 @@ public class ConceptService {
 						builder.addField(record_key, Double.valueOf((Double) record.get(record_key)));
 					}
 				}
-
+                try {
 				influxDB.write(idbDB, idbRP, builder.build());
 				ret = new ProvenMessageResponse();
 				ret.setReason("success");
 				ret.setStatus(Status.CREATED);
 				ret.setCode(Status.CREATED.getStatusCode());
 				ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
-
+                } catch (Exception e) {
+    				ret =  new ProvenMessageResponse();
+    				ret.setReason("error");
+    				ret.setStatus(Status.BAD_REQUEST);
+    				ret.setCode(Status.BAD_REQUEST.getStatusCode());
+    				ret.setResponse("{ \"ERROR\": \"Error interpreting measurement, possibly malformed JSON or no fields in measurement, output not recorded.\" }");
+    				return ret;
+    				
+    			}
+				
 			}
 		}
 		return ret;
@@ -1636,7 +1707,13 @@ public class ConceptService {
 
 		} catch (org.json.simple.parser.ParseException e) {
 			// TODO Auto-generated catch block
+			ret = new ProvenMessageResponse();
+			ret.setStatus(Status.BAD_REQUEST);
+			ret.setReason("Invalid or missing message content type.  Could not parse JSON message.");
+			ret.setCode(Status.BAD_REQUEST.getStatusCode());
+			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 			e.printStackTrace();
+			return ret;
 		}
 
 		objectType = detectObjectType(messageObject);
@@ -1650,7 +1727,7 @@ public class ConceptService {
 		} else {
 			ret = new ProvenMessageResponse();
 			ret.setStatus(Status.BAD_REQUEST);
-			ret.setReason("Invalid or missing message content type.  Simulation data irregular or not detected.");
+			ret.setReason("Invalid or missing message content type.  Simulation data format irregular or not detected as input, output, or alarm.");
 			ret.setCode(Status.BAD_REQUEST.getStatusCode());
 			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 			return ret;

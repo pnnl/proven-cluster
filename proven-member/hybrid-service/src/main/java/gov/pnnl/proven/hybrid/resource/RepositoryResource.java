@@ -916,10 +916,10 @@ public class RepositoryResource {
 				pmr = cs.influxQuery(pm);
 			}
 
-			// Explicit
-			if (stream.equals(MessageContent.Explicit.getStream())) {
-				pmr = cs.influxWriteMeasurements(pm.getMeasurements());
-			}
+//			// Explicit
+//			if (stream.equals(MessageContent.Explicit.getStream())) {
+//				pmr = cs.influxWriteMeasurements(pm.getMeasurements());
+//			}
 
 			// Invalid message content
 			if (null == pmr) {
@@ -949,6 +949,83 @@ public class RepositoryResource {
 		return pmr;
 	}
 
+	@POST
+	@Path(R_PROVEN_MESSAGE_DEBUG)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	// @formatter:off
+	@ApiOperation(value = "Debugs a translation of Proven message into Influx", notes = "Provided provenance mesage must be valid \"ProvenMessage\" object")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 403, message = "Invalid or missing message content", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 500, message = "Internal server error.") })
+	// @formatter:on
+
+	public ProvenMessageResponse debugInfluxStatement(ProvenMessage pm) {
+
+		ProvenMessageResponse pmr = null;
+
+		try {
+			cs.begin();
+
+			// Add proven message to stream
+			// TODO Implement MapStore
+			String key = pm.getMessageKey();
+			pm.getMessageProperties().setDisclosure(new Date().getTime());
+			String stream = pm.getMessageContent().getStream();
+			if (null != hzMemberInstance) {
+				log.warn("HZ cluster instance could not be found");
+				IMap<String, ProvenMessage> pms = hzMemberInstance.getMap(stream);
+				pms.set(key, pm);
+			}
+
+			// Add statements to T3 store
+			Resource[] contexts = {};
+			Collection<Statement> statements = ConceptUtil.getSesameStatements(pm.getStatements());
+			cs.addStatements(statements, contexts);
+
+			// Query or Add measurements to TS store
+
+			// Query
+			if (stream.equals(MessageContent.Query.getStream())) {
+
+				pmr = cs.influxQuery(pm,true, true);
+			}
+
+			// Explicit
+			if (stream.equals(MessageContent.Explicit.getStream())) {
+				// Do nothing.
+			}
+
+			// Invalid message content
+			if (null == pmr) {
+				pmr = new ProvenMessageResponse();
+				pmr.setStatus(Status.BAD_REQUEST);
+				pmr.setReason("Invalid or missing message content type.");
+				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
+				pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+
+				cs.rollback();
+
+			} else {
+
+				cs.commit();
+			}
+
+		} catch (Exception e) {
+			cs.rollback();
+			pmr = new ProvenMessageResponse();
+			pmr.setStatus(Status.INTERNAL_SERVER_ERROR);
+			pmr.setReason(e.getMessage());
+			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+			pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			e.printStackTrace();
+		}
+
+		return pmr;
+	}	
+	
 	@POST
 	@Path(R_PROVEN_MESSAGE_CSV)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -990,7 +1067,7 @@ public class RepositoryResource {
 			// Query
 			if (stream.equals(MessageContent.Query.getStream())) {
 
-				pmr = cs.influxQuery(pm,true);
+				pmr = cs.influxQuery(pm,true, false);
 			}
 
 			// Explicit
@@ -1024,9 +1101,7 @@ public class RepositoryResource {
 		}
 
 		return pmr;
-	}	
-	
-	
+	}		
 	@POST
 	@Path("addBulkTimeSeries")
 	@Produces(MediaType.APPLICATION_JSON)
