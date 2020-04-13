@@ -63,6 +63,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 import gov.pnnl.proven.cluster.lib.module.messenger.RegistryReporter;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleRegistryAnnotationLiteral;
@@ -84,10 +85,10 @@ public abstract class TaskSchedule implements RegistryReporter, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final int MAX_SKIPPED_BEFORE_REPORTING_DEFAULT = 5;
-
 	@Inject
 	Logger log;
+	
+	MemberProperties mp = MemberProperties.getInstance();
 
 	private enum ScheduleStatus {
 
@@ -144,11 +145,10 @@ public abstract class TaskSchedule implements RegistryReporter, Serializable {
 	protected boolean activateOnStartup;
 
 	// Registry reporting properties
-	protected MessageEvent reported = null;
-	protected MessageEvent reporting = null;
-	protected int skippedReports = 0;
-	protected int maxSkippedBeforeReporting = MAX_SKIPPED_BEFORE_REPORTING_DEFAULT;
-	protected long registryOverdueMillis;
+	private MessageEvent reported = null;
+	private int skippedReports = 0;
+	private int maxSkippedBeforeReporting = mp.getTaskScheduleMaxSkippedEntryReports();
+	private long registryOverdueMillis;
 
 	public TaskSchedule() {
 	}
@@ -174,11 +174,6 @@ public abstract class TaskSchedule implements RegistryReporter, Serializable {
 	@Override
 	public MessageEvent reported() {
 		return reported;
-	}
-
-	@Override
-	public MessageEvent reporting() {
-		return reporting;
 	}
 
 	@Override

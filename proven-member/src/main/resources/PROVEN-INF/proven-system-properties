@@ -19,9 +19,10 @@ proven.jet.instance.test.port=0
 proven.jet.group.name=jet
 
 # module-lib
-proven.lib.module.managed_component.max.retries=3
+proven.lib.module.managed_component.max_retries=3
 proven.lib.module.registry.member.do_name=gov.pnnl.proven.registry.member
 proven.lib.module.registry.cluster.do_name=gov.pnnl.proven.registry.cluster
+proven.lib.module.schedule.task.max_skipped_entry_reports=5
 #proven.lib.module.managed_component.exchange.queue.capacity=10000
 #proven.lib.module.managed_component.exchange.buffer.capacity=1000
 #proven.lib.module.managed_component.exchange.service.buffer.capacity=100

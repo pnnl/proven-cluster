@@ -40,6 +40,7 @@
 package gov.pnnl.proven.cluster.lib.module.registry;
 
 import java.io.IOException;
+import java.util.Date;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -50,7 +51,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
 
 /**
  * Provides information regarding a {@code ManagedComponent} that can be entered
- * into and processed by a registry component.
+ * into and processed by a {@code ComponentRegistry}.
  * 
  * @author d3j766
  *
@@ -59,10 +60,11 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 
 	private static final long serialVersionUID = 1L;
 
-	private EntryDomain entryId;
+	private EntryIdentifier entryId;
 	private EntryLocation location;
 	private EntryProperties properties;
 	private long overdueMillis;
+	private long recordedTimestamp;
 
 	public ComponentEntry(ManagedComponent mc) {
 		super(mc);
@@ -72,48 +74,54 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 	}
 
 	/**
-	 * @return the entryId
+	 * If true, indicated the component represented by this entry is overdue in
+	 * reporting its information to the registry.
+	 * 
+	 * @return true if reporting is overdue, false otherwise
+	 * 
 	 */
-	public EntryDomain getEntryId() {
+	public boolean isOverdue() {
+		return (recordedTimestamp + overdueMillis) > new Date().getTime();
+	}
+
+	public EntryIdentifier getEntryId() {
 		return entryId;
 	}
 
-	/**
-	 * @return the location
-	 */
 	public EntryLocation getLocation() {
 		return location;
 	}
 
-	/**
-	 * @return the properties
-	 */
 	public EntryProperties getProperties() {
 		return properties;
 	}
 
-	/**
-	 * @return the overdueMillis
-	 */
 	public long getOverdueMillis() {
 		return overdueMillis;
 	}
 
-	/**
-	 * @param overdueMillis
-	 *            the overdueMillis to set
-	 */
 	public void setOverdueMillis(long overdueMillis) {
 		this.overdueMillis = overdueMillis;
+	}
+
+	public long getRecordedTimestamp() {
+		return recordedTimestamp;
+	}
+
+	public void setRecordedTimestamp(long recordedTimestamp) {
+		this.recordedTimestamp = recordedTimestamp;
 	}
 
 	@Override
 	public int compareTo(ComponentEntry other) {
 
+		// Assume equal
 		int ret = 0;
 
-		if (!entryId.equals(other.getEntryId())) {
+		if (!location.equals(other.location)) {
 			ret = location.compareTo(other.location);
+		} else {
+			ret = entryId.compareTo(other.entryId);
 		}
 
 		return ret;
@@ -121,10 +129,11 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.entryId = in.readObject(EntryDomain.class);
+		this.entryId = in.readObject(EntryIdentifier.class);
 		this.location = in.readObject(EntryLocation.class);
 		this.properties = in.readObject(EntryProperties.class);
 		this.overdueMillis = in.readLong();
+		this.recordedTimestamp = in.readLong();
 	}
 
 	@Override
@@ -132,7 +141,8 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 		this.entryId.writeData(out);
 		this.location.writeData(out);
 		this.properties.writeData(out);
-		out.writeLong(overdueMillis);
+		out.writeLong(this.overdueMillis);
+		out.writeLong(this.recordedTimestamp);
 	}
 
 	@Override

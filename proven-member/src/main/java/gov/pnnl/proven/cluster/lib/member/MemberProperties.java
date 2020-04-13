@@ -107,10 +107,10 @@ public class MemberProperties {
 	/**
 	 * module-lib properties
 	 */
-	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max.retries";
+	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max_retries";
 	private static final String MEMBER_REGISTRY_DO_NAME = "proven.lib.module.registry.member.do_name";
 	private static final String CLUSTER_REGISTRY_DO_NAME = "proven.lib.module.registry.cluster.do_name";
-
+	private static final String TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS = "proven.lib.module.schedule.task.max_skipped_entry_reports";
 
 	/**
 	 * hybrid-module properties
@@ -239,6 +239,10 @@ public class MemberProperties {
 
 	public String getClusterRegistryDoName() {
 		return getPropertyValue(CLUSTER_REGISTRY_DO_NAME, String.class);
+	}
+	
+	public Integer getTaskScheduleMaxSkippedEntryReports() {
+		return getPropertyValue(TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS, Integer.class);
 	}
 
 	//////////////////////////////////////////////////////

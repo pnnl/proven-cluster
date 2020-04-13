@@ -132,4 +132,7 @@ public class MessageStream extends StreamComponent {
 		return hzi;
 	}
 
+	
+	
+	
 }

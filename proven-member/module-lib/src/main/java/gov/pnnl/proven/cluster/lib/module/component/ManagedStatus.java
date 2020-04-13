@@ -88,7 +88,7 @@ public enum ManagedStatus {
 	 * is considered as offline. Existing tasks will be completed, new
 	 * tasks/data will not be assigned. The component may be reactivated from
 	 * this state by another check operation, and only if the cause for
-	 * deactivation has been repaired by subsequent maintenance check(s).
+	 * deactivation has been repaired by a subsequent maintenance check.
 	 */
 	CheckedOffline(false),
 
@@ -196,13 +196,13 @@ public enum ManagedStatus {
 	Recoverable(false),
 
 	/**
-	 * Indicates any non-transition status, where the component can not be
+	 * Indicates any status, where the component can not be
 	 * recovered for service.
 	 */
 	NonRecoverable(false),
 
 	/**
-	 * Indicates any non-transition status that is a terminating state.
+	 * Indicates any status that is a terminating state.
 	 */
 	Terminal(false),
 

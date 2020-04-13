@@ -83,7 +83,7 @@
 		<async-backup-count>0</async-backup-count>
 		<max-size>0</max-size>
 		<item-listeners>
-			<item-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry</item-listener>
+			<item-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry</item-listener>
 		</item-listeners>
 	</set>
 
@@ -94,9 +94,6 @@
 		<time-to-live-seconds>0</time-to-live-seconds>
 		<in-memory-format>OBJECT</in-memory-format>
 		<max-size>0</max-size>
-		<entry-listeners>
-			<entry-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry</entry-listener>
-		</entry-listeners>
 	</map>
 
 	<serialization>

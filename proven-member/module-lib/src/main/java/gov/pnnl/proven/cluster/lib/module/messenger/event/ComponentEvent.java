@@ -65,12 +65,15 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 	Class<?> cType;
 	String cName;
 	ManagedStatus cStatus;
+	Long creationTime;
+	boolean isUpdate = true;
 
 	public ComponentEvent(ManagedComponent c) {
 		this.cId = c.getId();
 		this.cType = c.getType();
 		this.cName = c.getName();
 		this.cStatus = c.getStatus();
+		this.creationTime = c.getCreationeTime();
 	}
 
 	/**

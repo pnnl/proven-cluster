@@ -59,6 +59,7 @@ import org.slf4j.Logger;
 
 import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
@@ -93,6 +94,12 @@ public abstract class ProvenModule extends ModuleComponent {
 	// Set of active managers selected for this module
 	Set<Class<? extends ManagerComponent>> activeManagers = new HashSet<>();
 
+	// Member id
+	UUID memberId;
+
+	// Member id
+	UUID moduleId;
+
 	// Module name
 	private static String moduleName;
 
@@ -102,7 +109,7 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	@PostConstruct
 	public void init() {
-		UUID memberId = UUID.fromString(pmr.getLocalDescriptor().getMemberUUID());
+		memberId = UUID.fromString(pmr.getLocalDescriptor().getMemberUUID());
 		UUID moduleId, managerId, creatorId;
 		moduleId = managerId = creatorId = this.id;
 		entryLocation(new EntryLocation(memberId, moduleId, managerId, creatorId));
@@ -141,13 +148,27 @@ public abstract class ProvenModule extends ModuleComponent {
 		}
 		return ret;
 	}
-
+	/**
+	 * Used by ManagerFactory Producer methods to create a new manager
+	 * components.
+	 * 
+	 * Null will be returned if the new component could not be created due its
+	 * creation violating scalability rules.
+	 * 
+	 * @param clazz
+	 *            type of manager component to create.
+	 * 
+	 * @return
+	 */
 	private <T extends ManagerComponent> T createManager(Class<T> clazz) {
 
 		if (!activeManagers.contains(clazz)) {
 			throw new ProducesInactiveManagerException(
 					"Cannot produce manager: " + clazz.getSimpleName() + " It has been configured as inactive.");
 		}
+
+		// TODO
+		// Check scalability count, return null if creation would violate it
 		T manager = create(new CreationRequest<T>(clazz)).get();
 		return manager;
 	}
@@ -165,6 +186,14 @@ public abstract class ProvenModule extends ModuleComponent {
 			}
 		}
 		return moduleName;
+	}
+
+	public UUID getMemberId() {
+		return memberId;
+	}
+
+	public UUID getModuleId() {
+		return moduleId;
 	}
 
 	/**

@@ -64,20 +64,20 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
  */
 public class MaintenanceResultEntry extends ComponentEvent {
 
+	private static final long serialVersionUID = 1L;
+	
 	MaintenanceOperationResult result;
 	boolean isMaintenanceSeverity;
 	List<String> allOps = new ArrayList<>();
 	List<String> failedOps = new ArrayList<>();
 	List<String> passedOps = new ArrayList<>();
 	List<String> notInvokedOps = new ArrayList<>();
-	long registryOverdueMillis;
 
 	public <T extends MaintenanceOperation> MaintenanceResultEntry(ManagedComponent mc,
-			MaintenanceOperationResult result, SortedSet<T> ops, long registryOverdueMillis) {
+			MaintenanceOperationResult result, SortedSet<T> ops) {
 
 		super(mc);
 		this.result = result;
-		this.registryOverdueMillis = registryOverdueMillis;
 		ops.forEach((op) -> {
 			allOps.add(op.opName());
 			MaintenanceOperationStatus mos = op.getResult().getStatus();
@@ -114,21 +114,6 @@ public class MaintenanceResultEntry extends ComponentEvent {
 	 */
 	public MaintenanceOperationResult getResult() {
 		return result;
-	}
-
-	/**
-	 * @return the registryOverdueMillis
-	 */
-	public long getRegistryOverdueMillis() {
-		return registryOverdueMillis;
-	}
-
-	/**
-	 * @param registryOverdueMillis
-	 *            the registryOverdueMillis to set
-	 */
-	public void setRegistryOverdueMillis(long registryOverdueMillis) {
-		this.registryOverdueMillis = registryOverdueMillis;
 	}
 
 	/**

@@ -59,6 +59,7 @@ import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOper
 import java.lang.annotation.Annotation;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -109,9 +110,10 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.O
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperationAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.EntryDomain;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryReporter;
@@ -175,6 +177,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected Class<? extends ManagedComponent> type;
 	protected String moduleName = ProvenModule.retrieveModuleName();
 	protected ComponentGroup group;
+	protected Long creationeTime = new Date().getTime();
 	protected boolean isModule = false;
 	protected boolean isManager = false;
 
@@ -345,6 +348,10 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	public String getDomainLabel() {
 		return getComponentGroup().getGroupLabel();
 	}
+	
+	public Long getCreationeTime() {
+		return creationeTime;
+	}
 
 	public boolean isScalable() {
 		return this.getClass().isAnnotationPresent(Scalable.class);
@@ -479,7 +486,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	/**
 	 * Optionally returns first component of provided type in its collection of
-	 * created components.
+	 * created components. If there is more then one manager per type (i.e. is
+	 * scalable), then {@link #getAllCreated(Class)} should be utilized.
 	 * 
 	 * @param clazz
 	 *            type of component to retrieve
@@ -760,7 +768,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 				// Only report on observed operations
 				if (op.isObserved()) {
-					for (UUID candidate : statusEventOperationCandidates(op, currentStatus)) {
+					for (UUID candidate : statusEventOperationCandidates(this, op, currentStatus)) {
 						ops.push(new SimpleEntry<Operation, StatusOperationEvent>(op,
 								new StatusOperationEvent(this, candidate)));
 					}
@@ -798,9 +806,11 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return sms;
 	}
 
-	private List<UUID> statusEventOperationCandidates(Operation op, ManagedStatus status) {
+	private List<UUID> statusEventOperationCandidates(ManagedComponent creator, Operation op, ManagedStatus status) {
 
 		List<UUID> ret = new ArrayList<UUID>();
+		boolean isModuleOperator = ModuleComponent.class.isAssignableFrom(creator.getClass());
+		boolean isManagerOperator = ManagerComponent.class.isAssignableFrom(creator.getClass());
 
 		switch (op) {
 
@@ -811,9 +821,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			break;
 
 		case RequestScale:
-			if (Online == status) {
-				ret = scaleOperationCandidates();
-			}
+			ret = scaleOperationCandidates();
 			break;
 
 		case Deactivate:
@@ -823,8 +831,10 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			break;
 
 		case Fail:
-			if (Failed == status) {
-				ret = operationCandidates(op);
+			if (isModuleOperator || isManagerOperator) {
+				if (Failed == status) {
+					ret = operationCandidates(op);
+				}
 			}
 			break;
 
@@ -900,26 +910,22 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		// if (candidate.isScalable()) {
 		if (Creator.scalable(candidate.getType())) {
 
-			// Parent must be Online in order to create new components
-			if (pStatus == Online) {
+			// Verify status
+			if (RequestScale.verifyOperation(cStatus)) {
 
-				// Verify status
-				if (RequestScale.verifyOperation(cStatus)) {
+				// Online is used to ensure not below initial count
+				if (cStatus == Online) {
 
-					// Online is used to ensure not below initial count
-					if (cStatus == Online) {
-
-						if ((hasScaleAttempts(candidate)) && (isBelowMinimumCapacity(candidate.getType()))) {
-							ret = true;
-						}
-
+					if ((hasScaleAttempts(candidate)) && (isBelowMinimumCapacity(candidate.getType()))) {
+						ret = true;
 					}
-					// Other status values should be non-factors in capacity
-					// calculation.
-					else {
-						if ((hasScaleAttempts(candidate)) && (hasScaleCapacity(candidate.getType()))) {
-							ret = true;
-						}
+
+				}
+				// Other status values should be non-factors in capacity
+				// calculation.
+				else {
+					if ((hasScaleAttempts(candidate)) && (hasScaleCapacity(candidate.getType()))) {
+						ret = true;
 					}
 				}
 			}
@@ -1163,8 +1169,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	@Override
 	public void createAsync(CreationRequest<ManagedComponent> request) {
 		creationQueue.addRequest(getId(), request);
-	}	
-	
+	}
+
 	/**
 	 * @see Creator#scale(CreationRequest)
 	 */
@@ -1231,7 +1237,6 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return response;
 	}
 
-
 	/**
 	 * Default implementation returning an empty list meaning the component has
 	 * no configuration. However, if this component is configurable a
@@ -1240,6 +1245,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * @see Creator#configuration()
 	 * 
 	 */
+	@Override
 	public Object[] configuration() {
 
 		if (Creator.configurable(getType())) {
@@ -1261,8 +1267,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * @see EntryReporter#entryIdentifier()
 	 */
 	@Override
-	public EntryDomain entryIdentifier() {
-		return new EntryDomain(this);
+	public EntryIdentifier entryIdentifier() {
+		return new EntryIdentifier(this);
 	}
 
 	/**

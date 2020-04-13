@@ -39,67 +39,19 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.util.UUID;
-
-import javax.annotation.PostConstruct;
-import javax.ejb.Schedule;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ISet;
-
-import fish.payara.micro.PayaraInstance;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-
 /**
- * Component Registry at the Member level.
+ * Provides a Request Registry at Member level.
  * 
  * @author d3j766
  *
  */
 @ApplicationScoped
-@Eager
-public class MemberComponentRegistry {
+public class RequestRegistry {
 
-	@Inject
-	Logger log;
-
-	@Inject
-	ClusterComponentRegistry ccr;
-
-	@Inject
-	HazelcastInstance hzi;
-
-	/**
-	 * Contains the set of Hazelcast member's reporting module components.
-	 */
-	//ISet<ModuleEntry> entires;
-
-	@PostConstruct
-	public void initialize() {
-		log.debug("Inside MemberComponentRegistry PostConstruct");
-	}
-
-	public MemberComponentRegistry() {
-		System.out.println("Inside MemberComponentRegistry constructor");
-	}
-
-	public void entry(ComponentEntry event) {
-		//TODO
-		// record status information
-	}
-	
-	public void unregister(UUID componentId) {
-		
-		
-		//TODO
-		// Ungegister
-		// Stop scheduler
-		// Also stop maintenance schedule for good measure 
+	public RequestRegistry() {
 	}
 
 }

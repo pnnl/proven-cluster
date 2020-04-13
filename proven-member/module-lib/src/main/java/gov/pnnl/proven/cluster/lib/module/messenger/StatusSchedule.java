@@ -144,7 +144,7 @@ public class StatusSchedule extends TaskSchedule {
 
 			// Notify operator's status to registry
 			ComponentEntry event = sms.getEntry();
-			event.setOverdueMillis(registryOverdueMillis);
+			event.setOverdueMillis(registryOverdueMillis());
 			notifyRegistry(event, true);
 
 		}

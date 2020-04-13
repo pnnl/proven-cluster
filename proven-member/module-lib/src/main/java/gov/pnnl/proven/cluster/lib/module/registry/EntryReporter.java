@@ -51,7 +51,7 @@ public interface EntryReporter {
 	ComponentEntry entry();
 
 	/**
-	 * Provides an entry identifier, in DNS Domain format. All components are
+	 * Provides an entry identifier, in a Domain format. All components are
 	 * classified by their entry identifier, and contain the following Domain
 	 * labels:
 	 * 
@@ -61,17 +61,17 @@ public interface EntryReporter {
 	 * 
 	 * <b>id</b> component identifier
 	 * 
-	 * <b>name</b> component name
+	 * <b>name</b> component name.  This is their type's simple name.
 	 * 
 	 * <b>sub-domain</b> sub-domain label, this is a components group label -
 	 * {@link ComponentGroup#getGroupLabel()}
 	 * 
-	 * <b>component-domain</b> {@link EntryDomain#COMPONENT_DOMAIN}, shared by
+	 * <b>component-domain</b> {@link EntryIdentifier#COMPONENT_DOMAIN}, shared by
 	 * all components.
 	 * 
 	 * @return an EntryDomain
 	 */
-	EntryDomain entryIdentifier();
+	EntryIdentifier entryIdentifier();
 
 	/**
 	 * Set the {@link EntryLocation} for a reported {@code ComponentEntry}.

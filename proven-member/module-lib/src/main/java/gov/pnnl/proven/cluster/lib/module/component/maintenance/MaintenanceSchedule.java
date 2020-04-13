@@ -61,7 +61,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceResultEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceRegistry;
 
 /**
  * Performs maintenance checks provided by the registered supplier.
@@ -84,7 +84,7 @@ public class MaintenanceSchedule extends TaskSchedule {
 
 	@Inject
 	@Eager
-	ModuleMaintenanceRegistry mr;
+	MaintenanceRegistry mr;
 
 	/**
 	 * If true, indicates a components default maintenance has been registered.
@@ -132,7 +132,7 @@ public class MaintenanceSchedule extends TaskSchedule {
 			// First perform scheduler checks. Report to registry only if FAILED
 			MaintenanceOperationResult result = operator.schedulerCheck(sOps);
 			if (result.getStatus() == MaintenanceOperationStatus.FAILED) {
-				MaintenanceResultEntry event = new MaintenanceResultEntry(operator, result, sOps, registryOverdueMillis);
+				MaintenanceResultEntry event = new MaintenanceResultEntry(operator, result, sOps);
 				notifyRegistry(event, false);
 			}
 
@@ -143,7 +143,7 @@ public class MaintenanceSchedule extends TaskSchedule {
 				// Perform component checks only if scheduler checks PASSED
 				if (result.getStatus() == MaintenanceOperationStatus.PASSED) {
 					result = operator.check(cOps);
-					MaintenanceResultEntry event = new MaintenanceResultEntry(operator, result, cOps, registryOverdueMillis);
+					MaintenanceResultEntry event = new MaintenanceResultEntry(operator, result, cOps);
 					notifyRegistry(event, false);
 				}
 

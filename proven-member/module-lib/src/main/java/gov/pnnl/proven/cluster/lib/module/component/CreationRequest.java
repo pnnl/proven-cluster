@@ -150,8 +150,6 @@ public class CreationRequest<T extends ManagedComponent> {
 		if (!isValidRequest(subtype, scaleSource, config)) {
 			throw new InvalidCreationRequestException();
 		} else {
-			// this.manager = manager;
-			// this.creator = creator;
 			this.subtype = subtype;
 			this.scaleSource = scaleSource;
 			this.config = Arrays.asList(config);

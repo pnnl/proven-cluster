@@ -39,92 +39,114 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.LS;
-import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.PROVEN_DOMAIN;
-
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.UUID;
 
+import com.hazelcast.core.Member;
+import com.hazelcast.instance.NodeState;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
+import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
 /**
- * Represents an entry identifier for a {@code ComponentEntry}.
- * 
- * @see EntryReporter#entryIdentifier()
+ * A {@code ModuleComponentRegistry} entry representing a {@code ProvenModule}
+ * and its component entries.
  * 
  * @author d3j766
+ * 
+ * @see ModuleComponentRegistry, ProvenModule, ComponentEntry
  *
  */
-public class EntryDomain extends DisclosureDomain implements IdentifiedDataSerializable, Serializable {
+public class ModuleEntry {
 
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * A managed component's base domain value. All component sub-domains should
-	 * be added to this value.
-	 */
-	public static final String COMPONENT_DOMAIN = "component" + LS + PROVEN_DOMAIN;
+	private UUID moduleId;
+	private ModuleStatus moduleStatus;
+	private String moduleName;
 
-	protected UUID componentId;
-	protected String componentName;
-	protected String domainLabel;
+	private EntryDomain entryId;
+	private EntryLocation location;
+	private EntryProperties properties;
+	private long overdueMillis;
+	private long recordedTimestamp;
 
-	public EntryDomain(ManagedComponent mc) {
-		super(mc.getId() + LS + mc.getName() + LS + mc.getDomainLabel() + LS + COMPONENT_DOMAIN);
-		this.componentId = mc.getId();
-		this.componentName = mc.getName();
-		this.domainLabel = mc.getDomainLabel();
+	public ModuleEntry(ManagedComponent mc) {
+		super(mc);
+		this.entryId = mc.entryIdentifier();
+		this.location = mc.entryLocation();
+		this.properties = mc.entryProperties();
+		
+		Member
 	}
 
-	/**
-	 * @return the componentId
-	 */
-	public UUID getComponentId() {
-		return componentId;
+	public EntryDomain getEntryId() {
+		return entryId;
 	}
 
-	/**
-	 * @return the componentName
-	 */
-	public String getComponentName() {
-		return componentName;
+	public EntryLocation getLocation() {
+		return location;
 	}
 
-	/**
-	 * @return the subDomainLabel
-	 */
-	public String getDomainLabel() {
-		return domainLabel;
+	public EntryProperties getProperties() {
+		return properties;
 	}
-	
-	public String getComponentDomain() {
-		return COMPONENT_DOMAIN;
+
+	public long getOverdueMillis() {
+		return overdueMillis;
+	}
+
+	public void setOverdueMillis(long overdueMillis) {
+		this.overdueMillis = overdueMillis;
+	}
+
+	public long getRecordedTimestamp() {
+		return recordedTimestamp;
+	}
+
+	public void setRecordedTimestamp(long recordedTimestamp) {
+		this.recordedTimestamp = recordedTimestamp;
+	}
+
+	@Override
+	public int compareTo(ModuleEntry other) {
+
+		// Assume equal
+		int ret = 0;
+
+		if (!entryId.equals(other.getEntryId())) {
+			ret = location.compareTo(other.location);
+		}
+
+		return ret;
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.componentId = UUID.fromString(in.readUTF());
-		this.componentName = in.readUTF();
+		this.entryId = in.readObject(EntryDomain.class);
+		this.location = in.readObject(EntryLocation.class);
+		this.properties = in.readObject(EntryProperties.class);
+		this.overdueMillis = in.readLong();
+		this.recordedTimestamp = in.readLong();
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeUTF(this.componentId.toString());
-		out.writeUTF(this.componentName);
+		this.entryId.writeData(out);
+		this.location.writeData(out);
+		this.properties.writeData(out);
+		out.writeLong(this.overdueMillis);
+		out.writeLong(this.recordedTimestamp);
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.ENTRY_DOMAIN_TYPE;
+		return ProvenMessageIDSFactory.COMPONENT_ENTRY_TYPE;
 	}
 
 }

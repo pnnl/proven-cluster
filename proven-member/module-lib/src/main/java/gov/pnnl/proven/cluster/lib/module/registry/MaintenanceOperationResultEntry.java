@@ -57,6 +57,8 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
  */
 public class MaintenanceOperationResultEntry extends ComponentEvent {
 
+	private static final long serialVersionUID = 1L;
+	
 	protected String opName;
 	protected MaintenanceOperationResult result;
 	protected long startTime;

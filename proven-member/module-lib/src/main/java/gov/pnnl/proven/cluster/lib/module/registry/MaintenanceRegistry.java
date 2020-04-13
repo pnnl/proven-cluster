@@ -80,7 +80,7 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Status
  */
 @ApplicationScoped
 @Eager
-public class ModuleMaintenanceRegistry {
+public class MaintenanceRegistry {
 
 	public static final int MAINTENANCE_EVENT_LIMIT = 1000;
 
@@ -137,7 +137,7 @@ public class ModuleMaintenanceRegistry {
 	private static final Set<Class<?>> schedulerMaintenance = new HashSet<>(
 			Arrays.asList(MaintenanceScheduleCheck.class, StatusScheduleCheck.class));
 
-	public ModuleMaintenanceRegistry() {
+	public MaintenanceRegistry() {
 	}
 
 	/**

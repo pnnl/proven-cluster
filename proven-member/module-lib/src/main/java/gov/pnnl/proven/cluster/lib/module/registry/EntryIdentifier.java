@@ -39,22 +39,113 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.LS;
+import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.PROVEN_DOMAIN;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.UUID;
+
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 /**
- * Provides a Request Registry at Member level.
+ * Represents an entry identifier for a {@code ComponentEntry}.
+ * 
+ * @see EntryReporter#entryIdentifier()
  * 
  * @author d3j766
  *
  */
-@ApplicationScoped
-public class ModuleRequestRegistry {
+public class EntryIdentifier extends DisclosureDomain implements IdentifiedDataSerializable, Serializable, Comparable<EntryIdentifier> {
 
-	@Inject
-	ClusterRequestRegistry crr;
+	private static final long serialVersionUID = 1L;
 
-	public ModuleRequestRegistry() {
+	/**
+	 * A managed component's base domain value. All component sub-domains should
+	 * be added to this value.
+	 */
+	public static final String COMPONENT_DOMAIN = "component" + LS + PROVEN_DOMAIN;
+
+	protected UUID componentId;
+	protected String componentName;
+	protected String domainLabel;
+
+	public EntryIdentifier(ManagedComponent mc) {
+		super(mc.getId() + LS + mc.getName() + LS + mc.getDomainLabel() + LS + COMPONENT_DOMAIN);
+		this.componentId = mc.getId();
+		this.componentName = mc.getName();
+		this.domainLabel = mc.getDomainLabel();
+	}
+
+	/**
+	 * @return the componentId
+	 */
+	public UUID getComponentId() {
+		return componentId;
+	}
+
+	/**
+	 * @return the componentName
+	 */
+	public String getComponentName() {
+		return componentName;
+	}
+
+	/**
+	 * @return the subDomainLabel
+	 */
+	public String getDomainLabel() {
+		return domainLabel;
+	}
+	
+	public String getComponentDomain() {
+		return COMPONENT_DOMAIN;
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
+		this.componentId = UUID.fromString(in.readUTF());
+		this.componentName = in.readUTF();
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
+		out.writeUTF(this.componentId.toString());
+		out.writeUTF(this.componentName);
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.ENTRY_DOMAIN_TYPE;
+	}
+
+	@Override
+	public int compareTo(EntryIdentifier other) {
+		
+		int ret;
+		
+		if (!domainLabel.equals(other.domainLabel)) {
+			ret = domainLabel.compareTo(other.domainLabel);
+		}
+		else if (!componentName.equals(other.componentName)) {
+			ret = componentName.compareTo(other.componentName);
+		}
+		else if (!componentId.equals(other.componentId)) {
+				ret = componentId.compareTo(other.componentId);
+			}
+		else {
+			ret = 0;
+		}
+		
+		return ret;
 	}
 
 }

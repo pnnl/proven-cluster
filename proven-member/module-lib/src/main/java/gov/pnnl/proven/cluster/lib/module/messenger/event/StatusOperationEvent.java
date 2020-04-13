@@ -45,6 +45,8 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 
 public class StatusOperationEvent extends ComponentEvent {
 
+	private static final long serialVersionUID = 1L;
+	
 	UUID opCandidateId;
 
 	public StatusOperationEvent(ManagedComponent mc, UUID opCandidateId) {

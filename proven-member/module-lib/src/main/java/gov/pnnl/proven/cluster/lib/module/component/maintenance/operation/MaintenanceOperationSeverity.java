@@ -59,14 +59,13 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
  */
 public enum MaintenanceOperationSeverity {
 
-	Fatal(OutOfService, 0),
-	Severe(Failed, 10),
-	ScheduleError(FailedSchedulerRetry, 20),
-	OnlineError(FailedOnlineRetry, 30),
-	Warn(CheckedOffline, 40),
-	Unavailable(Busy, 50),
-	Available(Online, 60),
-	Noop(Online, 70);
+	Severe(Failed, 0),
+	ScheduleError(FailedSchedulerRetry, 10),
+	OnlineError(FailedOnlineRetry, 20),
+	Warn(CheckedOffline, 30),
+	Unavailable(Busy, 40),
+	Available(Online, 50),
+	Noop(Online, 60);
 
 	private final ManagedStatus status;
 	private final int order;
