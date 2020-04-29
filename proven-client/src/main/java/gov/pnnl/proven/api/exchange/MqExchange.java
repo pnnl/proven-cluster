@@ -130,6 +130,12 @@ class MqExchange implements Exchange {
 	public boolean addProvenData(ExchangeInfo exchangeInfo, List<ProvenMessage> messages) {
 		throw new UnsupportedOperationException();
 	}
+	@Override
+	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, String message, SessionInfo sessionInfo,
+			String measurementName, String instanceId) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	
 

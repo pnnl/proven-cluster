@@ -100,6 +100,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.jena.atlas.logging.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides implementation for REST based Exchange and an ExchangeServer.
@@ -113,8 +116,7 @@ import javax.ws.rs.core.Response;
  */
 class RestExchange implements Exchange {
 
-
-
+	private final Logger log = LoggerFactory.getLogger(RestExchange.class);
 	/**
 	 * @see gov.pnnl.proven.api.exchange.Exchange#addProvenance()
 	 */
@@ -156,7 +158,7 @@ class RestExchange implements Exchange {
 	          request(MediaType.APPLICATION_JSON).
 	          accept(MediaType.APPLICATION_JSON).
 	          post(Entity.entity(message, MediaType.APPLICATION_JSON), DisclosureResponse.class);
-	        System.out.println(response.getCode());
+	        log.debug("Response Code: " + response.getCode());
 
 	        pr.code = response.getCode();
 	        pr.status = response.getStatus();
@@ -206,8 +208,8 @@ class RestExchange implements Exchange {
 			in.close();
 			System.out.println(response.toString());*/
 		} catch (Exception e) {
-			System.out.println("\nError while calling REST Service");
-			System.out.println(e);
+			log.error("\nError while calling REST Service");
+			log.error("Exception: "+e);
 		}
 		return pr;
 		
@@ -264,6 +266,52 @@ class RestExchange implements Exchange {
 		
 	}
 
+	/**
+	 * Adds a new provenance message to a REST based exchange. A JSON-LD message
+	 * is first generated from the provided provenance message and then POSTed
+	 * to the exchange. This method will return true if the POST response is an
+	 * HTTP Success 2xx code, indicating the message was added.
+	 * 
+	 * @throws Exception
+	 * 
+	 * @see gov.pnnl.proven.api.exchange.Exchange#addProvenance()
+	 */
+	@Override
+
+	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, final String message, final SessionInfo sessionInfo,
+			String measurementName, String instanceId) throws Exception {
+
+		ProvenResponse pr = new ProvenResponse();
+
+		try {
+
+			URI uri = new URI(exchangeInfo.getServicesUri());
+			Client client = ClientBuilder.newClient();
+
+			DisclosureResponse response = client.target(uri)
+					.queryParam("measurementName", measurementName)
+					.queryParam("instanceId", instanceId)
+					.request(MediaType.APPLICATION_JSON)
+					.accept(MediaType.APPLICATION_JSON)
+					.post(Entity.entity(message, MediaType.APPLICATION_JSON), DisclosureResponse.class);
+			log.debug("Response Code: " + response.getCode());
+
+			pr.code = response.getCode();
+			pr.status = response.getStatus();
+			pr.data = response.getResponse();
+
+			pr.error = response.getReason();
+
+			pr.responsecomplete = true;
+
+		} catch (Exception e) {
+			log.error("\nError while calling REST Service");
+			log.error("Exception: "+ e);
+			throw e;
+		}
+		return pr;
+
+	}
 	/*private String getExchange(ExchangeInfo exchangeInfo) {
 		// TODO Auto-generated method stub
 		List<String> exchanges = exchangeInfo.getExchangeUrls();

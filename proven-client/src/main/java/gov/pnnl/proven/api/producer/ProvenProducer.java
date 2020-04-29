@@ -129,6 +129,11 @@ public class ProvenProducer extends Producer{
 		messageInfo = new MessageInfo(domain, name,source, Keywords);
 	}
 
+	public ProvenResponse sendBulkMessage(String message, String measurementName, String instanceId) throws Exception {
+		return sendMessage(message, exchangeInfo, measurementName, instanceId);
+
+	}
+
 	public ProvenResponse sendMessage(String message, String requestId) throws InvalidProvenMessageException, SendMessageException, NullExchangeInfoException {
 
 		ProvenMessageOriginal pm;

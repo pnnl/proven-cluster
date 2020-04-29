@@ -103,6 +103,19 @@ public interface Exchange {
 	 * Adds the provided message to the exchange.
 	 * 
 	 * @param exchangeInfo
+	 *            the exchange's information
+	 * @param message
+	 *            the provenance message
+	 * @param sessionInfo
+	 * @return true if the message was successfully added, false otherwise
+	 * @throws Exception
+	 */
+	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, String message, SessionInfo sessionInfo,
+			String measurementName, String instanceId) throws Exception;
+	/**
+	 * Adds the provided message to the exchange.
+	 * 
+	 * @param exchangeInfo
 	 *            the exchange's information 
 	 * @param message
 	 *            the provenance message

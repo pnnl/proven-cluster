@@ -178,4 +178,49 @@ class ProvenSession {
 		//}
 
 	}
+	
+	ProvenResponse sendMessage(String message, ExchangeInfo exchangeInfo, String measurementName, String instanceId) throws Exception {
+		
+		Exchange exchange;
+		try {
+			exchange = exchangeInfo.getExchange();
+		} catch (Exception e) {
+			log.error("ExchangeInfo not set");
+		throw new NullExchangeInfoException();
+		}
+
+		return exchange.addProvenData(exchangeInfo, message, sessionInfo, measurementName, instanceId);
+		
+		//use Round Robin for load balancing
+		//Round robin Implementation
+		/*if (message.setNodeIdentifiers()) {
+			//use Round Robin for load balancing
+			ExchangeInfo exchangeInfo = exchanges.get(roundRobinState);
+			Exchange exchange = exchangeInfo.getExchange();
+			exchange.addProvenance(exchangeInfo, message, sessionInfo, provenanceInfo);
+			if (roundRobinState != exchanges.size()-1)
+				roundRobinState++;
+			else
+				roundRobinState = 0;
+			*/
+			/*for (ExchangeInfo exchangeInfo : exchanges) {
+				Exchange exchange = exchangeInfo.getExchange();
+				exchange.addProvenance(exchangeInfo, message, sessionInfo, provenanceInfo);
+			}*/
+
+
+			/*if (exchange.addProvenance(exchangeInfo, message)) {
+					ret = true;
+					sessionInfo.setMessageCount(sessionInfo.getMessageCount() + 1L);
+					break;
+				} else {
+					sessionInfo.setErrorCount(sessionInfo.getErrorCount() + 1L);
+				}*/
+
+
+
+		//}
+
+	}
+	
 }
