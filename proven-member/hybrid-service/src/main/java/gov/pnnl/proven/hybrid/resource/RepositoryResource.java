@@ -917,9 +917,9 @@ public class RepositoryResource {
 			}
 
 //			// Explicit
-//			if (stream.equals(MessageContent.Explicit.getStream())) {
-//				pmr = cs.influxWriteMeasurements(pm.getMeasurements());
-//			}
+			if (stream.equals(MessageContent.Explicit.getStream())) {
+				pmr = cs.influxWriteMeasurements(pm.getMeasurements());
+			}
 
 			// Invalid message content
 			if (null == pmr) {
@@ -927,7 +927,7 @@ public class RepositoryResource {
 				pmr.setStatus(Status.BAD_REQUEST);
 				pmr.setReason("Invalid or missing message content type.");
 				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
-				pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+				pmr.setResponse("{ \"ERROR\": \"The time-series message type or structure is not recognized and couldn't be converted by Proven into an Influx Database request. \" }");
 
 				cs.rollback();
 
@@ -942,7 +942,7 @@ public class RepositoryResource {
 			pmr.setStatus(Status.INTERNAL_SERVER_ERROR);
 			pmr.setReason(e.getMessage());
 			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-			pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			pmr.setResponse("{ \"ERROR\": \"Something went wrong on the server side, either the Influx database or is not accessible to the client.\" }");
 			e.printStackTrace();
 		}
 
@@ -1004,7 +1004,7 @@ public class RepositoryResource {
 				pmr.setStatus(Status.BAD_REQUEST);
 				pmr.setReason("Invalid or missing message content type.");
 				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
-				pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+				pmr.setResponse("{ \"ERROR\": \"The time-series message type or structure is not recognized and couldn't be converted by Proven into an Influx Database request\" }");
 
 				cs.rollback();
 
@@ -1019,7 +1019,7 @@ public class RepositoryResource {
 			pmr.setStatus(Status.INTERNAL_SERVER_ERROR);
 			pmr.setReason(e.getMessage());
 			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-			pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			pmr.setResponse("{ \"ERROR\": \"Something went wrong on the server side, either the Influx database or is not accessible to the client.\" }");
 			e.printStackTrace();
 		}
 
@@ -1081,8 +1081,7 @@ public class RepositoryResource {
 				pmr.setStatus(Status.BAD_REQUEST);
 				pmr.setReason("Invalid or missing message content type.");
 				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
-				pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-
+				pmr.setResponse("{ \"ERROR\": \"The time-series message type or structure is not recognized and couldn't be converted by Proven into an Influx Database request\" }");
 				cs.rollback();
 
 			} else {
@@ -1096,7 +1095,7 @@ public class RepositoryResource {
 			pmr.setStatus(Status.INTERNAL_SERVER_ERROR);
 			pmr.setReason(e.getMessage());
 			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-			pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			pmr.setResponse("{ \"ERROR\": \"Something went wrong on the server side, either the Influx database or is not accessible to the client.\" }");
 			e.printStackTrace();
 		}
 
@@ -1135,8 +1134,7 @@ public class RepositoryResource {
 				pmr.setStatus(Status.BAD_REQUEST);
 				pmr.setReason("Invalid or missing message content type.");
 				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
-				pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-
+				pmr.setResponse("{ \"ERROR\": \"The time-series message type or structure is not recognized and couldn't be converted by Proven into an Influx Database request\" }");
 				cs.rollback();
 
 			} else {
@@ -1150,7 +1148,7 @@ public class RepositoryResource {
 			pmr.setStatus(Status.INTERNAL_SERVER_ERROR);
 			pmr.setReason(e.getMessage());
 			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-			pmr.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			pmr.setResponse("{ \"ERROR\": \"Something went wrong on the server side, either the Influx database or is not accessible to the client.\" }");
 			e.printStackTrace();
 		}
 
