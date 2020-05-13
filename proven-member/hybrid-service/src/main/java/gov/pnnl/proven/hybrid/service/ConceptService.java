@@ -1165,8 +1165,7 @@ public class ConceptService {
 				ret.setReason("Success");
 				ret.setStatus(Status.OK);
 				ret.setCode(Status.OK.getStatusCode());
-
-
+				ret.setResponse("Query Statement=" + queryStatement + "\n" + ret.getResponse() );
 				try { 
 
 					if (returnCsvFlag) {
@@ -1619,8 +1618,8 @@ public class ConceptService {
 
 					if (record.get(record_key) instanceof String) {
 						if (record_key.equalsIgnoreCase("measurement_mrid")) {
-							// 02/03/2020							builder.tag(record_key, (String) record.get(record_key));
-							builder.addField(record_key, (String) record.get(record_key));
+							builder.tag(record_key, (String) record.get(record_key));
+							// 05/12/2020 builder.addField(record_key, (String) record.get(record_key));
 						} else {
 							// 02/03/2020							builder.tag(record_key, (String) record.get(record_key));
 							builder.addField(record_key, (String) record.get(record_key));
