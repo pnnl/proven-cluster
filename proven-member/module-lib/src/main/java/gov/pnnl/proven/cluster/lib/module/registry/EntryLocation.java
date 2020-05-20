@@ -49,6 +49,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
  * Identifies the location of a reported {@code ComponentEntry} inside a
@@ -79,6 +80,9 @@ public class EntryLocation implements IdentifiedDataSerializable, Serializable, 
 
 	private String[] location = new String[COORDINATES];
 
+	public EntryLocation() {
+	}
+	
 	public EntryLocation(UUID memberId, UUID moduleId, UUID managerId, UUID creatorId) {
 		location[MEMBER] = memberId.toString();
 		location[MODULE] = moduleId.toString();
@@ -128,12 +132,12 @@ public class EntryLocation implements IdentifiedDataSerializable, Serializable, 
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return ModuleIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.ENTRY_LOCATION_TYPE;
+		return ModuleIDSFactory.ENTRY_LOCATION_TYPE;
 	}
 
 	@Override

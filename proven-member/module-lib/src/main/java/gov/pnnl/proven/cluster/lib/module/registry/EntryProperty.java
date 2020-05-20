@@ -54,6 +54,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.util.Preconditions;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
  * Represents a {@code ComponentEntry} property. These properties augment a
@@ -325,12 +326,12 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return ModuleIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.ENTRY_PROPERTY_TYPE;
+		return ModuleIDSFactory.ENTRY_PROPERTY_TYPE;
 	}
 
 	/*

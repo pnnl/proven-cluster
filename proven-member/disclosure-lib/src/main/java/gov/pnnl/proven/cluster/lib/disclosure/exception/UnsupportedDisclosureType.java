@@ -37,12 +37,34 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.disclosure.exception;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class DisclosureExchange extends ItemExchange<DisclosureProxy> {
+/**
+ * Indicates the externally disclosed message entry's format is not a supported
+ * type.
+ * 
+ * @author d3j766
+ *
+ */
+public class UnsupportedDisclosureType extends Exception {
 
+	private static final long serialVersionUID = 1L;
 	
-	
+	static Logger log = LoggerFactory.getLogger(UnsupportedDisclosureType.class);
+
+	public UnsupportedDisclosureType() {
+		super();
+	}
+
+	public UnsupportedDisclosureType(String message) {
+		super(message);
+	}
+
+	public UnsupportedDisclosureType(String message, Throwable e) {
+		super(message, e);
+	}
+
 }

@@ -37,116 +37,22 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.request.module;
+package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.io.Serializable;
+import com.hazelcast.core.EntryEvent;
+import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.EntryUpdatedListener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class ClusterRegistryListener implements EntryAddedListener<EntryIdentifier, ComponentEntry>,
+		EntryUpdatedListener<EntryIdentifier, ComponentEntry> {
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
-
-/**
- * Represents a module request that may be serviced by an {@link RequestBuffer}
- * 
- * @see RequestBuffer
- * 
- * @author d3j766
- *
- */
-public class RequestProxy<T> implements BufferedItem, Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	static Logger log = LoggerFactory.getLogger(RequestProxy.class);
-
-	/**
-	 * Request input type
-	 */
-	T t;
-
-	/**
-	 * Maximum number of request retries before being sent to error stream
-	 */
-	private int retries;
-
-	/**
-	 * Time to live (in seconds) before being removed from a request buffer.
-	 */
-	private int ttl;
-
-	/**
-	 * Priority of request as defined in {@link RequestPriority}. Higher
-	 * priority requests are services before lower priority requests.
-	 */
-	private RequestPriority priority;
-
-	/**
-	 * Scope of the reuest's service execution as defined in
-	 * {@link RequestScope}
-	 */
-	private RequestScope scope;
-
-	private BufferedItemState bufferedState;
-
-	/**
-	 * Request constructor. Input of request is required at time of
-	 * construction.
-	 * 
-	 * @param t
-	 *            the type of input for the request
-	 */
-	public RequestProxy(T t) {
-		this.t = t;
-		this.bufferedState = BufferedItemState.New;
-	}
-
-	public int getRetries() {
-		return retries;
-	}
-
-	public void setRetries(int retries) {
-		this.retries = retries;
-	}
-
-	public int getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
-	}
-
-	public RequestPriority getPriority() {
-		return priority;
-	}
-
-	public void setPriority(RequestPriority priority) {
-		this.priority = priority;
-	}
-
-	public RequestScope getScope() {
-		return scope;
-	}
-
-	public void setScope(RequestScope scope) {
-		this.scope = scope;
+	@Override
+	public void entryAdded(EntryEvent<EntryIdentifier, ComponentEntry> event) {
+		System.out.println("Entry Added:" + event);
 	}
 
 	@Override
-	public BufferedItemState getItemState() {
-		// TODO Auto-generated method stub
-		return null;
+	public void entryUpdated(EntryEvent<EntryIdentifier, ComponentEntry> event) {
+		System.out.println("Entry Updated:" + event);
 	}
-
-	@Override
-	public void setItemState(BufferedItemState bufferedState) {
-
-	}
-
 }

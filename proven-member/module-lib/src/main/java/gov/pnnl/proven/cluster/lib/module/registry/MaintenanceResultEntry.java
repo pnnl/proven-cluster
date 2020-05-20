@@ -49,6 +49,7 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
  * A {@code ComponentEvent} representing the results of a maintenance
@@ -65,7 +66,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
 public class MaintenanceResultEntry extends ComponentEvent {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	MaintenanceOperationResult result;
 	boolean isMaintenanceSeverity;
 	List<String> allOps = new ArrayList<>();
@@ -135,6 +136,16 @@ public class MaintenanceResultEntry extends ComponentEvent {
 	 */
 	public List<String> getNotInvokedOps() {
 		return notInvokedOps;
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ModuleIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ModuleIDSFactory.MAINTENANCE_RESULT_ENTRY_TYPE;
 	}
 
 }

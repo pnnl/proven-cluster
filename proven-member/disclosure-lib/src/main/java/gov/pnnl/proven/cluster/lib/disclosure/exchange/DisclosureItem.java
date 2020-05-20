@@ -37,34 +37,112 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.exception;
+package gov.pnnl.proven.cluster.lib.disclosure.exchange;
+
+import java.io.IOException;
+
+import javax.json.JsonObject;
+import javax.json.stream.JsonParsingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+
 /**
- * Indicates the externally disclosed message entry's format is not a supported
- * type.
+ * Represents a disclosed data item originating from an internal or external
+ * source.
  * 
  * @author d3j766
  *
  */
-public class UnsupportedDisclosureEntryType extends Exception {
+public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable {
 
 	private static final long serialVersionUID = 1L;
-	
-	static Logger log = LoggerFactory.getLogger(UnsupportedDisclosureEntryType.class);
 
-	public UnsupportedDisclosureEntryType() {
-		super();
+	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
+
+	private BufferedItemState bufferedState;
+	private JsonObject jsonEntry;
+
+	public DisclosureItem() {
 	}
 
-	public UnsupportedDisclosureEntryType(String message) {
-		super(message);
+	/**
+	 * Constructor for and internally provided JSON object.
+	 * 
+	 * @param entry
+	 */
+	public DisclosureItem(JsonObject jsonEntry) {
+		this.jsonEntry = jsonEntry;
+		bufferedState = BufferedItemState.New;
 	}
 
-	public UnsupportedDisclosureEntryType(String message, Throwable e) {
-		super(message, e);
+	/**
+	 * Constructor for and externally provided String object.
+
+	 * 
+	 * @param entry
+	 *            the disclosed string value
+	 * 
+	 * @throws UnsupportedDisclosureType
+	 *             if string is not a supported {@link DisclosureType}
+	 */
+	public DisclosureItem(String entry) throws UnsupportedDisclosureType {
+		this.jsonEntry = DisclosureType.getJsonEntry(entry);
+		bufferedState = BufferedItemState.New;
 	}
 
+	public JsonObject getJsonEntry() {
+		return jsonEntry;
+	}
+
+	public DisclosureMessage getDisclosureMessage()
+			throws UnsupportedDisclosureType, JsonParsingException, Exception {
+		return new DisclosureMessage(jsonEntry);
+	}
+
+	@Override
+	public BufferedItemState getItemState() {
+		return bufferedState;
+	}
+
+	@Override
+	public void setItemState(BufferedItemState bufferedState) {
+		this.bufferedState = bufferedState;
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(this.bufferedState.toString());
+		boolean nullJsonEntry = (null == this.jsonEntry);
+		out.writeBoolean(nullJsonEntry);
+		if (!nullJsonEntry)
+			out.writeByteArray(MessageJsonUtils.jsonOut(this.jsonEntry));
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
+		boolean nullJsonEntry = in.readBoolean();
+		if (!nullJsonEntry)
+			this.jsonEntry = MessageJsonUtils.jsonIn(in.readByteArray());
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.DISCLOSURE_PROXY_TYPE;
+	}
 }

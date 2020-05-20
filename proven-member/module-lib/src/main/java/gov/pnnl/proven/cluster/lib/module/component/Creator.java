@@ -92,7 +92,8 @@ public interface Creator {
 	 * 
 	 * @see ScaleSchedule, ModuleStatus
 	 */
-	 void createAsync(CreationRequest<ManagedComponent> request);
+	 <T extends ManagedComponent> void createAsync(CreationRequest<T> request);
+	 //void createAsync(CreationRequest<ManagedComponent> request);
 
 	/**
 	 * Creates a new ManagedComponent using the provided CreationRequest.

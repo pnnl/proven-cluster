@@ -171,13 +171,18 @@ public enum ManagedStatus {
 	OutOfService(false),
 
 	/**
-	 * Indicates status of managed component is not known to its
-	 * {@code MemberRegistry}. This status is only used by a
-	 * {@code MemberRegistry} to mark a component as
-	 * {@code ManagedStatus#Unknown} if expected status messages have not been
-	 * received.
+	 * Indicates status of managed component is not known, ensuring the
+	 * component is not selected for tasks where the status must be known.
 	 */
 	Unknown(false),
+
+	/**
+	 * Indicates the managed component has been destroyed. This status is only
+	 * used by a {@code ComponentRegistry} to mark a component as destroyed,
+	 * allowing other modules to remove the component entry from their
+	 * registries.
+	 */
+	Destroyed(false),
 
 	/**
 	 * Indicates any transition status value.
@@ -196,8 +201,8 @@ public enum ManagedStatus {
 	Recoverable(false),
 
 	/**
-	 * Indicates any status, where the component can not be
-	 * recovered for service.
+	 * Indicates any status, where the component can not be recovered for
+	 * service.
 	 */
 	NonRecoverable(false),
 

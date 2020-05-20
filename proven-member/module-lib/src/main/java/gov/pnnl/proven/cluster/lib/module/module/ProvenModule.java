@@ -94,12 +94,6 @@ public abstract class ProvenModule extends ModuleComponent {
 	// Set of active managers selected for this module
 	Set<Class<? extends ManagerComponent>> activeManagers = new HashSet<>();
 
-	// Member id
-	UUID memberId;
-
-	// Member id
-	UUID moduleId;
-
 	// Module name
 	private static String moduleName;
 
@@ -109,7 +103,7 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	@PostConstruct
 	public void init() {
-		memberId = UUID.fromString(pmr.getLocalDescriptor().getMemberUUID());
+		UUID memberId = UUID.fromString(pmr.getLocalDescriptor().getMemberUUID());
 		UUID moduleId, managerId, creatorId;
 		moduleId = managerId = creatorId = this.id;
 		entryLocation(new EntryLocation(memberId, moduleId, managerId, creatorId));
@@ -148,6 +142,7 @@ public abstract class ProvenModule extends ModuleComponent {
 		}
 		return ret;
 	}
+
 	/**
 	 * Used by ManagerFactory Producer methods to create a new manager
 	 * components.
@@ -188,18 +183,11 @@ public abstract class ProvenModule extends ModuleComponent {
 		return moduleName;
 	}
 
-	public UUID getMemberId() {
-		return memberId;
-	}
-
-	public UUID getModuleId() {
-		return moduleId;
-	}
-
 	/**
 	 * Create module's active managers.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes","unchecked"})
+
 	@Override
 	public boolean activate() {
 
@@ -246,7 +234,8 @@ public abstract class ProvenModule extends ModuleComponent {
 		// Create selected managers
 		for (Class<? extends ManagerComponent> c : activeManagers) {
 			if (ManagerComponent.class.isAssignableFrom(c)) {
-				createAsync(new CreationRequest(c));
+				//createAsync(new CreationRequest(c));
+				produceManager(c);
 			}
 		}
 

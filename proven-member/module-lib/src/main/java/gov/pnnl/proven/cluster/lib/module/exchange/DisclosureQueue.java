@@ -58,10 +58,10 @@ import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.IQueue;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureEntryType;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureType;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
@@ -69,30 +69,27 @@ import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.DisclosureEntries
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
 
 /**
- * A managed component representing a data structure to accept/store externally
- * provided disclosure messages, providing back pressure for its associated
- * {@code DisclosureBuffer}. Disclosure entries are forwarded as
- * {@code DisclosureProxy} objects to its disclosure buffer, if it has
- * processing capacity to support it.
+ * A queue data structure used to accept/store disclosure items, providing back
+ * pressure for their internal processing.
  * 
  * @author d3j766
  * 
- * @see RequestExchange
+ * @see DisclosureItem
  *
  */
-@Scalable(maxCount=10)
-public class DisclosureEntries extends ExchangeComponent {
+@Scalable(maxCount = 10)
+public class DisclosureQueue extends ExchangeComponent {
 
-	static Logger log = LoggerFactory.getLogger(DisclosureEntries.class);
+	static Logger log = LoggerFactory.getLogger(DisclosureQueue.class);
 
 	public static final String EXTERNAL_DISCLOSURE_QUEUE_NAME = "gov.pnnl.proven.external.disclosure";
-	public static final String INTERNAL_LARGE_MESSAGE_QUEUE_NAME = "gov.pnnl.proven.internal.disclosure";
+	public static final String INTERNAL_LARGE_ITEM_QUEUE_NAME = "gov.pnnl.proven.internal.disclosure";
 	public static final int MAX_DISCLOSURE_RETRIES = 10;
 
-	IQueue<String> messageQueue;
-	IQueue<String> largeMessageQueue;
+	IQueue<String> itemQueue;
+	IQueue<String> largeItemQueue;
 	CompletableFuture<Void> reader = CompletableFuture.completedFuture(null);
-	CompletableFuture<Void> largeMessageReader = CompletableFuture.completedFuture(null);
+	CompletableFuture<Void> largeItemReader = CompletableFuture.completedFuture(null);
 
 	DisclosureBuffer localDisclosure;
 
@@ -105,21 +102,21 @@ public class DisclosureEntries extends ExchangeComponent {
 
 		// TODO remove hardcoded name until multiple exchanges are supported
 		// bufferSource = hzi.getQueue(getDistributedName());
-		messageQueue = hzi.getQueue(EXTERNAL_DISCLOSURE_QUEUE_NAME);
-		largeMessageQueue = hzi.getQueue(INTERNAL_LARGE_MESSAGE_QUEUE_NAME);
-		//startReader(false);
-		//startLargeMessageReader(false);
+		itemQueue = hzi.getQueue(EXTERNAL_DISCLOSURE_QUEUE_NAME);
+		largeItemQueue = hzi.getQueue(INTERNAL_LARGE_ITEM_QUEUE_NAME);
+		// startReader(false);
+		// startLargeMessageReader(false);
 	}
 
 	@PreDestroy
 	public void destroy() {
 		log.debug("Pre destroy for DisclosureEntries");
 		cancelReader();
-		cancelLargeMessageReader();
+		cancelLargeItemReader();
 	}
 
 	@Inject
-	public DisclosureEntries() {
+	public DisclosureQueue() {
 		super();
 		log.debug("DefaultConstructer for DisclosureBuffer");
 	}
@@ -144,22 +141,22 @@ public class DisclosureEntries extends ExchangeComponent {
 
 	}
 
-	private void startLargeMessageReader(boolean replace) {
+	private void startLargeItemReader(boolean replace) {
 
-		synchronized (largeMessageReader) {
+		synchronized (largeItemReader) {
 
-			boolean hasReader = ((null != largeMessageReader) && (!largeMessageReader.isDone()));
+			boolean hasReader = ((null != largeItemReader) && (!largeItemReader.isDone()));
 
 			// Remove existing reader if replace reader is requested
 			if (hasReader && replace) {
-				largeMessageReader.cancel(true);
+				largeItemReader.cancel(true);
 				hasReader = false;
 			}
 
 			// Add new reader if one doesn't exist
 			if (!hasReader) {
-				largeMessageReader = CompletableFuture.runAsync(this::runLargeMessageReader, mes)
-						.exceptionally(this::largeMessageReaderException);
+				largeItemReader = CompletableFuture.runAsync(this::runLargeItemReader, mes)
+						.exceptionally(this::largeItemReaderException);
 			}
 		}
 
@@ -170,7 +167,7 @@ public class DisclosureEntries extends ExchangeComponent {
 
 		while (true) {
 
-			List<DisclosureProxy> entries;
+			List<DisclosureItem> entries;
 
 			// TODO this should be changed to a registry request for an
 			// available disclosure buffer (registry will give preference to
@@ -182,7 +179,7 @@ public class DisclosureEntries extends ExchangeComponent {
 				try {
 					// Will block if queue is empty
 					// entry = getEntry();
-					entries = getEntries();
+					entries = getItems();
 
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -200,7 +197,7 @@ public class DisclosureEntries extends ExchangeComponent {
 				}
 
 				log.debug("ENTRY ADDED TO DISCLOSURE BUFFER");
-				log.debug("Queue size :: " + messageQueue.size());
+				log.debug("Queue size :: " + itemQueue.size());
 
 				// TODO implement fall backs instead of simply logging an error
 				// message, or these entries will be lost.
@@ -252,12 +249,12 @@ public class DisclosureEntries extends ExchangeComponent {
 		return ret;
 	}
 
-	protected void runLargeMessageReader() {
+	protected void runLargeItemReader() {
 
 		while (true) {
 
-			List<DisclosureProxy> entries = new ArrayList<>();
-			String disclosedEntry = null;
+			List<DisclosureItem> entries = new ArrayList<>();
+			String disclosedItem = null;
 
 			// Should not continue if local disclosure has no free space - the
 			// entries will be lost
@@ -265,24 +262,24 @@ public class DisclosureEntries extends ExchangeComponent {
 
 				try {
 					// Will block if queue is empty
-					disclosedEntry = largeMessageQueue.take();
+					disclosedItem = largeItemQueue.take();
 
 					// get the type of entry
-					DisclosureEntryType entryType = DisclosureEntryType.getEntryType(disclosedEntry);
+					DisclosureType itemType = DisclosureType.getItemType(disclosedItem);
 
 					// Only Json disclosure parsing supported
-					if (DisclosureEntryType.JSON == entryType) {
-						entries = new EntryParser(disclosedEntry).parse();
+					if (DisclosureType.JSON == itemType) {
+						entries = new ItemParser(disclosedItem).parse();
 					}
 					// TODO Add support for large CSV parsing
 					// For now, create DisclosureProxy without parsing
-					else if (DisclosureEntryType.CSV == entryType) {
-						DisclosureProxy csvDp = new DisclosureProxy(disclosedEntry);
+					else if (DisclosureType.CSV == itemType) {
+						DisclosureItem csvDp = new DisclosureItem(disclosedItem);
 						entries.add(csvDp);
 					} else {
-						throw new UnsupportedDisclosureEntryType("Could not determine entry type for large message");
+						throw new UnsupportedDisclosureType("Could not determine entry type for large message");
 					}
-				} catch (UnsupportedDisclosureEntryType | JsonParsingException | CsvParsingException e) {
+				} catch (UnsupportedDisclosureType | JsonParsingException | CsvParsingException e) {
 					log.error("Failed to process large disclosure entry", e);
 					log.error("Entry discarded");
 					e.printStackTrace();
@@ -302,7 +299,7 @@ public class DisclosureEntries extends ExchangeComponent {
 				}
 
 				log.debug("ENTRY ADDED TO DISCLOSURE BUFFER");
-				log.debug("Queue size :: " + messageQueue.size());
+				log.debug("Queue size :: " + itemQueue.size());
 
 				// TODO implement fall backs instead of simply logging an error
 				// message, or these entries will be lost.
@@ -324,7 +321,7 @@ public class DisclosureEntries extends ExchangeComponent {
 	 * @param readerException
 	 *            the exception thrown from the reader.
 	 */
-	protected Void largeMessageReaderException(Throwable readerException) {
+	protected Void largeItemReaderException(Throwable readerException) {
 
 		Void ret = null;
 
@@ -335,7 +332,7 @@ public class DisclosureEntries extends ExchangeComponent {
 		// interruption, attempts to restart should be made.
 		if (isInterrupted) {
 			log.info("Disclosure entry reader was interrupted.");
-			startLargeMessageReader(true);
+			startLargeItemReader(true);
 		}
 
 		// Cancelled exception - indicates the reader has been cancelled. This
@@ -365,20 +362,20 @@ public class DisclosureEntries extends ExchangeComponent {
 		}
 	}
 
-	public void cancelLargeMessageReader() {
+	public void cancelLargeItemReader() {
 
-		if (largeMessageReader != null) {
-			synchronized (largeMessageReader) {
-				if ((null != largeMessageReader) && (!largeMessageReader.isDone())) {
-					largeMessageReader.cancel(true);
+		if (largeItemReader != null) {
+			synchronized (largeItemReader) {
+				if ((null != largeItemReader) && (!largeItemReader.isDone())) {
+					largeItemReader.cancel(true);
 				}
 			}
 		}
 	}
 
-	public List<DisclosureProxy> getEntries() throws InterruptedException {
+	public List<DisclosureItem> getItems() throws InterruptedException {
 
-		List<DisclosureProxy> entries = new ArrayList<>();
+		List<DisclosureItem> entries = new ArrayList<>();
 
 		// TODO - create a service that returns the initial disclosure state
 		int max = localDisclosure.getMaxBatchSize(BufferedItemState.New);
@@ -387,7 +384,7 @@ public class DisclosureEntries extends ExchangeComponent {
 		while (!done) {
 			// Block on empty queue at startup
 			if (initialCheck) {
-				addEntry(entries, Optional.ofNullable(null));
+				addItem(entries, Optional.ofNullable(null));
 				initialCheck = false;
 			}
 
@@ -395,14 +392,14 @@ public class DisclosureEntries extends ExchangeComponent {
 			// entries.
 			int eSize = entries.size();
 			if ((eSize) < max) {
-				String entry = messageQueue.poll(250, TimeUnit.MILLISECONDS);
+				String entry = itemQueue.poll(250, TimeUnit.MILLISECONDS);
 				// Timeout occurred - return if entries are there
 				if (null == entry) {
 					if (!entries.isEmpty()) {
 						done = true;
 					}
 				} else {
-					addEntry(entries, Optional.ofNullable(entry));
+					addItem(entries, Optional.ofNullable(entry));
 				}
 			}
 
@@ -415,35 +412,38 @@ public class DisclosureEntries extends ExchangeComponent {
 	}
 
 	/**
-	 * Checks size of entry and if size is greater then the internal limit, then
-	 * entry is forwarded to the "large message" queue. Otherwise, the entry is
-	 * converted into a {@code DisclosureProxy} and added to the list of entries
-	 * for return. This method will block on queue take call, if no entries are
+	 * Checks size of item and if size is greater then the internal limit, then
+	 * entry is forwarded to the large item queue. Otherwise, the item is
+	 * converted into a {@code DisclosureItem} and added to the list of items
+	 * for return. This method will block on queue take call, if no items are
 	 * present.
 	 * 
-	 * TODO Resolve loss of large disclosure entries on offer failures.
+	 * TODO Resolve loss of large disclosure items on offer failures.
 	 * 
-	 * @param entries
+	 * @param items
 	 *            list of disclosure entries
-	 * @param entry
-	 *            the entry to include in entries or forward to to "large
-	 *            message" queue if it violated internal sizing restriction.
+	 * @param optItem
+	 *            the item to include in items or be forwarded to to large item
+	 *            queue if it violates internal sizing restrictions. If item is
+	 *            not present, method will attempt to take next item from queue.
+	 * 
 	 * @throws InterruptedException
+	 * 
 	 */
-	private void addEntry(List<DisclosureProxy> entries, Optional<String> optEntry) throws InterruptedException {
-		String entry = (optEntry.isPresent()) ? optEntry.get() : messageQueue.take();
-		if (entry.length() > EntryParser.MAX_INTERNAL_ENTRY_SIZE_CHARS) {
-			if (!largeMessageQueue.offer(entry)) {
+	private void addItem(List<DisclosureItem> items, Optional<String> optItem) throws InterruptedException {
+		String item = (optItem.isPresent()) ? optItem.get() : itemQueue.take();
+		if (item.length() > ItemParser.MAX_INTERNAL_ITEM_SIZE_CHARS) {
+			if (!largeItemQueue.offer(item)) {
 				log.error("Large message entry offer failed - message has been lost");
 			}
 		} else {
 
 			try {
-				entries.add(new DisclosureProxy(entry));
-			} catch (UnsupportedDisclosureEntryType | JsonParsingException | CsvParsingException e) {
-				log.error("Failed to process a new disclosure entry", e);
-				log.error("Entry discarded:");
-				log.error(entry);
+				items.add(new DisclosureItem(item));
+			} catch (UnsupportedDisclosureType | JsonParsingException | CsvParsingException e) {
+				log.error("Failed to process a new disclosure item", e);
+				log.error("Item discarded:");
+				log.error(item);
 			}
 
 		}
@@ -452,9 +452,9 @@ public class DisclosureEntries extends ExchangeComponent {
 	public void addLocalDisclosure(DisclosureBuffer db) {
 		localDisclosure = db;
 	}
-	
-	public int getRemainingCapacity() {		
-		return messageQueue.remainingCapacity();
+
+	public int getRemainingCapacity() {
+		return itemQueue.remainingCapacity();
 	}
 
 	@Override

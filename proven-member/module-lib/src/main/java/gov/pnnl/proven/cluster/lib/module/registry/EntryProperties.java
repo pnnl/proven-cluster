@@ -60,6 +60,7 @@ import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.FloatProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.IntegerProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.LongProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
  * Simple wrapper around a set of {@code EntryProperty}s. Class provides getters
@@ -181,12 +182,12 @@ public final class EntryProperties implements IdentifiedDataSerializable, Serial
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return ModuleIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.ENTRY_PROPERTIES_TYPE;
+		return ModuleIDSFactory.ENTRY_PROPERTIES_TYPE;
 	}
 
 }

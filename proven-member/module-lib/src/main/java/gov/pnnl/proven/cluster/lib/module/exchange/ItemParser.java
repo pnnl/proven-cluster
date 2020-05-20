@@ -60,7 +60,7 @@ import javax.json.stream.JsonParserFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.EntryParserException;
 
@@ -70,9 +70,9 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.EntryParserExceptio
  * @author d3j766
  *
  */
-public class EntryParser {
+public class ItemParser {
 
-	static Logger log = LoggerFactory.getLogger(EntryParser.class);
+	static Logger log = LoggerFactory.getLogger(ItemParser.class);
 
 	private static final JsonParserFactory pFactory = Json.createParserFactory(null);
 	private static final JsonReaderFactory rFactory = Json.createReaderFactory(null);
@@ -85,24 +85,24 @@ public class EntryParser {
 	private static final String LD_ID = "@id";
 
 	// 20 internal messages per max external message (WS not included)
-	public static final int MAX_INTERNAL_ENTRY_SIZE_CHARS = 250000; // 250K
-	public static final int MAX_EXERNAL_ENTRY_SIZE_CHARS = 5000000; // 5M
+	public static final int MAX_INTERNAL_ITEM_SIZE_CHARS = 250000; // 250K
+	public static final int MAX_EXERNAL_ITEM_SIZE_CHARS = 5000000; // 5M
 
 	// entry builder types
-	private enum EntryBuilderType {
+	private enum ItemBuilderType {
 		OBJECT,
 		ARRAY;
 	}
 
-	private JsonObject entryContainer;
+	private JsonObject itemContainer;
 	private Optional<JsonObject> message = Optional.empty();
 	private Optional<JsonParser> messageParser = Optional.empty();
-	private Stack<EntryBuilder> unfinishedBuilders;
+	private Stack<ItemBuilder> unfinishedBuilders;
 
-	private class EntryBuilder {
+	private class ItemBuilder {
 
 		private boolean isRoot;
-		private EntryBuilderType ebType;
+		private ItemBuilderType ebType;
 		private JsonObjectBuilder ob;
 		private JsonArrayBuilder ab;
 		private String oId;
@@ -110,16 +110,16 @@ public class EntryParser {
 		private int size;
 		private String lastKey;
 
-		EntryBuilder(EntryBuilderType bType, int size) {
+		ItemBuilder(ItemBuilderType bType, int size) {
 			this(bType, size, false);
 		}
 
-		EntryBuilder(EntryBuilderType ebType, int size, boolean isRoot) {
+		ItemBuilder(ItemBuilderType ebType, int size, boolean isRoot) {
 
 			// Create builder based on provided type
 			this.isRoot = isRoot;
 			this.ebType = ebType;
-			if (ebType == EntryBuilderType.OBJECT) {
+			if (ebType == ItemBuilderType.OBJECT) {
 				ob = bFactory.createObjectBuilder();
 				addId();
 			} else {
@@ -141,16 +141,16 @@ public class EntryParser {
 			ob.add(LD_ID, oUri);
 		}
 
-		private void add(EntryBuilder uBuilder) {
+		private void add(ItemBuilder uBuilder) {
 
-			if (this.ebType == EntryBuilderType.OBJECT) {
-				if (uBuilder.ebType == EntryBuilderType.OBJECT) {
+			if (this.ebType == ItemBuilderType.OBJECT) {
+				if (uBuilder.ebType == ItemBuilderType.OBJECT) {
 					this.ob.add(this.lastKey, uBuilder.ob);
 				} else {
 					this.ob.add(this.lastKey, uBuilder.ab);
 				}
 			} else {
-				if (uBuilder.ebType == EntryBuilderType.OBJECT) {
+				if (uBuilder.ebType == ItemBuilderType.OBJECT) {
 					this.ab.add(uBuilder.ob);
 				} else {
 					this.ab.add(uBuilder.ob);
@@ -160,9 +160,9 @@ public class EntryParser {
 
 		private void reset() {
 
-			size = MAX_INTERNAL_ENTRY_SIZE_CHARS;
+			size = MAX_INTERNAL_ITEM_SIZE_CHARS;
 			// lastKey = null;
-			if (ebType == EntryBuilderType.OBJECT) {
+			if (ebType == ItemBuilderType.OBJECT) {
 				ob = bFactory.createObjectBuilder();
 				addId();
 			} else {
@@ -172,7 +172,7 @@ public class EntryParser {
 
 	}
 
-	public EntryParser(String entry) {
+	public ItemParser(String entry) {
 
 		unfinishedBuilders = new Stack<>();
 
@@ -208,7 +208,7 @@ public class EntryParser {
 					break;
 
 				case END_OBJECT:
-					entryContainer = ecb.build();
+					itemContainer = ecb.build();
 					break;
 
 				case KEY_NAME:
@@ -258,11 +258,11 @@ public class EntryParser {
 
 	}
 
-	public List<DisclosureProxy> parse() {
+	public List<DisclosureItem> parse() {
 
 		log.debug("PARSER STARTED");
-		List<DisclosureProxy> ret = parse(null);
-		for (DisclosureProxy dp : ret) {
+		List<DisclosureItem> ret = parse(null);
+		for (DisclosureItem dp : ret) {
 			log.debug("START CHUNKED MESSAGE################");
 			log.debug(dp.getJsonEntry().toString());
 			log.debug("END CHUNKED MESSAGE  ################");
@@ -272,16 +272,16 @@ public class EntryParser {
 		return ret;
 	}
 
-	private List<DisclosureProxy> parse(EntryBuilder eBuilder) {
+	private List<DisclosureItem> parse(ItemBuilder eBuilder) {
 
-		List<DisclosureProxy> ret = new ArrayList<>();
+		List<DisclosureItem> ret = new ArrayList<>();
 		boolean isRoot = false;
 		boolean isFirstEvent = true;
 
 		// root builder
 		if (null == eBuilder) {
 			isRoot = true;
-			eBuilder = new EntryBuilder(EntryBuilderType.OBJECT, MAX_INTERNAL_ENTRY_SIZE_CHARS, true);
+			eBuilder = new ItemBuilder(ItemBuilderType.OBJECT, MAX_INTERNAL_ITEM_SIZE_CHARS, true);
 		}
 
 		// Add to stack
@@ -305,16 +305,16 @@ public class EntryParser {
 							isFirstEvent = false;
 						} else {
 							if (event == Event.START_OBJECT) {
-								ret.addAll(parse(new EntryBuilder(EntryBuilderType.OBJECT, eBuilder.size)));
+								ret.addAll(parse(new ItemBuilder(ItemBuilderType.OBJECT, eBuilder.size)));
 							} else {
-								ret.addAll(parse(new EntryBuilder(EntryBuilderType.ARRAY, eBuilder.size)));
+								ret.addAll(parse(new ItemBuilder(ItemBuilderType.ARRAY, eBuilder.size)));
 							}
 
 							// Child builder has finished. Add it's finished
 							// structure and remaining size count to this
 							// builder and then remove it from the unfinished
 							// stack. Stack should never be empty.
-							EntryBuilder uBuilder = unfinishedBuilders.pop();
+							ItemBuilder uBuilder = unfinishedBuilders.pop();
 							eBuilder.add(uBuilder);
 							eBuilder.size = uBuilder.size;
 						}
@@ -335,7 +335,7 @@ public class EntryParser {
 					case VALUE_STRING:
 						String strVal = parser.getString();
 						eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - strVal.length();
-						if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+						if (eBuilder.ebType == ItemBuilderType.OBJECT) {
 							eBuilder.ob.add(eBuilder.lastKey, strVal);
 						} else { // array
 							eBuilder.ab.add(strVal);
@@ -356,7 +356,7 @@ public class EntryParser {
 								}
 							}
 							eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - count;
-							if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+							if (eBuilder.ebType == ItemBuilderType.OBJECT) {
 								eBuilder.ob.add(eBuilder.lastKey, lVal);
 							} else { // array
 								eBuilder.ab.add(lVal);
@@ -364,7 +364,7 @@ public class EntryParser {
 						} else {
 							BigDecimal bdVal = parser.getBigDecimal();
 							eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - bdVal.toString().length();
-							if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+							if (eBuilder.ebType == ItemBuilderType.OBJECT) {
 								eBuilder.ob.add(eBuilder.lastKey, bdVal);
 							} else { // array
 								eBuilder.ab.add(bdVal);
@@ -374,7 +374,7 @@ public class EntryParser {
 
 					case VALUE_TRUE:
 						eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - 4;
-						if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+						if (eBuilder.ebType == ItemBuilderType.OBJECT) {
 							eBuilder.ob.add(eBuilder.lastKey, true);
 						} else { // array
 							eBuilder.ab.add(true);
@@ -383,7 +383,7 @@ public class EntryParser {
 
 					case VALUE_FALSE:
 						eBuilder.size = eBuilder.size - eBuilder.lastKey.length() - 4;
-						if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+						if (eBuilder.ebType == ItemBuilderType.OBJECT) {
 							eBuilder.ob.add(eBuilder.lastKey, false);
 						} else { // array
 							eBuilder.ab.add(false);
@@ -392,7 +392,7 @@ public class EntryParser {
 
 					case VALUE_NULL:
 						eBuilder.size = eBuilder.size - 4;
-						if (eBuilder.ebType == EntryBuilderType.OBJECT) {
+						if (eBuilder.ebType == ItemBuilderType.OBJECT) {
 							eBuilder.ob.addNull(eBuilder.lastKey);
 						} else { // array
 							eBuilder.ab.addNull();
@@ -419,31 +419,31 @@ public class EntryParser {
 
 		} else {
 			// create new entry - no message content provided
-			ret.add(new DisclosureProxy(entryContainer));
+			ret.add(new DisclosureItem(itemContainer));
 		}
 
 		return ret;
 	}
 
-	private DisclosureProxy buildMessage() {
+	private DisclosureItem buildMessage() {
 
-		DisclosureProxy ret = null;
-		EntryBuilder temp;
-		Stack<EntryBuilder> processedBuilders = new Stack<>();
+		DisclosureItem ret = null;
+		ItemBuilder temp;
+		Stack<ItemBuilder> processedBuilders = new Stack<>();
 
 		// Get current builder off stack - should never be null.
-		EntryBuilder cBuilder = unfinishedBuilders.pop();
+		ItemBuilder cBuilder = unfinishedBuilders.pop();
 
 		// Get previous builder off stack - may be null.
-		EntryBuilder pBuilder = (unfinishedBuilders.isEmpty()) ? (null) : (unfinishedBuilders.pop());
+		ItemBuilder pBuilder = (unfinishedBuilders.isEmpty()) ? (null) : (unfinishedBuilders.pop());
 
 		boolean done = false;
 		while (!done) {
 
 			// root object
 			if (null == pBuilder) {
-				JsonObjectBuilder messageBuilder = bFactory.createObjectBuilder(entryContainer);
-				ret = new DisclosureProxy(messageBuilder.add(MESSAGE_KEY, cBuilder.ob).build());
+				JsonObjectBuilder messageBuilder = bFactory.createObjectBuilder(itemContainer);
+				ret = new DisclosureItem(messageBuilder.add(MESSAGE_KEY, cBuilder.ob).build());
 				cBuilder.reset();
 				processedBuilders.push(cBuilder);
 				done = true;
@@ -458,7 +458,7 @@ public class EntryParser {
 		}
 
 		// Move back to unfinished stack
-		EntryBuilder builder = (processedBuilders.isEmpty()) ? (null) : (processedBuilders.pop());
+		ItemBuilder builder = (processedBuilders.isEmpty()) ? (null) : (processedBuilders.pop());
 		while (null != builder) {
 			unfinishedBuilders.push(builder);
 			builder = (processedBuilders.isEmpty()) ? (null) : (processedBuilders.pop());

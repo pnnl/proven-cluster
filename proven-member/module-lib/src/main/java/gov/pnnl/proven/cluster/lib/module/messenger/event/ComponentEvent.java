@@ -43,11 +43,13 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 
@@ -61,17 +63,23 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 
 	private static final long serialVersionUID = 1L;
 
-	UUID cId;
-	Class<?> cType;
-	String cName;
-	ManagedStatus cStatus;
-	Long creationTime;
-	boolean isUpdate = true;
-
+	private static final Logger log  = LoggerFactory.getLogger(ComponentEvent.class);
+	
+	protected UUID cId;
+	protected Class<?> cType;
+	protected String cName;
+	protected String cGroupLabel;
+	protected ManagedStatus cStatus;
+	protected Long creationTime;
+	
+	public ComponentEvent() {
+	}
+	
 	public ComponentEvent(ManagedComponent c) {
 		this.cId = c.getId();
 		this.cType = c.getType();
 		this.cName = c.getName();
+		this.cGroupLabel = c.getGroupLabel();
 		this.cStatus = c.getStatus();
 		this.creationTime = c.getCreationeTime();
 	}
@@ -98,6 +106,13 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 	}
 
 	/**
+	 * @return the cGroupLabel
+	 */
+	public String getcGroupLabel() {
+		return cGroupLabel;
+	}
+
+	/**
 	 * @return the cStatus
 	 */
 	public ManagedStatus getcStatus() {
@@ -119,19 +134,12 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeUTF(cId.toString());
+		
+		log.debug("################# " + cType.getName() + "###################" );
+		
 		out.writeUTF(cType.getName());
 		out.writeUTF(cName);
 		out.writeUTF(cStatus.toString());
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.COMPONENT_EVENT_TYPE;
 	}
 
 }

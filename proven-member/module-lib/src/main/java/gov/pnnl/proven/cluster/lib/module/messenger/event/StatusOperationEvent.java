@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.messenger.event;
 import java.util.UUID;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 public class StatusOperationEvent extends ComponentEvent {
 
@@ -49,6 +50,9 @@ public class StatusOperationEvent extends ComponentEvent {
 	
 	UUID opCandidateId;
 
+	public StatusOperationEvent() {
+	}
+	
 	public StatusOperationEvent(ManagedComponent mc, UUID opCandidateId) {
 		super(mc);
 		this.opCandidateId = opCandidateId;
@@ -66,6 +70,16 @@ public class StatusOperationEvent extends ComponentEvent {
 	 */
 	public void setOpCandidateId(UUID opCandidateId) {
 		this.opCandidateId = opCandidateId;
+	}
+	
+	@Override
+	public int getFactoryId() {
+		return ModuleIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ModuleIDSFactory.STATUS_OPERATION_EVENT_TYPE;
 	}
 	
 }

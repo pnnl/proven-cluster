@@ -55,7 +55,7 @@ import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
  * @see ProvenModule, ComponentRegistry
  *
  */
-public class ModuleEntry implements Comparable<ModuleEntry> {
+public class ExchangeRequest implements Comparable<ExchangeRequest> {
 
 	private UUID moduleId;
 	private ModuleStatus moduleStatus;
@@ -73,7 +73,7 @@ public class ModuleEntry implements Comparable<ModuleEntry> {
 	private TreeSet<ComponentEntry> moduleComponents = new TreeSet<ComponentEntry>();
 	private NavigableSet<ComponentEntry> moduleExchange = Collections.unmodifiableNavigableSet(moduleComponents);
 
-	public ModuleEntry(ComponentEntry ce) {
+	public ExchangeRequest(ComponentEntry ce) {
 		this.moduleId = ce.getLocation().getModuleId();
 		this.moduleStatus = ce.getModuleStatus();
 		this.moduleName = ce.getModuleName();
@@ -148,7 +148,7 @@ public class ModuleEntry implements Comparable<ModuleEntry> {
 	}
 
 	@Override
-	public int compareTo(ModuleEntry other) {
+	public int compareTo(ExchangeRequest other) {
 
 		int ret;
 
@@ -186,10 +186,10 @@ public class ModuleEntry implements Comparable<ModuleEntry> {
 		if (obj == null) {
 			return false;
 		}
-		if (!(obj instanceof ModuleEntry)) {
+		if (!(obj instanceof ExchangeRequest)) {
 			return false;
 		}
-		ModuleEntry other = (ModuleEntry) obj;
+		ExchangeRequest other = (ExchangeRequest) obj;
 		if (moduleId == null) {
 			if (other.moduleId != null) {
 				return false;

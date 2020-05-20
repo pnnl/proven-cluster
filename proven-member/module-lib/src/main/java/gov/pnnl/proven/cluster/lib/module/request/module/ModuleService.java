@@ -55,7 +55,7 @@ import com.hazelcast.core.HazelcastInstanceAware;
  *
  */
 public abstract class ModuleService<T> implements Serializable, HazelcastInstanceAware,
-		Callable<RequestProxy<?>> {
+		Callable<RequestItem<?>> {
 
 	/**
 	 * Service request

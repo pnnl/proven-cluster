@@ -59,9 +59,13 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import javax.enterprise.event.Event;
+import javax.enterprise.event.NotificationOptions;
+import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
+
+import com.hazelcast.util.executor.ManagedExecutorService;
 
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
@@ -70,9 +74,8 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleRegistryAnn
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 
 /**
- * Provides a fixed delay schedule for the application of a task of a registered
- * type. Schedule properties are defined by {@code Scheduler} annotation at
- * injection point. Scheduled tasks must register their supplier of T.
+ * Provides a fixed delay task schedule. Schedule properties are defined by
+ * {@code Scheduler} annotation at injection point.
  * 
  * 
  * @see Scheduler
@@ -87,7 +90,7 @@ public abstract class TaskSchedule implements RegistryReporter, Serializable {
 
 	@Inject
 	Logger log;
-	
+
 	MemberProperties mp = MemberProperties.getInstance();
 
 	private enum ScheduleStatus {
@@ -124,6 +127,9 @@ public abstract class TaskSchedule implements RegistryReporter, Serializable {
 
 	protected ScheduledFuture<?> scheduledFuture;
 
+	@Resource(lookup = "concurrent/RequestExchange")
+    javax.enterprise.concurrent.ManagedExecutorService threadPool;
+	
 	/**
 	 * @see {@link Scheduler#delay()}
 	 */
@@ -203,8 +209,12 @@ public abstract class TaskSchedule implements RegistryReporter, Serializable {
 			reported = event;
 
 			if (isAsync) {
-				eventInstance.select(new ModuleRegistryAnnotationLiteral() {
-				}).fireAsync(event);
+			//eventInstance.select(new ModuleRegistryAnnotationLiteral() {
+			//	}).fireAsync(event);
+			
+			eventInstance.select(new ModuleRegistryAnnotationLiteral() {
+			}).fireAsync(event, NotificationOptions.ofExecutor(threadPool));
+					
 			} else {
 				eventInstance.select(new ModuleRegistryAnnotationLiteral() {
 				}).fire(event);
@@ -239,13 +249,13 @@ public abstract class TaskSchedule implements RegistryReporter, Serializable {
 							log.debug("Scheduled task execution has been cancelled.");
 						} else if ((e instanceof RejectedExecutionException) || (e instanceof ExecutionException)
 								|| (e instanceof InterruptedException)) {
-							log.warn("Scheduled task managed execution exception: \n" + exCauseName(e));
 							exCause(e).printStackTrace();
+							log.warn("Scheduled task managed execution exception: \n" + exCauseName(e));
 						} else if ((e instanceof Error) || (e instanceof Exception)) {
+							exCause(e).printStackTrace();
 							log.error("Scheduled task execution encountered an unmanaged error condition: "
 									+ exCauseName(e) + "\nScheduler: " + this.getClass() + " \nOperator:"
 									+ this.operatorOpt.get().entryIdentifier());
-							exCause(e).printStackTrace();
 							failureCount++;
 							failures.add(e);
 						}

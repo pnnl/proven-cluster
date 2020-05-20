@@ -37,59 +37,117 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.request.module;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.enterprise.event.ObservesAsync;
-import javax.enterprise.event.Reception;
-import javax.inject.Inject;
+import java.io.Serializable;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleRegistry;
-import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceResultEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
-import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
+import gov.pnnl.proven.cluster.lib.module.exchange.ServiceBuffer;
 
 /**
- * Observer methods for registry events.
+ * Represents a module request item serviced by a {@link RequestBuffer}
+ * 
+ * @see RequestBuffer
  * 
  * @author d3j766
  *
  */
-@ApplicationScoped
-@Eager
-public class RegistryObserver {
+public class RequestItem<T> implements BufferedItem, Serializable {
 
-	@Inject
-	Logger log;
+	private static final long serialVersionUID = 1L;
 
-	public RegistryObserver() {
+	static Logger log = LoggerFactory.getLogger(RequestItem.class);
+
+	/**
+	 * Request input type
+	 */
+	T t;
+
+	/**
+	 * Maximum number of request retries before being sent to error stream
+	 */
+	private int retries;
+
+	/**
+	 * Time to live (in seconds) before being removed from a request buffer.
+	 */
+	private int ttl;
+
+	/**
+	 * Priority of request as defined in {@link RequestPriority}. Higher
+	 * priority requests are services before lower priority requests.
+	 */
+	private RequestPriority priority;
+
+	/**
+	 * Scope of the reuest's service execution as defined in
+	 * {@link RequestScope}
+	 */
+	private RequestScope scope;
+
+	private BufferedItemState bufferedState;
+
+	/**
+	 * Request constructor. Input of request is required at time of
+	 * construction.
+	 * 
+	 * @param t
+	 *            the type of input for the request
+	 */
+	public RequestItem(T t) {
+		this.t = t;
+		this.bufferedState = BufferedItemState.New;
 	}
 
-	@PostConstruct
-	public void init() {
+	public int getRetries() {
+		return retries;
 	}
 
-	public void componentEntry(@Observes(notifyObserver=Reception.ALWAYS) @ModuleRegistry ComponentEntry event, ComponentRegistry cr) {
-		log.debug("(Observing) Inside registry component status/reporting operation");
-		cr.record(event);
+	public void setRetries(int retries) {
+		this.retries = retries;
 	}
 
-	public void maintenanceEntry(@Observes @ModuleRegistry MaintenanceResultEntry event,
-			@Eager MaintenanceRegistry mr) {
-
-		log.debug("(Observing) Inside registry maintenance/reporting operation");
-		mr.recordMaintenance(event);
-
-		// If no longer a maintained component, then unregister.
-		if (!ManagedStatus.isRecoverable(event.getResult().getSeverity().getStatus())) {
-			mr.unregister(event.getcId());
-		}
+	public int getTtl() {
+		return ttl;
 	}
+
+	public void setTtl(int ttl) {
+		this.ttl = ttl;
+	}
+
+	public RequestPriority getPriority() {
+		return priority;
+	}
+
+	public void setPriority(RequestPriority priority) {
+		this.priority = priority;
+	}
+
+	public RequestScope getScope() {
+		return scope;
+	}
+
+	public void setScope(RequestScope scope) {
+		this.scope = scope;
+	}
+
+	@Override
+	public BufferedItemState getItemState() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setItemState(BufferedItemState bufferedState) {
+
+	}
+
 }

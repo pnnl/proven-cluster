@@ -46,6 +46,7 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
  * A {@code ComponentEvent} representing the result of a single maintenance
@@ -65,6 +66,9 @@ public class MaintenanceOperationResultEntry extends ComponentEvent {
 	protected long endTime;
 	protected long invocations = 0;
 
+	public MaintenanceOperationResultEntry() {
+	}
+	
 	public MaintenanceOperationResultEntry(MaintenanceOperation mo) {
 		super(mo.getOperator());
 		setOpName(mo.opName());
@@ -148,5 +152,16 @@ public class MaintenanceOperationResultEntry extends ComponentEvent {
 	public void setInvocations(long invocations) {
 		this.invocations = invocations;
 	}
+	
+	@Override
+	public int getFactoryId() {
+		return ModuleIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ModuleIDSFactory.MAINTENENACE_OPERATION_RESULT_ENTRY_TYPE;
+	}
+
 
 }

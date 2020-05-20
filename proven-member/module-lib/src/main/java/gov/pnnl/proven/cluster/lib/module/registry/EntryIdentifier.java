@@ -53,6 +53,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
  * Represents an entry identifier for a {@code ComponentEntry}.
@@ -62,7 +63,8 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
  * @author d3j766
  *
  */
-public class EntryIdentifier extends DisclosureDomain implements IdentifiedDataSerializable, Serializable, Comparable<EntryIdentifier> {
+public class EntryIdentifier extends DisclosureDomain
+		implements IdentifiedDataSerializable, Serializable, Comparable<EntryIdentifier> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -74,13 +76,16 @@ public class EntryIdentifier extends DisclosureDomain implements IdentifiedDataS
 
 	protected UUID componentId;
 	protected String componentName;
-	protected String domainLabel;
+	protected String groupLabel;
 
+	public EntryIdentifier() {
+	}
+	
 	public EntryIdentifier(ManagedComponent mc) {
-		super(mc.getId() + LS + mc.getName() + LS + mc.getDomainLabel() + LS + COMPONENT_DOMAIN);
+		super(mc.getId() + LS + mc.getName() + LS + mc.getGroupLabel() + LS + COMPONENT_DOMAIN);
 		this.componentId = mc.getId();
 		this.componentName = mc.getName();
-		this.domainLabel = mc.getDomainLabel();
+		this.groupLabel = mc.getGroupLabel();
 	}
 
 	/**
@@ -101,9 +106,9 @@ public class EntryIdentifier extends DisclosureDomain implements IdentifiedDataS
 	 * @return the subDomainLabel
 	 */
 	public String getDomainLabel() {
-		return domainLabel;
+		return groupLabel;
 	}
-	
+
 	public String getComponentDomain() {
 		return COMPONENT_DOMAIN;
 	}
@@ -113,6 +118,7 @@ public class EntryIdentifier extends DisclosureDomain implements IdentifiedDataS
 		super.readData(in);
 		this.componentId = UUID.fromString(in.readUTF());
 		this.componentName = in.readUTF();
+		this.groupLabel = in.readUTF();
 	}
 
 	@Override
@@ -120,31 +126,34 @@ public class EntryIdentifier extends DisclosureDomain implements IdentifiedDataS
 		super.writeData(out);
 		out.writeUTF(this.componentId.toString());
 		out.writeUTF(this.componentName);
+		out.writeUTF(this.groupLabel);
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ModuleIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.ENTRY_DOMAIN_TYPE;
+		return ModuleIDSFactory.ENTRY_IDENTIFIER_TYPE;
 	}
 
 	@Override
 	public int compareTo(EntryIdentifier other) {
-		
+
 		int ret;
-		
-		if (!domainLabel.equals(other.domainLabel)) {
-			ret = domainLabel.compareTo(other.domainLabel);
-		}
-		else if (!componentName.equals(other.componentName)) {
+
+		if (!groupLabel.equals(other.groupLabel)) {
+			ret = groupLabel.compareTo(other.groupLabel);
+		} else if (!componentName.equals(other.componentName)) {
 			ret = componentName.compareTo(other.componentName);
-		}
-		else if (!componentId.equals(other.componentId)) {
-				ret = componentId.compareTo(other.componentId);
-			}
-		else {
+		} else if (!componentId.equals(other.componentId)) {
+			ret = componentId.compareTo(other.componentId);
+		} else {
 			ret = 0;
 		}
-		
+
 		return ret;
 	}
 

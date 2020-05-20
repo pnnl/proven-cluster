@@ -110,7 +110,6 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.O
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperationAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
-import gov.pnnl.proven.cluster.lib.module.module.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
@@ -152,7 +151,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected Instance<ManagedComponent> componentProvider;
 
 	@Inject
-	@Scheduler(delay = 5, activateOnStartup = false)
+	@Scheduler(delay = 10, activateOnStartup = false)
 	protected StatusSchedule statusSchedule;
 
 	@Inject
@@ -185,7 +184,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * Component location, this is initialized in
 	 * {@link ManagedInterceptor#verifyManagedComponent(javax.interceptor.InvocationContext)}
 	 */
-	EntryLocation location;
+	protected EntryLocation location;
 
 	// Status and lock properties
 	private ManagedStatus status = Unknown;
@@ -345,10 +344,14 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return group;
 	}
 
-	public String getDomainLabel() {
+	public String getModuleName() {
+		return moduleName;
+	}
+
+	public String getGroupLabel() {
 		return getComponentGroup().getGroupLabel();
 	}
-	
+
 	public Long getCreationeTime() {
 		return creationeTime;
 	}
@@ -435,12 +438,28 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return location.getManagerId();
 	}
 
+	public UUID getCreatorId() {
+		return location.getCreatorId();
+	}
+
 	public ManagedComponent getCreator() {
 		return creator;
 	}
 
-	public UUID getCreatorId() {
-		return location.getCreatorId();
+	public ManagedStatus getModuleStatus() {
+		if (isModule) {
+			return status;
+		} else {
+			return creator.getModuleStatus();
+		}
+	}
+
+	public ManagedStatus getManagerStatus() {
+		if (isModule || isManager) {
+			return status;
+		} else {
+			return creator.getManagerStatus();
+		}
 	}
 
 	/**
@@ -809,11 +828,12 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	private List<UUID> statusEventOperationCandidates(ManagedComponent creator, Operation op, ManagedStatus status) {
 
 		List<UUID> ret = new ArrayList<UUID>();
-		boolean isModuleOperator = ModuleComponent.class.isAssignableFrom(creator.getClass());
-		boolean isManagerOperator = ManagerComponent.class.isAssignableFrom(creator.getClass());
 
 		switch (op) {
 
+		/**
+		 * Activation cascades only for Online creators
+		 */
 		case Activate:
 			if (Online == status) {
 				ret = operationCandidates(op);
@@ -830,8 +850,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			}
 			break;
 
+		/**
+		 * Failed status cascades only for Failed Modules or Managers.
+		 */
 		case Fail:
-			if (isModuleOperator || isManagerOperator) {
+			boolean failedModule = !ManagedStatus.isRecoverable(creator.getModuleStatus());
+			boolean failedManager = !ManagedStatus.isRecoverable(creator.getManagerStatus());
+			if (failedModule || failedManager) {
 				if (Failed == status) {
 					ret = operationCandidates(op);
 				}
@@ -1166,9 +1191,11 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * 
 	 * @see Creator#createAsync(CreationRequest)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public void createAsync(CreationRequest<ManagedComponent> request) {
-		creationQueue.addRequest(getId(), request);
+	public <T extends ManagedComponent> void createAsync(CreationRequest<T> request) { 
+	//public void createAsync(CreationRequest<ManagedComponent> request) {
+		creationQueue.addRequest(getId(), (CreationRequest<ManagedComponent>)request);
 	}
 
 	/**

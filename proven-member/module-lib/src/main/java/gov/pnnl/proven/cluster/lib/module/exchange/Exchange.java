@@ -37,59 +37,10 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.messenger.observer;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.enterprise.event.ObservesAsync;
-import javax.enterprise.event.Reception;
-import javax.inject.Inject;
+public interface Exchange {
 
-import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleRegistry;
-import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceResultEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
-import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceRegistry;
-
-/**
- * Observer methods for registry events.
- * 
- * @author d3j766
- *
- */
-@ApplicationScoped
-@Eager
-public class RegistryObserver {
-
-	@Inject
-	Logger log;
-
-	public RegistryObserver() {
-	}
-
-	@PostConstruct
-	public void init() {
-	}
-
-	public void componentEntry(@Observes(notifyObserver=Reception.ALWAYS) @ModuleRegistry ComponentEntry event, ComponentRegistry cr) {
-		log.debug("(Observing) Inside registry component status/reporting operation");
-		cr.record(event);
-	}
-
-	public void maintenanceEntry(@Observes @ModuleRegistry MaintenanceResultEntry event,
-			@Eager MaintenanceRegistry mr) {
-
-		log.debug("(Observing) Inside registry maintenance/reporting operation");
-		mr.recordMaintenance(event);
-
-		// If no longer a maintained component, then unregister.
-		if (!ManagedStatus.isRecoverable(event.getResult().getSeverity().getStatus())) {
-			mr.unregister(event.getcId());
-		}
-	}
+	
 }

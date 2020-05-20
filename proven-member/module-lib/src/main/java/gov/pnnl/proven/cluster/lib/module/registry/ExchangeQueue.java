@@ -37,122 +37,111 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.exchange;
+package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.io.IOException;
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import javax.json.JsonObject;
-import javax.json.stream.JsonParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
 
 /**
- * Wrapper class for a externally disclosed entry/message request. A
- * {@code DisclosureProxy} may be added to a {@code DisclosureBuffer} as a
- * buffered item.
+ * 
  * 
  * @author d3j766
  *
  */
-public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable {
+public enum ExchangeQueue {
 
-	private static final long serialVersionUID = 1L;
+	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
 
-	static Logger log = LoggerFactory.getLogger(DisclosureProxy.class);
+	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
 
-	private BufferedItemState bufferedState;
-	private JsonObject jsonEntry;
+	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
 
-	/**
-	 * No-arg constructor for serialization
-	 */
-	public DisclosureProxy() {
+	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
+
+	private class StreamLabel {
+		private static final String DISCLOSURE_STREAM = "disclosed";
+		private static final String KNOWLEDGE_STREAM = "knowledge";
+		private static final String REQUEST_STREAM = "request";
+		private static final String RESPONSE_STREAM = "response";
+	}
+
+	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
+
+	private String streamLabel;
+	private List<MessageContentGroup> messageGroups;
+
+	ExchangeQueue(String streamLabel, MessageContentGroup... groups) {
+		this.streamLabel = streamLabel;
+		messageGroups = Arrays.asList(groups);
 	}
 
 	/**
-	 * Based on an internally provided json object disclosure entry.
+	 * Provides the {@code MessageGroup}(s) supported by the stream.
 	 * 
-	 * @param entry
+	 * @return a list of supported MessageGroup
+	 * 
 	 */
-	public DisclosureProxy(JsonObject jsonEntry) {
-		this.jsonEntry = jsonEntry;
-		bufferedState = BufferedItemState.New;
+	public List<MessageContentGroup> getMessageGroups() {
+		return messageGroups;
+	}
+
+	public List<MessageContent> getMessageContents() {
+
+		
+		
+		List<MessageContent> ret = new ArrayList<MessageContent>();
+
+		for (MessageContentGroup mg : getMessageGroups()) {
+			for (MessageContent mc : mg.getMessageContents()) {
+				ret.add(mc);
+			}
+		}
+
+		return ret;
+	}
+
+	public static ExchangeQueue getType(MessageContent mcToCheckFor) {
+
+		ExchangeQueue ret = null;
+		for (ExchangeQueue mst : values()) {
+			for (MessageContentGroup mg : mst.getMessageGroups()) {
+				for (MessageContent mc : mg.getMessageContents()) {
+					if (mc.equals(mcToCheckFor))
+						ret = mst;
+					break;
+				}
+			}
+		}
+
+		return ret;
 	}
 
 	/**
-	 * DisclosureProxy is created using a String value. Disclosure type is
-	 * verified. Conversion to Json is made, if applicable.
+	 * Provides the name of the message stream using provided domain.
 	 * 
-	 * @param entry
-	 *            the disclosed string value
+	 * @param dd
+	 *            the disclosure domain. If null, the default proven domain is
+	 *            used.
 	 * 
-	 * @throws UnsupportedDisclosureEntryType
-	 *             if string is not a supported disclosure type.
+	 * @return the name of the associated disclosure stream
+	 * 
 	 */
-	public DisclosureProxy(String entry) throws UnsupportedDisclosureEntryType {
-		this.jsonEntry = DisclosureEntryType.getJsonEntry(entry);
-		bufferedState = BufferedItemState.New;
+	public String getStreamName(DisclosureDomain dd) {
+		return buildStreamName(dd, streamLabel);
 	}
 
-	public JsonObject getJsonEntry() {
-		return jsonEntry;
+	private String buildStreamName(DisclosureDomain dd, String sLabel) {
+		String domainPart = dd.getReverseDomain();
+		String streamPart = sLabel;
+		return domainPart + "." + streamPart + "." + "message";
 	}
 
-	public DisclosureMessage getDisclosureMessage() throws UnsupportedDisclosureEntryType, JsonParsingException, Exception {
-		return new DisclosureMessage(jsonEntry);
-	}
-
-	@Override
-	public BufferedItemState getItemState() {
-		return bufferedState;
-	}
-
-	public DisclosureEntryType getEntryType() {
-		return null;
-	}
-
-	@Override
-	public void setItemState(BufferedItemState bufferedState) {
-		this.bufferedState = bufferedState;
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(this.bufferedState.toString());
-		boolean nullJsonEntry = (null == this.jsonEntry);
-		out.writeBoolean(nullJsonEntry);
-		if (!nullJsonEntry)
-			out.writeByteArray(MessageJsonUtils.jsonOut(this.jsonEntry));
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
-		boolean nullJsonEntry = in.readBoolean();
-		if (!nullJsonEntry)
-			this.jsonEntry = MessageJsonUtils.jsonIn(in.readByteArray());
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_PROXY_TYPE;
-	}
 }

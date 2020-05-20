@@ -318,8 +318,11 @@ public abstract class PipelineRequest extends PipelineRequestComponent {
 		pj.addRequest(this, null);
 	}
 
-	// @Override
+	@Override
 	public boolean activate() {
+		
+		log.debug("PIPELINE REQUEST ACTIVATING...  " + getClass().getSimpleName()  );
+		
 //		if (pipelineType == PipelineRequestType.Domain)
 //			createDomainJobs();
 //		if (pipelineType == PipelineRequestType.Proven)

@@ -44,7 +44,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 public interface EntryReporter {
 
 	/**
-	 * Provides a {@code ComponentEntry}.
+	 * Creates and returns a ComponentEntry
 	 * 
 	 * @return the component entry
 	 */

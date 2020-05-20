@@ -225,7 +225,7 @@ public class TesetRegex {
 		// )?([^=]+)\\=([^,]+)").matcher(props);
 		Pattern pOrig = Pattern.compile("(?:, )?([^=]+)\\=([^,]+)");
 		Pattern p = Pattern.compile("#?([^=]+)\\=(.*)");
-		Map<DisclosureEntryType, String> results = new HashMap<>();
+		Map<DisclosureType, String> results = new HashMap<>();
 		// in.lines().filter((line) -> line.startsWith("#")).forEach((line) -> {
 		// Matcher m = p.matcher(line); if (m.find()) {
 		// System.out.println(m.group(1) + " - " + m.group(2)); } } );
