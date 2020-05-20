@@ -109,7 +109,15 @@ class FileExchange implements Exchange {
 	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, ProvenMessageOriginal message, SessionInfo sessionInfo, String requestId) {
 		throw new UnsupportedOperationException();
 	}
-
+	/**
+	 * @return
+	 * @see gov.pnnl.proven.api.exchange.Exchange#addProvenance()
+	 */
+	@Override
+	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, String message, SessionInfo sessionInfo,
+			String measurementName, String instanceId) {
+		throw new UnsupportedOperationException();
+	}
 	/**
 	 * @see gov.pnnl.proven.api.exchange.Exchange#addProvenance()
 	 */
