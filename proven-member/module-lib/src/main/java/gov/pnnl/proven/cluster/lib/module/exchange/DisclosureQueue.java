@@ -57,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.IQueue;
+import com.hazelcast.core.ReplicatedMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
@@ -65,7 +66,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.DisclosureEntriesCheck;
+import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.DisclosureQueueCheck;
+import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.ProvenDisclosureMap;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
 
 /**
@@ -77,7 +79,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInte
  * @see DisclosureItem
  *
  */
-@Scalable(maxCount = 10)
+@Scalable(maxCount = 5)
 public class DisclosureQueue extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureQueue.class);
@@ -459,7 +461,7 @@ public class DisclosureQueue extends ExchangeComponent {
 
 	@Override
 	public ComponentMaintenance scheduledMaintenance() {
-		return new ComponentMaintenance(this, DisclosureEntriesCheck.class);
+		return new ComponentMaintenance(this, DisclosureQueueCheck.class, ProvenDisclosureMap.class);
 	}
 
 }

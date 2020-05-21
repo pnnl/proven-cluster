@@ -112,6 +112,11 @@ public class EntryIdentifier extends DisclosureDomain
 	public String getComponentDomain() {
 		return COMPONENT_DOMAIN;
 	}
+	
+	@Override
+	public String toString() {
+		return domain;
+	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {

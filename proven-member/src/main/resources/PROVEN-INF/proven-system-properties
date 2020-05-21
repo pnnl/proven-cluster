@@ -26,6 +26,7 @@ proven.lib.module.registry.member.exchange_queue_name=exchange_queue.member
 proven.lib.module.registry.component.cluster.name=gov.pnnl.proven.registry.component.cluster
 proven.lib.module.registry.module.member.name=gov.pnnl.proven.registry.module.member
 proven.lib.module.schedule.task.max_skipped_entry_reports=5
+proven.lib.module.registry.disclosure.map.name=PROVEN_DISCLOSURE_MAP
 #proven.lib.module.managed_component.exchange.queue.capacity=10000
 #proven.lib.module.managed_component.exchange.buffer.capacity=1000
 #proven.lib.module.managed_component.exchange.service.buffer.capacity=100

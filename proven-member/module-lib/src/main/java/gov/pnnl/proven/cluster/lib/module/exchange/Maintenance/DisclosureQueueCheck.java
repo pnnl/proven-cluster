@@ -40,8 +40,6 @@
 package gov.pnnl.proven.cluster.lib.module.exchange.Maintenance;
 
 import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Unavailable;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.FAILED;
 import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 
 import javax.annotation.PostConstruct;
@@ -58,12 +56,12 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
  * @author d3j766
  *
  */
-public class DisclosureEntriesCheck extends MaintenanceOperation {
+public class DisclosureQueueCheck extends MaintenanceOperation {
 
 	@Inject
 	Logger log;
 
-	public DisclosureEntriesCheck() {
+	public DisclosureQueueCheck() {
 		super();
 	}
 
@@ -79,7 +77,7 @@ public class DisclosureEntriesCheck extends MaintenanceOperation {
 
 		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
 
-		ret = new MaintenanceOperationResult(FAILED, Unavailable);
+		// ret = new MaintenanceOperationResult(FAILED, Unavailable);
 
 		return ret;
 	}

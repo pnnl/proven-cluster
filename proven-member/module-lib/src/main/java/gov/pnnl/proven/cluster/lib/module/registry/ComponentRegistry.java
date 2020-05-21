@@ -66,6 +66,7 @@ import com.hazelcast.core.ISet;
 import com.hazelcast.core.ItemEvent;
 import com.hazelcast.core.ItemListener;
 import com.hazelcast.core.Member;
+import com.hazelcast.core.ReplicatedMap;
 import com.hazelcast.cp.lock.FencedLock;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
@@ -73,6 +74,7 @@ import com.hazelcast.map.listener.EntryUpdatedListener;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
@@ -86,7 +88,7 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
  *
  */
 @ApplicationScoped
-public class ComponentRegistry  {
+public class ComponentRegistry {
 
 	@Inject
 	Logger log;
@@ -202,11 +204,10 @@ public class ComponentRegistry  {
 		 * Initialize IMDG objects
 		 */
 		modules = hzi.getSet(props.getMemberModuleRegistryName());
-		//hzi.getCPSubsystem().getLock("myLock");
+		// hzi.getCPSubsystem().getLock("myLock");
 		localModuleExchangeQueue = hzi.getQueue(props.getModuleExchangeQueueName() + "." + pm.getId().toString());
 		localMemberExchangeQueue = hzi.getQueue(props.getMemberExchangeQueueName() + "." + pm.getMemberId().toString());
 		clusterComponents = hzi.getMap(props.getClusterComponentRegistryName());
-
 	}
 
 	/**
@@ -384,7 +385,7 @@ public class ComponentRegistry  {
 
 	private void removeModuleComponent(ComponentEntry entry) {
 
-		synchronized (moduleComponents) {			
+		synchronized (moduleComponents) {
 			moduleComponents.remove(entry);
 		}
 	}
@@ -392,6 +393,5 @@ public class ComponentRegistry  {
 	private void removeClusterComponent(ComponentEntry entry) {
 		clusterComponents.remove(entry.getEntryId());
 	}
-
 
 }

@@ -114,6 +114,7 @@ public class MemberProperties {
 	private static final String MEMBER_MODULE_REGISTRY_NAME = "proven.lib.module.registry.module.member.name";
 	private static final String CLUSTER_COMPONENT_REGISTRY_NAME = "proven.lib.module.registry.component.cluster.name";
 	private static final String TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS = "proven.lib.module.schedule.task.max_skipped_entry_reports";
+	private static final String PROVEN_DISCLOSURE_MAP_NAME = "proven.lib.module.registry.disclosure.map.name";
 
 	/**
 	 * hybrid-module properties
@@ -258,6 +259,10 @@ public class MemberProperties {
 	
 	public Integer getTaskScheduleMaxSkippedEntryReports() {
 		return getPropertyValue(TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS, Integer.class);
+	}
+	
+	public String getProvenDisclosureMapName() {
+		return getPropertyValue(PROVEN_DISCLOSURE_MAP_NAME, String.class);
 	}
 
 	//////////////////////////////////////////////////////
