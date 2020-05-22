@@ -99,6 +99,7 @@ public class DisclosureDomain implements IdentifiedDataSerializable, Serializabl
 		return domain;
 	}
 
+	@Override
 	public String toString() {
 		return getDomain();
 	}

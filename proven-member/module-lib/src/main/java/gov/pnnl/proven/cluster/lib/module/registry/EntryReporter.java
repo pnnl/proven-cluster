@@ -51,25 +51,27 @@ public interface EntryReporter {
 	ComponentEntry entry();
 
 	/**
-	 * Provides an entry identifier, in a Domain format. All components are
-	 * classified by their entry identifier, and contain the following Domain
-	 * labels:
+	 * Provides a managed component's EntryIdentifier. All managed components are
+	 * classified by their entry identifier, and contain the following domain
+	 * labels in reverse domain format:
 	 * 
-	 * <i><id>.<name>.<sub-domain>.<base-domain></i>
+	 * <i> <component-domain>.<sub-domain>.<name>.<id> </i>
 	 * 
 	 * where:
-	 * 
-	 * <b>id</b> component identifier
-	 * 
-	 * <b>name</b> component name.  This is their type's simple name.
+	 *
+	 * <b>component-domain</b> {@link EntryIdentifier#COMPONENT_DOMAIN}, top
+	 * level domain (TLD) shared by all components.
 	 * 
 	 * <b>sub-domain</b> sub-domain label, this is a components group label -
 	 * {@link ComponentGroup#getGroupLabel()}
 	 * 
-	 * <b>component-domain</b> {@link EntryIdentifier#COMPONENT_DOMAIN}, shared by
-	 * all components.
+	 * <b>name</b> component name. This is their type's simple name.
 	 * 
-	 * @return an EntryDomain
+	 * <b>id</b> component identifier
+	 * 
+	 * @return an EntryIdentifier
+	 * 
+	 * @see EntryIdentifier
 	 */
 	EntryIdentifier entryIdentifier();
 
@@ -77,7 +79,7 @@ public interface EntryReporter {
 	 * Set the {@link EntryLocation} for a reported {@code ComponentEntry}.
 	 */
 	void entryLocation(EntryLocation location);
-	
+
 	/**
 	 * Provides the {@link EntryLocation} for a reported {@code ComponentEntry}.
 	 * 

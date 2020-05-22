@@ -128,18 +128,19 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 			throw new IOException("Unable to read ComponentEvent's class type", e);
 		}
 		this.cName = in.readUTF();
+		this.cGroupLabel = in.readUTF();
 		this.cStatus = ManagedStatus.valueOf(in.readUTF());
+		this.creationTime = in.readLong();
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeUTF(cId.toString());
-		
-		log.debug("################# " + cType.getName() + "###################" );
-		
 		out.writeUTF(cType.getName());
 		out.writeUTF(cName);
+		out.writeUTF(cGroupLabel);
 		out.writeUTF(cStatus.toString());
+		out.writeLong(creationTime);
 	}
 
 }

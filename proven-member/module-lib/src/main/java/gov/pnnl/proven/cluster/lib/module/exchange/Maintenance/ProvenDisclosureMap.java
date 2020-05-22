@@ -105,9 +105,9 @@ public class ProvenDisclosureMap extends MaintenanceOperation {
 		 */
 		provenDisclosureQueues = hzi.getReplicatedMap(props.getProvenDisclosureMapName());
 		if (operator.getStatus().equals(ManagedStatus.Online)) {
-			provenDisclosureQueues.put(operator.entryIdentifier().getReverseDomain(), true);
+			provenDisclosureQueues.put(operator.entryIdentifier().toString(), true);
 		} else {
-			provenDisclosureQueues.put(operator.entryIdentifier().getReverseDomain(), false);
+			provenDisclosureQueues.put(operator.entryIdentifier().toString(), false);
 		}
 
 		return ret;

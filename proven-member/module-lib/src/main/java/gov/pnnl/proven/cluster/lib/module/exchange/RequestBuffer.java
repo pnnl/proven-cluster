@@ -88,7 +88,7 @@ public class RequestBuffer extends ExchangeBuffer<RequestItem<?>> {
 		log.debug("Post construct for ExchangeBuffer");
 		// TODO Add default declarative configurations for buffers
 		// TODO Integrate buffer id's into their names
-		doId = entryIdentifier().getReverseDomain();
+		doId = entryIdentifier().toString();
 		buffer = hzi.getRingbuffer(doId);
 	}
 

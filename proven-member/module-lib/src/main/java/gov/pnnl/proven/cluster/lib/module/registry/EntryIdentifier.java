@@ -56,9 +56,13 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
- * Represents an entry identifier for a {@code ComponentEntry}.
+ * Represents an entry identifier for a managed component. It's a
+ * reverse domain (or reverse DNS) name, used to identify managed component
+ * entries and their associated distributed object, if any.
  * 
- * @see EntryReporter#entryIdentifier()
+ * Use {@link #toString()} to get the reverse domain name in String format.
+ * 
+ * @see ComponentEntry, {@link EntryReporter#entryIdentifier()}
  * 
  * @author d3j766
  *
@@ -80,7 +84,7 @@ public class EntryIdentifier extends DisclosureDomain
 
 	public EntryIdentifier() {
 	}
-	
+
 	public EntryIdentifier(ManagedComponent mc) {
 		super(mc.getId() + LS + mc.getName() + LS + mc.getGroupLabel() + LS + COMPONENT_DOMAIN);
 		this.componentId = mc.getId();
@@ -112,10 +116,10 @@ public class EntryIdentifier extends DisclosureDomain
 	public String getComponentDomain() {
 		return COMPONENT_DOMAIN;
 	}
-	
+
 	@Override
 	public String toString() {
-		return domain;
+		return getReverseDomain();
 	}
 
 	@Override

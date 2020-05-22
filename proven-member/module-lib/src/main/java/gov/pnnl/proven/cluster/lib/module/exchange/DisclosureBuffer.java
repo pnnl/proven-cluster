@@ -96,7 +96,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 		log.debug("Post construct for DisclosureBuffer");
 
-		doId = entryIdentifier().getReverseDomain();
+		doId = entryIdentifier().toString();
 		de = create(new CreationRequest<DisclosureQueue>(DisclosureQueue.class)).get();
 		
 		// Create buffer instance
