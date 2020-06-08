@@ -83,21 +83,21 @@
  */
 package gov.pnnl.proven.api.producer;
 
-import java.io.Serializable;
+
 import java.util.List;
 
-import javax.jms.JMSException;
-
+import gov.pnnl.proven.api.exception.HazelcastExchangeException;
 import gov.pnnl.proven.api.exception.NullExchangeInfoException;
 import gov.pnnl.proven.api.exception.SendMessageException;
+import gov.pnnl.proven.api.exchange.Exchange;
 import gov.pnnl.proven.api.exchange.ExchangeInfo;
+import gov.pnnl.proven.api.exchange.ExchangeLocator;
 import gov.pnnl.proven.api.exchange.ExchangeType;
-import gov.pnnl.proven.api.exchange.MqConsumer;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 
-import org.apache.activemq.command.Response;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -113,7 +113,7 @@ public class ProvenProducer extends Producer{
 		super();
 		// TODO Auto-generated constructor stub
 	}
-	
+	Exchange exchange;
 	ExchangeInfo exchangeInfo;
 	private MessageInfo messageInfo;
 	public void mqProducer(String servicesUri, String userName, String password) {
@@ -124,12 +124,30 @@ public class ProvenProducer extends Producer{
 	public void restProducer(String servicesUri,String userName, String password){
 		exchangeInfo = new ExchangeInfo(ExchangeType.REST, servicesUri, userName, password);
 	}
-	
+	public void hzProducer(String servicesUri,String userName, String password) throws HazelcastExchangeException {
+		exchangeInfo = new ExchangeInfo(ExchangeType.HZ, servicesUri, userName, password);
+		
+			try {
+				ExchangeLocator.getHazelcastExchangeInfo();
+			} catch (HazelcastExchangeException e) {
+
+				log.error(e.toString());
+			}
+ 
+	}
+	public void setExchangeInfo(ExchangeType exType, String servicesUri, String userName, String password) throws NullExchangeInfoException {
+		exchangeInfo = new ExchangeInfo(exType, servicesUri, userName, password);
+		exchange = exchangeInfo.getExchange();
+	}
 	public void setMessageInfo(String domain, String name, String source, List<String> Keywords){
 		messageInfo = new MessageInfo(domain, name,source, Keywords);
 	}
 
 	public ProvenResponse sendBulkMessage(String message, String measurementName, String instanceId) throws Exception {
+		return sendMessage(message, exchangeInfo, measurementName, instanceId);
+
+	}
+	public ProvenResponse sendMessage(String message, String measurementName, String instanceId) throws Exception {
 		return sendMessage(message, exchangeInfo, measurementName, instanceId);
 
 	}

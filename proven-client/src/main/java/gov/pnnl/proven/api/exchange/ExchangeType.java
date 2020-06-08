@@ -108,5 +108,9 @@ public enum ExchangeType {
 	/**
 	 * Exchange provides a message queuing service for provenance transport.
 	 */
-	MQ
+	MQ,
+	/**
+	 * Exchange provides a Hazelcast services for provenance transport.
+	 */
+	HZ
 }
