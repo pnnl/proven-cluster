@@ -113,7 +113,7 @@ class HazelcastExchange implements Exchange {
 	private final Logger log = LoggerFactory.getLogger(HazelcastExchange.class);
 
 	HazelcastInstance client;
-	ReplicatedMap<Object, Object> registry;
+	ReplicatedMap<String, Boolean> registry;
 	DisclosureRegister disclosureRegister = new DisclosureRegister();
 
 	HazelcastClusterInfo hazelcastClusterInfo;
@@ -121,6 +121,7 @@ class HazelcastExchange implements Exchange {
 	public HazelcastExchange(HazelcastClusterInfo hazelcastClusterInfo) {
 		this.hazelcastClusterInfo = hazelcastClusterInfo;
 		client = hazelcastClusterInfo.getClient();
+		registry = client.getReplicatedMap(disclosureRegister.getDisclosureRegistryName());
 
 	}
 
@@ -141,41 +142,40 @@ class HazelcastExchange implements Exchange {
 	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, String message, SessionInfo sessionInfo,
 			String measurementName, String instanceId) throws Exception {
 
-		// Get Registry and registry items
-		ReplicatedMap<Object, Object> registry = client
-				.getReplicatedMap(disclosureRegister.getDisclosureRegistryName());
-
 		if (registry.isEmpty()) {
 			log.error("Disclosure Registry is Empty!");
-		}
-		Set<Entry<Object, Object>> registrySet = registry.entrySet();
-		log.debug("Registry Size:" + registry.size());
+		
+		} else {
 
-		IQueue<Object> queueStream;
-		List<Entry<Object, Object>> availableQueues = new ArrayList<Entry<Object, Object>>();
-		for (Entry<Object, Object> registryItem : registrySet) {
-			log.debug(registryItem.getKey() + ":");
-			log.debug(" " + registryItem.getValue());
-			// create a list with the available queues by checking the boolean value of the
-			// item
-			if ((boolean) registryItem.getValue()) {
-				availableQueues.add(registryItem);
+			// Get Registry items
+			Set<Entry<String, Boolean>> registrySet = registry.entrySet();
+			log.debug("Registry Size:" + registry.size());
 
+			IQueue<Object> queueStream;
+			List<Entry<String, Boolean>> availableQueues = new ArrayList<Entry<String, Boolean>>();
+			for (Entry<String, Boolean> registryItem : registrySet) {
+				log.debug(registryItem.getKey() + ":");
+				log.debug(" " + registryItem.getValue());
+				// create a list with the available queues by checking the boolean value of the
+				// item
+				if (registryItem.getValue()) {
+					availableQueues.add(registryItem);
+
+				}
+			}
+
+			if (availableQueues.isEmpty()) {
+				log.error("No queues available to disclose messages");
+			} else {
+				Entry<String, Boolean> availableQueue = availableQueues.get(hazelcastClusterInfo.roundRobinState);
+				queueStream = client.getQueue(availableQueue.getKey());
+				queueStream.put(message);
+				if (hazelcastClusterInfo.roundRobinState != availableQueues.size() - 1)
+					hazelcastClusterInfo.roundRobinState++;
+				else
+					hazelcastClusterInfo.roundRobinState = 0;
 			}
 		}
-
-		if (availableQueues.isEmpty()) {
-			log.error("No queues available to disclose messages");
-		} else {
-			Entry<Object, Object> availableQueue = availableQueues.get(hazelcastClusterInfo.roundRobinState);
-			queueStream = client.getQueue((String) availableQueue.getKey());
-			queueStream.put(message);
-			if (hazelcastClusterInfo.roundRobinState != availableQueues.size() - 1)
-				hazelcastClusterInfo.roundRobinState++;
-			else
-				hazelcastClusterInfo.roundRobinState = 0;
-		}
-
 		return null;
 	}
 
