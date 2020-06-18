@@ -80,6 +80,11 @@
 
 package gov.pnnl.proven.api.exchange;
 
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.core.HazelcastInstance;
+
+import gov.pnnl.proven.api.exception.HazelcastExchangeException;
+import gov.pnnl.proven.api.exception.NullExchangeInfoException;
 
 /**
  * Service locators for exchange and exchange servers.
@@ -89,28 +94,38 @@ package gov.pnnl.proven.api.exchange;
  */
 public class ExchangeLocator {
 
+	public static HazelcastClusterInfo hazelcastClusterInfo;
+
 	/**
 	 * Returns an exchange service based on the requested type.
 	 * 
-	 * @param exchangeType
-	 *            Indicates protocol used by the exchange.
+	 * @param exchangeType Indicates protocol used by the exchange.
 	 * 
 	 * @return the exchange service
+	 * @throws NullExchangeInfoException
+	 * @throws HazelcastExchangeException
 	 * 
-	 * @throws UnsupportedOperationException
-	 *             if the exchange type is not supported.
+	 * @throws UnsupportedOperationException if the exchange type is not supported.
 	 * 
 	 */
-	public static Exchange getExchange(ExchangeType exchangeType) {
+	public static Exchange getExchange(ExchangeType exchangeType) throws NullExchangeInfoException {
 
 		Exchange ret = null;
 
 		if (exchangeType.equals(ExchangeType.REST)) {
 			ret = new RestExchange();
-		}else if (exchangeType.equals(ExchangeType.MQ)) {
+		} else if (exchangeType.equals(ExchangeType.MQ)) {
 			ret = new MqExchange();
-		}		
-		else {
+		} else if (exchangeType.equals(ExchangeType.HZ)) {
+			if (hazelcastClusterInfo.client != null) {
+				ret = new HazelcastExchange(hazelcastClusterInfo);
+
+			} else {
+				throw new NullExchangeInfoException();
+
+			}
+
+		} else {
 			throw new UnsupportedOperationException();
 		}
 
@@ -118,16 +133,14 @@ public class ExchangeLocator {
 	}
 
 	/**
-	 * Returns an exchange server service based on the requested type. Currently only a REST
-	 * exchange server is supported.
+	 * Returns an exchange server service based on the requested type. Currently
+	 * only a REST exchange server is supported.
 	 * 
-	 * @param exchangeType
-	 *            Indicates protocol used by the exchange server.
+	 * @param exchangeType Indicates protocol used by the exchange server.
 	 * 
 	 * @return the exchange service
 	 * 
-	 * @throws UnsupportedOperationException
-	 *             if the exchange type is not supported.
+	 * @throws UnsupportedOperationException if the exchange type is not supported.
 	 */
 	public static ExchangeServer getExchangeServer(ExchangeType exchangeType) {
 
@@ -140,5 +153,31 @@ public class ExchangeLocator {
 		}
 
 		return ret;
+	}
+
+	/**
+	 * Initialize a Hazelcast Client Instance and get the replicatedMap Registry
+	 * from cluster with the information about available disclosure queues.
+	 * 
+	 * Initializes the round robin state for choosing the disclosure queue from
+	 * available queues.
+	 * 
+	 * @return HazelcastClusterInfo
+	 */
+	public static HazelcastClusterInfo getHazelcastExchangeInfo() throws HazelcastExchangeException {
+
+		hazelcastClusterInfo = new HazelcastClusterInfo();
+
+		HazelcastInstance client;
+		try {
+			client = HazelcastClient.newHazelcastClient();
+		} catch (Exception e) {
+			throw new HazelcastExchangeException("Problem creating new Hazelcast Client Instance. " + e);
+		}
+
+		hazelcastClusterInfo.setClient(client);
+		hazelcastClusterInfo.roundRobinState = 0;
+		return hazelcastClusterInfo;
+
 	}
 }

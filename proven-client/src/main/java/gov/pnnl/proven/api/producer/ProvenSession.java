@@ -185,7 +185,7 @@ class ProvenSession {
 		try {
 			exchange = exchangeInfo.getExchange();
 		} catch (Exception e) {
-			log.error("ExchangeInfo not set");
+			log.error("Problem sending message. Exchange not set");
 		throw new NullExchangeInfoException();
 		}
 
