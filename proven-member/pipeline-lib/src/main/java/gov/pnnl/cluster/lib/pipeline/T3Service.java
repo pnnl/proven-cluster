@@ -87,7 +87,7 @@ public class T3Service {
 	private RemoteRepository repo;
 	private final RDFFormat addFormat = RDFFormat.RDFXML;
 	private Jsonb jsonb = JsonbBuilder.create();
-
+ 
 	/**
 	 * Summary response information for a T3 storage request. This is included
 	 * in a {@code ResponseMessage} as it's message content.
