@@ -118,6 +118,18 @@ public class MemberProperties {
 	private static final String HYBRID_T3_SERVICE_URL = "proven.module.hybrid.t3.serviceUrl";
 
 	/**
+	 * hybrid-module properties
+	 */
+	private static final String HYBRID_TS_SERVICE_URL = "proven.module.hybrid.ts.serviceUrl";
+	private static final String HYBRID_TS_USE_IDB = "proven.module.hybrid.ts.useIdb";
+	private static final String HYBRID_TS_IDB_DB = "proven.module.hybrid.ts.idbDB";
+	private static final String HYBRID_TS_IDB_RP = "proven.module.hybrid.ts.idbRP";
+	private static final String HYBRID_TS_IDB_USERNAME = "proven.module.hybrid.ts.idbUsername";
+	private static final String HYBRID_TS_IDB_PASSWORD = "proven.module.hybrid.ts.idbPassword";
+
+	
+	
+	/**
 	 * Singleton instance of MemberProperties
 	 */
 	private static MemberProperties instance = null;
@@ -247,6 +259,31 @@ public class MemberProperties {
 		return getPropertyValue(HYBRID_T3_SERVICE_URL, String.class);
 	}
 
+	public String getHybridTsServiceUrl() {
+		return getPropertyValue(HYBRID_TS_SERVICE_URL, String.class);
+	}
+	
+	public Boolean getHybridTsUseIdb() {
+		return getPropertyValue(HYBRID_TS_USE_IDB, Boolean.class);
+	}
+	
+	public String getHybridTsIdbDb() {
+		return getPropertyValue(HYBRID_TS_IDB_DB, String.class);
+	}	
+
+	public String getHybridTsIdbRp() {
+		return getPropertyValue(HYBRID_TS_IDB_RP, String.class);
+	}		
+
+	public String getHybridTsIdbUsername() {
+		return getPropertyValue(HYBRID_TS_IDB_USERNAME, String.class);
+	}	
+	
+	public String getHybridTsIdbPassword() {
+		return getPropertyValue(HYBRID_TS_IDB_PASSWORD, String.class);
+	}	
+		
+		
 	/**
 	 * Returns the property value for the provided type.
 	 * 

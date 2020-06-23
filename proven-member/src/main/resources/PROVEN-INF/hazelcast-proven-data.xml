@@ -177,6 +177,7 @@
 			object INDEX-ONLY: Caches values only when they are inserted into an index. 
 			ALWAYS: Always cache deserialized values. -->
 		<cache-deserialized-values>INDEX-ONLY</cache-deserialized-values>
+		<statistics-enabled>true</statistics-enabled>
 
 	</map>
 

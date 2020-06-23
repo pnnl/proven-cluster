@@ -80,7 +80,7 @@ import gov.pnnl.proven.cluster.lib.member.MemberProperties;
  *
  */
 public class T3Service {
-
+ 
 	private static Logger log = LoggerFactory.getLogger(T3Service.class);
 
 	private RemoteRepositoryManager repoManager;

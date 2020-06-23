@@ -29,3 +29,8 @@ proven.lib.module.registry.cluster.do_name=gov.pnnl.proven.registry.cluster
 # hybrid module
 proven.module.hybrid.t3.serviceUrl=http://localhost:8889/bigdata
 proven.module.hybrid.ts.serviceUrl=http://localhost:8086
+proven.module.hybrid.ts.useIdb=true
+proven.module.hybrid.ts.idbDB=proven
+proven.module.hybrid.ts.idbRP=autogen
+proven.module.hybrid.ts.idbUsername=root
+proven.module.hybrid.ts.idbPassword=root
