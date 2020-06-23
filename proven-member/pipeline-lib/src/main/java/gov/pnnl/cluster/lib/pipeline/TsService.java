@@ -246,7 +246,7 @@ public class TsService {
 //					ret.setCode(Status.CREATED.getStatusCode());
 //					ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
 			
-
+ 
 				JsonReader  reader = Json.createReader(new StringReader(jsonb.toJson("{}")));
 				loadResponseObject = reader.readObject();
 				//JsonReader reader = Json.createReader(new StringReader(""));

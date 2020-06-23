@@ -330,7 +330,7 @@ public class MessageContentRoutingService {
 			//
 			values.add(valueObject.build());
 
-		} 
+		}  
 		metrics.add("metrics", values.build());
 		message.add("message", metrics.build());
 		ret = message.build();
