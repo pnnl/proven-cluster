@@ -70,10 +70,15 @@ public abstract class ExchangeComponent extends ManagedComponent {
 	Logger log;
 
 	/**
-	 * Staging queue.  
+	 * Component's exchange queue. Component reads items from this queue to
+	 * process. Items are added to this queue via exchange requests performed by
+	 * the module's ComponentRegistry.
 	 */
 	IQueue<BufferedItem> exchangeQueue;
-	
+
+	// TODO add reader implementation for exchange queue as well as other
+	// methods supporting exchange queues.
+
 	/**
 	 * Entry property definitions
 	 */

@@ -37,63 +37,117 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.request.module;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
+import java.io.Serializable;
 
-public interface EntryReporter {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	/**
-	 * Creates and returns a ComponentEntry
-	 * 
-	 * @return the component entry
-	 */
-	ComponentEntry entry();
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
+import gov.pnnl.proven.cluster.lib.module.exchange.ServiceBuffer;
 
-	/**
-	 * Provides a managed component's EntryIdentifier. All managed components are
-	 * classified by their entry identifier, and contain the following domain
-	 * labels in reverse domain format:
-	 * 
-	 * <i> <component-domain>.<sub-domain>.<name>.<id> </i>
-	 * 
-	 * where:
-	 *
-	 * <b>component-domain</b> {@link EntryIdentifier#COMPONENT_DOMAIN}, top
-	 * level domain (TLD) shared by all components.
-	 * 
-	 * <b>sub-domain</b> sub-domain label, this is a components group label -
-	 * {@link ComponentGroup#getGroupLabel()}
-	 * 
-	 * <b>name</b> component name. This is their type's simple name.
-	 * 
-	 * <b>id</b> component identifier
-	 * 
-	 * @return an EntryIdentifier
-	 * 
-	 * @see EntryIdentifier
-	 */
-	EntryIdentifier entryIdentifier();
+/**
+ * Represents a module request item serviced by a {@link RequestBuffer}
+ * 
+ * @see RequestBuffer
+ * 
+ * @author d3j766
+ *
+ */
+public class RequestItem<T> implements BufferedItem, Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	static Logger log = LoggerFactory.getLogger(RequestItem.class);
 
 	/**
-	 * Set the {@link EntryLocation} for a reported {@code ComponentEntry}.
+	 * Request input type
 	 */
-	void entryLocation(EntryLocation location);
+	T t;
 
 	/**
-	 * Provides the {@link EntryLocation} for a reported {@code ComponentEntry}.
-	 * 
-	 * @return an EntryLocation
+	 * Maximum number of request retries before being sent to error stream
 	 */
-	EntryLocation entryLocation();
+	private int retries;
 
 	/**
-	 * Provides a set of entry properties.
-	 * 
-	 * @see EntryProperty
-	 * 
-	 * @return set of entry properties. Empty set if there are no properties.
+	 * Time to live (in seconds) before being removed from a request buffer.
 	 */
-	EntryProperties entryProperties();
+	private int ttl;
+
+	/**
+	 * Priority of request as defined in {@link RequestPriority}. Higher
+	 * priority requests are services before lower priority requests.
+	 */
+	private RequestPriority priority;
+
+	/**
+	 * Scope of the reuest's service execution as defined in
+	 * {@link RequestScope}
+	 */
+	private RequestScope scope;
+
+	private BufferedItemState bufferedState;
+
+	/**
+	 * Request constructor. Input of request is required at time of
+	 * construction.
+	 * 
+	 * @param t
+	 *            the type of input for the request
+	 */
+	public RequestItem(T t) {
+		this.t = t;
+		this.bufferedState = BufferedItemState.New;
+	}
+
+	public int getRetries() {
+		return retries;
+	}
+
+	public void setRetries(int retries) {
+		this.retries = retries;
+	}
+
+	public int getTtl() {
+		return ttl;
+	}
+
+	public void setTtl(int ttl) {
+		this.ttl = ttl;
+	}
+
+	public RequestPriority getPriority() {
+		return priority;
+	}
+
+	public void setPriority(RequestPriority priority) {
+		this.priority = priority;
+	}
+
+	public RequestScope getScope() {
+		return scope;
+	}
+
+	public void setScope(RequestScope scope) {
+		this.scope = scope;
+	}
+
+	@Override
+	public BufferedItemState getItemState() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setItemState(BufferedItemState bufferedState) {
+
+	}
 
 }

@@ -56,8 +56,10 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
+import gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequest;
 
 /**
  * Sends {@code StatusMessages} on a fixed delay schedule.
@@ -111,9 +113,12 @@ public class StatusSchedule extends TaskSchedule {
 			 * this component. Otherwise, proceed normally and send the
 			 * component's messages.
 			 */
-			if (pm.retrieveModuleStatus() == Suspended) {
+			ModuleStatus moduleStatus = pm.retrieveModuleStatus();
+			String moduleName = operator.getModuleName();
+			long moduleCreation = pm.getCreationeTime();
+			if (moduleStatus == Suspended) {
 				operator.suspend();
-			} else if (pm.retrieveModuleStatus() == Shutdown) {
+			} else if (moduleStatus == Shutdown) {
 				operator.shutdown();
 
 			} else {
@@ -142,22 +147,49 @@ public class StatusSchedule extends TaskSchedule {
 				}
 			}
 
-			// Notify operator's status to registry
+			/**
+			 * Notify operator's entry to registry. Update event information for
+			 * registry processing.
+			 */
 			ComponentEntry event = sms.getEntry();
-			event.setOverdueMillis(registryOverdueMillis);
-			notifyRegistry(event, true);
-
+			event.setModuleStatus(moduleStatus);
+			event.setModuleName(moduleName);
+			event.setModuleCreation(moduleCreation);
+			event.setOverdueMillis(registryOverdueMillis());
+			
+			log.debug("==================================================");
+			log.debug("Reporting ManagedComponent status : ");
+			log.debug("\t" + event.getcName() );
+			log.debug("\t" + event.getcGroupLabel());
+			log.debug("\t" + event.getcStatus());
+			log.debug("\t" + event.getLocation());
+			log.debug("\t" + operator.getCreatedIds());
+			log.debug("==================================================");
+			
+			notifyRegistry(event, false);
 		}
 
 	}
 
 	@Override
-	public boolean isReportable(MessageEvent event) {
+	public boolean isReportable(MessageEvent eventMessage) {
 
-		ManagedStatus reportedStatus = (null == reported()) ? (ManagedStatus.Unknown)
-				: (((ComponentEntry) reported()).getcStatus());
-		ManagedStatus reportingStatus = ((ComponentEntry) event).getcStatus();
-		return ((reportingStatus != reportedStatus));
+		ComponentEntry reportedEvent = (ComponentEntry) reported();
+		ComponentEntry reportingEvent = (ComponentEntry) eventMessage;
+
+		// Prior component report, if any
+		String reportedManaged = (null == reportedEvent) ? (ManagedStatus.Unknown.toString())
+				: (reportedEvent.getcStatus().toString());
+		String reportedModule = (null == reportedEvent) ? (ModuleStatus.Unknown.toString())
+				: (reportedEvent.getModuleStatus().toString());
+		String reported = reportedManaged + reportedModule;
+				
+		// Current component report
+		String reportingManaged = reportingEvent.getcStatus().toString();
+		String reportingModule = reportingEvent.getModuleStatus().toString();
+		String reporting = reportingManaged + reportingModule; 
+
+		return ((reported != reporting));
 	}
 
 }

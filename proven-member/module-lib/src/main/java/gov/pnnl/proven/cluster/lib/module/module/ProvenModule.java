@@ -59,6 +59,7 @@ import org.slf4j.Logger;
 
 import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
@@ -142,12 +143,27 @@ public abstract class ProvenModule extends ModuleComponent {
 		return ret;
 	}
 
+	/**
+	 * Used by ManagerFactory Producer methods to create a new manager
+	 * components.
+	 * 
+	 * Null will be returned if the new component could not be created due its
+	 * creation violating scalability rules.
+	 * 
+	 * @param clazz
+	 *            type of manager component to create.
+	 * 
+	 * @return
+	 */
 	private <T extends ManagerComponent> T createManager(Class<T> clazz) {
 
 		if (!activeManagers.contains(clazz)) {
 			throw new ProducesInactiveManagerException(
 					"Cannot produce manager: " + clazz.getSimpleName() + " It has been configured as inactive.");
 		}
+
+		// TODO
+		// Check scalability count, return null if creation would violate it
 		T manager = create(new CreationRequest<T>(clazz)).get();
 		return manager;
 	}
@@ -170,7 +186,8 @@ public abstract class ProvenModule extends ModuleComponent {
 	/**
 	 * Create module's active managers.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes","unchecked"})
+
 	@Override
 	public boolean activate() {
 
@@ -217,7 +234,8 @@ public abstract class ProvenModule extends ModuleComponent {
 		// Create selected managers
 		for (Class<? extends ManagerComponent> c : activeManagers) {
 			if (ManagerComponent.class.isAssignableFrom(c)) {
-				createAsync(new CreationRequest(c));
+				//createAsync(new CreationRequest(c));
+				produceManager(c);
 			}
 		}
 

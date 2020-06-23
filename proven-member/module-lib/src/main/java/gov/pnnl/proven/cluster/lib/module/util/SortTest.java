@@ -37,34 +37,108 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.exception;
+package gov.pnnl.proven.cluster.lib.module.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
-/**
- * Indicates the externally disclosed message entry's format is not a supported
- * type.
- * 
- * @author d3j766
- *
- */
-public class UnsupportedDisclosureEntryType extends Exception {
 
-	private static final long serialVersionUID = 1L;
+
+public class SortTest {    
 	
-	static Logger log = LoggerFactory.getLogger(UnsupportedDisclosureEntryType.class);
+	static final String sample = "Hello there I'm doing jut fine how are you anyway";
+	
+	static TreeSet<String> treeSet = new TreeSet<>();
+	static ArrayList<String> arrayList = new ArrayList<>();
+	static Set<String> h1Set = new HashSet<>();
+	static List<String> h1Array = new ArrayList<>();
+	
+    static String getRandomString() {
+        Random random = new Random();
+        String result = "";
+        for (int i = 0; i < 10; i++) {
+            result += (char)(80 + random.nextInt(40));
+        }
+        return result;
+    }
 
-	public UnsupportedDisclosureEntryType() {
-		super();
-	}
+    static void testHTreeSet() {
+        
+        for (int i = 0; i < 5000; i++) {
+            h1Array.add(getRandomString());
+        }
+        h1Array.add(sample);
+    }
+    
+    static String findHTreeSetTest() {
+    	treeSet = new TreeSet<String>(h1Array);
+    	String ret = treeSet.tailSet(sample).iterator().next();
+    	return ret;
+    }
+    
+    static void testTreeSet() {
+        
+        for (int i = 0; i < 5000; i++) {
+            treeSet.add(getRandomString());
+        }
+        treeSet.add(sample);
+    }
+    
+    static String findTreeSetTest() {
+    	String ret = treeSet.tailSet(sample).iterator().next();
+    	return ret;
+    }
+    
+    static String findArrayListTest() {
+    	return arrayList.get(arrayList.indexOf(sample));
+    }
 
-	public UnsupportedDisclosureEntryType(String message) {
-		super(message);
-	}
+    static void testArrayList() {
+        
+        for (int i = 0; i < 5000; i++) {
+            arrayList.add(getRandomString());
+        }
+        arrayList.add(sample);
+        Collections.sort(arrayList);
+    }
 
-	public UnsupportedDisclosureEntryType(String message, Throwable e) {
-		super(message, e);
-	}
+    public static void main(String[] args) {
+        Date date1 = new Date();
+        testTreeSet();
+        Date date2 = new Date();
+        System.out.println(date2.getTime() - date1.getTime());
 
+        Date datea = new Date();
+        testHTreeSet();
+        Date dateb = new Date();
+        System.out.println(dateb.getTime() - datea.getTime());
+        
+        Date date3 = new Date();
+        testArrayList();
+        Date date4 = new Date();
+        System.out.println(date4.getTime() - date3.getTime());
+        
+        Date date5 = new Date();
+        findTreeSetTest();
+        Date date6 = new Date();
+        System.out.println(date6.getTime() - date5.getTime());
+        
+        Date datec = new Date();
+        findHTreeSetTest();
+        Date dated = new Date();
+        System.out.println(dated.getTime() - datec.getTime());
+
+        Date date7 = new Date();
+        findArrayListTest();
+        Date date8 = new Date();
+        System.out.println(date8.getTime() - date7.getTime());   
+        
+    }
 }

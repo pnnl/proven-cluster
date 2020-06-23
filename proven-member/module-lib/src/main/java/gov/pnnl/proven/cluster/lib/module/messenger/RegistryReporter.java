@@ -49,8 +49,6 @@ public interface RegistryReporter {
 
 	MessageEvent reported();
 
-	MessageEvent reporting();
-
 	int skippedReportsCount();
 
 	int maxSkippedBeforeReporting();

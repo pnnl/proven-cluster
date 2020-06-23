@@ -39,112 +39,142 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.NavigableSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
-import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 
 /**
- * Identifies the location of a reported {@code ComponentEntry} inside a
- * cluster.
- * 
- * The location is comprised of 4 coordinates, shown below:
- * 
- * <ol>
- * <li><b>Member</b>: identifier of component's cluster member</li>
- * <li><b>Module</b>: identifier of component's module application</li>
- * <li><b>Manager</b>: identifier of component's manager component</li>
- * <li><b>Creator</b>: identifier of a component's creator component</li>
- * </ol>
+ * Represents a {@code ProvenModule} that can be used by a ComponentRegistry to
+ * register component entries an support component exchange requests.
  * 
  * @author d3j766
+ * 
+ * @see ProvenModule, ComponentRegistry
  *
  */
-public class EntryLocation implements IdentifiedDataSerializable, Serializable, Comparable<EntryLocation> {
+public class ExchangeRequest implements Comparable<ExchangeRequest> {
 
-	private static final long serialVersionUID = 1L;
+	private UUID moduleId;
+	private ModuleStatus moduleStatus;
+	private String moduleName;
+	private long moduleCreation;
+	
+	/**
+	 * Block synchronization lock for adding a new ComponentEntry 
+	 */
+	private final Object componentEntryLock = new Object();
 
-	public static final int MEMBER = 0;
-	public static final int MODULE = 1;
-	public static final int MANAGER = 2;
-	public static final int CREATOR = 3;
+	/**
+	 * (Local) Module component and exchange entries
+	 */
+	private TreeSet<ComponentEntry> moduleComponents = new TreeSet<ComponentEntry>();
+	private NavigableSet<ComponentEntry> moduleExchange = Collections.unmodifiableNavigableSet(moduleComponents);
 
-	public static final int COORDINATES = 4;
+	public ExchangeRequest(ComponentEntry ce) {
+		this.moduleId = ce.getLocation().getModuleId();
+		this.moduleStatus = ce.getModuleStatus();
+		this.moduleName = ce.getModuleName();
+		this.moduleCreation = ce.getModuleCreation();
+	}
 
-	private String[] location = new String[COORDINATES];
+	/**
+	 * @return the number of component entries for the module
+	 */
+	public int getEntryCount() {
+		return moduleComponents.size();
+	}
 
-	public EntryLocation() {
+	/**
+	 * Adds the provided ComponentEntry to this module. Provided entry will
+	 * replace existing entry if it exists.
+	 * 
+	 * @param ce
+	 *            entry to add
+	 * 
+	 * @throw IllegalArgumentException if provided entry's module does not match
+	 *        this module entry.
+	 */
+	public void addComponent(ComponentEntry ce) {
+
+		if (!ce.getLocation().getModuleId().equals(moduleId)) {
+			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
+		}
+
+		synchronized (componentEntryLock) {
+			if (!moduleComponents.add(ce)) {
+				moduleComponents.remove(ce);
+				moduleComponents.add(ce);
+			}
+		}
 	}
 	
-	public EntryLocation(UUID memberId, UUID moduleId, UUID managerId, UUID creatorId) {
-		location[MEMBER] = memberId.toString();
-		location[MODULE] = moduleId.toString();
-		location[MANAGER] = managerId.toString();
-		location[CREATOR] = creatorId.toString();
+	public void removeComponent(ComponentEntry ce) {
+		
+		if (!ce.getLocation().getModuleId().equals(moduleId)) {
+			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
+		}
+
+		synchronized (componentEntryLock) {
+			moduleComponents.remove(ce);
+		}
 	}
 
-	public UUID getCreatorId() {
-		return UUID.fromString(location[CREATOR]);
-	}
-
-	public UUID getManagerId() {
-		return UUID.fromString(location[MANAGER]);
+	public ComponentEntry exchangeComponent() {
+		// TODO
+		return null;
 	}
 
 	public UUID getModuleId() {
-		return UUID.fromString(location[MODULE]);
+		return moduleId;
 	}
 
-	public UUID getMemberId() {
-		return UUID.fromString(location[MEMBER]);
+	public ModuleStatus getModuleStatus() {
+		return moduleStatus;
+	}
+
+	public void setModuleStatus(ModuleStatus moduleStatus) {
+		this.moduleStatus = moduleStatus;
+	}
+
+	public String getModuleName() {
+		return moduleName;
+	}
+
+	public long getModuleCreation() {
+		return moduleCreation;
 	}
 
 	@Override
-	public int compareTo(EntryLocation other) {
+	public int compareTo(ExchangeRequest other) {
 
-		int ret = 0;
+		int ret;
 
-		for (int i = 0; i < COORDINATES; i++) {
-			if (!location[i].equals(other.location[i])) {
-				ret = location[i].compareTo(other.location[i]);
-				break;
+		if (moduleId.equals(other.getModuleId())) {
+			ret = 0;
+		} else {
+			if (moduleCreation != other.getModuleCreation()) {
+				int diff = (int) (moduleCreation - other.getModuleCreation());
+				ret = ((diff < 0) ? (-1) : (1));
+			} else {
+				/**
+				 * Need to pick a non-zero value here. Returning zero would
+				 * violate equals()
+				 */
+				ret = -1;
 			}
 		}
+
 		return ret;
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		location = in.readUTFArray();
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTFArray(location);
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ModuleIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ModuleIDSFactory.ENTRY_LOCATION_TYPE;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Arrays.hashCode(location);
+		result = prime * result + ((moduleId == null) ? 0 : moduleId.hashCode());
 		return result;
 	}
 
@@ -156,13 +186,18 @@ public class EntryLocation implements IdentifiedDataSerializable, Serializable, 
 		if (obj == null) {
 			return false;
 		}
-		if (!(obj instanceof EntryLocation)) {
+		if (!(obj instanceof ExchangeRequest)) {
 			return false;
 		}
-		EntryLocation other = (EntryLocation) obj;
-		if (!Arrays.equals(location, other.location)) {
+		ExchangeRequest other = (ExchangeRequest) obj;
+		if (moduleId == null) {
+			if (other.moduleId != null) {
+				return false;
+			}
+		} else if (!moduleId.equals(other.moduleId)) {
 			return false;
 		}
 		return true;
 	}
+
 }

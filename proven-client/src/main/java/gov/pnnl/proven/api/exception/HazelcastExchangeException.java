@@ -37,116 +37,29 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.request.module;
 
-import java.io.Serializable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
+package gov.pnnl.proven.api.exception;
 
 /**
- * Represents a module request that may be serviced by an {@link RequestBuffer}
- * 
- * @see RequestBuffer
- * 
- * @author d3j766
+ * @author raju332
  *
  */
-public class RequestProxy<T> implements BufferedItem, Serializable {
+public class HazelcastExchangeException extends Exception {
 
 	private static final long serialVersionUID = 1L;
-
-	static Logger log = LoggerFactory.getLogger(RequestProxy.class);
-
 	/**
-	 * Request input type
-	 */
-	T t;
+     * Constructs an <code>HazelcastExchangeException</code> with no specified
+     * detail message.
+     */
 
-	/**
-	 * Maximum number of request retries before being sent to error stream
-	 */
-	private int retries;
+    public HazelcastExchangeException() {}
 
-	/**
-	 * Time to live (in seconds) before being removed from a request buffer.
-	 */
-	private int ttl;
-
-	/**
-	 * Priority of request as defined in {@link RequestPriority}. Higher
-	 * priority requests are services before lower priority requests.
-	 */
-	private RequestPriority priority;
-
-	/**
-	 * Scope of the reuest's service execution as defined in
-	 * {@link RequestScope}
-	 */
-	private RequestScope scope;
-
-	private BufferedItemState bufferedState;
-
-	/**
-	 * Request constructor. Input of request is required at time of
-	 * construction.
-	 * 
-	 * @param t
-	 *            the type of input for the request
-	 */
-	public RequestProxy(T t) {
-		this.t = t;
-		this.bufferedState = BufferedItemState.New;
-	}
-
-	public int getRetries() {
-		return retries;
-	}
-
-	public void setRetries(int retries) {
-		this.retries = retries;
-	}
-
-	public int getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
-	}
-
-	public RequestPriority getPriority() {
-		return priority;
-	}
-
-	public void setPriority(RequestPriority priority) {
-		this.priority = priority;
-	}
-
-	public RequestScope getScope() {
-		return scope;
-	}
-
-	public void setScope(RequestScope scope) {
-		this.scope = scope;
-	}
-
-	@Override
-	public BufferedItemState getItemState() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setItemState(BufferedItemState bufferedState) {
-
-	}
-
+    /**
+     * Constructs an <code>HazelcastExchangeException</code> with the specified
+     * detail message.
+     */
+    public HazelcastExchangeException(String s)
+    {
+        super(s);
+    }
 }

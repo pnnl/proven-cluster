@@ -37,63 +37,112 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
+import java.io.IOException;
 
-public interface EntryReporter {
+import javax.json.JsonObject;
+import javax.json.stream.JsonParsingException;
 
-	/**
-	 * Creates and returns a ComponentEntry
-	 * 
-	 * @return the component entry
-	 */
-	ComponentEntry entry();
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	/**
-	 * Provides a managed component's EntryIdentifier. All managed components are
-	 * classified by their entry identifier, and contain the following domain
-	 * labels in reverse domain format:
-	 * 
-	 * <i> <component-domain>.<sub-domain>.<name>.<id> </i>
-	 * 
-	 * where:
-	 *
-	 * <b>component-domain</b> {@link EntryIdentifier#COMPONENT_DOMAIN}, top
-	 * level domain (TLD) shared by all components.
-	 * 
-	 * <b>sub-domain</b> sub-domain label, this is a components group label -
-	 * {@link ComponentGroup#getGroupLabel()}
-	 * 
-	 * <b>name</b> component name. This is their type's simple name.
-	 * 
-	 * <b>id</b> component identifier
-	 * 
-	 * @return an EntryIdentifier
-	 * 
-	 * @see EntryIdentifier
-	 */
-	EntryIdentifier entryIdentifier();
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-	/**
-	 * Set the {@link EntryLocation} for a reported {@code ComponentEntry}.
-	 */
-	void entryLocation(EntryLocation location);
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
+import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+
+/**
+ * Represents a disclosed data item originating from an internal or external
+ * source.
+ * 
+ * @author d3j766
+ *
+ */
+public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable {
+
+	private static final long serialVersionUID = 1L;
+
+	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
+
+	private BufferedItemState bufferedState;
+	private JsonObject jsonEntry;
+
+	public DisclosureItem() {
+	}
 
 	/**
-	 * Provides the {@link EntryLocation} for a reported {@code ComponentEntry}.
+	 * Constructor for and internally provided JSON object.
 	 * 
-	 * @return an EntryLocation
+	 * @param entry
 	 */
-	EntryLocation entryLocation();
+	public DisclosureItem(JsonObject jsonEntry) {
+		this.jsonEntry = jsonEntry;
+		bufferedState = BufferedItemState.New;
+	}
 
 	/**
-	 * Provides a set of entry properties.
-	 * 
-	 * @see EntryProperty
-	 * 
-	 * @return set of entry properties. Empty set if there are no properties.
-	 */
-	EntryProperties entryProperties();
+	 * Constructor for and externally provided String object.
 
+	 * 
+	 * @param entry
+	 *            the disclosed string value
+	 * 
+	 * @throws UnsupportedDisclosureType
+	 *             if string is not a supported {@link DisclosureType}
+	 */
+	public DisclosureItem(String entry) throws UnsupportedDisclosureType {
+		this.jsonEntry = DisclosureType.getJsonEntry(entry);
+		bufferedState = BufferedItemState.New;
+	}
+
+	public JsonObject getJsonEntry() {
+		return jsonEntry;
+	}
+
+	public DisclosureMessage getDisclosureMessage()
+			throws UnsupportedDisclosureType, JsonParsingException, Exception {
+		return new DisclosureMessage(jsonEntry);
+	}
+
+	@Override
+	public BufferedItemState getItemState() {
+		return bufferedState;
+	}
+
+	@Override
+	public void setItemState(BufferedItemState bufferedState) {
+		this.bufferedState = bufferedState;
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(this.bufferedState.toString());
+		boolean nullJsonEntry = (null == this.jsonEntry);
+		out.writeBoolean(nullJsonEntry);
+		if (!nullJsonEntry)
+			out.writeByteArray(MessageJsonUtils.jsonOut(this.jsonEntry));
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
+		boolean nullJsonEntry = in.readBoolean();
+		if (!nullJsonEntry)
+			this.jsonEntry = MessageJsonUtils.jsonIn(in.readByteArray());
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ProvenMessageIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ProvenMessageIDSFactory.DISCLOSURE_PROXY_TYPE;
+	}
 }

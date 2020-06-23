@@ -37,12 +37,85 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.module.exchange.Maintenance;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 
-public class DisclosureExchange extends ItemExchange<DisclosureProxy> {
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
-	
-	
+import org.slf4j.Logger;
+
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ReplicatedMap;
+
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
+
+/**
+ * Maintains Proven's disclosure map, listing DisclosureQueue components and
+ * their availability within the cluster.
+ * 
+ * @author d3j766
+ *
+ */
+public class ProvenDisclosureMap extends MaintenanceOperation {
+
+	@Inject
+	Logger log;
+
+	@Inject
+	HazelcastInstance hzi;
+
+	MemberProperties props = MemberProperties.getInstance();
+
+	/**
+	 * A shared map indicating availability of DisclosureQueue components.
+	 * 
+	 * Key: name of the queue <br>
+	 * Value: true indicates queue is accepting new data items, false otherwise.
+	 * 
+	 * @see DisclosureQueue
+	 */
+	ReplicatedMap<String, Boolean> provenDisclosureQueues;
+
+	public ProvenDisclosureMap() {
+		super();
+	}
+
+	@PostConstruct
+	public void init() {
+		log.debug("Inside ProvenDisclosureMap contructor");
+	}
+
+	@Override
+	public MaintenanceOperationResult checkAndRepair() {
+
+		log.debug("Performing maintenance operation: " + opName());
+
+		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
+
+		/**
+		 * Update map based on component's status.
+		 */
+		provenDisclosureQueues = hzi.getReplicatedMap(props.getProvenDisclosureMapName());
+		if (operator.getStatus().equals(ManagedStatus.Online)) {
+			provenDisclosureQueues.put(operator.entryIdentifier().toString(), true);
+		} else {
+			provenDisclosureQueues.put(operator.entryIdentifier().toString(), false);
+		}
+
+		return ret;
+	}
+
+	@Override
+	public MaintenanceOperationSeverity maxSeverity() {
+		return MaintenanceOperationSeverity.Available;
+	}
+
 }

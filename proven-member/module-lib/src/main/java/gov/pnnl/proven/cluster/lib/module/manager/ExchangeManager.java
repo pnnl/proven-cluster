@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 
 /**
@@ -92,11 +93,13 @@ public class ExchangeManager extends ManagerComponent {
 	 */
 	private void createExchange() {
 
-		for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
-			// RequestExchange re = reProvider.get();
-			RequestExchange re = create(new CreationRequest<RequestExchange>(RequestExchange.class)).get(); 
-			res.add(re);
-		}
+		create(new CreationRequest<DisclosureQueue>(DisclosureQueue.class)).get();
+		
+//		for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
+//			// RequestExchange re = reProvider.get();
+//			RequestExchange re = create(new CreationRequest<RequestExchange>(RequestExchange.class)).get(); 
+//			res.add(re);
+//		}
 	}
 
 }

@@ -43,6 +43,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.ObservesAsync;
+import javax.enterprise.event.Reception;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -52,8 +53,8 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.ModuleRegistry;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceResultEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceRegistry;
 
 /**
  * Observer methods for registry events.
@@ -75,21 +76,20 @@ public class RegistryObserver {
 	public void init() {
 	}
 
-	public void componentEntry(@ObservesAsync @ModuleRegistry ComponentEntry event,
-			@Eager ModuleComponentRegistry mcr) {
+	public void componentEntry(@Observes(notifyObserver=Reception.ALWAYS) @ModuleRegistry ComponentEntry event, ComponentRegistry cr) {
 		log.debug("(Observing) Inside registry component status/reporting operation");
-		mcr.record(event);
+		cr.record(event);
 	}
 
 	public void maintenanceEntry(@Observes @ModuleRegistry MaintenanceResultEntry event,
-			@Eager ModuleMaintenanceRegistry mmr) {
+			@Eager MaintenanceRegistry mr) {
 
 		log.debug("(Observing) Inside registry maintenance/reporting operation");
-		mmr.recordMaintenance(event);
+		mr.recordMaintenance(event);
 
 		// If no longer a maintained component, then unregister.
 		if (!ManagedStatus.isRecoverable(event.getResult().getSeverity().getStatus())) {
-			mmr.unregister(event.getcId());
+			mr.unregister(event.getcId());
 		}
 	}
 }

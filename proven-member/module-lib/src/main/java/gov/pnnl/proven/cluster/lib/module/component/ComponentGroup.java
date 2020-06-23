@@ -74,8 +74,8 @@ public enum ComponentGroup {
 		private static final String MODULE_GROUP = "module";
 		private static final String MANAGER_GROUP = "manager";
 		private static final String EXCHANGE_GROUP = "exchange";
-		private static final String PIPELINE_REQUEST_GROUP = "pipeline_request";
-		private static final String MODULE_REQUEST_GROUP = "moudlue_request";
+		private static final String PIPELINE_REQUEST_GROUP = "pipeline-request";
+		private static final String MODULE_REQUEST_GROUP = "moudlue-request";
 		private static final String STREAM_GROUP = "stream";
 	}
 

@@ -39,67 +39,131 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
+import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.LS;
+import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.PROVEN_DOMAIN;
+
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.Schedule;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import org.slf4j.Logger;
-
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ISet;
-
-import fish.payara.micro.PayaraInstance;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
- * Component Registry at the Member level.
+ * Represents an entry identifier for a managed component. It's a
+ * reverse domain (or reverse DNS) name, used to identify managed component
+ * entries and their associated distributed object, if any.
+ * 
+ * Use {@link #toString()} to get the reverse domain name in String format.
+ * 
+ * @see ComponentEntry, {@link EntryReporter#entryIdentifier()}
  * 
  * @author d3j766
  *
  */
-@ApplicationScoped
-@Eager
-public class MemberComponentRegistry {
+public class EntryIdentifier extends DisclosureDomain
+		implements IdentifiedDataSerializable, Serializable, Comparable<EntryIdentifier> {
 
-	@Inject
-	Logger log;
-
-	@Inject
-	ClusterComponentRegistry ccr;
-
-	@Inject
-	HazelcastInstance hzi;
+	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Contains the set of Hazelcast member's reporting module components.
+	 * A managed component's base domain value. All component sub-domains should
+	 * be added to this value.
 	 */
-	//ISet<ModuleEntry> entires;
+	public static final String COMPONENT_DOMAIN = "component" + LS + PROVEN_DOMAIN;
 
-	@PostConstruct
-	public void initialize() {
-		log.debug("Inside MemberComponentRegistry PostConstruct");
+	protected UUID componentId;
+	protected String componentName;
+	protected String groupLabel;
+
+	public EntryIdentifier() {
 	}
 
-	public MemberComponentRegistry() {
-		System.out.println("Inside MemberComponentRegistry constructor");
+	public EntryIdentifier(ManagedComponent mc) {
+		super(mc.getId() + LS + mc.getName() + LS + mc.getGroupLabel() + LS + COMPONENT_DOMAIN);
+		this.componentId = mc.getId();
+		this.componentName = mc.getName();
+		this.groupLabel = mc.getGroupLabel();
 	}
 
-	public void entry(ComponentEntry event) {
-		//TODO
-		// record status information
+	/**
+	 * @return the componentId
+	 */
+	public UUID getComponentId() {
+		return componentId;
 	}
-	
-	public void unregister(UUID componentId) {
-		
-		
-		//TODO
-		// Ungegister
-		// Stop scheduler
-		// Also stop maintenance schedule for good measure 
+
+	/**
+	 * @return the componentName
+	 */
+	public String getComponentName() {
+		return componentName;
+	}
+
+	/**
+	 * @return the subDomainLabel
+	 */
+	public String getDomainLabel() {
+		return groupLabel;
+	}
+
+	public String getComponentDomain() {
+		return COMPONENT_DOMAIN;
+	}
+
+	@Override
+	public String toString() {
+		return getReverseDomain();
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
+		this.componentId = UUID.fromString(in.readUTF());
+		this.componentName = in.readUTF();
+		this.groupLabel = in.readUTF();
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
+		out.writeUTF(this.componentId.toString());
+		out.writeUTF(this.componentName);
+		out.writeUTF(this.groupLabel);
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ModuleIDSFactory.FACTORY_ID;
+	}
+
+	@Override
+	public int getId() {
+		return ModuleIDSFactory.ENTRY_IDENTIFIER_TYPE;
+	}
+
+	@Override
+	public int compareTo(EntryIdentifier other) {
+
+		int ret;
+
+		if (!groupLabel.equals(other.groupLabel)) {
+			ret = groupLabel.compareTo(other.groupLabel);
+		} else if (!componentName.equals(other.componentName)) {
+			ret = componentName.compareTo(other.componentName);
+		} else if (!componentId.equals(other.componentId)) {
+			ret = componentId.compareTo(other.componentId);
+		} else {
+			ret = 0;
+		}
+
+		return ret;
 	}
 
 }

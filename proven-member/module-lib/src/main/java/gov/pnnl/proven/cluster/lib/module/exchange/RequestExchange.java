@@ -63,6 +63,7 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
  * @see ExchangeBuffer, DisclosureBuffer, RequestBuffer
  *
  */
+@Deprecated
 @Scalable
 public class RequestExchange extends ExchangeComponent {
 

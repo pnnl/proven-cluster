@@ -39,61 +39,19 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
-public interface EntryReporter {
+/**
+ * Provides a Request Registry at Member level.
+ * 
+ * @author d3j766
+ *
+ */
+@ApplicationScoped
+public class RequestRegistry {
 
-	/**
-	 * Creates and returns a ComponentEntry
-	 * 
-	 * @return the component entry
-	 */
-	ComponentEntry entry();
-
-	/**
-	 * Provides a managed component's EntryIdentifier. All managed components are
-	 * classified by their entry identifier, and contain the following domain
-	 * labels in reverse domain format:
-	 * 
-	 * <i> <component-domain>.<sub-domain>.<name>.<id> </i>
-	 * 
-	 * where:
-	 *
-	 * <b>component-domain</b> {@link EntryIdentifier#COMPONENT_DOMAIN}, top
-	 * level domain (TLD) shared by all components.
-	 * 
-	 * <b>sub-domain</b> sub-domain label, this is a components group label -
-	 * {@link ComponentGroup#getGroupLabel()}
-	 * 
-	 * <b>name</b> component name. This is their type's simple name.
-	 * 
-	 * <b>id</b> component identifier
-	 * 
-	 * @return an EntryIdentifier
-	 * 
-	 * @see EntryIdentifier
-	 */
-	EntryIdentifier entryIdentifier();
-
-	/**
-	 * Set the {@link EntryLocation} for a reported {@code ComponentEntry}.
-	 */
-	void entryLocation(EntryLocation location);
-
-	/**
-	 * Provides the {@link EntryLocation} for a reported {@code ComponentEntry}.
-	 * 
-	 * @return an EntryLocation
-	 */
-	EntryLocation entryLocation();
-
-	/**
-	 * Provides a set of entry properties.
-	 * 
-	 * @see EntryProperty
-	 * 
-	 * @return set of entry properties. Empty set if there are no properties.
-	 */
-	EntryProperties entryProperties();
+	public RequestRegistry() {
+	}
 
 }

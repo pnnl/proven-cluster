@@ -39,48 +39,109 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.io.Serializable;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ISet;
-
-import fish.payara.cluster.Clustered;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
 
 /**
- * Provides a Component Registry at the Cluster level.
+ * 
  * 
  * @author d3j766
  *
  */
-@Clustered
-@ApplicationScoped
-public class ClusterComponentRegistry implements Serializable {
+public enum ExchangeQueue {
 
-	private static final long serialVersionUID = 1L;
+	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
 
-	@Inject
-	Logger logger;
+	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
 
-	@Inject
-	HazelcastInstance hzi;
+	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
 
-	/**
-	 * Contains the set of Hazelcast member's reporting module components.
-	 */
-	ISet<ManagedComponent> components;
+	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
 
-	public ClusterComponentRegistry() {
+	private class StreamLabel {
+		private static final String DISCLOSURE_STREAM = "disclosed";
+		private static final String KNOWLEDGE_STREAM = "knowledge";
+		private static final String REQUEST_STREAM = "request";
+		private static final String RESPONSE_STREAM = "response";
 	}
 
-	@PostConstruct
-	public void initialize() {
+	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
+
+	private String streamLabel;
+	private List<MessageContentGroup> messageGroups;
+
+	ExchangeQueue(String streamLabel, MessageContentGroup... groups) {
+		this.streamLabel = streamLabel;
+		messageGroups = Arrays.asList(groups);
+	}
+
+	/**
+	 * Provides the {@code MessageGroup}(s) supported by the stream.
+	 * 
+	 * @return a list of supported MessageGroup
+	 * 
+	 */
+	public List<MessageContentGroup> getMessageGroups() {
+		return messageGroups;
+	}
+
+	public List<MessageContent> getMessageContents() {
+
+		
+		
+		List<MessageContent> ret = new ArrayList<MessageContent>();
+
+		for (MessageContentGroup mg : getMessageGroups()) {
+			for (MessageContent mc : mg.getMessageContents()) {
+				ret.add(mc);
+			}
+		}
+
+		return ret;
+	}
+
+	public static ExchangeQueue getType(MessageContent mcToCheckFor) {
+
+		ExchangeQueue ret = null;
+		for (ExchangeQueue mst : values()) {
+			for (MessageContentGroup mg : mst.getMessageGroups()) {
+				for (MessageContent mc : mg.getMessageContents()) {
+					if (mc.equals(mcToCheckFor))
+						ret = mst;
+					break;
+				}
+			}
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Provides the name of the message stream using provided domain.
+	 * 
+	 * @param dd
+	 *            the disclosure domain. If null, the default proven domain is
+	 *            used.
+	 * 
+	 * @return the name of the associated disclosure stream
+	 * 
+	 */
+	public String getStreamName(DisclosureDomain dd) {
+		return buildStreamName(dd, streamLabel);
+	}
+
+	private String buildStreamName(DisclosureDomain dd, String sLabel) {
+		String domainPart = dd.getReverseDomain();
+		String streamPart = sLabel;
+		return domainPart + "." + streamPart + "." + "message";
 	}
 
 }

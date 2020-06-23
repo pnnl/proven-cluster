@@ -40,17 +40,19 @@
 package gov.pnnl.proven.cluster.lib.module.registry;
 
 import java.io.IOException;
+import java.util.Date;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
+import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
- * Provides information regarding a {@code ManagedComponent} that can be entered
- * into and processed by a registry component.
+ * Provides information for a {@code ManagedComponent} that can be entered into
+ * and processed by a {@code ComponentRegistry}.
  * 
  * @author d3j766
  *
@@ -59,50 +61,109 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 
 	private static final long serialVersionUID = 1L;
 
-	private EntryDomain entryId;
+	/**
+	 * ComponentEntry creation time
+	 */
+	private long entryCreation;
+
+	/**
+	 * Initialized from ManagedComponent properties
+	 */
+	private EntryIdentifier entryId;
 	private EntryLocation location;
 	private EntryProperties properties;
+	private long componentCreation;
+
+	/**
+	 * Initialized by StatusSchedule before reporting to registry
+	 */
+	private ModuleStatus moduleStatus = ModuleStatus.Unknown;
+	private String moduleName = "";
+	private long moduleCreation;
 	private long overdueMillis;
+
+	/**
+	 * Initialized by ComponentRegistry at record/remove time
+	 */
+	private long recorded;
+	private boolean isRemove = false;
+
+	public ComponentEntry() {
+	}
 
 	public ComponentEntry(ManagedComponent mc) {
 		super(mc);
+		this.entryCreation = new Date().getTime();
 		this.entryId = mc.entryIdentifier();
 		this.location = mc.entryLocation();
 		this.properties = mc.entryProperties();
+		this.componentCreation = mc.getCreationeTime();
 	}
 
-	/**
-	 * @return the entryId
-	 */
-	public EntryDomain getEntryId() {
+	public long getRecorded() {
+		return recorded;
+	}
+
+	public void setRecorded(long recorded) {
+		this.recorded = recorded;
+	}
+
+	public boolean isRemove() {
+		return isRemove;
+	}
+
+	public void setRemove(boolean isRemove) {
+		this.isRemove = isRemove;
+	}
+
+	public long getEntryCreation() {
+		return entryCreation;
+	}
+
+	public EntryIdentifier getEntryId() {
 		return entryId;
 	}
 
-	/**
-	 * @return the location
-	 */
 	public EntryLocation getLocation() {
 		return location;
 	}
 
-	/**
-	 * @return the properties
-	 */
 	public EntryProperties getProperties() {
 		return properties;
 	}
 
-	/**
-	 * @return the overdueMillis
-	 */
+	public long getComponentCreation() {
+		return componentCreation;
+	}
+
+	public ModuleStatus getModuleStatus() {
+		return moduleStatus;
+	}
+
+	public void setModuleStatus(ModuleStatus moduleStatus) {
+		this.moduleStatus = moduleStatus;
+	}
+
+	public String getModuleName() {
+		return moduleName;
+	}
+
+	public void setModuleName(String moduleName) {
+		this.moduleName = moduleName;
+	}
+
+	public long getModuleCreation() {
+		return moduleCreation;
+	}
+
+	public void setModuleCreation(long moduleCreation) {
+		this.moduleCreation = moduleCreation;
+	}
+
 	public long getOverdueMillis() {
 		return overdueMillis;
 	}
 
-	/**
-	 * @param overdueMillis
-	 *            the overdueMillis to set
-	 */
 	public void setOverdueMillis(long overdueMillis) {
 		this.overdueMillis = overdueMillis;
 	}
@@ -110,34 +171,102 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 	@Override
 	public int compareTo(ComponentEntry other) {
 
-		int ret = 0;
+		int ret;
 
-		if (!entryId.equals(other.getEntryId())) {
+		if (!location.equals(other.location)) {
 			ret = location.compareTo(other.location);
+		} else {
+			if (!getcGroupLabel().equals(other.getcGroupLabel())) {
+				ret = getcGroupLabel().compareTo(other.getcGroupLabel());
+			} else {
+				if (!getcName().equals(other.getcName())) {
+					ret = getcName().compareTo(other.getcName());
+				} else {
+					ret = (getcId().toString().compareTo(other.getcId().toString()));
+				}
+			}
 		}
 
 		return ret;
 	}
 
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((entryId == null) ? 0 : entryId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof ComponentEntry)) {
+			return false;
+		}
+		ComponentEntry other = (ComponentEntry) obj;
+		if (cId == null) {
+			if (other.cId != null) {
+				return false;
+			}
+		} else if (!cId.equals(other.cId)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.entryId = in.readObject(EntryDomain.class);
-		this.location = in.readObject(EntryLocation.class);
-		this.properties = in.readObject(EntryProperties.class);
+		super.readData(in);
+		this.entryCreation = in.readLong();
+		
+		this.entryId = new EntryIdentifier();
+		this.entryId.readData(in);
+		
+		this.location = new EntryLocation();
+		this.location.readData(in);
+
+		this.properties = new EntryProperties();
+		this.properties.readData(in);
+		
+		this.componentCreation = in.readLong();
+		this.moduleStatus = ModuleStatus.valueOf(in.readUTF());
+		this.moduleName = in.readUTF();
+		this.moduleCreation = in.readLong();
 		this.overdueMillis = in.readLong();
+		this.recorded = in.readLong();
+		this.isRemove = in.readBoolean();
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
+		out.writeLong(this.entryCreation);
 		this.entryId.writeData(out);
 		this.location.writeData(out);
 		this.properties.writeData(out);
-		out.writeLong(overdueMillis);
+		out.writeLong(this.componentCreation);
+		out.writeUTF(this.moduleStatus.toString());
+		out.writeUTF(this.moduleName);
+		out.writeLong(this.moduleCreation);
+		out.writeLong(this.overdueMillis);
+		out.writeLong(this.recorded);
+		out.writeBoolean(this.isRemove);
+	}
+
+	@Override
+	public int getFactoryId() {
+		return ModuleIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.COMPONENT_ENTRY_TYPE;
+		return ModuleIDSFactory.COMPONENT_ENTRY_TYPE;
 	}
 
 }

@@ -59,6 +59,7 @@ import static gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOper
 import java.lang.annotation.Annotation;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -111,7 +112,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.EntryDomain;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryReporter;
@@ -150,7 +151,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected Instance<ManagedComponent> componentProvider;
 
 	@Inject
-	@Scheduler(delay = 5, activateOnStartup = false)
+	@Scheduler(delay = 10, activateOnStartup = false)
 	protected StatusSchedule statusSchedule;
 
 	@Inject
@@ -175,6 +176,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected Class<? extends ManagedComponent> type;
 	protected String moduleName = ProvenModule.retrieveModuleName();
 	protected ComponentGroup group;
+	protected Long creationeTime = new Date().getTime();
 	protected boolean isModule = false;
 	protected boolean isManager = false;
 
@@ -182,7 +184,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * Component location, this is initialized in
 	 * {@link ManagedInterceptor#verifyManagedComponent(javax.interceptor.InvocationContext)}
 	 */
-	EntryLocation location;
+	protected EntryLocation location;
 
 	// Status and lock properties
 	private ManagedStatus status = Unknown;
@@ -342,8 +344,16 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return group;
 	}
 
-	public String getDomainLabel() {
+	public String getModuleName() {
+		return moduleName;
+	}
+
+	public String getGroupLabel() {
 		return getComponentGroup().getGroupLabel();
+	}
+
+	public Long getCreationeTime() {
+		return creationeTime;
 	}
 
 	public boolean isScalable() {
@@ -428,12 +438,28 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return location.getManagerId();
 	}
 
+	public UUID getCreatorId() {
+		return location.getCreatorId();
+	}
+
 	public ManagedComponent getCreator() {
 		return creator;
 	}
 
-	public UUID getCreatorId() {
-		return location.getCreatorId();
+	public ManagedStatus getModuleStatus() {
+		if (isModule) {
+			return status;
+		} else {
+			return creator.getModuleStatus();
+		}
+	}
+
+	public ManagedStatus getManagerStatus() {
+		if (isModule || isManager) {
+			return status;
+		} else {
+			return creator.getManagerStatus();
+		}
 	}
 
 	/**
@@ -479,7 +505,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	/**
 	 * Optionally returns first component of provided type in its collection of
-	 * created components.
+	 * created components. If there is more then one manager per type (i.e. is
+	 * scalable), then {@link #getAllCreated(Class)} should be utilized.
 	 * 
 	 * @param clazz
 	 *            type of component to retrieve
@@ -760,7 +787,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 				// Only report on observed operations
 				if (op.isObserved()) {
-					for (UUID candidate : statusEventOperationCandidates(op, currentStatus)) {
+					for (UUID candidate : statusEventOperationCandidates(this, op, currentStatus)) {
 						ops.push(new SimpleEntry<Operation, StatusOperationEvent>(op,
 								new StatusOperationEvent(this, candidate)));
 					}
@@ -798,12 +825,15 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return sms;
 	}
 
-	private List<UUID> statusEventOperationCandidates(Operation op, ManagedStatus status) {
+	private List<UUID> statusEventOperationCandidates(ManagedComponent creator, Operation op, ManagedStatus status) {
 
 		List<UUID> ret = new ArrayList<UUID>();
 
 		switch (op) {
 
+		/**
+		 * Activation cascades only for Online creators
+		 */
 		case Activate:
 			if (Online == status) {
 				ret = operationCandidates(op);
@@ -811,9 +841,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			break;
 
 		case RequestScale:
-			if (Online == status) {
-				ret = scaleOperationCandidates();
-			}
+			ret = scaleOperationCandidates();
 			break;
 
 		case Deactivate:
@@ -822,9 +850,16 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 			}
 			break;
 
+		/**
+		 * Failed status cascades only for Failed Modules or Managers.
+		 */
 		case Fail:
-			if (Failed == status) {
-				ret = operationCandidates(op);
+			boolean failedModule = !ManagedStatus.isRecoverable(creator.getModuleStatus());
+			boolean failedManager = !ManagedStatus.isRecoverable(creator.getManagerStatus());
+			if (failedModule || failedManager) {
+				if (Failed == status) {
+					ret = operationCandidates(op);
+				}
 			}
 			break;
 
@@ -900,26 +935,22 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		// if (candidate.isScalable()) {
 		if (Creator.scalable(candidate.getType())) {
 
-			// Parent must be Online in order to create new components
-			if (pStatus == Online) {
+			// Verify status
+			if (RequestScale.verifyOperation(cStatus)) {
 
-				// Verify status
-				if (RequestScale.verifyOperation(cStatus)) {
+				// Online is used to ensure not below initial count
+				if (cStatus == Online) {
 
-					// Online is used to ensure not below initial count
-					if (cStatus == Online) {
-
-						if ((hasScaleAttempts(candidate)) && (isBelowMinimumCapacity(candidate.getType()))) {
-							ret = true;
-						}
-
+					if ((hasScaleAttempts(candidate)) && (isBelowMinimumCapacity(candidate.getType()))) {
+						ret = true;
 					}
-					// Other status values should be non-factors in capacity
-					// calculation.
-					else {
-						if ((hasScaleAttempts(candidate)) && (hasScaleCapacity(candidate.getType()))) {
-							ret = true;
-						}
+
+				}
+				// Other status values should be non-factors in capacity
+				// calculation.
+				else {
+					if ((hasScaleAttempts(candidate)) && (hasScaleCapacity(candidate.getType()))) {
+						ret = true;
 					}
 				}
 			}
@@ -1160,11 +1191,13 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * 
 	 * @see Creator#createAsync(CreationRequest)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public void createAsync(CreationRequest<ManagedComponent> request) {
-		creationQueue.addRequest(getId(), request);
-	}	
-	
+	public <T extends ManagedComponent> void createAsync(CreationRequest<T> request) { 
+	//public void createAsync(CreationRequest<ManagedComponent> request) {
+		creationQueue.addRequest(getId(), (CreationRequest<ManagedComponent>)request);
+	}
+
 	/**
 	 * @see Creator#scale(CreationRequest)
 	 */
@@ -1231,7 +1264,6 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return response;
 	}
 
-
 	/**
 	 * Default implementation returning an empty list meaning the component has
 	 * no configuration. However, if this component is configurable a
@@ -1240,6 +1272,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * @see Creator#configuration()
 	 * 
 	 */
+	@Override
 	public Object[] configuration() {
 
 		if (Creator.configurable(getType())) {
@@ -1261,8 +1294,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 * @see EntryReporter#entryIdentifier()
 	 */
 	@Override
-	public EntryDomain entryIdentifier() {
-		return new EntryDomain(this);
+	public EntryIdentifier entryIdentifier() {
+		return new EntryIdentifier(this);
 	}
 
 	/**

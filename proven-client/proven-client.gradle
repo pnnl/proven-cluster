@@ -10,6 +10,7 @@ version = '2.1.0-SNAPSHOT'
    
  dependencies {
  	 compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
+ 	 compile group: 'com.hazelcast', name: 'hazelcast-client', version: "${payaraHazelcastVersion}"
 	 compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
 	 compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
 	 compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.10.0'

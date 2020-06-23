@@ -37,122 +37,54 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.exchange;
+package gov.pnnl.proven.cluster.lib.module.exchange.Maintenance;
 
-import java.io.IOException;
-import java.io.Serializable;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
+import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
 
-import javax.json.JsonObject;
-import javax.json.stream.JsonParsingException;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
+import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
 
 /**
- * Wrapper class for a externally disclosed entry/message request. A
- * {@code DisclosureProxy} may be added to a {@code DisclosureBuffer} as a
- * buffered item.
  * 
  * @author d3j766
  *
  */
-public class DisclosureProxy implements BufferedItem, IdentifiedDataSerializable {
+public class DisclosureQueueCheck extends MaintenanceOperation {
 
-	private static final long serialVersionUID = 1L;
+	@Inject
+	Logger log;
 
-	static Logger log = LoggerFactory.getLogger(DisclosureProxy.class);
-
-	private BufferedItemState bufferedState;
-	private JsonObject jsonEntry;
-
-	/**
-	 * No-arg constructor for serialization
-	 */
-	public DisclosureProxy() {
+	public DisclosureQueueCheck() {
+		super();
 	}
 
-	/**
-	 * Based on an internally provided json object disclosure entry.
-	 * 
-	 * @param entry
-	 */
-	public DisclosureProxy(JsonObject jsonEntry) {
-		this.jsonEntry = jsonEntry;
-		bufferedState = BufferedItemState.New;
-	}
-
-	/**
-	 * DisclosureProxy is created using a String value. Disclosure type is
-	 * verified. Conversion to Json is made, if applicable.
-	 * 
-	 * @param entry
-	 *            the disclosed string value
-	 * 
-	 * @throws UnsupportedDisclosureEntryType
-	 *             if string is not a supported disclosure type.
-	 */
-	public DisclosureProxy(String entry) throws UnsupportedDisclosureEntryType {
-		this.jsonEntry = DisclosureEntryType.getJsonEntry(entry);
-		bufferedState = BufferedItemState.New;
-	}
-
-	public JsonObject getJsonEntry() {
-		return jsonEntry;
-	}
-
-	public DisclosureMessage getDisclosureMessage() throws UnsupportedDisclosureEntryType, JsonParsingException, Exception {
-		return new DisclosureMessage(jsonEntry);
+	@PostConstruct
+	public void init() {
+		log.debug("Inside DisclosureEntriesCheck contructor");
 	}
 
 	@Override
-	public BufferedItemState getItemState() {
-		return bufferedState;
-	}
+	public MaintenanceOperationResult checkAndRepair() {
 
-	public DisclosureEntryType getEntryType() {
-		return null;
-	}
+		log.debug("Performing maintenance operation: " + opName());
 
-	@Override
-	public void setItemState(BufferedItemState bufferedState) {
-		this.bufferedState = bufferedState;
+		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
+
+		// ret = new MaintenanceOperationResult(FAILED, Unavailable);
+
+		return ret;
 	}
 
 	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(this.bufferedState.toString());
-		boolean nullJsonEntry = (null == this.jsonEntry);
-		out.writeBoolean(nullJsonEntry);
-		if (!nullJsonEntry)
-			out.writeByteArray(MessageJsonUtils.jsonOut(this.jsonEntry));
+	public MaintenanceOperationSeverity maxSeverity() {
+		return MaintenanceOperationSeverity.Severe;
 	}
 
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
-		boolean nullJsonEntry = in.readBoolean();
-		if (!nullJsonEntry)
-			this.jsonEntry = MessageJsonUtils.jsonIn(in.readByteArray());
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_PROXY_TYPE;
-	}
 }

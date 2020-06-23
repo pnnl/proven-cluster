@@ -39,92 +39,165 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.LS;
-import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.PROVEN_DOMAIN;
-
-import java.io.IOException;
-import java.io.Serializable;
+import java.util.Collections;
+import java.util.NavigableSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 
 /**
- * Represents an entry identifier for a {@code ComponentEntry}.
- * 
- * @see EntryReporter#entryIdentifier()
+ * Represents a {@code ProvenModule} that can be used by a ComponentRegistry to
+ * register component entries an support component exchange requests.
  * 
  * @author d3j766
+ * 
+ * @see ProvenModule, ComponentRegistry
  *
  */
-public class EntryDomain extends DisclosureDomain implements IdentifiedDataSerializable, Serializable {
+public class ModuleEntry implements Comparable<ModuleEntry> {
 
-	private static final long serialVersionUID = 1L;
+	private UUID moduleId;
+	private ModuleStatus moduleStatus;
+	private String moduleName;
+	private long moduleCreation;
+	
+	/**
+	 * Block synchronization lock for adding a new ComponentEntry 
+	 */
+	private final Object componentEntryLock = new Object();
 
 	/**
-	 * A managed component's base domain value. All component sub-domains should
-	 * be added to this value.
+	 * (Local) Module component and exchange entries
 	 */
-	public static final String COMPONENT_DOMAIN = "component" + LS + PROVEN_DOMAIN;
+	private TreeSet<ComponentEntry> moduleComponents = new TreeSet<ComponentEntry>();
+	private NavigableSet<ComponentEntry> moduleExchange = Collections.unmodifiableNavigableSet(moduleComponents);
 
-	protected UUID componentId;
-	protected String componentName;
-	protected String domainLabel;
-
-	public EntryDomain(ManagedComponent mc) {
-		super(mc.getId() + LS + mc.getName() + LS + mc.getDomainLabel() + LS + COMPONENT_DOMAIN);
-		this.componentId = mc.getId();
-		this.componentName = mc.getName();
-		this.domainLabel = mc.getDomainLabel();
+	public ModuleEntry(ComponentEntry ce) {
+		this.moduleId = ce.getLocation().getModuleId();
+		this.moduleStatus = ce.getModuleStatus();
+		this.moduleName = ce.getModuleName();
+		this.moduleCreation = ce.getModuleCreation();
 	}
 
 	/**
-	 * @return the componentId
+	 * @return the number of component entries for the module
 	 */
-	public UUID getComponentId() {
-		return componentId;
+	public int getEntryCount() {
+		return moduleComponents.size();
 	}
 
 	/**
-	 * @return the componentName
+	 * Adds the provided ComponentEntry to this module. Provided entry will
+	 * replace existing entry if it exists.
+	 * 
+	 * @param ce
+	 *            entry to add
+	 * 
+	 * @throw IllegalArgumentException if provided entry's module does not match
+	 *        this module entry.
 	 */
-	public String getComponentName() {
-		return componentName;
-	}
+	public void addComponent(ComponentEntry ce) {
 
-	/**
-	 * @return the subDomainLabel
-	 */
-	public String getDomainLabel() {
-		return domainLabel;
+		if (!ce.getLocation().getModuleId().equals(moduleId)) {
+			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
+		}
+
+		synchronized (componentEntryLock) {
+			if (!moduleComponents.add(ce)) {
+				moduleComponents.remove(ce);
+				moduleComponents.add(ce);
+			}
+		}
 	}
 	
-	public String getComponentDomain() {
-		return COMPONENT_DOMAIN;
+	public void removeComponent(ComponentEntry ce) {
+		
+		if (!ce.getLocation().getModuleId().equals(moduleId)) {
+			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
+		}
+
+		synchronized (componentEntryLock) {
+			moduleComponents.remove(ce);
+		}
+	}
+
+	public ComponentEntry exchangeComponent() {
+		// TODO
+		return null;
+	}
+
+	public UUID getModuleId() {
+		return moduleId;
+	}
+
+	public ModuleStatus getModuleStatus() {
+		return moduleStatus;
+	}
+
+	public void setModuleStatus(ModuleStatus moduleStatus) {
+		this.moduleStatus = moduleStatus;
+	}
+
+	public String getModuleName() {
+		return moduleName;
+	}
+
+	public long getModuleCreation() {
+		return moduleCreation;
 	}
 
 	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.componentId = UUID.fromString(in.readUTF());
-		this.componentName = in.readUTF();
+	public int compareTo(ModuleEntry other) {
+
+		int ret;
+
+		if (moduleId.equals(other.getModuleId())) {
+			ret = 0;
+		} else {
+			if (moduleCreation != other.getModuleCreation()) {
+				int diff = (int) (moduleCreation - other.getModuleCreation());
+				ret = ((diff < 0) ? (-1) : (1));
+			} else {
+				/**
+				 * Need to pick a non-zero value here. Returning zero would
+				 * violate equals()
+				 */
+				ret = -1;
+			}
+		}
+
+		return ret;
 	}
 
 	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeUTF(this.componentId.toString());
-		out.writeUTF(this.componentName);
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((moduleId == null) ? 0 : moduleId.hashCode());
+		return result;
 	}
 
 	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.ENTRY_DOMAIN_TYPE;
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof ModuleEntry)) {
+			return false;
+		}
+		ModuleEntry other = (ModuleEntry) obj;
+		if (moduleId == null) {
+			if (other.moduleId != null) {
+				return false;
+			}
+		} else if (!moduleId.equals(other.moduleId)) {
+			return false;
+		}
+		return true;
 	}
 
 }

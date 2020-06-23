@@ -166,7 +166,7 @@ public @interface StatusOperation {
 		 * StatusOperation constructor.
 		 * 
 		 * @param observed
-		 *            indicated operation is triggered by an event observer
+		 *            indicates operation is triggered by an event observer
 		 * @param validStatus
 		 *            list of valid ManagedStatus values for the operation
 		 */

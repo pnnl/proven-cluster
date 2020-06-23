@@ -39,13 +39,43 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
+/**
+ * Represents the processing status of a BufferedItem.
+ * 
+ * @author d3j766
+ *
+ */
 public enum BufferedItemState {
 
+	/**
+	 * Initial state. Any item changes to prepare it for processing is
+	 * performed.
+	 */
 	New,
+
+	/**
+	 * Initial State. Indicates item is being reprocessed because of a previous
+	 * failure. Any item changes to prepare it for processing is performed.
+	 */
 	Retry,
+
+	/**
+	 * Item is ready to be processed.
+	 */
 	Ready,
-	Disclosed,
+
+	/**
+	 * Item processing is running.
+	 */
 	Running,
+
+	/**
+	 * Terminal state. Indicates item processing failed.
+	 */
 	Fail,
+
+	/**
+	 * Terminal state. Indicates item processing completed normally.
+	 */
 	Complete;
 }

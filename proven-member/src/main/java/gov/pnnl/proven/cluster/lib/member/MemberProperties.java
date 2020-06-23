@@ -107,10 +107,14 @@ public class MemberProperties {
 	/**
 	 * module-lib properties
 	 */
-	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max.retries";
-	private static final String MEMBER_REGISTRY_DO_NAME = "proven.lib.module.registry.member.do_name";
-	private static final String CLUSTER_REGISTRY_DO_NAME = "proven.lib.module.registry.cluster.do_name";
-
+	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max_retries";
+	private static final String COMPONENT_EXCHANGE_QUEUE_NAME="proven.lib.module.registry.component.exchange_queue_name";
+	private static final String MODULE_EXCHANGE_QUEUE_NAME="proven.lib.module.registry.module.exchange_queue_name";
+	private static final String MEMBER_EXCHANGE_QUEUE_NAME="proven.lib.module.registry.member.exchange_queue_name";
+	private static final String MEMBER_MODULE_REGISTRY_NAME = "proven.lib.module.registry.module.member.name";
+	private static final String CLUSTER_COMPONENT_REGISTRY_NAME = "proven.lib.module.registry.component.cluster.name";
+	private static final String TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS = "proven.lib.module.schedule.task.max_skipped_entry_reports";
+	private static final String PROVEN_DISCLOSURE_MAP_NAME = "proven.lib.module.registry.disclosure.map.name";
 
 	/**
 	 * hybrid-module properties
@@ -244,13 +248,33 @@ public class MemberProperties {
 	public Integer getManagedComponentMaxRetries() {
 		return getPropertyValue(MANAGED_COMPONENT_MAX_RETRIES, Integer.class);
 	}
-	
-	public String getMemberRegistryDoName() {
-		return getPropertyValue(MEMBER_REGISTRY_DO_NAME, String.class);
-	}
 
-	public String getClusterRegistryDoName() {
-		return getPropertyValue(CLUSTER_REGISTRY_DO_NAME, String.class);
+	public String getComponentExchangeQueueName() {
+		return getPropertyValue(COMPONENT_EXCHANGE_QUEUE_NAME, String.class);
+	}
+		
+	public String getModuleExchangeQueueName() {
+		return getPropertyValue(MODULE_EXCHANGE_QUEUE_NAME, String.class);
+	}
+	
+	public String getMemberExchangeQueueName() {
+		return getPropertyValue(MEMBER_EXCHANGE_QUEUE_NAME, String.class);
+	}
+	
+	public String getMemberModuleRegistryName() {
+		return getPropertyValue(MEMBER_MODULE_REGISTRY_NAME, String.class);
+	}
+	
+	public String getClusterComponentRegistryName() {
+		return getPropertyValue(CLUSTER_COMPONENT_REGISTRY_NAME, String.class);
+	}
+	
+	public Integer getTaskScheduleMaxSkippedEntryReports() {
+		return getPropertyValue(TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS, Integer.class);
+	}
+	
+	public String getProvenDisclosureMapName() {
+		return getPropertyValue(PROVEN_DISCLOSURE_MAP_NAME, String.class);
 	}
 
 	//////////////////////////////////////////////////////

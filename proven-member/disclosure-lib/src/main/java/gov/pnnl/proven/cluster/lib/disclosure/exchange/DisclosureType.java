@@ -48,21 +48,23 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.CsvDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 
 /**
- * Indicates the disclosure entry type for entries originating from an external
- * source. Each type has a "magic" regular expression that is used to determine
- * if an entry is of that type.
+ * Indicates the disclosure type for items originating from an external source.
+ * Each type, currently CSV or JSON, have pre-defined regular expression used to
+ * determine the item's type.
+ * 
+ * Internal disclosure is always JSON.
  * 
  * @author d3j766
  *
  */
-public enum DisclosureEntryType {
+public enum DisclosureType {
 
 	/**
 	 * CSV formatted value, representing message content types in
@@ -80,11 +82,11 @@ public enum DisclosureEntryType {
 		public static final String JSON_REGEX = "(?s)^\\s*\\{.*\\}\\s*$";
 	}
 
-	static Logger log = LoggerFactory.getLogger(DisclosureEntryType.class);
+	static Logger log = LoggerFactory.getLogger(DisclosureType.class);
 
 	private String regex;
 
-	DisclosureEntryType(String regex) {
+	DisclosureType(String regex) {
 		this.regex = regex;
 	}
 
@@ -95,28 +97,28 @@ public enum DisclosureEntryType {
 	/**
 	 * Determines an external disclosure entrie's type.
 	 * 
-	 * @param entry
-	 *            the disclosure entry
-	 * @throws UnsupportedDisclosureEntryType
-	 *             if the entry type could not be determined.
+	 * @param item
+	 *            the disclosure item
+	 * @throws UnsupportedDisclosureType
+	 *             if the disclosure type could not be determined.
 	 * @throws JsonParsingException
-	 *             if parsing failed for a JSON entry type
+	 *             if parsing failed for a JSON type
 	 * @throws CsvParsingException
-	 *             if parsing failed for a CSV entry type
+	 *             if parsing failed for a CSV type
 	 * 
-	 * @return the {@code DisclosureEntryType}. Returns null if type could not
+	 * @return the {@code DisclosureType}. Returns null if type could not
 	 *         be determined.
 	 */
-	public static DisclosureEntryType getEntryType(String entry) throws UnsupportedDisclosureEntryType {
+	public static DisclosureType getItemType(String item) throws UnsupportedDisclosureType {
 
-		DisclosureEntryType ret = null;
+		DisclosureType ret = null;
 
-		if (entry.matches(CSV.getRegex())) {
-			ret = DisclosureEntryType.CSV;
+		if (item.matches(CSV.getRegex())) {
+			ret = DisclosureType.CSV;
 		}
 
-		if (entry.matches(JSON.getRegex())) {
-			ret = DisclosureEntryType.JSON;
+		if (item.matches(JSON.getRegex())) {
+			ret = DisclosureType.JSON;
 		}
 
 		return ret;
@@ -126,50 +128,51 @@ public enum DisclosureEntryType {
 	 * Creates and returns a {@code DisclosureMessage} for an external
 	 * disclosure entry.
 	 * 
-	 * @param entry
-	 *            the disclosure entry
-	 * @throws UnsupportedDisclosureEntryType
-	 *             if the entry type could not be determined.
+	 * @param item
+	 *            the disclosure item
+	 * @throws UnsupportedDisclosureType
+	 *             if the type could not be determined.
 	 * @throws JsonParsingException
-	 *             if parsing failed for a JSON entry type
+	 *             if parsing failed for a JSON item
 	 * @throws CsvParsingException
-	 *             if parsing failed for a CSV entry type
+	 *             if parsing failed for a CSV item
 	 * 
-	 * @return the {@code DisclosureEntryType}
+	 * @return the {@code DisclosureType}
 	 */
-	public static DisclosureMessage getDisclosureMessage(String entry) throws UnsupportedDisclosureEntryType, JsonParsingException, CsvParsingException, JSONDataValidationException, Exception {
+	public static DisclosureMessage getDisclosureMessage(String item) throws UnsupportedDisclosureType,
+			JsonParsingException, CsvParsingException, JSONDataValidationException, Exception {
 
 		DisclosureMessage ret = null;
 
-		if (entry.matches(CSV.getRegex())) {
-			ret = new DisclosureMessage(CsvDisclosure.toJsonObject(entry));
+		if (item.matches(CSV.getRegex())) {
+			ret = new DisclosureMessage(CsvDisclosure.toJsonObject(item));
 		}
 
-		if (entry.matches(JSON.getRegex())) {
-			ret = new DisclosureMessage(JsonDisclosure.toJsonObject(entry));
+		if (item.matches(JSON.getRegex())) {
+			ret = new DisclosureMessage(JsonDisclosure.toJsonObject(item));
 		}
 
 		if (null == ret) {
-			throw new UnsupportedDisclosureEntryType();
+			throw new UnsupportedDisclosureType();
 		}
 
 		return ret;
 	}
 
-	public static JsonObject getJsonEntry(String entry) throws UnsupportedDisclosureEntryType {
+	public static JsonObject getJsonEntry(String item) throws UnsupportedDisclosureType {
 
 		JsonObject ret = null;
 
-		if (entry.matches(CSV.getRegex())) {
-			ret = CsvDisclosure.toJsonObject(entry);
+		if (item.matches(CSV.getRegex())) {
+			ret = CsvDisclosure.toJsonObject(item);
 		}
 
-		if (entry.matches(JSON.getRegex())) {
-			ret = JsonDisclosure.toJsonObject(entry);
+		if (item.matches(JSON.getRegex())) {
+			ret = JsonDisclosure.toJsonObject(item);
 		}
 
 		if (null == ret) {
-			throw new UnsupportedDisclosureEntryType();
+			throw new UnsupportedDisclosureType();
 		}
 
 		return ret;

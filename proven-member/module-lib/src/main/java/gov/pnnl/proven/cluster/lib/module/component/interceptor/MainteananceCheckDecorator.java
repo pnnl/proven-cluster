@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceOperationResultEntry;
-import gov.pnnl.proven.cluster.lib.module.registry.ModuleMaintenanceRegistry;
+import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceRegistry;
 
 @Decorator
 @Priority(value = Interceptor.Priority.APPLICATION)
@@ -65,7 +65,7 @@ public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
 
 	@Inject
 	@Eager
-	ModuleMaintenanceRegistry mr;
+	MaintenanceRegistry mr;
 
 	@Inject
 	@Delegate

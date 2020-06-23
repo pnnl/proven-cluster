@@ -41,5 +41,6 @@ package gov.pnnl.proven.cluster.lib.module.messenger.annotation;
 
 import javax.enterprise.util.AnnotationLiteral;
 
-public abstract class ModuleRegistryAnnotationLiteral extends AnnotationLiteral<ModuleRegistry> implements ModuleRegistry {
+public abstract class ModuleRegistryAnnotationLiteral extends AnnotationLiteral<ModuleRegistry>
+		implements ModuleRegistry {
 }

@@ -370,7 +370,6 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 					mc.setStatus(Removing);
 					mc.remove(); // Component specific
 					mc.setStatus(OutOfService);
-					mc.stopSchedules();
 
 				} else {
 					log.warn(incompatibleInputMessage(Remove));
@@ -478,6 +477,14 @@ public abstract class StatusDecorator implements ManagedStatusOperation {
 							status = verifyRetries(FailedOnlineRetry);
 						}
 						mc.setStatus(status);
+						
+						/**
+						 * Allow failed component to perform cleanup
+						 */
+						if (status == Failed) {
+							remove();
+						}
+
 					} else {
 						log.warn(incompatibleInputMessage(Check));
 					}

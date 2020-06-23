@@ -39,10 +39,21 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
+/**
+ * Represents a data item that is queued for processing as it enters the Proven
+ * platform. These items may be queued/processed multiple times depending on the
+ * data content. A buffered item has a {@link BufferedItemState} value
+ * indicating it's status for its current processor.
+ * 
+ * @author d3j766
+ * 
+ * @see BufferedItemState
+ *
+ */
 public interface BufferedItem {
-	
+
 	BufferedItemState getItemState();
-	
+
 	void setItemState(BufferedItemState buffereState);
-	
+
 }

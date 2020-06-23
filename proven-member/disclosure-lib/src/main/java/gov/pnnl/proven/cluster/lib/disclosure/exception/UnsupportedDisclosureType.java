@@ -37,125 +37,34 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
-
-import java.util.Set;
-import java.util.UUID;
-
-import javax.annotation.PostConstruct;
-import javax.ejb.Schedule;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+package gov.pnnl.proven.cluster.lib.disclosure.exception;
 
 import org.slf4j.Logger;
-
-import com.hazelcast.core.EntryEvent;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.ISet;
-import com.hazelcast.core.ItemEvent;
-import com.hazelcast.core.ItemListener;
-import com.hazelcast.map.listener.EntryAddedListener;
-import com.hazelcast.map.listener.EntryRemovedListener;
-import com.hazelcast.map.listener.EntryUpdatedListener;
-
-import static gov.pnnl.proven.cluster.lib.module.registry.EntryDomain.*;
-
-import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.*;
-
-import gov.pnnl.proven.cluster.lib.member.MemberProperties;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
+import org.slf4j.LoggerFactory;
 
 /**
- * Component Registry at the Module level.
+ * Indicates the externally disclosed message entry's format is not a supported
+ * type.
  * 
  * @author d3j766
  *
  */
-@ApplicationScoped
-@Eager
-public class ModuleComponentRegistry
-		implements ItemListener<ComponentEntry>, EntryAddedListener<EntryLocation, Set<ComponentEntry>>,
-		EntryRemovedListener<EntryLocation, Set<ComponentEntry>>,
-		EntryUpdatedListener<EntryLocation, Set<ComponentEntry>> {
+public class UnsupportedDisclosureType extends Exception {
 
-	@Inject
-	Logger log;
+	private static final long serialVersionUID = 1L;
+	
+	static Logger log = LoggerFactory.getLogger(UnsupportedDisclosureType.class);
 
-	@Inject
-	HazelcastInstance hzi;
-
-	/**
-	 * Member properties
-	 */
-	MemberProperties props = MemberProperties.getInstance();
-
-	/**
-	 * Member registry
-	 */
-	ISet<ManagedComponent> memberComponents;
-
-	/**
-	 * Cluster registry
-	 */
-	IMap<EntryLocation, Set<ComponentEntry>> clusterCompoonents;
-
-	/**
-	 * Module registry
-	 */
-
-	@PostConstruct
-	public void initialize() {
-		log.debug("Inside MemberComponentRegistry PostConstruct");
+	public UnsupportedDisclosureType() {
+		super();
 	}
 
-	public ModuleComponentRegistry() {
-		System.out.println("Inside MemberComponentRegistry constructor");
+	public UnsupportedDisclosureType(String message) {
+		super(message);
 	}
 
-	public void record(ComponentEntry event) {
-		// TODO
-		// record status information
-	}
-
-	@Schedule(dayOfWeek = "Sun", hour = "0")
-	public void unregister(UUID componentId) {
-
-		// TODO
-		// Ungegister
-		// Stop scheduler
-		// Also stop maintenance schedule for good measure
-	}
-
-	@Override
-	public void entryUpdated(EntryEvent<EntryLocation, Set<ComponentEntry>> event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void entryRemoved(EntryEvent<EntryLocation, Set<ComponentEntry>> event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void entryAdded(EntryEvent<EntryLocation, Set<ComponentEntry>> event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void itemAdded(ItemEvent<ComponentEntry> item) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void itemRemoved(ItemEvent<ComponentEntry> item) {
-		// TODO Auto-generated method stub
-		
+	public UnsupportedDisclosureType(String message, Throwable e) {
+		super(message, e);
 	}
 
 }

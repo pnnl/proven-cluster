@@ -37,24 +37,28 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.disclosure;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+
 
 /**
- * Provides a Request Registry at Member level.
- * 
- * @author d3j766
+ * Represents the replicatedMap registry that holds the name and properties of
+ * queues to which proven-client discloses proven message.  
+ * @author raju332
  *
  */
-@ApplicationScoped
-public class ModuleRequestRegistry {
+public class DisclosureRegister {
 
-	@Inject
-	ClusterRequestRegistry crr;
-
-	public ModuleRequestRegistry() {
+	//public static final String DISCLOSURE_REGISTRY_NAME = "gov.pnnl.proven.component.disclosure.DisclosureRegister";
+	public static final String DISCLOSURE_REGISTRY_NAME = "PROVEN_DISCLOSURE_MAP";
+	String disclosureQueueName;
+	boolean availableForUse;
+	public DisclosureRegister() {
+		// TODO Auto-generated constructor stub
 	}
+	
+	public String getDisclosureRegistryName() {
+		return DISCLOSURE_REGISTRY_NAME;
+	};
 
 }

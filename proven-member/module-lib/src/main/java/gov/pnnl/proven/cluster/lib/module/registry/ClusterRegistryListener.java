@@ -37,56 +37,22 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange.Maintenance;
+package gov.pnnl.proven.cluster.lib.module.registry;
 
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Unavailable;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.FAILED;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
+import com.hazelcast.core.EntryEvent;
+import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.EntryUpdatedListener;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+public class ClusterRegistryListener implements EntryAddedListener<EntryIdentifier, ComponentEntry>,
+		EntryUpdatedListener<EntryIdentifier, ComponentEntry> {
 
-import org.slf4j.Logger;
-
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-
-/**
- * 
- * @author d3j766
- *
- */
-public class DisclosureEntriesCheck extends MaintenanceOperation {
-
-	@Inject
-	Logger log;
-
-	public DisclosureEntriesCheck() {
-		super();
-	}
-
-	@PostConstruct
-	public void init() {
-		log.debug("Inside DisclosureEntriesCheck contructor");
+	@Override
+	public void entryAdded(EntryEvent<EntryIdentifier, ComponentEntry> event) {
+		System.out.println("Entry Added:" + event);
 	}
 
 	@Override
-	public MaintenanceOperationResult checkAndRepair() {
-
-		log.debug("Performing maintenance operation: " + opName());
-
-		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
-
-		ret = new MaintenanceOperationResult(FAILED, Unavailable);
-
-		return ret;
+	public void entryUpdated(EntryEvent<EntryIdentifier, ComponentEntry> event) {
+		System.out.println("Entry Updated:" + event);
 	}
-
-	@Override
-	public MaintenanceOperationSeverity maxSeverity() {
-		return MaintenanceOperationSeverity.Severe;
-	}
-
 }

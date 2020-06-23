@@ -80,7 +80,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureEntryType;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 
 /**

@@ -53,9 +53,9 @@ import com.hazelcast.core.DistributedObjectUtil;
 import com.hazelcast.ringbuffer.ReadResultSet;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureEntryType;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureProxy;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
@@ -68,19 +68,15 @@ import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageCon
 
 /**
  * A managed component supporting the collection and processing of
- * {@code DisclosureProxy} requests. The origination of these requests will
- * normally be from its own externally facing {@code DisclosureEntries}. The
- * exchange of these requests to other like buffer components may be performed
- * for load balancing purposes. A disclosure buffer is linked to a single
- * {@code RequestBuffer} to makeup a {@code RequestExchange}.
+ * {@code DisclosureItem}s. 
  * 
  * @author d3j766
  * 
- * @see RequestExchange, RequestBuffer, DisclosureEntries
+ * @see DisclosureItem
  *
  */
 @Scalable
-public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
+public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureBuffer.class);
 
@@ -89,7 +85,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	private CompletableFuture<Void> bufferSourceReader;
 
 	String doId;
-	DisclosureEntries de;
+	DisclosureQueue de;
 
 	@Inject
 	@Manager
@@ -100,8 +96,8 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 
 		log.debug("Post construct for DisclosureBuffer");
 
-		doId = entryIdentifier().getReverseDomain();
-		de = create(new CreationRequest<DisclosureEntries>(DisclosureEntries.class)).get();
+		doId = entryIdentifier().toString();
+		de = create(new CreationRequest<DisclosureQueue>(DisclosureQueue.class)).get();
 		
 		// Create buffer instance
 		buffer = hzi.getRingbuffer(doId);
@@ -131,7 +127,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 	}
 
 	@Override
-	protected void itemProcessor(ReadResultSet<DisclosureProxy> items) {
+	protected void itemProcessor(ReadResultSet<DisclosureItem> items) {
 
 		if (items.size() >= 0) {
 
@@ -155,7 +151,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureProxy> {
 						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDomain(), mst);
 						msp.addMessage(dm);
 						log.debug("Added Disclosure messsage to stream :: " + dm.getMessageKey());
-					} catch (UnsupportedMessageContentException | UnsupportedDisclosureEntryType | JsonParsingException
+					} catch (UnsupportedMessageContentException | UnsupportedDisclosureType | JsonParsingException
 							| InvalidDisclosureDomainException | CsvParsingException e) {
 						log.error("Failed to create and add new disclosure message to stream", e);
 

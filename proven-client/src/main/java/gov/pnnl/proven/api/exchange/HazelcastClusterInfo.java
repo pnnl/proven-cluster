@@ -37,27 +37,41 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.io.Serializable;
+package gov.pnnl.proven.api.exchange;
 
-import javax.enterprise.context.ApplicationScoped;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ReplicatedMap;
 
-import fish.payara.cluster.Clustered;
+
 
 /**
- * Provides a Request Registry at Member level.
- * 
- * @author d3j766
+ * Hazelcast Cluster registry information.
+ * @author raju332
  *
  */
-@Clustered
-@ApplicationScoped
-public class ClusterRequestRegistry implements Serializable {
+public class HazelcastClusterInfo {
 
-	private static final long serialVersionUID = 1L;
 
-	public ClusterRequestRegistry() {
+	HazelcastInstance client;
+
+	
+	int roundRobinState;
+
+
+	public int getRoundRobinState() {
+		return roundRobinState;
+	}
+	public void setRoundRobinState(int roundRobinState) {
+		this.roundRobinState = roundRobinState;
 	}
 
+	public void setClient(HazelcastInstance client) {
+		this.client = client;
+	}
+
+	public HazelcastInstance getClient() {
+		return client;
+	}
+	
 }

@@ -40,10 +40,11 @@
 package gov.pnnl.proven.cluster.module.hybrid;
 
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
+import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 import gov.pnnl.proven.cluster.lib.module.manager.PipelineManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
-@ActiveManagers(managers = { StreamManager.class, PipelineManager.class })
+@ActiveManagers(managers = { StreamManager.class, PipelineManager.class, ExchangeManager.class })
 public class HybridModule extends ProvenModule {
 }

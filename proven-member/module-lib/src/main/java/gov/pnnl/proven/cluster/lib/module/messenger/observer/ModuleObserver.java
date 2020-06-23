@@ -41,7 +41,9 @@ package gov.pnnl.proven.cluster.lib.module.messenger.observer;
 
 import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Deployed;
 import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Running;
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Occupied;
 import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Suspended;
+import static gov.pnnl.proven.cluster.lib.module.module.ModuleStatus.Shutdown;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -78,19 +80,20 @@ public class ModuleObserver {
 		ModuleStatus status = pm.retrieveModuleStatus();
 
 		if ((status == Deployed) || (status == Suspended)) {
-			pm.activate();
 			pm.getStatusSchedule().start();
 			pm.getMaintenanceSchedule().start();
 			pm.getScaleSchedule().start();
+			pm.activate();
 		}
 	}
 
 	public void moduleSuspend(@Observes @Module SuspendEvent event, @Module ProvenModule pm) {
+		
 		log.debug("(Observing) Inside suspend event");
 
 		ModuleStatus status = pm.retrieveModuleStatus();
 
-		if (status == Running) {
+		if ((status == Running) || (status == Occupied)) {
 			pm.suspend();
 		}
 	}
@@ -100,7 +103,7 @@ public class ModuleObserver {
 
 		ModuleStatus status = pm.retrieveModuleStatus();
 
-		if ((status == Running) || (status == Suspended)) {
+		if (status != Shutdown) {
 			pm.shutdown();
 		}
 	}

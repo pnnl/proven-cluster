@@ -78,25 +78,22 @@
 	</ringbuffer>
 
 	<!-- Member registry  -->
-	<set name="${proven.lib.module.registry.member.do_name}.*">
+	<set name="${proven.lib.module.registry.member.name}.*">
 		<backup-count>0</backup-count>
 		<async-backup-count>0</async-backup-count>
 		<max-size>0</max-size>
 		<item-listeners>
-			<item-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry</item-listener>
+			<item-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry</item-listener>
 		</item-listeners>
 	</set>
 
 	<!-- Cluster registry  -->
-	<map name="${proven.lib.module.registry.cluster.do_name}">
+	<map name="${proven.lib.module.registry.cluster.name}">
 		<backup-count>1</backup-count>
 		<async-backup-count>0</async-backup-count>
 		<time-to-live-seconds>0</time-to-live-seconds>
 		<in-memory-format>OBJECT</in-memory-format>
 		<max-size>0</max-size>
-		<entry-listeners>
-			<entry-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ModuleComponentRegistry</entry-listener>
-		</entry-listeners>
 	</map>
 
 	<serialization>
@@ -104,9 +101,22 @@
 			<data-serializable-factory factory-id="1">
 				gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory
 			</data-serializable-factory>
+			<data-serializable-factory factory-id="2">
+					gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory
+			</data-serializable-factory>			
 		</data-serializable-factories>
 	</serialization>
 	
+	<cp-subsystem>
+        <cp-member-count>3</cp-member-count>
+        <group-size>3</group-size>
+<!--         <session-time-to-live-seconds>300</session-time-to-live-seconds> -->
+<!--         <session-heartbeat-interval-seconds>5</session-heartbeat-interval-seconds> -->
+<!--         <missing-cp-member-auto-removal-seconds>14400</missing-cp-member-auto-removal-seconds> -->
+<!--         <fail-on-indeterminate-operation-state>false</fail-on-indeterminate-operation-state> -->
+<!--         <persistence-enabled>true</persistence-enabled> -->
+<!--         <base-dir>/custom-cp-dir</base-dir> -->
+    </cp-subsystem>
 
 	<!-- ##################################################################################### -->
 
