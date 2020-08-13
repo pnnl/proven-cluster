@@ -45,10 +45,14 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.core.IExecutorService;
+import com.hazelcast.core.ReplicatedMap;
+
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 
 /**
- * A managed component supporting the execution of module requests.
+ * Wraps a Hazelcast {@link IExecutorService} supporting the execution of module
+ * requests.
  * 
  * @author d3j766
  * 
@@ -56,13 +60,18 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
  *
  */
 @Scalable
-public class ServiceBuffer extends ExchangeComponent {
+public class ServiceBuffer extends ExchangeComponent implements Exchanger {
 
 	static Logger log = LoggerFactory.getLogger(ServiceBuffer.class);
 
 	@PostConstruct
 	void init() {
 		log.debug("Post construct for ServiceBuffer");
+		
+		ReplicatedMap<String, Boolean> registry = hzi
+				.getReplicatedMap("test");
+		
+		
 	}
 
 	@Inject

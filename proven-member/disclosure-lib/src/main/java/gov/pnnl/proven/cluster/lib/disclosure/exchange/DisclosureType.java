@@ -45,12 +45,8 @@ import javax.json.stream.JsonParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonParseException;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.CsvDisclosure;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 
@@ -59,7 +55,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingExcept
  * Each type, currently CSV or JSON, have pre-defined regular expression used to
  * determine the item's type.
  * 
- * Internal disclosure is always JSON.
+ * Internal message representation is JSON.
  * 
  * @author d3j766
  *
@@ -95,7 +91,7 @@ public enum DisclosureType {
 	}
 
 	/**
-	 * Determines an external disclosure entrie's type.
+	 * Determines type of disclosure item.
 	 * 
 	 * @param item
 	 *            the disclosure item
@@ -106,8 +102,8 @@ public enum DisclosureType {
 	 * @throws CsvParsingException
 	 *             if parsing failed for a CSV type
 	 * 
-	 * @return the {@code DisclosureType}. Returns null if type could not
-	 *         be determined.
+	 * @return the {@code DisclosureType}. Returns null if type could not be
+	 *         determined.
 	 */
 	public static DisclosureType getItemType(String item) throws UnsupportedDisclosureType {
 
@@ -125,41 +121,19 @@ public enum DisclosureType {
 	}
 
 	/**
-	 * Creates and returns a {@code DisclosureMessage} for an external
-	 * disclosure entry.
+	 * Creates and returns a JSON object for the provided data item.
 	 * 
 	 * @param item
-	 *            the disclosure item
+	 *            a data item matching a supported DisclosureType
+	 * @return the JsonObject
 	 * @throws UnsupportedDisclosureType
-	 *             if the type could not be determined.
+	 *             if item type is not supported
 	 * @throws JsonParsingException
-	 *             if parsing failed for a JSON item
+	 *             if not a valid JSON string
 	 * @throws CsvParsingException
-	 *             if parsing failed for a CSV item
-	 * 
-	 * @return the {@code DisclosureType}
+	 *             if not a valid CSV string
 	 */
-	public static DisclosureMessage getDisclosureMessage(String item) throws UnsupportedDisclosureType,
-			JsonParsingException, CsvParsingException, JSONDataValidationException, Exception {
-
-		DisclosureMessage ret = null;
-
-		if (item.matches(CSV.getRegex())) {
-			ret = new DisclosureMessage(CsvDisclosure.toJsonObject(item));
-		}
-
-		if (item.matches(JSON.getRegex())) {
-			ret = new DisclosureMessage(JsonDisclosure.toJsonObject(item));
-		}
-
-		if (null == ret) {
-			throw new UnsupportedDisclosureType();
-		}
-
-		return ret;
-	}
-
-	public static JsonObject getJsonEntry(String item) throws UnsupportedDisclosureType {
+	public static JsonObject getJsonItem(String item) throws UnsupportedDisclosureType {
 
 		JsonObject ret = null;
 

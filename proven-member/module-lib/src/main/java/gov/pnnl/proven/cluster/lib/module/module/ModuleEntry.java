@@ -37,94 +37,41 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.module.module;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
+import javax.inject.Inject;
+import javax.persistence.Transient;
+
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 /**
- * Represents a {@code ProvenModule} that can be used by a ComponentRegistry to
- * register component entries an support component exchange requests.
+ * Represents a {@code ProvenModule}
  * 
  * @author d3j766
  * 
- * @see ProvenModule, ComponentRegistry
+ * @see ProvenModule
  *
  */
-public class ModuleEntry implements Comparable<ModuleEntry> {
-
+public class ModuleEntry implements Comparable<ModuleEntry>, IdentifiedDataSerializable {
+	
 	private UUID moduleId;
 	private ModuleStatus moduleStatus;
 	private String moduleName;
 	private long moduleCreation;
-	
-	/**
-	 * Block synchronization lock for adding a new ComponentEntry 
-	 */
-	private final Object componentEntryLock = new Object();
 
-	/**
-	 * (Local) Module component and exchange entries
-	 */
-	private TreeSet<ComponentEntry> moduleComponents = new TreeSet<ComponentEntry>();
-	private NavigableSet<ComponentEntry> moduleExchange = Collections.unmodifiableNavigableSet(moduleComponents);
-
-	public ModuleEntry(ComponentEntry ce) {
-		this.moduleId = ce.getLocation().getModuleId();
-		this.moduleStatus = ce.getModuleStatus();
-		this.moduleName = ce.getModuleName();
-		this.moduleCreation = ce.getModuleCreation();
-	}
-
-	/**
-	 * @return the number of component entries for the module
-	 */
-	public int getEntryCount() {
-		return moduleComponents.size();
-	}
-
-	/**
-	 * Adds the provided ComponentEntry to this module. Provided entry will
-	 * replace existing entry if it exists.
-	 * 
-	 * @param ce
-	 *            entry to add
-	 * 
-	 * @throw IllegalArgumentException if provided entry's module does not match
-	 *        this module entry.
-	 */
-	public void addComponent(ComponentEntry ce) {
-
-		if (!ce.getLocation().getModuleId().equals(moduleId)) {
-			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
-		}
-
-		synchronized (componentEntryLock) {
-			if (!moduleComponents.add(ce)) {
-				moduleComponents.remove(ce);
-				moduleComponents.add(ce);
-			}
-		}
-	}
-	
-	public void removeComponent(ComponentEntry ce) {
-		
-		if (!ce.getLocation().getModuleId().equals(moduleId)) {
-			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
-		}
-
-		synchronized (componentEntryLock) {
-			moduleComponents.remove(ce);
-		}
-	}
-
-	public ComponentEntry exchangeComponent() {
-		// TODO
-		return null;
+	public ModuleEntry(ProvenModule module) {
+		this.moduleId = module.getId();
+		this.moduleStatus = module.retrieveModuleStatus();
+		this.moduleName = module.getModuleName();
+		this.moduleCreation = module.getModuleCreation();
 	}
 
 	public UUID getModuleId() {
@@ -198,6 +145,30 @@ public class ModuleEntry implements Comparable<ModuleEntry> {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int getFactoryId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getId() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

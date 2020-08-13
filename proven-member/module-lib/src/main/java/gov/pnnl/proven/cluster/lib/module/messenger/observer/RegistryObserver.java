@@ -76,7 +76,8 @@ public class RegistryObserver {
 	public void init() {
 	}
 
-	public void componentEntry(@Observes(notifyObserver=Reception.ALWAYS) @ModuleRegistry ComponentEntry event, ComponentRegistry cr) {
+	public void componentEntry(@Observes(notifyObserver = Reception.ALWAYS) @ModuleRegistry ComponentEntry event,
+			ComponentRegistry cr) {
 		log.debug("(Observing) Inside registry component status/reporting operation");
 		cr.record(event);
 	}

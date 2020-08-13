@@ -40,7 +40,7 @@
 
 package gov.pnnl.proven.cluster.lib.module.exchange.exception;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.module.exchange.BufferedItemState;
 
 public class DisclosureEntryInterruptedException extends RuntimeException {
 

@@ -42,8 +42,12 @@ package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 import java.io.IOException;
 
 import javax.json.JsonObject;
-import javax.json.stream.JsonParsingException;
 
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
+import org.everit.json.schema.loader.SchemaLoader;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,89 +55,93 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageModel;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 
 /**
- * Represents a disclosed data item originating from an internal or external
- * source.
+ * Represents a disclosed data item originating from an external Proven client.
+ * This class wraps the data item and validates it against the Proven schema at
+ * construction time ensuring it adheres to message formating required by
+ * Proven; validation failure will throw an exception.
+ * 
+ * TODO - determine how domain specific message schema data should be used. This
+ * would include Proven's messaging for different content types, for example,
+ * queries, measurements, administrative, etc., as well as other domain provided
+ * JSON schemas specific to the disclosed content. Should these message specific
+ * schemas be used here for validation or internally inside Proven post
+ * disclosure. Currently only proven-schema.json is being used in the constructor,
+ * validating only the non-message/schema fields.
+ * 
+ * @see DisclosureType, ItemProperties, MessageContent
  * 
  * @author d3j766
  *
  */
-public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable {
+public class ClientItem implements IdentifiedDataSerializable {
 
-	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(ClientItem.class);
 
-	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
+	private JsonObject provenMessage;
 
-	private BufferedItemState bufferedState;
-	private JsonObject jsonEntry;
-
-	public DisclosureItem() {
+	public ClientItem() {
 	}
 
 	/**
-	 * Constructor for and internally provided JSON object.
+	 * Creates the client item after a successful JSON schema validation of the
+	 * provided JSON string.
 	 * 
-	 * @param entry
+	 * @param item
+	 *            the disclosed JSON string
+	 * 
+	 * @throws JSONDataValidationException
+	 *             if ClientItem could not be created due to malformed message
+	 * 
+	 * @see DisclosureType
+	 * 
 	 */
-	public DisclosureItem(JsonObject jsonEntry) {
-		this.jsonEntry = jsonEntry;
-		bufferedState = BufferedItemState.New;
+	public ClientItem(String item) throws JSONDataValidationException {
+
+		try {
+
+			// Disclosure type and schema validation
+			this.provenMessage = DisclosureType.getJsonItem(item);
+			MessageModel mm = MessageModel.getInstance(new DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN));
+			String jsonApi = mm.getApiSchema();
+			JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
+			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
+			jsonSchema.validate(provenMessage);
+			log.debug("Valid JSON Data item");
+
+		} catch (ValidationException e) {
+			throw new JSONDataValidationException(
+					"ClientItem construction failed, invalid message Data: " + e.getAllMessages(), e);
+		} catch (Exception e) {
+			throw new JSONDataValidationException(
+					"ClientItem construction failed, invalid message Data: " + e.getMessage(), e);
+		}
 	}
 
-	/**
-	 * Constructor for and externally provided String object.
-
-	 * 
-	 * @param entry
-	 *            the disclosed string value
-	 * 
-	 * @throws UnsupportedDisclosureType
-	 *             if string is not a supported {@link DisclosureType}
-	 */
-	public DisclosureItem(String entry) throws UnsupportedDisclosureType {
-		this.jsonEntry = DisclosureType.getJsonEntry(entry);
-		bufferedState = BufferedItemState.New;
-	}
-
-	public JsonObject getJsonEntry() {
-		return jsonEntry;
-	}
-
-	public DisclosureMessage getDisclosureMessage()
-			throws UnsupportedDisclosureType, JsonParsingException, Exception {
-		return new DisclosureMessage(jsonEntry);
-	}
-
-	@Override
-	public BufferedItemState getItemState() {
-		return bufferedState;
-	}
-
-	@Override
-	public void setItemState(BufferedItemState bufferedState) {
-		this.bufferedState = bufferedState;
+	public JsonObject getProvenMessage() {
+		return provenMessage;
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(this.bufferedState.toString());
-		boolean nullJsonEntry = (null == this.jsonEntry);
+		boolean nullJsonEntry = (null == this.provenMessage);
 		out.writeBoolean(nullJsonEntry);
 		if (!nullJsonEntry)
-			out.writeByteArray(MessageJsonUtils.jsonOut(this.jsonEntry));
+			out.writeByteArray(MessageJsonUtils.jsonOut(this.provenMessage));
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
 		boolean nullJsonEntry = in.readBoolean();
 		if (!nullJsonEntry)
-			this.jsonEntry = MessageJsonUtils.jsonIn(in.readByteArray());
+			this.provenMessage = MessageJsonUtils.jsonIn(in.readByteArray());
 	}
 
 	@Override
@@ -143,6 +151,6 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_PROXY_TYPE;
+		return ProvenMessageIDSFactory.CLIENT_ITEM_TYPE;
 	}
 }

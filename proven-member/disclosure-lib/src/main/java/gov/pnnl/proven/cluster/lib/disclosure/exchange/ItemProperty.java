@@ -37,91 +37,61 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange.Maintenance;
+package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+import javax.json.JsonValue.ValueType;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ReplicatedMap;
-
-import gov.pnnl.proven.cluster.lib.member.MemberProperties;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
-import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 
 /**
- * Maintains Proven's disclosure map, listing DisclosureQueue components and
- * their availability within the cluster.
+ * Represents first level key names for a JSON Proven message. A Proven message
+ * is a container for domain specific messaging, this includes the Proven
+ * disclosure domain as well.
  * 
  * @author d3j766
  *
  */
-public class ProvenDisclosureMap extends MaintenanceOperation {
+public enum ItemProperty {
 
-	@Inject
-	Logger log;
-	
-	DisclosureQueue dq = (DisclosureQueue) operator;
+	AUTH_TOKEN("authToken", new ValueType[] { ValueType.STRING }, null),
+	DOMAIN("domain", new ValueType[] { ValueType.STRING }, DomainProvider.PROVEN_DISCLOSURE_DOMAIN),
+	NAME("name", new ValueType[] { ValueType.STRING }, null),
+	CONTENT("content", new ValueType[] { ValueType.STRING }, MessageContent.Explicit.getName()),
+	MIMETYPE("mimeType", new ValueType[] { ValueType.STRING }, null),
+	QUERY_TYPE("queryType", new ValueType[] { ValueType.STRING }, null),
+	QUERY_LANGUAGE("queryLanguage", new ValueType[] { ValueType.STRING }, null),
+	DISCLOSURE_ID("disclosureId", new ValueType[] { ValueType.STRING }, null),
+	REQUESTOR_ID("requestorId", new ValueType[] { ValueType.STRING }, null),
+	IS_STATIC("isStatic", new ValueType[] { ValueType.TRUE }, false),
+	IS_TRANSIENT("isTransient", new ValueType[] { ValueType.TRUE, ValueType.FALSE }, false),
+	MESSAGE("message", new ValueType[] { ValueType.OBJECT }, null),
+	MESSAGE_SCHEMA("messageSchema", new ValueType[] { ValueType.OBJECT }, null);
 
-	@Inject
-	HazelcastInstance hzi;
-	
-	@Inject 
-	ComponentRegistry cr;
+	static Logger log = LoggerFactory.getLogger(ItemProperty.class);
 
-	MemberProperties props = MemberProperties.getInstance();
+	private String name;
+	private ValueType[] valueType;
+	private Object defaultValue;
 
-	/**
-	 * A shared map indicating availability of DisclosureQueue components.
-	 * 
-	 * Key: name of the queue <br>
-	 * Value: true indicates queue is accepting new data items, false otherwise.
-	 * 
-	 * @see DisclosureQueue
-	 */
-	ReplicatedMap<String, Boolean> provenDisclosureQueues;
-
-	public ProvenDisclosureMap() {
-		super();
+	ItemProperty(String name, ValueType[] type, Object defaultValue) {
+		this.name = name;
+		this.valueType = type;
+		this.defaultValue = defaultValue;
 	}
 
-	@PostConstruct
-	public void init() {
-		log.debug("Inside ProvenDisclosureMap contructor");
+	public String getName() {
+		return name;
 	}
 
-	@Override
-	public MaintenanceOperationResult checkAndRepair() {
-
-		log.debug("Performing maintenance operation: " + opName());
-
-		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
-
-		/**
-		 * Update map based on component's status.
-		 */
-		provenDisclosureQueues = hzi.getReplicatedMap(props.getProvenDisclosureMapName());
-		if (dq.getStatus().equals(ManagedStatus.Online)) {
-			provenDisclosureQueues.put(dq.entryIdentifier().toString(), true);
-		} else {
-			provenDisclosureQueues.put(dq.entryIdentifier().toString(), false);
-		}
-
-		return ret;
+	public ValueType[] getValueType() {
+		return valueType;
 	}
 
-	@Override
-	public MaintenanceOperationSeverity maxSeverity() {
-		return MaintenanceOperationSeverity.Available;
+	public Object getDefaultValue() {
+		return defaultValue;
 	}
-
 }

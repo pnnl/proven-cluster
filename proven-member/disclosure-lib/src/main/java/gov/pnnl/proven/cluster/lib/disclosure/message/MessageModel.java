@@ -164,13 +164,13 @@ public class MessageModel {
 		return shapesModel;
 	}
 
-	public String getApiSchema() throws Exception {
+	public String getApiSchema() {
 
 		return getModelFile(API_SCHEMA);
 
 	}
 
-	public String getModelFile(String resourceName) throws Exception {
+	public String getModelFile(String resourceName) {
 
 		String ret = null;
 

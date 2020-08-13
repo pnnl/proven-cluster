@@ -37,9 +37,11 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -48,23 +50,33 @@ import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 
 /**
- * Represents a {@code ProvenModule} that can be used by a ComponentRegistry to
- * register component entries an support component exchange requests.
+ * Represents an exchange of {@code BufferedItem}(s) between
+ * {@code ExchangeComponent}s.
  * 
  * @author d3j766
  * 
- * @see ProvenModule, ComponentRegistry
+ * @see BufferedItem, ExchangeComponent
  *
  */
 public class ExchangeRequest implements Comparable<ExchangeRequest> {
 
+	/**
+	 * Contains data items being exchanged
+	 */
+	private List<BufferedItem> items = new ArrayList<>();
+	
+	
+	
+	
+	
+	
 	private UUID moduleId;
 	private ModuleStatus moduleStatus;
 	private String moduleName;
 	private long moduleCreation;
-	
+
 	/**
-	 * Block synchronization lock for adding a new ComponentEntry 
+	 * Block synchronization lock for adding a new ComponentEntry
 	 */
 	private final Object componentEntryLock = new Object();
 
@@ -111,9 +123,9 @@ public class ExchangeRequest implements Comparable<ExchangeRequest> {
 			}
 		}
 	}
-	
+
 	public void removeComponent(ComponentEntry ce) {
-		
+
 		if (!ce.getLocation().getModuleId().equals(moduleId)) {
 			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
 		}

@@ -4,7 +4,7 @@ import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.ClientItem;
 
 /**
  * 
@@ -32,11 +32,11 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 	public static final int PROVEN_STATEMENT_TYPE = 7;
 	public static final int DISCLOSURE_MESSAGE_TYPE = 8;
 	public static final int KNOWLEDGE_MESSAGE_TYPE = 9;
-	public static final int REQUEST_MESSAGE_TYPE = 10;	
-	public static final int DISCLOSURE_PROXY_TYPE = 11;
+	public static final int REQUEST_MESSAGE_TYPE = 10;
 	public static final int RESPONSE_MESSAGE_TYPE = 12;
 	public static final int DISCLOSURE_DOMAIN_TYPE = 13;
-	
+	public static final int CLIENT_ITEM_TYPE = 14;
+
 	@Override
 	public IdentifiedDataSerializable create(int typeId) {
 
@@ -58,17 +58,17 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 		case (PROVEN_STATEMENT_TYPE):
 			return new ProvenStatement();
 		case (DISCLOSURE_MESSAGE_TYPE):
-			return new DisclosureMessage();		
+			return new DisclosureMessage();
 		case (KNOWLEDGE_MESSAGE_TYPE):
 			return new KnowledgeMessage();
 		case (REQUEST_MESSAGE_TYPE):
-			return new RequestMessage();		
-		case (DISCLOSURE_PROXY_TYPE):
-			return new DisclosureItem();
+			return new RequestMessage();
 		case (RESPONSE_MESSAGE_TYPE):
 			return new ResponseMessage();
 		case (DISCLOSURE_DOMAIN_TYPE):
-			return new DisclosureDomain();		
+			return new DisclosureDomain();
+		case (CLIENT_ITEM_TYPE):
+			return new ClientItem();
 		default:
 			return null;
 		}

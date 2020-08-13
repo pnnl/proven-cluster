@@ -57,6 +57,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import com.hazelcast.collection.impl.queue.QueueProxyImpl;
 import com.hazelcast.core.Cluster;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
@@ -75,7 +76,10 @@ import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
+import gov.pnnl.proven.cluster.lib.module.exchange.Exchange;
+import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeRequest;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleEntry;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
@@ -88,7 +92,7 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
  *
  */
 @ApplicationScoped
-public class ComponentRegistry {
+public class ComponentRegistry implements Exchange {
 
 	@Inject
 	Logger log;
@@ -157,6 +161,7 @@ public class ComponentRegistry {
 	 * Set of member modules. A ComponentRegistry creates and adds its
 	 * ModuleEntry to this Set at startup.
 	 */
+	@Deprecated
 	ISet<ModuleEntry> modules;
 
 	/**
@@ -164,6 +169,7 @@ public class ComponentRegistry {
 	 * to {@link #modules}
 	 * 
 	 */
+	@Deprecated
 	FencedLock modulesFencedLock;
 
 	/**
@@ -171,6 +177,7 @@ public class ComponentRegistry {
 	 * Requests may be added to the queue by this module or other modules within
 	 * the same member. This module reads and processes these requests.
 	 */
+	@Deprecated
 	IQueue<ExchangeRequest> localModuleExchangeQueue;
 
 	/**
@@ -178,6 +185,7 @@ public class ComponentRegistry {
 	 * Requests may be added to the queue by modules outside this member. Any
 	 * module within this member may read and process these requests.
 	 */
+	@Deprecated
 	IQueue<ExchangeRequest> localMemberExchangeQueue;
 
 	/**

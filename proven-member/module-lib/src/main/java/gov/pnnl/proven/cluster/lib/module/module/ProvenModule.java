@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.module;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,9 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	// Module name
 	private static String moduleName;
+	
+	// Time of creation
+	private long moduleCreation;
 
 	public ProvenModule() {
 		super();
@@ -107,6 +111,7 @@ public abstract class ProvenModule extends ModuleComponent {
 		UUID moduleId, managerId, creatorId;
 		moduleId = managerId = creatorId = this.id;
 		entryLocation(new EntryLocation(memberId, moduleId, managerId, creatorId));
+		moduleCreation = new Date().getTime();
 	}
 
 	public <T extends ManagerComponent> T produceManager(Class<T> clazz) {
@@ -181,6 +186,10 @@ public abstract class ProvenModule extends ModuleComponent {
 			}
 		}
 		return moduleName;
+	}
+
+	public long getModuleCreation() {
+		return moduleCreation;
 	}
 
 	/**

@@ -58,11 +58,10 @@ import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.IQueue;
 import com.hazelcast.core.ReplicatedMap;
+import com.hazelcast.ringbuffer.Ringbuffer;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureType;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
@@ -71,8 +70,9 @@ import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.ProvenDisclosureM
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
 
 /**
- * A queue data structure used to accept/store disclosure items, providing back
- * pressure for their internal processing.
+ * Wraps a Hazelcast {@link IQueue} distributed data structure for
+ * storing/processing disclosed items from internal or external sources.
+ * Processed items may be exchanged with another {@code Exchanger}(s).
  * 
  * @author d3j766
  * 
@@ -80,7 +80,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInte
  *
  */
 @Scalable(maxCount = 5)
-public class DisclosureQueue extends ExchangeComponent {
+public class DisclosureQueue extends ExchangeComponent implements Exchanger {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureQueue.class);
 

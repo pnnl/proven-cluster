@@ -54,6 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Configuration;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
+import gov.pnnl.proven.cluster.lib.module.exchange.Exchanger;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
 /**
@@ -67,7 +68,7 @@ import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
  */
 @CreatedBy(value = { StreamManager.class })
 @Configuration(value={DisclosureDomain.class, MessageStreamType.class})
-public class MessageStream extends StreamComponent {
+public class MessageStream extends StreamComponent implements Exchanger {
 
 	static Logger log = LoggerFactory.getLogger(MessageStream.class);
 

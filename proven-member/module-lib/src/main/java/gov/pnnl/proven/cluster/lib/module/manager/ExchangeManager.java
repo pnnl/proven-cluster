@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.manager;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Exchanger;
 
 import javax.annotation.PostConstruct;
 
@@ -51,18 +52,20 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
+import gov.pnnl.proven.cluster.lib.module.exchange.Exchange;
+import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeComponent;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 
 /**
- * A component manager responsible for managing a set of {@code RequestExchange}
- * components that support the disclosure and processing of module requests.
+ * A component manager responsible for managing its set of
+ * {@code ExchangeComponent}s. It serves as an {@code Exchange} by routing
+ * exchange requests to the correct/available component for processing.
  * 
  * @author d3j766
  * 
- * @see ManagerComponent, RequestExchange
+ * @see ManagerComponent, ExchangeComponent, Exchange
  *
  */
-@Scalable
 public class ExchangeManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(ExchangeManager.class);
@@ -94,12 +97,13 @@ public class ExchangeManager extends ManagerComponent {
 	private void createExchange() {
 
 		create(new CreationRequest<DisclosureQueue>(DisclosureQueue.class)).get();
-		
-//		for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
-//			// RequestExchange re = reProvider.get();
-//			RequestExchange re = create(new CreationRequest<RequestExchange>(RequestExchange.class)).get(); 
-//			res.add(re);
-//		}
+
+		// for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
+		// // RequestExchange re = reProvider.get();
+		// RequestExchange re = create(new
+		// CreationRequest<RequestExchange>(RequestExchange.class)).get();
+		// res.add(re);
+		// }
 	}
 
 }

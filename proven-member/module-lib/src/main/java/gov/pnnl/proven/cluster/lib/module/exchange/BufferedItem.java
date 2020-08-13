@@ -37,91 +37,29 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange.Maintenance;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
-import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
+import java.util.Optional;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ReplicatedMap;
-
-import gov.pnnl.proven.cluster.lib.member.MemberProperties;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
-import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
-import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 
 /**
- * Maintains Proven's disclosure map, listing DisclosureQueue components and
- * their availability within the cluster.
+ * Represents a data item that is queued for processing as it enters the Proven
+ * platform. These items may be queued/processed multiple times depending on the
+ * data contents. A buffered item has a {@link BufferedItemState} value
+ * indicating it's status in regards to its current processor.
  * 
  * @author d3j766
+ * 
+ * @see BufferedItemState
  *
  */
-public class ProvenDisclosureMap extends MaintenanceOperation {
+public interface BufferedItem {
 
-	@Inject
-	Logger log;
+	BufferedItemState getItemState();
+
+	void setItemState(BufferedItemState buffereState);
 	
-	DisclosureQueue dq = (DisclosureQueue) operator;
-
-	@Inject
-	HazelcastInstance hzi;
-	
-	@Inject 
-	ComponentRegistry cr;
-
-	MemberProperties props = MemberProperties.getInstance();
-
-	/**
-	 * A shared map indicating availability of DisclosureQueue components.
-	 * 
-	 * Key: name of the queue <br>
-	 * Value: true indicates queue is accepting new data items, false otherwise.
-	 * 
-	 * @see DisclosureQueue
-	 */
-	ReplicatedMap<String, Boolean> provenDisclosureQueues;
-
-	public ProvenDisclosureMap() {
-		super();
-	}
-
-	@PostConstruct
-	public void init() {
-		log.debug("Inside ProvenDisclosureMap contructor");
-	}
-
-	@Override
-	public MaintenanceOperationResult checkAndRepair() {
-
-		log.debug("Performing maintenance operation: " + opName());
-
-		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
-
-		/**
-		 * Update map based on component's status.
-		 */
-		provenDisclosureQueues = hzi.getReplicatedMap(props.getProvenDisclosureMapName());
-		if (dq.getStatus().equals(ManagedStatus.Online)) {
-			provenDisclosureQueues.put(dq.entryIdentifier().toString(), true);
-		} else {
-			provenDisclosureQueues.put(dq.entryIdentifier().toString(), false);
-		}
-
-		return ret;
-	}
-
-	@Override
-	public MaintenanceOperationSeverity maxSeverity() {
-		return MaintenanceOperationSeverity.Available;
-	}
+	DisclosureDomain disclosureDomain();
 
 }

@@ -47,8 +47,10 @@ import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.module.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.module.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
 import gov.pnnl.proven.cluster.lib.module.exchange.ServiceBuffer;
 
@@ -95,6 +97,8 @@ public class RequestItem<T> implements BufferedItem, Serializable {
 
 	private BufferedItemState bufferedState;
 
+	private DisclosureDomain dd;
+	
 	/**
 	 * Request constructor. Input of request is required at time of
 	 * construction.
@@ -105,6 +109,9 @@ public class RequestItem<T> implements BufferedItem, Serializable {
 	public RequestItem(T t) {
 		this.t = t;
 		this.bufferedState = BufferedItemState.New;
+		
+		// TODO change to real disclosure domain
+		this.dd = DomainProvider.getProvenDisclosureDomain();
 	}
 
 	public int getRetries() {
@@ -150,4 +157,9 @@ public class RequestItem<T> implements BufferedItem, Serializable {
 
 	}
 
+	@Override
+	public DisclosureDomain disclosureDomain() {
+		return dd;
+	}
+	
 }

@@ -4,7 +4,7 @@ import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
@@ -37,6 +37,7 @@ public class ModuleIDSFactory implements DataSerializableFactory {
 	public static final int MAINTENENACE_OPERATION_RESULT_ENTRY_TYPE = 5;
 	public static final int MAINTENANCE_RESULT_ENTRY_TYPE = 6;
 	public static final int STATUS_OPERATION_EVENT_TYPE = 7;
+	public static final int DISCLOSURE_ITEM_TYPE = 8;
 	
 
 	@Override
@@ -59,6 +60,8 @@ public class ModuleIDSFactory implements DataSerializableFactory {
 			return new MaintenanceOperationResultEntry();
 		case (STATUS_OPERATION_EVENT_TYPE):
 			return new StatusOperationEvent();
+		case (DISCLOSURE_ITEM_TYPE):
+			return new DisclosureItem();
 		default:
 			return null;
 		}

@@ -19,7 +19,7 @@
 			"$id": "#/properties/domain",
 			"type": "string",
 			"title": "The Domain Schema",
-			"default": "",
+			"default": "common.proven.pnnl.gov",
 			"examples": [
 				"gridappsd.pnnl.gov"
 			],

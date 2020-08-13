@@ -56,16 +56,16 @@ public enum MessageContent {
 
 	/**
 	 * Represents unprocessed disclosed message data (i.e. content type of data
-	 * as it enters the Proven data platform). Disclosure message content is
-	 * domain instance data that will be identified and translated into another
-	 * content type(s) for further processing.
+	 * as it enters the Proven message streams). Disclosure message content is
+	 * domain instance data that will be identified and translated into other
+	 * content type(s) for further stream processing.
 	 */
 	Disclosure(MessageContentName.DISCLOSURE),
 
 	/**
 	 * The Default content type for a {@link ProvenMessage}. Explicit message
-	 * content is domain instance data that can be represented in all facets of
-	 * the hybrid store.
+	 * content is domain instance data that can be represented in the semantic
+	 * and memory grid facets of the hybrid store.
 	 */
 	Explicit(MessageContentName.EXPLICIT),
 
@@ -117,8 +117,8 @@ public enum MessageContent {
 	PipelineRequest(MessageContentName.PIPELINE_REQUEST),
 
 	/**
-	 * Represents a module processing request. Contains reference information regarding a
-	 * module request, used for management purposes.  
+	 * Represents a module processing request. Contains reference information
+	 * regarding a module request, used for management purposes.
 	 */
 	ModuleRequest(MessageContentName.MODULE_REQUEST),
 

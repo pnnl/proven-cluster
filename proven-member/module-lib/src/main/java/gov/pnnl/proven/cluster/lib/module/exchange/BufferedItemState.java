@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.exchange;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
 /**
  * Represents the processing status of a BufferedItem.
@@ -48,8 +48,8 @@ package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 public enum BufferedItemState {
 
 	/**
-	 * Initial state. Any item changes to prepare it for processing is
-	 * performed.
+	 * Initial state. Any item changes to prepare it for processing are
+	 * performed here.
 	 */
 	New,
 

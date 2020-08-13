@@ -37,23 +37,10 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.exchange;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
-/**
- * Represents a data item that is queued for processing as it enters the Proven
- * platform. These items may be queued/processed multiple times depending on the
- * data content. A buffered item has a {@link BufferedItemState} value
- * indicating it's status for its current processor.
- * 
- * @author d3j766
- * 
- * @see BufferedItemState
- *
- */
-public interface BufferedItem {
+public interface Exchanger {
 
-	BufferedItemState getItemState();
 
-	void setItemState(BufferedItemState buffereState);
-
+	
 }

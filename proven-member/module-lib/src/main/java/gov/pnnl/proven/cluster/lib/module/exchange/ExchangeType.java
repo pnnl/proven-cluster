@@ -37,8 +37,10 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.registry;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,102 +48,66 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
 
 /**
- * 
+ * Represents the different component groups. Marks each group with their group
+ * reporting type.
  * 
  * @author d3j766
  *
  */
-public enum ExchangeQueue {
+public enum ExchangeType {
+	
+	Module(GroupLabel.MODULE_GROUP),
 
-	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
+	Manager(GroupLabel.MANAGER_GROUP),
 
-	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
+	Exchange(GroupLabel.EXCHANGE_GROUP),
 
-	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
+	PipelineRequest(GroupLabel.PIPELINE_REQUEST_GROUP),
+	
+	ModuleRequest(GroupLabel.MODULE_REQUEST_GROUP),
 
-	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
+	Stream(GroupLabel.STREAM_GROUP);
 
-	private class StreamLabel {
-		private static final String DISCLOSURE_STREAM = "disclosed";
-		private static final String KNOWLEDGE_STREAM = "knowledge";
-		private static final String REQUEST_STREAM = "request";
-		private static final String RESPONSE_STREAM = "response";
+	private class GroupLabel {
+		private static final String MODULE_GROUP = "module";
+		private static final String MANAGER_GROUP = "manager";
+		private static final String EXCHANGE_GROUP = "exchange";
+		private static final String PIPELINE_REQUEST_GROUP = "pipeline-request";
+		private static final String MODULE_REQUEST_GROUP = "moudlue-request";
+		private static final String STREAM_GROUP = "stream";
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
+	static Logger log = LoggerFactory.getLogger(ExchangeType.class);
 
-	private String streamLabel;
-	private List<MessageContentGroup> messageGroups;
+	private String groupLabel;
 
-	ExchangeQueue(String streamLabel, MessageContentGroup... groups) {
-		this.streamLabel = streamLabel;
-		messageGroups = Arrays.asList(groups);
+	ExchangeType(String groupLabel) {
+		this.groupLabel = groupLabel;
 	}
 
 	/**
-	 * Provides the {@code MessageGroup}(s) supported by the stream.
+	 * Provides the group's label.
 	 * 
-	 * @return a list of supported MessageGroup
+	 * @return a group label as a String.
 	 * 
 	 */
-	public List<MessageContentGroup> getMessageGroups() {
-		return messageGroups;
+	public String getGroupLabel() {
+		return groupLabel;
 	}
 
-	public List<MessageContent> getMessageContents() {
-
-		
-		
-		List<MessageContent> ret = new ArrayList<MessageContent>();
-
-		for (MessageContentGroup mg : getMessageGroups()) {
-			for (MessageContent mc : mg.getMessageContents()) {
-				ret.add(mc);
-			}
+	public List<Annotation> getQualifiers() {
+		Field field;
+		List<Annotation> ret = new ArrayList<>();
+		try {
+			field = this.getClass().getField(this.name());
+			ret = Arrays.asList(field.getAnnotations());
+		} catch (NoSuchFieldException | SecurityException e) {
+			log.error("Invaid field name in ComponentGroup");
+			e.printStackTrace();
 		}
 
 		return ret;
 	}
-
-	public static ExchangeQueue getType(MessageContent mcToCheckFor) {
-
-		ExchangeQueue ret = null;
-		for (ExchangeQueue mst : values()) {
-			for (MessageContentGroup mg : mst.getMessageGroups()) {
-				for (MessageContent mc : mg.getMessageContents()) {
-					if (mc.equals(mcToCheckFor))
-						ret = mst;
-					break;
-				}
-			}
-		}
-
-		return ret;
-	}
-
-	/**
-	 * Provides the name of the message stream using provided domain.
-	 * 
-	 * @param dd
-	 *            the disclosure domain. If null, the default proven domain is
-	 *            used.
-	 * 
-	 * @return the name of the associated disclosure stream
-	 * 
-	 */
-	public String getStreamName(DisclosureDomain dd) {
-		return buildStreamName(dd, streamLabel);
-	}
-
-	private String buildStreamName(DisclosureDomain dd, String sLabel) {
-		String domainPart = dd.getReverseDomain();
-		String streamPart = sLabel;
-		return domainPart + "." + streamPart + "." + "message";
-	}
-
 }
