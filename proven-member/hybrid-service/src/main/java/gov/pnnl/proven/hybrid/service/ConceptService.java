@@ -1059,18 +1059,23 @@ public class ConceptService {
 
 	public ProvenMessageResponse influxQuery(ProvenMessage query) throws InvalidProvenMessageException {
 
-		ProvenMessageResponse pmr = influxQuery(query, false, false);
+		ProvenMessageResponse pmr = influxQuery(query, false, false, false);
 		return pmr;
 
 	}
 
 
 	public ProvenMessageResponse debugInfluxQuery (ProvenMessage query) throws InvalidProvenMessageException {
-		ProvenMessageResponse pmr = influxQuery(query, false, true);
+		ProvenMessageResponse pmr = influxQuery(query, false, true, false);
 		return pmr;
 	}
 
-	public ProvenMessageResponse influxQuery(ProvenMessage query, boolean returnCsvFlag, boolean returnQueryStatement) throws InvalidProvenMessageException {
+	public ProvenMessageResponse pingInfluxQuery (ProvenMessage query) throws InvalidProvenMessageException {
+		ProvenMessageResponse pmr = influxQuery(query, false, true, true);
+		return pmr;
+	}
+	
+	public ProvenMessageResponse influxQuery(ProvenMessage query, boolean returnCsvFlag, boolean returnQueryStatement, boolean pingQuery) throws InvalidProvenMessageException {
 		ProvenMessageResponse ret = null;
 		String space = " ";
 		String eq = "=";
@@ -1123,16 +1128,13 @@ public class ConceptService {
 			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
 			String dbName = idbDB;
 			influxDB.setRetentionPolicy(idbRP);
-			// // Query query = new Query("select time_idle from cpu limit 10",
-			// dbName);
-			//
-			//*******DEBUG statement to shorten query results.  Remove before checking in.
-			//queryStatement = queryStatement + " limit 10";
-			//*******DEBUG statement
-			//
 
-
-			Query influxQuery = new Query(queryStatement, dbName);
+            Query influxQuery = null;
+            if (pingQuery) {
+            	queryStatement = queryStatement + " LIMIT 1";
+			    influxQuery = new Query(queryStatement, dbName);
+            } else
+			     influxQuery = new Query(queryStatement, dbName);
 			//
 			// Unless TimeUnit parameter is used in query, Epoch time will not
 			// be returned.
@@ -1656,29 +1658,65 @@ public class ConceptService {
 		return ret;
 
 	}
-
-
+	
 
 	private ProvenMessageResponse influxWriteAlarms(JSONArray messageObject, InfluxDB influxDB,
-			String measurementName, String instanceId) {
+			String measurementName, String instanceId, String simulationId, Long currentTime) {
 
 		ProvenMessageResponse ret = null;
-		Long timestamp = System.currentTimeMillis() / 1000l;
+		
+		Long timestamp = -1L;
 
 		Iterator<JSONObject> iterator = messageObject.iterator();
+		
 		while (iterator.hasNext()) {
 			//System.out.println(iterator.next());
 			JSONObject record = (JSONObject) iterator.next();         
 			Set<String> record_keys = record.keySet();
 			Iterator<String> record_it = record_keys.iterator();
-
+            Iterator<String> timestamp_it = record_keys.iterator();
+            
+			while (timestamp_it.hasNext()) {
+				String record_key = timestamp_it.next();
+                if (record_key.equalsIgnoreCase("timestamp")) {
+                	if (record.get(record_key) instanceof String) {
+                		
+                	    String  timestamp_str = (String) record.get(record_key);
+						if (timestamp_str.matches("-?\\d+(.\\d+)?")) {
+							timestamp = Long.parseLong(timestamp_str);
+							break;
+                	    } 
+                	} else if  (record.get(record_key) instanceof Long) {
+                		    timestamp = Long.valueOf((Long) record.get(record_key));
+                		    break;
+                	}
+                }
+           
+             }
+			
+			if (timestamp == -1) {
+				ret = new ProvenMessageResponse();
+				ret.setStatus(Status.BAD_REQUEST);
+				ret.setReason("Invalid or missing message content type.  Invalid (non-numeric epoch value) or missing measurement timestamp.");
+				ret.setCode(Status.BAD_REQUEST.getStatusCode());
+				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+				return ret;
+			}
+			
 			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
-			timestamp = timestamp + 1;
+			if (currentTime != null) {
+			    builder.addField("realtime", currentTime);
+			}
+			if (instanceId != null )  {
+				
+			builder.tag("instanceid", instanceId);
+		    }
+
 			while (record_it.hasNext()) {
 				String record_key = record_it.next();
 
 				if (record.get(record_key) instanceof String) {
-					builder.addField( record_key, String.valueOf((String) record.get(record_key)));							
+				builder.addField( record_key, String.valueOf((String) record.get(record_key)));	
 				} else if (record.get(record_key) instanceof Integer) {
 					builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
 				} else if (record.get(record_key) instanceof Long) {
@@ -1690,6 +1728,7 @@ public class ConceptService {
 				}
 			}
 			influxDB.write(idbDB, idbRP, builder.build());
+
 		}
 
 		ret = new ProvenMessageResponse();
@@ -1706,7 +1745,7 @@ public class ConceptService {
 	// New write measurement routine
 	//
 	public ProvenMessageResponse influxWriteMeasurements(String measurements, 
-			String measurementName, String instanceId) {
+			String measurementName, String instanceId, String simulationId, Long realTime) {
 
 		//		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		//		LocalDateTime now = LocalDateTime.now();
@@ -1751,7 +1790,7 @@ public class ConceptService {
 		} else if (objectType.equalsIgnoreCase("I")) {
 			ret = influxWriteSimulationInput((JSONObject)messageObject, influxDB, measurementName, instanceId);
 		} else if (objectType.equalsIgnoreCase("A")) {
-			ret = influxWriteAlarms((JSONArray)messageObject, influxDB, measurementName, instanceId);			
+			ret = influxWriteAlarms((JSONArray)messageObject, influxDB, measurementName, instanceId, simulationId, realTime);			
 		} else {
 			ret = new ProvenMessageResponse();
 			ret.setStatus(Status.BAD_REQUEST);
@@ -1767,55 +1806,57 @@ public class ConceptService {
 		return ret;
 
 	}
-
-	public void influxWriteMeasurements(Map<String, Set<ProvenanceMetric>> measurements) {
-
-		if (useIdb) {
-
-			Long startTime = System.currentTimeMillis();
-			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
-
-			for (String measurement : measurements.keySet()) {
-
-				Set<ProvenanceMetric> pms = measurements.get(measurement);
-
-				Point.Builder builder = Point.measurement(measurement).time(startTime, TimeUnit.SECONDS);
-
-				for (ProvenanceMetric pm : pms) {
-
-					if (pm.isMetadata()) {
-
-						builder.tag(pm.getLocalMetricName(), pm.getLabelMetricValue());
-
-						// System.out.println("TAG");
-						// System.out.println("------------------------------");
-						// System.out.println(pm.getLocalMetricName());
-						// System.out.println(pm.getLabelMetricValue());
-						// System.out.println("------------------------------");
-
-					} else {
-
-						builder.field(pm.getLocalMetricName(), pm.getLabelMetricValue());
-
-						// System.out.println("FIELD");
-						// System.out.println("------------------------------");
-						// System.out.println(pm.getLocalMetricName());
-						// System.out.println(pm.getLabelMetricValue());
-						// System.out.println("------------------------------");
-
-					}
-
-				}
-
-				// System.out.println("------------------------------");
-				// System.out.println("------------------------------");
-
-				influxDB.write(idbDB, idbRP, builder.build());
-			}
-
-		}
-
-	}
+	
+//  08/20/2020 Removed because RepositoryResource.addClientMessage  does not add timestamp.
+//
+//	public void influxWriteMeasurements(Map<String, Set<ProvenanceMetric>> measurements) {
+//
+//		if (useIdb) {
+//
+//			Long startTime = System.currentTimeMillis();
+//			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
+//
+//			for (String measurement : measurements.keySet()) {
+//
+//				Set<ProvenanceMetric> pms = measurements.get(measurement);
+//
+//				Point.Builder builder = Point.measurement(measurement).time(startTime, TimeUnit.SECONDS);
+//
+//				for (ProvenanceMetric pm : pms) {
+//
+//					if (pm.isMetadata()) {
+//
+//						builder.tag(pm.getLocalMetricName(), pm.getLabelMetricValue());
+//
+//						// System.out.println("TAG");
+//						// System.out.println("------------------------------");
+//						// System.out.println(pm.getLocalMetricName());
+//						// System.out.println(pm.getLabelMetricValue());
+//						// System.out.println("------------------------------");
+//
+//					} else {
+//
+//						builder.field(pm.getLocalMetricName(), pm.getLabelMetricValue());
+//
+//						// System.out.println("FIELD");
+//						// System.out.println("------------------------------");
+//						// System.out.println(pm.getLocalMetricName());
+//						// System.out.println(pm.getLabelMetricValue());
+//						// System.out.println("------------------------------");
+//
+//					}
+//
+//				}
+//
+//				// System.out.println("------------------------------");
+//				// System.out.println("------------------------------");
+//
+//				influxDB.write(idbDB, idbRP, builder.build());
+//			}
+//
+//		}
+//
+//	}
 
 	@AroundInvoke
 	public Object checkObjectConnection(InvocationContext ic) throws Exception {

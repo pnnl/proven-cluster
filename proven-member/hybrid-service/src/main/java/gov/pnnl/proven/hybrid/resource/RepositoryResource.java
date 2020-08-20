@@ -157,6 +157,7 @@ import gov.pnnl.proven.message.ProvenMessage;
 import gov.pnnl.proven.message.ProvenMessageResponse;
 import gov.pnnl.proven.message.ProvenQueryFilter;
 import gov.pnnl.proven.message.ProvenQueryTimeSeries;
+import gov.pnnl.proven.message.exception.InvalidProvenMessageException;
 
 /**
  * Session Bean implementation class RepositoryResource
@@ -609,227 +610,230 @@ public class RepositoryResource {
 		return ret;
 	}
 
-	@POST
-	@Path(R_MESSAGE + "/client" + "/{domain}" + "/{messageName}")
-	// @Consumes(MediaType.TEXT_PLAIN)
-	@Consumes(MediaType.APPLICATION_JSON)
-	// @formatter:off
-	@ApiOperation(value = "Adds provenance message to domain context", notes = "Provided provenance mesage must be valid <a href='https://www.w3.org/TR/json-ld/'>JSON-LD.</a>  "
-			+ "Object identifiers for Subject/Object statement values are responsibility of caller.  "
-			+ "Proven's Describe Anything Provenance Interface (DAPI) library, if used, will manage identifiers for the user.  "
-			+ "Default insert behavior is overwrite for identical triple statements.  "
-			+ "Any Provenance Metrics specified in message will be added to time-series store, if enabled.  "
-			+ "Invalid JSON-LD will return error and message will not be added to store.")
-	@ApiResponses(value = { @ApiResponse(code = 204, message = "Successfull operation") })
-	// @formatter:on
-	public Response addClientMessage(String jsonLd,
-			@ApiParam(value = "Name of domain context") @PathParam("domain") String domain,
-			@ApiParam(value = "Name of provenance message") @PathParam("messageName") String messageName) {
-
-		Response response = Response.noContent().build();
-		// Resource context = toResource(PROVEN_CONTEXT);
-		// Resource context = toResource(PROVEN_CONTEXT + "/" + domain);
-		// Resource context = toContext(domain);
-
-		try {
-
-			cs.begin();
-
-			DomainModel dm = cs.findConceptByName(DomainModel.class, domain);
-
-			if ((null == dm) || (jsonLd == null)) {
-				throw new RepositoryException("Domain and/or JSON-LD missing");
-			}
-
-			String dmContent = dm.getExplicitContent().getContextUri();
-			Resource context = toResource(dmContent);
-
-			// Resource contextUri =
-			// toResource(schedule.getNativeSource().getDomainModel()
-			// .getContent().getContextUri());
-			SesameTripleCallback stc = new SesameTripleCallback();
-			Map<URI, Literal> po = new HashMap<URI, Literal>();
-
-			// Returns a sesame StatementCollector, containing statements to add
-			// to repository.
-			StatementCollector statementCollector = (StatementCollector) JsonLdProcessor
-					.toRDF(JsonUtils.fromString(jsonLd), stc);
-
-			// Find ProvenanceMessage Subject and link to ExchangeSession
-			Collection<Statement> statements = statementCollector.getStatements();
-			Statement nameStatement = null;
-			Resource messageSubject = null;
-			for (Statement statement : statements) {
-				// TODO - Remove
-
-				// Does not support empty messages
-				// if
-				// (statement.getPredicate().toString().equals(HAS_PROVENANCE_PROP))
-				// {
-				// nameStatement = new
-				// ContextStatementImpl(statement.getSubject(),
-				// toUri(HAS_NAME_PROP),
-				// toLiteral(messageName), context);
-				// messageSubject = statement.getSubject();
-				// }
-
-				// Supports empty messages
-				if (statement.getPredicate().toString().equals(RDF_TYPE_PROP)
-						&& statement.getObject().toString().equals(PROVENANCE_MESSAGE_CLASS)) {
-					nameStatement = new ContextStatementImpl(statement.getSubject(), toUri(HAS_NAME_PROP),
-							toLiteral(messageName), context);
-					messageSubject = statement.getSubject();
-				}
-				po.put(statement.getPredicate(), toLiteral(statement.getObject()));
-			}
-
-			if (null != nameStatement) {
-				statements.add(nameStatement);
-			} else {
-				log.warn("Failed to link message with its exchange session");
-			}
-
-			// ////
-			// Collect ProvenanceMetrics for Time Series Store
-			Map<String, Set<ProvenanceMetric>> measurements = new HashMap<String, Set<ProvenanceMetric>>();
-			List<ProvenanceMetric> pmList = new ArrayList<ProvenanceMetric>();
-			JsonArray jarray = Json.createReader(new StringReader(jsonLd)).readObject()
-					.getJsonArray(PROVENANCE_METRICS);
-
-			// if (null != jarray) {
-
-			for (int i = 0, size = jarray.size(); i < size; i++) {
-
-				JsonObject jobject = jarray.getJsonObject(i);
-				String measurementName = jobject.getString(MEASUREMENT_NAME);
-
-				URI metricName;
-				String jMetricName = jobject.getString(METRIC_NAME);
-				try {
-					metricName = toUri(jMetricName);
-				} catch (IllegalArgumentException e) {
-					log.warn("Metric Name not found, skipping... : " + jMetricName.toString());
-					continue;
-				}
-
-				Boolean isMetadata = jobject.getBoolean(IS_METADATA);
-				boolean missingMeasurementName = ((null == measurementName) || (measurementName.isEmpty()));
-				boolean missingIsMetadata = (null == isMetadata);
-
-				if ((missingMeasurementName) || (missingIsMetadata)) {
-					throw new RepositoryException(
-							"Invalid provenance metric format, nissing measurement and/or IsMetadata");
-				}
-
-				Literal metricValue = po.get(metricName);
-
-				ProvenanceMetric pm;
-				if (null != metricValue) {
-					pm = new ProvenanceMetric(metricName, isMetadata, metricValue);
-					pmList.add(pm);
-
-					// Add provenance metric
-					if (measurements.containsKey(measurementName)) {
-						measurements.get(measurementName).add(pm);
-					} else {
-						Set<ProvenanceMetric> pms = new HashSet<ProvenanceMetric>();
-						pms.add(pm);
-						measurements.put(measurementName, pms);
-					}
-				}
-			}
-			// }
-
-			// Remove TS data from RDF message (i.e. statements)
-			// Get Message name and ID information; use to directly link metrics
-			// with semantic data
-			String pmMessageName = null;
-			String pmMessageId = null;
-			Iterator<Statement> itr = statements.iterator();
-			Statement statement = null;
-			while (itr.hasNext()) {
-
-				statement = itr.next();
-				for (ProvenanceMetric pm : pmList) {
-
-					if (pm.metricName.equals(statement.getPredicate())) {
-						itr.remove();
-						break;
-					}
-
-				}
-
-				// Get name and id
-				if (statement.getSubject().toString().endsWith("ProvenanceMessage")) {
-
-					if (statement.getPredicate().toString().endsWith("hasProvenance")) {
-
-						pmMessageId = statement.getSubject().toString();
-						pmMessageName = "unknown";
-						String localName = toUri(statement.getObject().toString()).getLocalName();
-
-						int idxSplit = localName.indexOf('_');
-						if ((idxSplit != -1) && (localName.length() > 3)) {
-							pmMessageName = localName.substring(idxSplit + 1);
-						}
-
-					}
-
-				}
-
-			}
-
-			if ((null != pmMessageName) && (null != pmMessageId)) {
-				for (String measurement : measurements.keySet()) {
-
-					measurements.get(measurement)
-							.add(new ProvenanceMetric(toUri(HAS_MESSAGE_NAME), true, toLiteral(pmMessageName)));
-					measurements.get(measurement)
-							.add(new ProvenanceMetric(toUri(HAS_MESSAGE_ID), true, toLiteral(pmMessageId)));
-
-				}
-			}
-
-			// Add :partOfProvenMessage relationship for each statement subject
-			if (null == messageSubject)
-				log.error("MESSAGE does not have an identifier!");
-			Statement messageStatement = null;
-			Collection<Statement> messageStatements = new ArrayList<Statement>();
-			for (Statement s : statements) {
-				if (!(s.getSubject().equals(messageSubject))) {
-					messageStatement = new ContextStatementImpl(s.getSubject(), toUri(PART_OF_PROVEN_MESSAGE_PROP),
-							messageSubject, context);
-				}
-				// Include the message itself to support message queries
-				else {
-					messageStatement = new ContextStatementImpl(messageSubject, toUri(PART_OF_PROVEN_MESSAGE_PROP),
-							messageSubject, context);
-				}
-				log.debug(messageStatement.toString());
-				messageStatements.add(messageStatement);
-
-			}
-
-			statements.addAll(messageStatements);
-			cs.addStatements(statements, context);
-			cs.influxWriteMeasurements(measurements);
-			cs.commit();
-
-		} catch (
-
-		Exception e)
-
-		{
-			cs.rollback();
-			response = Response.serverError().entity(e.getMessage()).build();
-			log.error("Load client statements failed");
-			if (null != jsonLd)
-				log.error(jsonLd);
-		}
-
-		return response;
-
-	}
+//
+//	08/20/2020 Removed method because it doesn't supply time to  the influxWrite routine.  
+//
+//	@POST
+//	@Path(R_MESSAGE + "/client" + "/{domain}" + "/{messageName}")
+//	// @Consumes(MediaType.TEXT_PLAIN)
+//	@Consumes(MediaType.APPLICATION_JSON)
+//	// @formatter:off
+//	@ApiOperation(value = "Adds provenance message to domain context", notes = "Provided provenance mesage must be valid <a href='https://www.w3.org/TR/json-ld/'>JSON-LD.</a>  "
+//			+ "Object identifiers for Subject/Object statement values are responsibility of caller.  "
+//			+ "Proven's Describe Anything Provenance Interface (DAPI) library, if used, will manage identifiers for the user.  "
+//			+ "Default insert behavior is overwrite for identical triple statements.  "
+//			+ "Any Provenance Metrics specified in message will be added to time-series store, if enabled.  "
+//			+ "Invalid JSON-LD will return error and message will not be added to store.")
+//	@ApiResponses(value = { @ApiResponse(code = 204, message = "Successfull operation") })
+//	// @formatter:on
+//	public Response addClientMessage(String jsonLd,
+//			@ApiParam(value = "Name of domain context") @PathParam("domain") String domain,
+//			@ApiParam(value = "Name of provenance message") @PathParam("messageName") String messageName) {
+//
+//		Response response = Response.noContent().build();
+//		// Resource context = toResource(PROVEN_CONTEXT);
+//		// Resource context = toResource(PROVEN_CONTEXT + "/" + domain);
+//		// Resource context = toContext(domain);
+//
+//		try {
+//
+//			cs.begin();
+//
+//			DomainModel dm = cs.findConceptByName(DomainModel.class, domain);
+//
+//			if ((null == dm) || (jsonLd == null)) {
+//				throw new RepositoryException("Domain and/or JSON-LD missing");
+//			}
+//
+//			String dmContent = dm.getExplicitContent().getContextUri();
+//			Resource context = toResource(dmContent);
+//
+//			// Resource contextUri =
+//			// toResource(schedule.getNativeSource().getDomainModel()
+//			// .getContent().getContextUri());
+//			SesameTripleCallback stc = new SesameTripleCallback();
+//			Map<URI, Literal> po = new HashMap<URI, Literal>();
+//
+//			// Returns a sesame StatementCollector, containing statements to add
+//			// to repository.
+//			StatementCollector statementCollector = (StatementCollector) JsonLdProcessor
+//					.toRDF(JsonUtils.fromString(jsonLd), stc);
+//
+//			// Find ProvenanceMessage Subject and link to ExchangeSession
+//			Collection<Statement> statements = statementCollector.getStatements();
+//			Statement nameStatement = null;
+//			Resource messageSubject = null;
+//			for (Statement statement : statements) {
+//				// TODO - Remove
+//
+//				// Does not support empty messages
+//				// if
+//				// (statement.getPredicate().toString().equals(HAS_PROVENANCE_PROP))
+//				// {
+//				// nameStatement = new
+//				// ContextStatementImpl(statement.getSubject(),
+//				// toUri(HAS_NAME_PROP),
+//				// toLiteral(messageName), context);
+//				// messageSubject = statement.getSubject();
+//				// }
+//
+//				// Supports empty messages
+//				if (statement.getPredicate().toString().equals(RDF_TYPE_PROP)
+//						&& statement.getObject().toString().equals(PROVENANCE_MESSAGE_CLASS)) {
+//					nameStatement = new ContextStatementImpl(statement.getSubject(), toUri(HAS_NAME_PROP),
+//							toLiteral(messageName), context);
+//					messageSubject = statement.getSubject();
+//				}
+//				po.put(statement.getPredicate(), toLiteral(statement.getObject()));
+//			}
+//
+//			if (null != nameStatement) {
+//				statements.add(nameStatement);
+//			} else {
+//				log.warn("Failed to link message with its exchange session");
+//			}
+//
+//			// ////
+//			// Collect ProvenanceMetrics for Time Series Store
+//			Map<String, Set<ProvenanceMetric>> measurements = new HashMap<String, Set<ProvenanceMetric>>();
+//			List<ProvenanceMetric> pmList = new ArrayList<ProvenanceMetric>();
+//			JsonArray jarray = Json.createReader(new StringReader(jsonLd)).readObject()
+//					.getJsonArray(PROVENANCE_METRICS);
+//
+//			// if (null != jarray) {
+//
+//			for (int i = 0, size = jarray.size(); i < size; i++) {
+//
+//				JsonObject jobject = jarray.getJsonObject(i);
+//				String measurementName = jobject.getString(MEASUREMENT_NAME);
+//
+//				URI metricName;
+//				String jMetricName = jobject.getString(METRIC_NAME);
+//				try {
+//					metricName = toUri(jMetricName);
+//				} catch (IllegalArgumentException e) {
+//					log.warn("Metric Name not found, skipping... : " + jMetricName.toString());
+//					continue;
+//				}
+//
+//				Boolean isMetadata = jobject.getBoolean(IS_METADATA);
+//				boolean missingMeasurementName = ((null == measurementName) || (measurementName.isEmpty()));
+//				boolean missingIsMetadata = (null == isMetadata);
+//
+//				if ((missingMeasurementName) || (missingIsMetadata)) {
+//					throw new RepositoryException(
+//							"Invalid provenance metric format, nissing measurement and/or IsMetadata");
+//				}
+//
+//				Literal metricValue = po.get(metricName);
+//
+//				ProvenanceMetric pm;
+//				if (null != metricValue) {
+//					pm = new ProvenanceMetric(metricName, isMetadata, metricValue);
+//					pmList.add(pm);
+//
+//					// Add provenance metric
+//					if (measurements.containsKey(measurementName)) {
+//						measurements.get(measurementName).add(pm);
+//					} else {
+//						Set<ProvenanceMetric> pms = new HashSet<ProvenanceMetric>();
+//						pms.add(pm);
+//						measurements.put(measurementName, pms);
+//					}
+//				}
+//			}
+//			// }
+//
+//			// Remove TS data from RDF message (i.e. statements)
+//			// Get Message name and ID information; use to directly link metrics
+//			// with semantic data
+//			String pmMessageName = null;
+//			String pmMessageId = null;
+//			Iterator<Statement> itr = statements.iterator();
+//			Statement statement = null;
+//			while (itr.hasNext()) {
+//
+//				statement = itr.next();
+//				for (ProvenanceMetric pm : pmList) {
+//
+//					if (pm.metricName.equals(statement.getPredicate())) {
+//						itr.remove();
+//						break;
+//					}
+//
+//				}
+//
+//				// Get name and id
+//				if (statement.getSubject().toString().endsWith("ProvenanceMessage")) {
+//
+//					if (statement.getPredicate().toString().endsWith("hasProvenance")) {
+//
+//						pmMessageId = statement.getSubject().toString();
+//						pmMessageName = "unknown";
+//						String localName = toUri(statement.getObject().toString()).getLocalName();
+//
+//						int idxSplit = localName.indexOf('_');
+//						if ((idxSplit != -1) && (localName.length() > 3)) {
+//							pmMessageName = localName.substring(idxSplit + 1);
+//						}
+//
+//					}
+//
+//				}
+//
+//			}
+//
+//			if ((null != pmMessageName) && (null != pmMessageId)) {
+//				for (String measurement : measurements.keySet()) {
+//
+//					measurements.get(measurement)
+//							.add(new ProvenanceMetric(toUri(HAS_MESSAGE_NAME), true, toLiteral(pmMessageName)));
+//					measurements.get(measurement)
+//							.add(new ProvenanceMetric(toUri(HAS_MESSAGE_ID), true, toLiteral(pmMessageId)));
+//
+//				}
+//			}
+//
+//			// Add :partOfProvenMessage relationship for each statement subject
+//			if (null == messageSubject)
+//				log.error("MESSAGE does not have an identifier!");
+//			Statement messageStatement = null;
+//			Collection<Statement> messageStatements = new ArrayList<Statement>();
+//			for (Statement s : statements) {
+//				if (!(s.getSubject().equals(messageSubject))) {
+//					messageStatement = new ContextStatementImpl(s.getSubject(), toUri(PART_OF_PROVEN_MESSAGE_PROP),
+//							messageSubject, context);
+//				}
+//				// Include the message itself to support message queries
+//				else {
+//					messageStatement = new ContextStatementImpl(messageSubject, toUri(PART_OF_PROVEN_MESSAGE_PROP),
+//							messageSubject, context);
+//				}
+//				log.debug(messageStatement.toString());
+//				messageStatements.add(messageStatement);
+//
+//			}
+//
+//			statements.addAll(messageStatements);
+//			cs.addStatements(statements, context);
+//			cs.influxWriteMeasurements(measurements);
+//			cs.commit();
+//
+//		} catch (
+//
+//		Exception e)
+//
+//		{
+//			cs.rollback();
+//			response = Response.serverError().entity(e.getMessage()).build();
+//			log.error("Load client statements failed");
+//			if (null != jsonLd)
+//				log.error(jsonLd);
+//		}
+//
+//		return response;
+//
+//	}
 
 	@POST
 	@Path("sparql")
@@ -990,7 +994,7 @@ public class RepositoryResource {
 			// Query
 			if (stream.equals(MessageContent.Query.getStream())) {
 
-				pmr = cs.influxQuery(pm,true, true);
+				pmr = cs.influxQuery(pm,true, false, true);
 			}
 
 			// Explicit
@@ -1066,8 +1070,8 @@ public class RepositoryResource {
 
 			// Query
 			if (stream.equals(MessageContent.Query.getStream())) {
-
-				pmr = cs.influxQuery(pm,true, false);
+	
+				pmr = cs.influxQuery(pm,true, true, false);
 			}
 
 			// Explicit
@@ -1114,7 +1118,7 @@ public class RepositoryResource {
 			@ApiResponse(code = 500, message = "Internal server error.") })
 	// @formatter:on
 	public ProvenMessageResponse addBulkTimeSeries(String pm, @QueryParam("measurementName") String measurementName,
-			@QueryParam("instanceId") String instanceId) {
+			@QueryParam("instanceId") String instanceId,  @QueryParam("simulationId") String simulationId, @QueryParam("realTime") Long realTime) {
 
 		ProvenMessageResponse pmr = null;
 		try {
@@ -1126,7 +1130,7 @@ public class RepositoryResource {
 			}
 			
 
-			pmr = cs.influxWriteMeasurements(pm, measurementName, instanceId);
+			pmr = cs.influxWriteMeasurements(pm, measurementName, instanceId, simulationId, realTime);
 
 			// Invalid message content
 			if (null == pmr) {
