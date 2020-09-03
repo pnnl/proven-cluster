@@ -71,9 +71,7 @@ public enum DisclosureProperty {
 	IS_STATIC("isStatic", JsonValue.FALSE),
 	IS_TRANSIENT("isTransient", JsonValue.FALSE),
 	MESSAGE("message", JsonValue.NULL),
-	MESSAGE_SCHEMA("messageSchema", JsonValue.NULL),
-	MESSAGE_ID("messageId", Json.createValue(UUID.randomUUID().toString())),
-	SOURCE_MESSAGE_ID("sourceMessageId", JsonValue.NULL);
+	MESSAGE_SCHEMA("messageSchema", JsonValue.NULL);
 
 	static Logger log = LoggerFactory.getLogger(DisclosureProperty.class);
 
