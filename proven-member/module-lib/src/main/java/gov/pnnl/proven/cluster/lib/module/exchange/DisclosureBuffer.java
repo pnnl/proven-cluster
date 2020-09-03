@@ -54,6 +54,8 @@ import com.hazelcast.ringbuffer.ReadResultSet;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
@@ -145,11 +147,11 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 				items.forEach((item) -> {
 					try {
-						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDomain(), mst);
-						DisclosureMessage dm = item.getDisclosureMessage();
+						DisclosureMessage dm = new DisclosureMessage(item);
+						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDisclosureItem().getDisclosureDomain(), mst);
 						msp.addMessage(dm);
 						log.debug("Added Disclosure messsage to stream :: " + dm.getMessageKey());
-					} catch (UnsupportedMessageContentException | UnsupportedDisclosureType | JsonParsingException
+					} catch (UnsupportedMessageContentException | JsonParsingException
 							| InvalidDisclosureDomainException | CsvParsingException e) {
 						log.error("Failed to create and add new disclosure message to stream", e);
 

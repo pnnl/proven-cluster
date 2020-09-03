@@ -62,6 +62,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 
 /**
  * General messaging construct used by Proven to communicate data between Proven
@@ -103,234 +104,115 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 
 		String ret = "";
 		ret += this.messageId + MESSAGE_KEY_DELIMETER;
-		ret += ((this.domain == null) ? "" : this.domain.getDomain()) + MESSAGE_KEY_DELIMETER;
+		ret += this.disclosureItem.getDisclosureDomain() + MESSAGE_KEY_DELIMETER;
 		ret += this.created;
 
 		return ret;
 	}
 
-	String authToken;
-
-	/**
-	 * Name of the message.
-	 */
-	String name;
 	/**
 	 * Epoch time of message creation.
 	 */
-	Long created;
-
-	/**
-	 * Messages are stored internally as JSON
-	 */
-	JsonObject message;
-
-	/**
-	 * JSON schema, can be disclosed with message.
-	 */
-	JsonObject messageSchema;
+	private Long created;
 
 	/**
 	 * Messages are assigned an identifier , making it unique across disclosure
 	 * sources.
 	 */
-	UUID messageId;
+	private UUID messageId;
 
 	/**
-	 * Messages may be assigned a disclosure identifier provided by the
-	 * discloser as part of the message. This identifier is not managed by the
-	 * platform, but is included in response messages as a convenience to the
-	 * discloser. Null by default.
+	 * Identifies the source/parent message identifier, if any.
 	 */
-	String disclosureId;
+	private UUID sourceMessageId;
 
 	/**
-	 * Identifies messages domain, all messages must be associated with a
-	 * domain. If one is not provided, Proven provides a default domain for
-	 * which the message will be associated. In Proven, a domain represents a
-	 * discrete sphere or model of activity or knowledge. That is, it identifies
-	 * a grouping of knowledge that is managed separately from other domain
-	 * knowledge models. In proven's hybrid store, domain knowledge is isolated
-	 * by sub-graphs in its semantic store, by databases in time-series store,
-	 * and by key values in distributed Map structures in the memory grid.
+	 * Contains disclosed message contents
 	 */
-	DisclosureDomain domain;
-
-	/**
-	 * If true, message content will not be persisted in the semantic or
-	 * time-series components of the hybrid store. Default is false.
-	 */
-	boolean isTransient;
-
-	/**
-	 * If true, message content will remain in memory grid facet of hybrid store
-	 * unless explicitly removed, @see {@link MessageContent#Static}. Default is
-	 * false.
-	 */
-	boolean isStatic;
-
-	/**
-	 * Identifies client requester responsible for disclosure of this message.
-	 * 
-	 * TODO - for now this is a simple string, but this value should be
-	 * formalized on client side in JSON disclosure schema.
-	 * 
-	 */
-	String requester;
+	private DisclosureItem disclosureItem;
 
 	public ProvenMessage() {
-
 	}
 
-	public ProvenMessage(JsonObject message) {
-		this(message, null);
-	}
-
-	public ProvenMessage(JsonObject message, JsonObject schema) {
-
-		// Epoch creation time
+	/**
+	 * Constructor for an initial disclosure.
+	 * 
+	 * @param di
+	 *            the disclosure contents
+	 */
+	public ProvenMessage(DisclosureItem di) {
 		this.created = new Date().getTime();
-
-		// This must not be null - serialization will throw an NPE
-		this.message = message;
-
-		// Optional - may be null
-		this.messageSchema = schema;
-
-		// Generated for each message - global identifier
 		this.messageId = UUID.randomUUID();
-
-		// TODO - determine field value from the message -or- transfer when
-		// creating a non-disclosure message.
-		this.disclosureId = "Not Provided";
-
-		// messageContent must be provided in a getter by the concrete class
-
-		// Disclosure domain, will default to Poven's disclosure domain if not
-		// provided or is invalid
-		DisclosureDomain dd;
-		try {
-			dd = new DisclosureDomain(message.getString("domain"));
-		} catch (NullPointerException | InvalidDisclosureDomainException ex) {
-			dd = DomainProvider.getProvenDisclosureDomain();
-		}
-		this.domain = dd;
-
-		// TODO - determine field value from the message
-		this.isTransient = false;
-
-		// TODO - determine field value from the message
-		this.isStatic = false;
-
-		// TODO - determine field value from the message
-		this.requester = "UNKNOWN";
-
+		this.sourceMessageId = null;
+		this.disclosureItem = di;
 	}
 
-	public ProvenMessage(ProvenMessage sourceMessage, JsonObject message) {
-		this(sourceMessage, message, null);
-	}
-
-	public ProvenMessage(ProvenMessage sourceMessage, JsonObject message, JsonObject schema) {
-
-		// Epoch creation time
+	/**
+	 * Constructor for an downstream message creation. That is, after the
+	 * initial disclosure.
+	 * 
+	 * @param sourceMessage
+	 *            the parent/source message for this message.
+	 */
+	public ProvenMessage(ProvenMessage source) {
 		this.created = new Date().getTime();
-
-		// This must not be null - serialization will throw an NPE
-		this.message = message;
-
-		// Optional - may be null
-		this.messageSchema = schema;
-
-		// Generated for each message - global identifier
 		this.messageId = UUID.randomUUID();
-
-		this.disclosureId = sourceMessage.getDisclosureId();
-
-		// MessageContent must be provided in a getter by the concrete class
-
-		this.domain = sourceMessage.getDomain();
-		this.isTransient = sourceMessage.isTransient;
-		this.isStatic = sourceMessage.isStatic;
-		this.requester = sourceMessage.getRequester();
+		this.sourceMessageId = source.getMessageId();
+		this.disclosureItem = new DisclosureItem(source.getDisclosureItem());
 	}
 
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		this.created = in.readLong();
-		this.message = MessageJsonUtils.jsonIn(in.readByteArray());
-
-		boolean nullMessageSchema = in.readBoolean();
-		if (!nullMessageSchema)
-			this.messageSchema = MessageJsonUtils.jsonIn(in.readByteArray());
-
-		this.messageId = UUID.fromString(in.readUTF());
-		this.disclosureId = in.readUTF();
-		this.domain = in.readObject();
-		this.isTransient = in.readBoolean();
-		this.isStatic = in.readBoolean();
-		this.requester = in.readUTF();
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeLong(this.created);
-		out.writeByteArray(MessageJsonUtils.jsonOut(this.message));
-
-		boolean nullMessageSchema = (null == this.messageSchema);
-		out.writeBoolean(nullMessageSchema);
-		if (!nullMessageSchema)
-			out.writeByteArray(MessageJsonUtils.jsonOut(this.messageSchema));
-
-		out.writeUTF(this.messageId.toString());
-		out.writeUTF(this.disclosureId);
-		out.writeObject(this.domain);
-		out.writeBoolean(this.isTransient);
-		out.writeBoolean(this.isStatic);
-		out.writeUTF(this.requester);
-	}
-
-	public JsonObject getMessage() {
-		return message;
-	}
-
-	public String getMessageStr(boolean pretty) {
-
-		String ret;
-
-		if (pretty) {
-			ret = MessageJsonUtils.prettyPrint(message);
-		} else {
-			ret = message.toString();
-		}
-
-		return ret;
+	public Long getCreated() {
+		return this.created;
 	}
 
 	public UUID getMessageId() {
 		return messageId;
 	}
 
-	public String getDisclosureId() {
-		return disclosureId;
+	public UUID getSourceMessageId() {
+		return this.sourceMessageId;
 	}
 
-	public abstract MessageContent getMessageContent();
-
-	public DisclosureDomain getDomain() {
-		return domain;
+	public DisclosureItem getDisclosureItem() {
+		return this.disclosureItem;
 	}
 
-	public boolean isTransient() {
-		return isTransient;
+	public String getMessageStr(boolean pretty) {
+		String ret;
+		JsonObject message = disclosureItem.getMessage();
+		if (pretty) {
+			ret = MessageJsonUtils.prettyPrint(message);
+		} else {
+			ret = message.toString();
+		}
+		return ret;
 	}
 
-	public boolean isStatic() {
-		return isStatic;
+	public MessageContent getMessageContent() {
+		return getDisclosureItem().getContent();
 	}
 
-	public String getRequester() {
-		return requester;
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		this.created = in.readLong();
+		this.messageId = UUID.fromString(in.readUTF());
+		boolean nullSourceMessageId = in.readBoolean();
+		if (!nullSourceMessageId) {
+			this.sourceMessageId = UUID.fromString(in.readUTF());
+		}
+		this.disclosureItem.readData(in);
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeLong(this.created);
+		out.writeUTF(this.messageId.toString());
+		boolean nullSourceMessageId = (null == this.sourceMessageId);
+		out.writeBoolean(nullSourceMessageId);
+		if (!nullSourceMessageId) {
+			out.writeUTF(this.messageId.toString());
+		}
+		this.disclosureItem.writeData(out);
 	}
 
 }

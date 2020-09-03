@@ -82,7 +82,7 @@ public class SseRegisterEventDto implements SseEventData, Serializable {
 		for (MessageContent mc : session.getContents()) {
 			this.registeredMessageContents.add(mc.getName());
 		}
-		this.registeredRequester = session.getRequester();
+		this.registeredRequester = session.getRequestor();
 	}
 
 	public String getSessionId() {

@@ -152,7 +152,7 @@ public class SseSessionResource {
 	 *            value will be sent. If not provided all contentTypes are
 	 *            included.
 	 * @param requestor
-	 *            (optional) identifies disclosure source (i.e. requester) that
+	 *            (optional) identifies disclosure source (i.e. requestor) that
 	 *            the response event is based on. This must be provided at
 	 *            disclosure time for a match to be made. Only events matching
 	 *            this value will be sent. If not provided all disclosure

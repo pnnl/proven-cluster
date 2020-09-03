@@ -52,9 +52,11 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RR_SSE;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageModel;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
@@ -65,6 +67,8 @@ public class TestSSEResponse {
 
 	@Inject
 	Logger logger;
+	
+	private final static String SCHEMA_TEST_FILE = "schema-test.json";
 
 	@StreamConfig(domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN, streamType = MessageStreamType.Response)
 	@Inject
@@ -77,6 +81,8 @@ public class TestSSEResponse {
 		Response ret = Response.ok().build();
 
 		logger.debug("START :: " + Calendar.getInstance().getTime().toString());
+		
+		MessageModel mm = MessageModel.getInstance(DomainProvider.getProvenDisclosureDomain());
 
 		int i = 0;
 		int iterations = count;
@@ -87,12 +93,12 @@ public class TestSSEResponse {
 					.add("count", String.valueOf(i)).build();
 			logger.debug("Test Message :: " + testMessage.toString());
 
-			// Create source message
-			DisclosureMessage jd = new DisclosureMessage(JsonDisclosure.toJsonObject(testMessage.toString()));
+			// Create source message - just needed to be able to create test response message
+			DisclosureMessage dm = new DisclosureMessage(new DisclosureItem(mm.getModelFile(SCHEMA_TEST_FILE)));
 
 			// Create new response message and add - this should cause a send
 			// event on server
-			ResponseMessage rm = new ResponseMessage(Status.OK, jd, jd.getMessage());
+			ResponseMessage rm = new ResponseMessage(Status.OK, dm.getDisclosureItem().getMessage(), dm);
 
 			// Add message to queue
 			msp.getMessageStream().getStream().put(rm.getMessageKey(), rm);

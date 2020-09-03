@@ -78,7 +78,7 @@ public class SseSession {
 	private SseEventSink eventSink;
 	private DisclosureDomain domain;
 	private List<MessageContent> contents;
-	private String requester;
+	private String requestor;
 
 	public SseSession(SseEvent event, UUID sessionId, Sse sse, SseEventSink eventSink, Optional<String> domainOpt,
 			Optional<List<String>> contentsOpt, Optional<String> requesterOpt) {
@@ -92,8 +92,8 @@ public class SseSession {
 		this.domain = DomainProvider.getProvenDisclosureDomain();
 		if ((domainOpt.isPresent()) && (DisclosureDomain.isValidDomain(domainOpt.get()))) {
 			this.domain = new DisclosureDomain(domainOpt.get());
-		}
 
+		}
 		// contents
 		this.contents = new ArrayList<MessageContent>();
 		this.contents.add(Any);
@@ -122,15 +122,15 @@ public class SseSession {
 		}
 
 		// requester
-		this.requester = null;
+		this.requestor = null;
 		if ((requesterOpt.isPresent()) && (!requesterOpt.get().isEmpty())) {
-			this.requester = requesterOpt.get();
+			this.requestor = requesterOpt.get();
 		}
 
 		logger.debug("Created new SSE Session:");
 		logger.debug("\tDomain: " + this.domain.getDomain());
 		logger.debug("\tMessageContent: " + this.contents.toString());
-		logger.debug("\tRequester: " + ((null == this.requester) ? ("Any") : (this.requester)));
+		logger.debug("\tRequester: " + ((null == this.requestor) ? ("Any") : (this.requestor)));
 		logger.debug("");
 
 	}
@@ -156,13 +156,12 @@ public class SseSession {
 		return ret;
 	}
 
-	public boolean hasRequester(String requesterToCheck) {
+	public boolean hasRequestor(Optional<String> requesterToCheck) {
 
 		boolean ret = true;
-		if (null != requester) {
-			ret = requester.equals(requesterToCheck);
+		if ((requesterToCheck.isPresent()) && (!requesterToCheck.get().isEmpty())) {
+			ret = requestor.equals(requesterToCheck.get());
 		}
-
 		return ret;
 	}
 
@@ -244,12 +243,12 @@ public class SseSession {
 		this.contents = contents;
 	}
 
-	public String getRequester() {
-		return requester;
+	public String getRequestor() {
+		return requestor;
 	}
 
 	public void setRequester(String requester) {
-		this.requester = requester;
+		this.requestor = requester;
 	}
 
 }

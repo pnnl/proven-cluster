@@ -4,7 +4,7 @@ import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.ClientItem;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 
 /**
  * 
@@ -35,7 +35,7 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 	public static final int REQUEST_MESSAGE_TYPE = 10;
 	public static final int RESPONSE_MESSAGE_TYPE = 12;
 	public static final int DISCLOSURE_DOMAIN_TYPE = 13;
-	public static final int CLIENT_ITEM_TYPE = 14;
+	public static final int DISCLOSURE_ITEM_TYPE = 14;
 
 	@Override
 	public IdentifiedDataSerializable create(int typeId) {
@@ -67,8 +67,8 @@ public class ProvenMessageIDSFactory implements DataSerializableFactory {
 			return new ResponseMessage();
 		case (DISCLOSURE_DOMAIN_TYPE):
 			return new DisclosureDomain();
-		case (CLIENT_ITEM_TYPE):
-			return new ClientItem();
+		case (DISCLOSURE_ITEM_TYPE):
+			return new DisclosureItem();
 		default:
 			return null;
 		}

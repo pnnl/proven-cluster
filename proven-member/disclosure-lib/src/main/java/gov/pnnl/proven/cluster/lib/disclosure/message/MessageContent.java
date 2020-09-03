@@ -104,9 +104,9 @@ public enum MessageContent {
 	/**
 	 * Continuous Query message content. Queries to run over a cluster member's
 	 * ProvenMessage data name for a configured frequency, in order to detect
-	 * and/or create new purposed message content. This is a type of
+	 * and/or create newly purposed message content. This is a type of
 	 * {@link MessageContent#Query}; query results are not returned to
-	 * requester, but instead is installed on server for processing.
+	 * requester, but instead are saved in platform for future processing.
 	 */
 	ContinuousQuery(MessageContentName.CONTINUOUS_QUERY),
 

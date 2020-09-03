@@ -40,20 +40,23 @@
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
+
 import javax.json.JsonObject;
 import javax.ws.rs.core.Response;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 
 /**
- * General response message. A response message is created or based on a
- * disclosed {@code ProvenMessage}. The response may be for the disclosure
- * itself or for the execution of a requested service defined in the message.
+ * Messages created in response to events (e.g. disclosure, request processing,
+ * knowledge processing, etc.) occurring within the Proven platform. They
+ * provide a record of the event's status and other related data. These messages
+ * are published as Server-Sent Events (SSE) making them available for client
+ * consumption.
  * 
- * @see ProvenMessage, DisclosureMessage, KnowledgeMessage, RequestMessage
+ * @see ProvenMessage
  * 
  * @author d3j766
  *
@@ -61,6 +64,11 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 public class ResponseMessage extends ProvenMessage {
 
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * JSON response message
+	 */
+	protected JsonObject responseMessage;
 
 	/**
 	 * Response status using commonly used HTTP status codes
@@ -76,17 +84,28 @@ public class ResponseMessage extends ProvenMessage {
 
 	public ResponseMessage() {
 	}
-
-	public ResponseMessage(Response.Status status, ProvenMessage sourceMessage, JsonObject message) {
-		this(status, sourceMessage, message, null);
+	
+	public ResponseMessage(Response.Status status, JsonObject responseMessage, DisclosureItem di) {
+		super(di);
+		this.responseMessage = responseMessage;
+		this.status = status;
+		this.sourceContentType = di.getContent();
 	}
-
-	public ResponseMessage(Response.Status status, ProvenMessage sourceMessage, JsonObject message, JsonObject schema) {
-		super(sourceMessage, message, schema);
+	
+	public ResponseMessage(Response.Status status, JsonObject response, ProvenMessage sourceMessage) {
+		super(sourceMessage);
+		this.responseMessage = response;
 		this.status = status;
 		this.sourceContentType = sourceMessage.getMessageContent();
 	}
-	
+
+	public JsonObject getResponseMessage() {
+		return responseMessage;
+	}
+
+	public void setResponseMessage(JsonObject responseMessage) {
+		this.responseMessage = responseMessage;
+	}
 
 	public Response.Status getStatus() {
 		return status;

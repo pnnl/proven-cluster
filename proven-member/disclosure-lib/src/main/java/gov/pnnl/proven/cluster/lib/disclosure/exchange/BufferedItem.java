@@ -37,90 +37,26 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.message;
+package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
-import java.io.IOException;
-import java.io.Serializable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 
 /**
- * Disclosure messages represent the original input message disclosed to the
- * platform. It is responsible for transforming its message content into either
- * a {@code KnowledgeMessage} or {@code RequestMessage} for downstream message
- * processing.
+ * Represents a data item that is queued for processing as it enters the Proven
+ * platform. These items may be queued/processed multiple times depending on the
+ * data content. A buffered item has a {@link BufferedItemState} value
+ * indicating it's status for its current processor.
  * 
  * @author d3j766
+ * 
+ * @see BufferedItemState
  *
  */
-public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSerializable, Serializable {
+public interface BufferedItem {
 
-	private static final long serialVersionUID = 1L;
-	private static Logger log = LoggerFactory.getLogger(DisclosureMessage.class);
+	BufferedItemState getItemState();
 
-	/**
-	 * True, if the disclosed content is in the Request message group.
-	 */
-	boolean isRequest;
-
-	/**
-	 * True, if the disclosed content is in the Knowledge message group.
-	 */
-	boolean isKnowledge;
-
-	/**
-	 * True, if the disclosed content is a {@code MessageContent#Measurement}.
-	 */
-	boolean hasMeasurements;
-
-	public DisclosureMessage() {
-	}
-
-	public DisclosureMessage(DisclosureItem di) {
-		super(di);
-		MessageContent disclosedContent = di.getContent();
-		MessageContentGroup disclosedContentGroup = MessageContentGroup.getType(di.getContent());
-		isRequest = MessageContentGroup.Request == disclosedContentGroup;
-		isKnowledge = MessageContentGroup.Knowledge == disclosedContentGroup;
-		hasMeasurements = MessageContent.Measurement == disclosedContent;
-	}
-
-	@Override
-	public MessageContent getMessageContent() {
-		return MessageContent.Disclosure;
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.isRequest = in.readBoolean();
-		this.isKnowledge = in.readBoolean();
-		this.hasMeasurements = in.readBoolean();
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeBoolean(this.isRequest);
-		out.writeBoolean(this.isKnowledge);
-		out.writeBoolean(this.hasMeasurements);
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_MESSAGE_TYPE;
-	}
+	void setItemState(BufferedItemState buffereState);
 
 }
+
+

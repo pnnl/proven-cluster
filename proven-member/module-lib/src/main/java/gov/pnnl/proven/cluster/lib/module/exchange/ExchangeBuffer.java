@@ -61,6 +61,8 @@ import com.hazelcast.ringbuffer.OverflowPolicy;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
 
 /**

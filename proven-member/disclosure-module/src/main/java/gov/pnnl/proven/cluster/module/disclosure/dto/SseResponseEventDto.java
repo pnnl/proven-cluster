@@ -40,6 +40,8 @@
 package gov.pnnl.proven.cluster.module.disclosure.dto;
 
 import java.io.Serializable;
+import java.util.Optional;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +71,7 @@ public class SseResponseEventDto implements SseEventData, Serializable {
 
 	String messageContent;
 
-	String requester;
+	String requestorId;
 
 	String disclosureId;
 
@@ -86,14 +88,16 @@ public class SseResponseEventDto implements SseEventData, Serializable {
 
 	public SseResponseEventDto(SseSession session, ResponseMessage message) {
 		this.sessionId = session.getSessionId().toString();
-		this.domain = message.getDomain().getDomain();
+		this.domain = message.getDisclosureItem().getDisclosureDomain().getDomain();
 		this.messageContent = message.getMessageContent().getName();
-		this.requester = message.getRequester();
-		this.disclosureId = message.getDisclosureId();
+		Optional<String> requestorIdOpt = message.getDisclosureItem().getRequestorId();
+		this.requestorId = (requestorIdOpt.isPresent()) ? requestorIdOpt.get() : "NONE";       
+		Optional<String> disclosureIdOpt = message.getDisclosureItem().getDisclosureId();
+		this.disclosureId = (disclosureIdOpt.isPresent()) ? disclosureIdOpt.get() : "NONE";
 		this.status = message.getStatus().getStatusCode();
 		this.reason = message.getStatus().getReasonPhrase();
 		this.key = message.getMessageKey();
-		this.message = message.getMessage().toString();
+		this.message = message.getResponseMessage().toString();
 	}
 
 	public String getSessionId() {
@@ -121,11 +125,11 @@ public class SseResponseEventDto implements SseEventData, Serializable {
 	}
 
 	public String getRequester() {
-		return requester;
+		return requestorId;
 	}
 
 	public void setRequester(String requester) {
-		this.requester = requester;
+		this.requestorId = requester;
 	}
 
 	public String getDisclosureId() {

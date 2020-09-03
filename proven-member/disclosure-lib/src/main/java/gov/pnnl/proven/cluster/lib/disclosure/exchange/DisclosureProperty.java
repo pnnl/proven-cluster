@@ -37,29 +37,61 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
-import java.util.Optional;
+import java.util.UUID;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import javax.json.Json;
+import javax.json.JsonValue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 
 /**
- * Represents a data item that is queued for processing as it enters the Proven
- * platform. These items may be queued/processed multiple times depending on the
- * data contents. A buffered item has a {@link BufferedItemState} value
- * indicating it's status in regards to its current processor.
+ * Represents first level key names for a disclosed JSON Proven message. Default
+ * property values, if any, are identified.
+ * 
+ * Note: This must align with the Proven message schema.
  * 
  * @author d3j766
- * 
- * @see BufferedItemState
  *
  */
-public interface BufferedItem {
+public enum DisclosureProperty {
 
-	BufferedItemState getItemState();
+	AUTH_TOKEN("authToken", JsonValue.NULL),
+	DOMAIN("domain", Json.createValue(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)),
+	NAME("name", JsonValue.NULL),
+	CONTENT("content", JsonValue.NULL),
+	QUERY_TYPE("queryType", JsonValue.NULL),
+	QUERY_LANGUAGE("queryLanguage", JsonValue.NULL),
+	DISCLOSURE_ID("disclosureId", JsonValue.NULL),
+	REQUESTOR_ID("requestorId", JsonValue.NULL),
+	IS_STATIC("isStatic", JsonValue.FALSE),
+	IS_TRANSIENT("isTransient", JsonValue.FALSE),
+	MESSAGE("message", JsonValue.NULL),
+	MESSAGE_SCHEMA("messageSchema", JsonValue.NULL);
 
-	void setItemState(BufferedItemState buffereState);
-	
-	DisclosureDomain disclosureDomain();
+	static Logger log = LoggerFactory.getLogger(DisclosureProperty.class);
 
+	private String property;
+	private JsonValue defaultValue;
+
+	DisclosureProperty(String property, JsonValue defaultValue) {
+		this.property = property;
+		this.defaultValue = defaultValue;
+	}
+
+	public String getProperty() {
+		return property;
+	}
+
+	public boolean hasDefault() {
+		return getDefaultValue() != JsonValue.NULL;
+	}
+
+	public JsonValue getDefaultValue() {
+		return defaultValue;
+	}
 }

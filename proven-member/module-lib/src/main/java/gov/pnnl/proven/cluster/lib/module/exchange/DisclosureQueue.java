@@ -58,9 +58,10 @@ import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.IQueue;
 import com.hazelcast.core.ReplicatedMap;
-import com.hazelcast.ringbuffer.Ringbuffer;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
@@ -274,14 +275,14 @@ public class DisclosureQueue extends ExchangeComponent implements Exchanger {
 						entries = new ItemParser(disclosedItem).parse();
 					}
 					// TODO Add support for large CSV parsing
-					// For now, create DisclosureProxy without parsing
+					// For now, create DisclosureItem without parsing
 					else if (DisclosureType.CSV == itemType) {
-						DisclosureItem csvDp = new DisclosureItem(disclosedItem);
-						entries.add(csvDp);
+						DisclosureItem csvDi = new DisclosureItem(disclosedItem);
+						entries.add(csvDi);
 					} else {
 						throw new UnsupportedDisclosureType("Could not determine entry type for large message");
 					}
-				} catch (UnsupportedDisclosureType | JsonParsingException | CsvParsingException e) {
+				} catch (UnsupportedDisclosureType | JsonParsingException | JSONDataValidationException | CsvParsingException e) {
 					log.error("Failed to process large disclosure entry", e);
 					log.error("Entry discarded");
 					e.printStackTrace();
@@ -442,7 +443,7 @@ public class DisclosureQueue extends ExchangeComponent implements Exchanger {
 
 			try {
 				items.add(new DisclosureItem(item));
-			} catch (UnsupportedDisclosureType | JsonParsingException | CsvParsingException e) {
+			} catch ( JsonParsingException | CsvParsingException | JSONDataValidationException | UnsupportedDisclosureType e) {
 				log.error("Failed to process a new disclosure item", e);
 				log.error("Item discarded:");
 				log.error(item);
