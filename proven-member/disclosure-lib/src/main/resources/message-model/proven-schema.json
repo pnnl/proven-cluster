@@ -1,5 +1,7 @@
 {
-	"definitions": {},
+	"definitions": {
+		
+	},
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"$id": "http://proven.pnnl.gov/proven-schema.json",
 	"type": "object",
@@ -8,27 +10,30 @@
 		"authToken": {
 			"$id": "#/properties/authToken",
 			"type": "string",
-			"title": "The Authtoken Schema",
+			"title": "Authorization Token",
+			"description": "A JSON Web token used to describe authorization claims/capabilities for an authenticated user.  See https://tools.ietf.org/html/rfc7519 and Proven documentation.",
 			"default": "",
 			"examples": [
-				"token-value"
+				""
 			],
-			"pattern": "^(.*)$"
+			"pattern": "^[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*$"
 		},
 		"domain": {
 			"$id": "#/properties/domain",
 			"type": "string",
-			"title": "The Domain Schema",
-			"default": "",
+			"title": "Fully qualified domain name",
+			"description": "Defines a data space for data/information discolsed to the Proven platform.",
+			"default": "common.proven.pnnl.gov",
 			"examples": [
 				"gridappsd.pnnl.gov"
 			],
-			"pattern": "^(.*)$"
+			"pattern": "^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$"
 		},
 		"name": {
 			"$id": "#/properties/name",
 			"type": "string",
-			"title": "The Name Schema",
+			"title": "Message name",
+			"description": "User provided name for a disclosed message.",
 			"default": "",
 			"examples": [
 				"SimulationOutput"
@@ -38,92 +43,84 @@
 		"content": {
 			"$id": "#/properties/content",
 			"type": "string",
-			"enum": ["explicit", "implicit", "measurement", "static","structure", "administrative", "continuousquery", "PipelineRequest", "ModuleRequest", "query"],
-			"title": "The Content Schema",
+			"enum": [
+				"explicit",
+				"implicit",
+				"measurement",
+				"static",
+				"structure",
+				"administrative",
+				"continuous",
+				"pipeline",
+				"module",
+				"query"
+			],
+			"title": "Type of message content",
+			"description": "Message content type determines how message will be processed by the Proven platform.  See Proven documentation for a description of each content type.",
 			"default": "",
 			"examples": [
-				"Explicit"
+				""
 			],
 			"pattern": "^(.*)$"
 		},
 		"disclosureId": {
 			"$id": "#/properties/disclosureId",
 			"type": "string",
-			"title": "The Disclosureid Schema",
+			"title": "Disclosure identifier",
+			"description": "User provided information identifying messages disclosed by a user.  This can be used to filter responses from the Proven platform.",
 			"default": "",
 			"examples": [
-				"abc12434"
+				"Simulation_A"
 			],
 			"pattern": "^(.*)$"
 		},
 		"requestorId": {
 			"$id": "#/properties/requestorId",
 			"type": "string",
-			"title": "The Requestorid Schema",
+			"title": "Requestor identifier",
+			"description": "User provided information identifying requestor (i.e. origin or source) of disclosed messages.  This can be used to filter responses from the Proven platform.",
 			"default": "",
 			"examples": [
-				"xyz356436"
+				"Grid_A messages"
 			],
 			"pattern": "^(.*)$"
 		},
 		"isStatic": {
 			"$id": "#/properties/isStatic",
 			"type": "boolean",
-			"title": "The Isstatic Schema",
+			"title": "Static message data",
+			"description": "Message content will be treated as static.  Meaning, data will not be aged off of the memory component of the hybrid store.",
 			"default": false,
 			"examples": [
-				true, false
+				true,
+				false
 			]
 		},
 		"isTransient": {
 			"$id": "#/properties/isTransient",
 			"type": "boolean",
-			"title": "The Istransient Schema",
+			"title": "Transient message data",
+			"description": "Indicates message content is transient, meaning the message will not be persisted to a registered semantic or time series store.  The content will be stored in the memory store, and will be discarded when it ages off.",
 			"default": false,
 			"examples": [
-				true, false
+				true,
+				false
 			]
 		},
-
 		"message": {
 			"$id": "#/properties/message",
 			"type": "object",
-			"title": "The Message Schema"
-
+			"title": "Message",
+			"description": "Contains the message, that is, a JSON object containing the message content. "
 		},
-		"message-schema": {
-			"$id": "#/properties/message-schema",
+		"messageSchema": {
+			"$id": "#/properties/messageSchema",
 			"type": "object",
-			"title": "The Message-schema Schema",
-			"default": null
+			"title": "Message schema",
+			"description": "A JSON object containing the message's JSON schema.  A domain discloser can provide to support server side message validation."
 		}
 	},
-	"allOf": [{
-			"if": {
-				"properties": {
-					"content": {
-						"const": "explicit"
-					}
-				}
-			},
-			"then": {
-				"properties": {
-					"mimeType": {
-						"$id": "#/properties/mimeType",
-						"type": "string",
-						"title": "The Mimetype Schema",
-						"default": "",
-						"examples": [
-							"application/json"
-						],
-						"pattern": "^(.*)$"
-					}
-				},
-				"required": [
-					"mimeType"
-				]
-			}
-		},
+	"allOf": [
 		{
 			"if": {
 				"properties": {
@@ -137,22 +134,34 @@
 					"queryType": {
 						"$id": "#/properties/queryType",
 						"type": "string",
-						"enum": ["hybrid", "stream", "timeseries", "semantic"],
-					    "title": "The queryType Schema",
+						"enum": [
+							"hybrid",
+							"stream",
+							"timeseries",
+							"semantic"
+						],
+						"title": "Query type",
+						"description": "Identifies the type of query.  See Proven documentation for a description of the supported query types.",
 						"default": "",
 						"examples": [
-							"timeseries"
+							""
 						],
 						"pattern": "^(.*)$"
 					},
 					"queryLanguage": {
 						"$id": "#/properties/queryLanguage",
 						"type": "string",
-						"enum": ["sparql", "influxql", "PredicateBuilder", "StreamQuery"],
-						"title": "The queryLanguage Schema",
+						"enum": [
+							"sparql",
+							"influxql",
+							"PredicateBuilder",
+							"StreamQuery"
+						],
+						"title": "Query language",
+						"description": "Identifies the query language.  See Proven documentation for a description of the supported query languages.",
 						"default": "",
 						"examples": [
-							"influxql"
+							""
 						],
 						"pattern": "^(.*)$"
 					}

@@ -508,7 +508,7 @@ public class MessageContentRoutingService {
 
 	}
 
-	private MessageContentRoutingResponse writeKnowledgeMessage(JsonObject val) {
+	private MessageContentRoutingResponse writeKnowledgeMessage(ProvenMessage val) {
 		MessageContentRoutingResponse ret = null;
 		long now = Instant.now().toEpochMilli();
 		String nowStr = ((Long)now).toString();
@@ -523,7 +523,7 @@ public class MessageContentRoutingService {
 		IMap<String, ProvenMessage> provenMessages = client.getMap("gov.pnnl.proven.common.knowledge.message");
 		
 		System.out.println(val.toString());
-		KnowledgeMessage km = new KnowledgeMessage(val, MessageContent.Measurement);
+		KnowledgeMessage km = new KnowledgeMessage(val);
 
 		provenMessages.put(nowStr, (ProvenMessage)km);
 		return new MessageContentRoutingResponse(Response.Status.ACCEPTED,1);
@@ -538,20 +538,20 @@ public class MessageContentRoutingService {
 		try {
 	
 			MessageContentGroup mcg = MessageContentGroup.Knowledge;
-	        System.out.println("!!!!!!!!ADD!!!!!!!!!!!!!!!!!     " + detectObjectType(sourceMessage.getMessage()));
-	        if (detectObjectType(sourceMessage.getMessage()).equalsIgnoreCase("I")) {
-	        	JsonObject x = simulationInput2ProvenMeasurement (sourceMessage.getMessage()); 
-	        	loadResponse = writeKnowledgeMessage(x);
-	        } else if (detectObjectType(sourceMessage.getMessage()).equalsIgnoreCase("O")) {
-	        	JsonObject x = simulationOutput2ProvenMeasurement (sourceMessage.getMessage()); 
-	        	loadResponse = writeKnowledgeMessage(x);
+	        System.out.println("!!!!!!!!ADD!!!!!!!!!!!!!!!!!     " + detectObjectType(sourceMessage.getDisclosureItem().getMessage()));
+	        if (detectObjectType(sourceMessage.getDisclosureItem().getMessage()).equalsIgnoreCase("I")) {
+	        	JsonObject x = simulationInput2ProvenMeasurement (sourceMessage.getDisclosureItem().getMessage()); 
+	        	loadResponse = writeKnowledgeMessage(sourceMessage);
+	        } else if (detectObjectType(sourceMessage.getDisclosureItem().getMessage()).equalsIgnoreCase("O")) {
+	        	JsonObject x = simulationOutput2ProvenMeasurement (sourceMessage.getDisclosureItem().getMessage()); 
+	        	loadResponse = writeKnowledgeMessage(sourceMessage);
 	        }
 
 			JsonReader reader = Json.createReader(new StringReader(jsonb.toJson(loadResponse)));
 			JsonObject loadResponseObject = reader.readObject();
 			//JsonReader reader = Json.createReader(new StringReader(""));
-			ret = new ResponseMessage(Response.Status.fromStatusCode(loadResponse.statusCode), sourceMessage,
-					loadResponseObject);
+			ret = new ResponseMessage(Response.Status.fromStatusCode(loadResponse.statusCode), loadResponseObject,
+					sourceMessage);
 
 		} catch (Exception ex) {
 
@@ -583,8 +583,8 @@ public class MessageContentRoutingService {
 	private ResponseMessage createResponseMessage(MessageContentRoutingResponse mcrResponse, ProvenMessage sourceMessage) {
 	JsonReader reader = Json.createReader(new StringReader(jsonb.toJson(mcrResponse)));
 	JsonObject loadResponseObject = reader.readObject();
-	return new ResponseMessage(Response.Status.fromStatusCode(mcrResponse.statusCode), sourceMessage,
-			loadResponseObject);
+	return new ResponseMessage(Response.Status.fromStatusCode(mcrResponse.statusCode), loadResponseObject,
+			sourceMessage);
 }	
 	
 	

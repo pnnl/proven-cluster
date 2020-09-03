@@ -60,6 +60,7 @@ import javax.json.stream.JsonParserFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.EntryParserException;
@@ -258,13 +259,13 @@ public class ItemParser {
 
 	}
 
-	public List<DisclosureItem> parse() {
+	public List<DisclosureItem> parse() throws JSONDataValidationException {
 
 		log.debug("PARSER STARTED");
 		List<DisclosureItem> ret = parse(null);
-		for (DisclosureItem dp : ret) {
+		for (DisclosureItem di : ret) {
 			log.debug("START CHUNKED MESSAGE################");
-			log.debug(dp.getJsonEntry().toString());
+			log.debug(di.getMessage().toString());
 			log.debug("END CHUNKED MESSAGE  ################");
 		}
 
@@ -272,7 +273,7 @@ public class ItemParser {
 		return ret;
 	}
 
-	private List<DisclosureItem> parse(ItemBuilder eBuilder) {
+	private List<DisclosureItem> parse(ItemBuilder eBuilder) throws JSONDataValidationException {
 
 		List<DisclosureItem> ret = new ArrayList<>();
 		boolean isRoot = false;
@@ -425,7 +426,7 @@ public class ItemParser {
 		return ret;
 	}
 
-	private DisclosureItem buildMessage() {
+	private DisclosureItem buildMessage() throws JSONDataValidationException {
 
 		DisclosureItem ret = null;
 		ItemBuilder temp;

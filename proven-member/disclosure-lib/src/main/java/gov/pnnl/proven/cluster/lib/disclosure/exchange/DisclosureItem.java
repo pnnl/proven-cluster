@@ -40,10 +40,19 @@
 package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.json.JsonObject;
-import javax.json.stream.JsonParsingException;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
+import org.everit.json.schema.loader.SchemaLoader;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,62 +60,194 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageModel;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 
 /**
- * Represents a disclosed data item originating from an internal or external
- * source.
+ * Represents data provided to the Proven platform. This may be from an internal
+ * or external source. Property values are extracted and made available for
+ * downstream processing.
+ * 
+ * This class wraps the provided data item and validates it against the Proven
+ * message schema at construction time ensuring it adheres to message formating
+ * required by the Proven; validation failure will throw an exception.
  * 
  * @author d3j766
- *
+ * 
+ * @see DisclosureProperty
+ * 
  */
 public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable {
-
-	private static final long serialVersionUID = 1L;
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
 
 	private BufferedItemState bufferedState;
-	private JsonObject jsonEntry;
+	private Map<DisclosureProperty, JsonValue> itemProperties = new HashMap<>();
 
 	public DisclosureItem() {
 	}
 
 	/**
-	 * Constructor for and internally provided JSON object.
+	 * Proven Message schema validation is performed for provided JSON string.
+	 * Validation error will throw an exception.
 	 * 
 	 * @param entry
+	 *            the disclosed JSON string
+	 * 
+	 * @throws UnsupportedDisclosureType
+	 *             if string does not represent a supported
+	 *             {@link DisclosureType}
+	 * 
+	 * @throws JSONDataValidationException
+	 *             if message can not be validated as a Proven Message
+	 * 
 	 */
-	public DisclosureItem(JsonObject jsonEntry) {
-		this.jsonEntry = jsonEntry;
-		bufferedState = BufferedItemState.New;
+	public DisclosureItem(String item) throws JSONDataValidationException, UnsupportedDisclosureType {
+		this(DisclosureType.getJsonItem(item));
 	}
 
 	/**
-	 * Constructor for and externally provided String object.
-
+	 * Proven Message schema validation is performed for provided JSON object.
+	 * Validation error will throw an exception.
 	 * 
 	 * @param entry
-	 *            the disclosed string value
+	 *            the disclosed JSON object
 	 * 
 	 * @throws UnsupportedDisclosureType
 	 *             if string is not a supported {@link DisclosureType}
+	 * 
+	 * @throws JSONDataValidationException
+	 *             if message can not be validated as a Proven Message
+	 * 
 	 */
-	public DisclosureItem(String entry) throws UnsupportedDisclosureType {
-		this.jsonEntry = DisclosureType.getJsonEntry(entry);
-		bufferedState = BufferedItemState.New;
+	public DisclosureItem(JsonObject item) throws JSONDataValidationException {
+
+		this.bufferedState = BufferedItemState.New;
+
+		// Validate item against the Proven message schema
+		try {
+			// Disclosure type and schema validation
+			MessageModel mm = MessageModel.getInstance(new DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN));
+			String jsonApi = mm.getApiSchema();
+			JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
+			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
+			jsonSchema.validate(item);
+			log.debug("Valid JSON Data item");
+
+		} catch (ValidationException e) {
+			throw new JSONDataValidationException(
+					"DisclosureItem construction failed, invalid message Data: " + e.getAllMessages(), e);
+		} catch (Exception e) {
+			throw new JSONDataValidationException(
+					"DisclosureItem construction failed, invalid message Data: " + e.getMessage(), e);
+		}
+
+		for (DisclosureProperty prop : DisclosureProperty.values()) {
+			String propName = prop.getProperty();
+			boolean hasValue = (item.containsKey(propName));
+			if (hasValue && (item.get(propName) != JsonValue.NULL)) {
+				JsonValue value = item.get(propName);
+				itemProperties.put(prop, value);
+			} else {
+				if (prop.hasDefault()) {
+					itemProperties.put(prop, prop.getDefaultValue());
+				} else {
+					itemProperties.put(prop, JsonValue.NULL);
+				}
+			}
+		}
 	}
 
-	public JsonObject getJsonEntry() {
-		return jsonEntry;
+	/**
+	 * Copy constructor
+	 */
+	public DisclosureItem(DisclosureItem di) {
+		this.bufferedState = BufferedItemState.New;
+		this.itemProperties = new HashMap<>(di.itemProperties);
 	}
 
-	public DisclosureMessage getDisclosureMessage()
-			throws UnsupportedDisclosureType, JsonParsingException, Exception {
-		return new DisclosureMessage(jsonEntry);
+	public Optional<String> getAuthToken() {
+		return getStringProp(DisclosureProperty.AUTH_TOKEN);
+	}
+
+	public DisclosureDomain getDisclosureDomain() {
+		return new DisclosureDomain(getStringProp(DisclosureProperty.DOMAIN).get());
+	}
+
+	public Optional<String> getName() {
+		return getStringProp(DisclosureProperty.NAME);
+	}
+
+	public MessageContent getContent() {
+		return MessageContent.getValue(getStringProp(DisclosureProperty.CONTENT).get());
+	}
+
+	public Optional<String> getQueryType() {
+		return getStringProp(DisclosureProperty.QUERY_TYPE);
+	}
+
+	public Optional<String> getQueryLanguage() {
+		return getStringProp(DisclosureProperty.QUERY_LANGUAGE);
+	}
+
+	public Optional<String> getDisclosureId() {
+		return getStringProp(DisclosureProperty.DISCLOSURE_ID);
+	}
+
+	public Optional<String> getRequestorId() {
+		return getStringProp(DisclosureProperty.REQUESTOR_ID);
+	}
+
+	public boolean isStatic() {
+		return getBooleanProp(DisclosureProperty.IS_STATIC).get();
+	}
+
+	public boolean isTransient() {
+		return getBooleanProp(DisclosureProperty.IS_TRANSIENT).get();
+	}
+
+	public JsonObject getMessage() {
+		return getObjectProp(DisclosureProperty.MESSAGE).get();
+	}
+
+	public Optional<JsonObject> getMessageSchema() {
+		return getObjectProp(DisclosureProperty.MESSAGE);
+	}
+
+	private Optional<String> getStringProp(DisclosureProperty prop) {
+		Optional<String> ret = Optional.empty();
+		JsonValue val = itemProperties.get(prop);
+		if (val != JsonValue.NULL) {
+			ret = Optional.of(((JsonString) val).getString());
+		}
+		return ret;
+	}
+
+	private Optional<Boolean> getBooleanProp(DisclosureProperty prop) {
+		Optional<Boolean> ret = Optional.empty();
+		JsonValue val = itemProperties.get(prop);
+		if (val != JsonValue.NULL) {
+			if (val == JsonValue.TRUE) {
+				ret = Optional.of(true);
+			} else {
+				ret = Optional.of(false);
+			}
+		}
+		return ret;
+	}
+
+	private Optional<JsonObject> getObjectProp(DisclosureProperty prop) {
+		Optional<JsonObject> ret = Optional.empty();
+		JsonValue val = itemProperties.get(prop);
+		if (val != JsonValue.NULL) {
+			ret = Optional.of((JsonObject) val);
+		}
+		return ret;
 	}
 
 	@Override
@@ -122,18 +263,13 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeUTF(this.bufferedState.toString());
-		boolean nullJsonEntry = (null == this.jsonEntry);
-		out.writeBoolean(nullJsonEntry);
-		if (!nullJsonEntry)
-			out.writeByteArray(MessageJsonUtils.jsonOut(this.jsonEntry));
+		out.writeObject(itemProperties);
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
-		boolean nullJsonEntry = in.readBoolean();
-		if (!nullJsonEntry)
-			this.jsonEntry = MessageJsonUtils.jsonIn(in.readByteArray());
+		this.itemProperties = in.readObject();
 	}
 
 	@Override
@@ -143,6 +279,6 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_PROXY_TYPE;
+		return ProvenMessageIDSFactory.DISCLOSURE_ITEM_TYPE;
 	}
 }

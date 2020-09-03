@@ -155,20 +155,20 @@ public class T3Service {
 		try {
 	
 			// Construct initial data model
-			String message = MessageUtils.prependContext(sourceMessage.getDomain(),
-					sourceMessage.getMessage().toString());
+			String message = MessageUtils.prependContext(sourceMessage.getDisclosureItem().getDisclosureDomain(),
+					sourceMessage.getDisclosureItem().getMessage().toString());
 			Model dataModel = MessageUtils.createMessageDataModel(sourceMessage, message);
 
 			// SHACL rule processing to produce final message data model
-			dataModel = MessageUtils.addShaclRuleResults(sourceMessage.getDomain(), dataModel);
+			dataModel = MessageUtils.addShaclRuleResults(sourceMessage.getDisclosureItem().getDisclosureDomain(), dataModel);
 
 			// Load message into T3 store and return response
 			loadResponse = loadMessageData(dataModel, sourceMessage);
 			JsonReader reader = Json.createReader(new StringReader(jsonb.toJson(loadResponse)));
 			//JsonReader reader = Json.createReader(new StringReader(""));
 			JsonObject loadResponseObject = reader.readObject();
-			ret = new ResponseMessage(Response.Status.fromStatusCode(loadResponse.statusCode), sourceMessage,
-					loadResponseObject);
+			ret = new ResponseMessage(Response.Status.fromStatusCode(loadResponse.statusCode), loadResponseObject,
+					sourceMessage);
 
 		} catch (Exception ex) {
 
@@ -193,8 +193,8 @@ public class T3Service {
 		JsonReader reader = Json.createReader(new StringReader(jsonb.toJson(t3Response)));
 		//JsonReader reader = Json.createReader(new StringReader(""));
 		JsonObject loadResponseObject = reader.readObject();
-		return new ResponseMessage(Response.Status.fromStatusCode(t3Response.statusCode), sourceMessage,
-				loadResponseObject);
+		return new ResponseMessage(Response.Status.fromStatusCode(t3Response.statusCode), loadResponseObject,
+				sourceMessage);
 	}
 
 	/*
@@ -224,7 +224,7 @@ public class T3Service {
 				}
 			}).start();
 			ValueFactoryImpl vf = ValueFactoryImpl.getInstance();
-			URI context = vf.createURI("http://" + sourceMessage.getDomain().getDomain());
+			URI context = vf.createURI("http://" + sourceMessage.getDisclosureItem().getDisclosureDomain().getDomain());
 			RemoteRepository.AddOp operation = new RemoteRepository.AddOp(pis, addFormat);
 			operation.setContext(context);
 			long t3Count = repo.add(operation);
