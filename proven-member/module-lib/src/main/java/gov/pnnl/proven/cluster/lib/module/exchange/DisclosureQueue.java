@@ -57,10 +57,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.IQueue;
-import com.hazelcast.core.ReplicatedMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;

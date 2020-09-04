@@ -46,6 +46,7 @@ import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 
