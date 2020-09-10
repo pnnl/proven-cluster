@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
+
 /**
  * Represents a data item that is queued for processing as it enters the Proven
  * platform. These items may be queued/processed multiple times depending on the
@@ -57,3 +58,5 @@ public interface BufferedItem {
 	void setItemState(BufferedItemState buffereState);
 
 }
+
+

@@ -43,6 +43,8 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -429,7 +431,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			try {
 				MessageContent mc = message.getMessageContent();
 				MessageStreamType mst = MessageStreamType.getType(mc);
-				DisclosureDomain dd = message.getDomain();
+				DisclosureDomain dd = message.getDisclosureItem().getDisclosureDomain();
 				SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 				Set<SseSession> sessions = sessionRegistry.get(se);
 				boolean hasSessions = ((null != sessions) && (!sessions.isEmpty()));
@@ -440,8 +442,8 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 						// Check if event data should be sent to session
 						boolean hasDomain = session.hasDomain(dd);
-						boolean hasContent = session.hasContent(mc);
-						boolean hasRequester = session.hasRequester(message.getRequester());
+						boolean hasContent = session.hasContent(mc);						
+						boolean hasRequester = session.hasRequestor(message.getDisclosureItem().getRequestorId());
 						boolean sendEvent = ((hasDomain) && (hasContent) && (hasRequester));
 
 						if (sendEvent) {

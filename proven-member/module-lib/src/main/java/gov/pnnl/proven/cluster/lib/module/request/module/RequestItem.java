@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
 import gov.pnnl.proven.cluster.lib.module.exchange.ServiceBuffer;
 
@@ -60,7 +61,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.ServiceBuffer;
  * @author d3j766
  *
  */
-public class RequestItem<T> implements BufferedItem, Serializable {
+public class RequestItem<T> extends DisclosureItem implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

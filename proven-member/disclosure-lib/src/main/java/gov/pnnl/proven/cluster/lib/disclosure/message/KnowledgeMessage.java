@@ -41,16 +41,19 @@ package gov.pnnl.proven.cluster.lib.disclosure.message;
 
 import java.io.IOException;
 import java.io.Serializable;
-import javax.json.JsonObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 /**
- * Represents a knowledge message.  Content type is determined at disclosure.    
- *  
+ * Represents a knowledge message. Provides semantic information for processing
+ * and storage in the hybrid store. Knowledge content is comprised of several
+ * MessageContent types.
+ * 
  * @author d3j766
  *
  * @see MessageContent
@@ -59,35 +62,24 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 public class KnowledgeMessage extends ProvenMessage implements IdentifiedDataSerializable, Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static Logger log = LoggerFactory.getLogger(KnowledgeMessage.class);
-	
-	MessageContent contentType;
-	
-	
+
 	public KnowledgeMessage() {
 	}
 
-	public KnowledgeMessage(JsonObject message, MessageContent contentType) {
-		super(message);
-		this.contentType = contentType;
-	}
-		
-	@Override
-	public MessageContent getMessageContent() {
-		return contentType;
+	public KnowledgeMessage(ProvenMessage source) {
+		super(source);
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
-		this.contentType = MessageContent.valueOf(in.readUTF());
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
-		out.writeUTF(this.contentType.toString());
 	}
 
 	@Override
@@ -98,6 +90,6 @@ public class KnowledgeMessage extends ProvenMessage implements IdentifiedDataSer
 	@Override
 	public int getId() {
 		return ProvenMessageIDSFactory.KNOWLEDGE_MESSAGE_TYPE;
-	}	
-	
+	}
+
 }

@@ -147,11 +147,11 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 				items.forEach((item) -> {
 					try {
-						DisclosureMessage dm = item.getDisclosureMessage();
-						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDomain(), mst);
+						DisclosureMessage dm = new DisclosureMessage(item);
+						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDisclosureItem().getDisclosureDomain(), mst);
 						msp.addMessage(dm);
 						log.debug("Added Disclosure messsage to stream :: " + dm.getMessageKey());
-					} catch (UnsupportedMessageContentException | UnsupportedDisclosureType | JsonParsingException
+					} catch (UnsupportedMessageContentException | JsonParsingException
 							| InvalidDisclosureDomainException | CsvParsingException e) {
 						log.error("Failed to create and add new disclosure message to stream", e);
 

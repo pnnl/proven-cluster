@@ -1,0 +1,12 @@
+{
+	"authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjJ9.tbDepxpstvGdW8TC3G8zg4B6rUYAOvfzdceoH48wgRQ",
+	"domain": "common.proven.pnnl.gov",
+	"name": "SimulationOutput",
+	"content": "explicit",
+	"disclosureId": "abc244",
+	"requestorId": "xyx456",
+	"isStatic": true,
+	"isTransient": true,
+	"message": {"test": "message"},
+	"message-schema": {}
+}

@@ -37,90 +37,61 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.message;
+package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
-import java.io.IOException;
-import java.io.Serializable;
+import java.util.UUID;
+
+import javax.json.Json;
+import javax.json.JsonValue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 
 /**
- * Disclosure messages represent the original input message disclosed to the
- * platform. It is responsible for transforming its message content into either
- * a {@code KnowledgeMessage} or {@code RequestMessage} for downstream message
- * processing.
+ * Represents first level key names for a disclosed JSON Proven message. Default
+ * property values, if any, are identified.
+ * 
+ * Note: This must align with the Proven message schema.
  * 
  * @author d3j766
  *
  */
-public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSerializable, Serializable {
+public enum DisclosureProperty {
 
-	private static final long serialVersionUID = 1L;
-	private static Logger log = LoggerFactory.getLogger(DisclosureMessage.class);
+	AUTH_TOKEN("authToken", JsonValue.NULL),
+	DOMAIN("domain", Json.createValue(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)),
+	NAME("name", JsonValue.NULL),
+	CONTENT("content", JsonValue.NULL),
+	QUERY_TYPE("queryType", JsonValue.NULL),
+	QUERY_LANGUAGE("queryLanguage", JsonValue.NULL),
+	DISCLOSURE_ID("disclosureId", JsonValue.NULL),
+	REQUESTOR_ID("requestorId", JsonValue.NULL),
+	IS_STATIC("isStatic", JsonValue.FALSE),
+	IS_TRANSIENT("isTransient", JsonValue.FALSE),
+	MESSAGE("message", JsonValue.NULL),
+	MESSAGE_SCHEMA("messageSchema", JsonValue.NULL);
 
-	/**
-	 * True, if the disclosed content is in the Request message group.
-	 */
-	boolean isRequest;
+	static Logger log = LoggerFactory.getLogger(DisclosureProperty.class);
 
-	/**
-	 * True, if the disclosed content is in the Knowledge message group.
-	 */
-	boolean isKnowledge;
+	private String property;
+	private JsonValue defaultValue;
 
-	/**
-	 * True, if the disclosed content is a {@code MessageContent#Measurement}.
-	 */
-	boolean hasMeasurements;
-
-	public DisclosureMessage() {
+	DisclosureProperty(String property, JsonValue defaultValue) {
+		this.property = property;
+		this.defaultValue = defaultValue;
 	}
 
-	public DisclosureMessage(DisclosureItem di) {
-		super(di);
-		MessageContent disclosedContent = di.getContent();
-		MessageContentGroup disclosedContentGroup = MessageContentGroup.getType(di.getContent());
-		isRequest = MessageContentGroup.Request == disclosedContentGroup;
-		isKnowledge = MessageContentGroup.Knowledge == disclosedContentGroup;
-		hasMeasurements = MessageContent.Measurement == disclosedContent;
+	public String getProperty() {
+		return property;
 	}
 
-	@Override
-	public MessageContent getMessageContent() {
-		return MessageContent.Disclosure;
+	public boolean hasDefault() {
+		return getDefaultValue() != JsonValue.NULL;
 	}
 
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.isRequest = in.readBoolean();
-		this.isKnowledge = in.readBoolean();
-		this.hasMeasurements = in.readBoolean();
+	public JsonValue getDefaultValue() {
+		return defaultValue;
 	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeBoolean(this.isRequest);
-		out.writeBoolean(this.isKnowledge);
-		out.writeBoolean(this.hasMeasurements);
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_MESSAGE_TYPE;
-	}
-
 }

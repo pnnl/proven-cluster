@@ -179,11 +179,11 @@ public class TsService {
         ldbuilder.add("id", "id");
         ldbuilder.add("date", "2020");
 		JsonObject loadResponseObject = ldbuilder.build();
-		ret = new ResponseMessage(Response.Status.CREATED, sourceMessage,
-				loadResponseObject);
+		ret = new ResponseMessage(Response.Status.CREATED, loadResponseObject,
+				sourceMessage);
 	
 			// Construct initial data model
-			JsonObject mObject = sourceMessage.getMessage();
+			JsonObject mObject = sourceMessage.getDisclosureItem().getMessage();
 
 			
 			if (useIdb) {
@@ -250,8 +250,8 @@ public class TsService {
 				JsonReader  reader = Json.createReader(new StringReader(jsonb.toJson("{}")));
 				loadResponseObject = reader.readObject();
 				//JsonReader reader = Json.createReader(new StringReader(""));
-				ret = new ResponseMessage(Response.Status.CREATED, sourceMessage,
-						loadResponseObject);
+				ret = new ResponseMessage(Response.Status.CREATED, loadResponseObject,
+						sourceMessage);
 				int i = 0;
 				i = i + 1;
 				return ret;
@@ -309,8 +309,8 @@ public class TsService {
 		JsonReader reader = Json.createReader(new StringReader(jsonb.toJson(tsResponse)));
 		//JsonReader reader = Json.createReader(new StringReader(""));
 		JsonObject loadResponseObject = reader.readObject();
-		return new ResponseMessage(Response.Status.fromStatusCode(tsResponse.statusCode), sourceMessage,
-				loadResponseObject);
+		return new ResponseMessage(Response.Status.fromStatusCode(tsResponse.statusCode), loadResponseObject,
+				sourceMessage);
 	}
 
 	/*
