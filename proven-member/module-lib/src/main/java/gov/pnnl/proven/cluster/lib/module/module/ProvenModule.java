@@ -65,6 +65,7 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
+import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**
@@ -89,6 +90,9 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	@Inject
 	protected PayaraMicroRuntime pmr;
+	
+	@Inject
+	ComponentRegistry cr;
 
 	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
 

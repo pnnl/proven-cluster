@@ -64,7 +64,6 @@ public abstract class ManagerComponent extends ManagedComponent {
 	Logger log;
 
 	public ManagerComponent() {
-		super();
-		group = ComponentGroup.Manager;
+		super(ComponentGroup.Manager);
 	}
 }

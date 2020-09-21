@@ -61,8 +61,7 @@ public abstract class ModuleComponent extends ManagedComponent {
 	Logger log;
 
 	public ModuleComponent() {
-		super();
-		group = ComponentGroup.Module;
+		super(ComponentGroup.Module);
 	}
 
 }

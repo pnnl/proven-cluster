@@ -221,7 +221,7 @@ public class ComponentRegistry implements Exchange {
 	/**
 	 * @return this module's exchange queue
 	 */
-	private IQueue localModuleExchangeQueue() {
+	private IQueue<ModuleEntry> localModuleExchangeQueue() {
 		return hzi.getQueue(props.getModuleExchangeQueueName() + "." + pm.getId().toString());
 	}
 

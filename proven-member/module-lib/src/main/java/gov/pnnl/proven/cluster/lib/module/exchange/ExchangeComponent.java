@@ -50,6 +50,7 @@ import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.IntegerProp;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
 
 /**
  * 
@@ -75,18 +76,23 @@ public abstract class ExchangeComponent extends ManagedComponent {
 	 * the module's ComponentRegistry.
 	 */
 	IQueue<BufferedItem> exchangeQueue;
+	//IQueue<BufferedItem> exchangeQueue = hzi.getQueue("d");
 
 	// TODO add reader implementation for exchange queue as well as other
 	// methods supporting exchange queues.
+			
+	protected String getExchangeQueueName() {
+		return null;
+	}
 
 	/**
-	 * Entry property definitions
+	 * Entry property definitions for ExchangeComponent's
 	 */
+	public static final StringProp EXCHANGE_QUEUE_NAME = new StringProp("exchangeQueueName");
 	public static final IntegerProp REMAINING_CAPACITY_PERCENT = new IntegerProp("remainingCapacityPercent");
 
 	public ExchangeComponent() {
-		super();
-		group = ComponentGroup.Exchange;
+		super(ComponentGroup.Exchange);
 	}
 
 }

@@ -69,13 +69,11 @@ public class ProvenDisclosureMap extends MaintenanceOperation {
 
 	@Inject
 	Logger log;
-	
-	DisclosureQueue dq = (DisclosureQueue) operator;
 
 	@Inject
 	HazelcastInstance hzi;
-	
-	@Inject 
+
+	@Inject
 	ComponentRegistry cr;
 
 	MemberProperties props = MemberProperties.getInstance();
@@ -110,10 +108,10 @@ public class ProvenDisclosureMap extends MaintenanceOperation {
 		 * Update map based on component's status.
 		 */
 		provenDisclosureQueues = hzi.getReplicatedMap(props.getProvenDisclosureMapName());
-		if (dq.getStatus().equals(ManagedStatus.Online)) {
-			provenDisclosureQueues.put(dq.entryIdentifier().toString(), true);
+		if (getOperator().getStatus().equals(ManagedStatus.Online)) {
+			provenDisclosureQueues.put(getOperator().entryIdentifier().toString(), true);
 		} else {
-			provenDisclosureQueues.put(dq.entryIdentifier().toString(), false);
+			provenDisclosureQueues.put(getOperator().entryIdentifier().toString(), false);
 		}
 
 		return ret;

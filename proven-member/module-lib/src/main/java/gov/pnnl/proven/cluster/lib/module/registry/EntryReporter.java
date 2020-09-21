@@ -49,7 +49,7 @@ public interface EntryReporter {
 	 * @return the component entry
 	 */
 	ComponentEntry entry();
-
+	
 	/**
 	 * Provides a managed component's EntryIdentifier. All managed components are
 	 * classified by their entry identifier, and contain the following domain

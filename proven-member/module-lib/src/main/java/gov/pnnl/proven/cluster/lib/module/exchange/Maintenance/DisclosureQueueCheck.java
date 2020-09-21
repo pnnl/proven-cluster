@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
+import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
 
 /**
  * 
@@ -60,6 +61,8 @@ public class DisclosureQueueCheck extends MaintenanceOperation {
 
 	@Inject
 	Logger log;
+	
+	DisclosureQueue dq = (DisclosureQueue) operator;
 
 	public DisclosureQueueCheck() {
 		super();

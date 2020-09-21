@@ -82,7 +82,7 @@ public class EntryLocation implements IdentifiedDataSerializable, Serializable, 
 
 	public EntryLocation() {
 	}
-	
+
 	public EntryLocation(UUID memberId, UUID moduleId, UUID managerId, UUID creatorId) {
 		location[MEMBER] = memberId.toString();
 		location[MODULE] = moduleId.toString();
@@ -104,6 +104,12 @@ public class EntryLocation implements IdentifiedDataSerializable, Serializable, 
 
 	public UUID getMemberId() {
 		return UUID.fromString(location[MEMBER]);
+	}
+
+	@Override
+	public String toString() {
+		return getModuleId().toString() + "_" + getMemberId().toString() + "_" + getManagerId().toString() + "_"
+				+ getCreatorId().toString();
 	}
 
 	@Override

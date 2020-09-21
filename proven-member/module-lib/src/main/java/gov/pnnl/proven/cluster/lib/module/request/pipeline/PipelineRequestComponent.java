@@ -67,8 +67,7 @@ public abstract class PipelineRequestComponent extends ManagedComponent {
 	Logger log;
 
 	public PipelineRequestComponent() {
-		super();
-		group = ComponentGroup.PipelineRequest;
+		super(ComponentGroup.PipelineRequest);
 	}
 
 }

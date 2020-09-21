@@ -67,6 +67,7 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotation
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**
@@ -182,10 +183,10 @@ public class ManagedInterceptor {
 		Object result = ctx.proceed();
 
 		/**
-		 * Set location values for constructed component if it is not the module
-		 * component. The module component, being the root component, has
-		 * already been initialized and its location values are passed down the
-		 * tree.
+		 * Set entry identifier and location values for constructed component if
+		 * it is not the module component. The module component, being the root
+		 * component, has already been initialized and its values are passed
+		 * down the tree.
 		 */
 		if (!moduleComponent) {
 
@@ -202,6 +203,9 @@ public class ManagedInterceptor {
 					UUID.fromString(managed.managerId()),
 					UUID.fromString(managed.creatorId())));
 			//@formatter:on
+			log.debug("MANAGED INTERCEPTOR - SETTING LOCATION");
+			log.debug(mc.entryLocation().toString());
+			log.debug("SETTING LOCATION COMPLETE");
 
 		}
 
