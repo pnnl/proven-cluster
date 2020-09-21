@@ -47,6 +47,7 @@ import java.util.Optional;
 import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.json.JsonValue.ValueType;
 
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
@@ -136,7 +137,10 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 			String jsonApi = mm.getApiSchema();
 			JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
 			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
-			jsonSchema.validate(item);
+            JSONObject newitem = new JSONObject(new JSONTokener(item.toString()));	
+			
+
+			jsonSchema.validate(newitem);
 			log.debug("Valid JSON Data item");
 
 		} catch (ValidationException e) {
