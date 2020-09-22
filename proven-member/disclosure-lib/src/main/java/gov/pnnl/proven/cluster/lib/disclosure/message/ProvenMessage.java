@@ -132,6 +132,7 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	private DisclosureItem disclosureItem;
 
 	public ProvenMessage() {
+		this.disclosureItem = new DisclosureItem();
 	}
 
 	/**

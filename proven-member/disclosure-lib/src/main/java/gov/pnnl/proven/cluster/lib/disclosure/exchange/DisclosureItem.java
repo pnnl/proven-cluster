@@ -42,12 +42,12 @@ package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
 
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
@@ -116,6 +116,8 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 	 * Proven Message schema validation is performed for provided JSON object.
 	 * Validation error will throw an exception.
 	 * 
+	 * NOTE: 
+	 * 
 	 * @param entry
 	 *            the disclosed JSON object
 	 * 
@@ -135,12 +137,9 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 			// Disclosure type and schema validation
 			MessageModel mm = MessageModel.getInstance(new DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN));
 			String jsonApi = mm.getApiSchema();
-			JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
+			org.json.JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
 			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
-            JSONObject newitem = new JSONObject(new JSONTokener(item.toString()));	
-			
-
-			jsonSchema.validate(newitem);
+			jsonSchema.validate(new org.json.JSONObject(item.toString()));
 			log.debug("Valid JSON Data item");
 
 		} catch (ValidationException e) {
