@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import javax.json.JsonObject;
@@ -65,8 +66,10 @@ import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageModel;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric;
 
 /**
  * Represents data provided to the Proven platform. This may be from an internal
@@ -115,6 +118,8 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 	 * Proven Message schema validation is performed for provided JSON object.
 	 * Validation error will throw an exception.
 	 * 
+	 * NOTE: 
+	 * 
 	 * @param entry
 	 *            the disclosed JSON object
 	 * 
@@ -134,9 +139,9 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 			// Disclosure type and schema validation
 			MessageModel mm = MessageModel.getInstance(new DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN));
 			String jsonApi = mm.getApiSchema();
-			JSONObject jsonApiSchema = new JSONObject(new JSONTokener(jsonApi));
+			org.json.JSONObject jsonApiSchema = new org.json.JSONObject(new JSONTokener(jsonApi));
 			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
-			jsonSchema.validate(item);
+			jsonSchema.validate(new org.json.JSONObject(item.toString()));
 			log.debug("Valid JSON Data item");
 
 		} catch (ValidationException e) {
@@ -263,13 +268,22 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeUTF(this.bufferedState.toString());
-		out.writeObject(itemProperties);
+		out.writeInt(((null == itemProperties) ? 0 : itemProperties.size()));
+		for (Entry<DisclosureProperty, JsonValue> entry : itemProperties.entrySet()) {
+			out.writeUTF(entry.getKey().toString());
+			out.writeByteArray(MessageJsonUtils.jsonValueOut(entry.getValue()));
+		}
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		this.bufferedState = BufferedItemState.valueOf(in.readUTF());
-		this.itemProperties = in.readObject();
+		int count = in.readInt();
+		for (int i = 0; i < count; i++) {
+			DisclosureProperty dp = DisclosureProperty.valueOf(in.readUTF());
+			JsonValue jv = MessageJsonUtils.jsonValueIn(in.readByteArray());
+			itemProperties.put(dp, jv);
+		} 
 	}
 
 	@Override
