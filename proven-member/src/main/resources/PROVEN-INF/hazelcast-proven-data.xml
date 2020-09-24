@@ -107,8 +107,8 @@
 		</data-serializable-factories>
 	</serialization>
 	
-	<cp-subsystem>
-        <cp-member-count>0</cp-member-count>
+<!-- 	<cp-subsystem> -->
+<!--         <cp-member-count>3</cp-member-count> -->
 <!--         <group-size>3</group-size> -->
 <!--         <session-time-to-live-seconds>300</session-time-to-live-seconds> -->
 <!--         <session-heartbeat-interval-seconds>5</session-heartbeat-interval-seconds> -->
@@ -116,7 +116,7 @@
 <!--         <fail-on-indeterminate-operation-state>false</fail-on-indeterminate-operation-state> -->
 <!--         <persistence-enabled>true</persistence-enabled> -->
 <!--         <base-dir>/custom-cp-dir</base-dir> -->
-    </cp-subsystem>
+<!--     </cp-subsystem> -->
 
 	<!-- ##################################################################################### -->
 

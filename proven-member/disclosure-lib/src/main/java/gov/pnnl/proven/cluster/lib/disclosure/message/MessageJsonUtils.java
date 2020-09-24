@@ -60,6 +60,35 @@ import javax.json.stream.JsonGenerator;
 public class MessageJsonUtils {
 		
 
+	public static JsonValue jsonValueIn(byte[] content) throws IOException {
+
+		JsonValue ret = null;
+
+		if (content.length > 0) {
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(content);
+					JsonReader reader = Json.createReader(bais)) {
+				ret = reader.readValue();
+			}
+		}
+		return ret;
+	}
+
+	public static byte[] jsonValueOut(JsonValue value) throws IOException {
+
+		byte[] ret = new byte[0];
+
+		if (null != value) {
+			try (ByteArrayOutputStream oos = new ByteArrayOutputStream(); JsonWriter writer = Json.createWriter(oos)) {
+				writer.write(value);
+				writer.close();
+				oos.flush();
+				ret = oos.toByteArray();
+			}
+		}
+		return ret;
+	}
+	
+	
 	public static JsonObject jsonIn(byte[] content) throws IOException {
 
 		JsonObject ret = null;
