@@ -213,45 +213,7 @@ public class ComponentRegistry implements Exchange {
 		 */
 		modules = hzi.getSet(props.getMemberModuleRegistryName());
 		// hzi.getCPSubsystem().getLock("myLock");
-		localModuleExchangeQueue = hzi.getQueue(props.getModuleExchangeQueueName() + "." + pm.getId().toString());
-		localMemberExchangeQueue = hzi.getQueue(props.getMemberExchangeQueueName() + "." + pm.getMemberId().toString());
 		clusterComponents = hzi.getMap(props.getClusterComponentRegistryName());
-	}
-
-	/**
-	 * @return this module's exchange queue
-	 */
-	private IQueue<ModuleEntry> localModuleExchangeQueue() {
-		return hzi.getQueue(props.getModuleExchangeQueueName() + "." + pm.getId().toString());
-	}
-
-	/**
-	 * Get module exchange queue for the provided ModuleEntry
-	 * 
-	 * @param me
-	 *            provided module entry
-	 * @return module exchange queue
-	 */
-	private IQueue moduleExchangeQueue(ModuleEntry me) {
-		return hzi.getQueue(props.getModuleExchangeQueueName() + "." + me.getModuleId().toString());
-	}
-
-	/**
-	 * @return this module's member exchange queue
-	 */
-	private IQueue localMemberExchangeQueue() {
-		return hzi.getQueue(props.getMemberExchangeQueueName() + "." + pm.getMemberId().toString());
-	}
-
-	/**
-	 * Get member exchange queue for provided {@link Member}
-	 * 
-	 * @param member
-	 *            provided Member
-	 * @return member exchange queue
-	 */
-	private IQueue memberExchangeQueue(Member member) {
-		return hzi.getQueue(props.getMemberExchangeQueueName() + "." + member.getUuid());
 	}
 
 	/**

@@ -5,32 +5,44 @@
 #  proven.member.install.root property value must be provided at startup.  
 ##
 
+##
 # member
 #proven.member.install.root=
 
+##
 # hazelcast
 proven.hazelcast.members=127.0.0.1
 proven.hazelcast.member.port=5701
 proven.hazelcast.group.name=proven
 
+##
 # hazelcast jet
 proven.jet.instance.network.addresses=127.0.0.1:4701,127.0.0.1:4701 
 proven.jet.instance.test.port=0
 proven.jet.group.name=jet
 
+##
 # module-lib
-proven.lib.module.managed_component.max_retries=3
-proven.lib.module.registry.component.exchange_queue_name=exchange_queue.component
-proven.lib.module.registry.module.exchange_queue_name=exchange_queue.module
-proven.lib.module.registry.member.exchange_queue_name=exchange_queue.member
+
+# exchange 
+proven.lib.module.exchange.queue.exchange.name=ExchangeQueue
+proven.lib.module.exchange.queue.disclosure.name=DisclosureQueue
+proven.lib.module.exchange.queue.disclosure.max_size=10000
+proven.lib.module.exchange.queue.exchange.max_size=1000
+proven.lib.module.exchange.buffer.capacity=1000
+proven.lib.module.exchange.buffer.service.capacity=100
+
+# registry
 proven.lib.module.registry.component.cluster.name=gov.pnnl.proven.registry.component.cluster
 proven.lib.module.registry.module.member.name=gov.pnnl.proven.registry.module.member
-proven.lib.module.schedule.task.max_skipped_entry_reports=5
 proven.lib.module.registry.disclosure.map.name=PROVEN_DISCLOSURE_MAP
-#proven.lib.module.managed_component.exchange.queue.capacity=10000
-#proven.lib.module.managed_component.exchange.buffer.capacity=1000
-#proven.lib.module.managed_component.exchange.service.buffer.capacity=100
 
+# component
+proven.lib.module.managed_component.max_retries=3
+proven.lib.module.schedule.task.max_skipped_entry_reports=5
+
+
+##
 # hybrid module
 proven.module.hybrid.t3.serviceUrl=http://localhost:8889/bigdata
 proven.module.hybrid.ts.serviceUrl=http://localhost:8086

@@ -39,6 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
+import java.util.UUID;
+
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -46,8 +49,11 @@ import org.slf4j.Logger;
 import com.hazelcast.core.IQueue;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.IntegerProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
@@ -55,11 +61,10 @@ import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
 /**
  * 
  * Represents an exchange component. These components are responsible for
- * exchanging disclosed message information inside the cluster with other
- * {@code ManagedComponent}s, including other exchange components, for
- * processing and storage purposes.
+ * exchanging disclosed items with other exchange components inside the cluster
+ * for performance and processing purposes.
  * 
- * @see EntryProperty
+ * @see DisclosureItem
  * 
  * @author d3j766
  *
@@ -70,29 +75,62 @@ public abstract class ExchangeComponent extends ManagedComponent {
 	@Inject
 	Logger log;
 
+	public static class ExchangeProp {
+
+		/**
+		 * Exchange Queue Identifier
+		 */
+		public static final StringProp EQ_IDENTIFIER = new StringProp("eqIdentifier");
+
+		/**
+		 * Exchange Queue percent of maximum capacity that is being used
+		 */
+		public static final IntegerProp EQ_CAPACITY_PERCENT = new IntegerProp("remainingCapacityPercent");
+
+	}
+
+	/**
+	 * Exchange queue identifier
+	 */
+	EntryIdentifier eqIdentifier;
+
 	/**
 	 * Component's exchange queue. Component reads items from this queue to
 	 * process. Items are added to this queue via exchange requests performed by
 	 * the module's ComponentRegistry.
 	 */
 	IQueue<BufferedItem> exchangeQueue;
-	//IQueue<BufferedItem> exchangeQueue = hzi.getQueue("d");
-
-	// TODO add reader implementation for exchange queue as well as other
-	// methods supporting exchange queues.
-			
-	protected String getExchangeQueueName() {
-		return null;
-	}
 
 	/**
-	 * Entry property definitions for ExchangeComponent's
+	 * TODO add reader implementation for exchange queue as well as other
+	 * methods supporting exchange queues.
 	 */
-	public static final StringProp EXCHANGE_QUEUE_NAME = new StringProp("exchangeQueueName");
-	public static final IntegerProp REMAINING_CAPACITY_PERCENT = new IntegerProp("remainingCapacityPercent");
+
+	@PostConstruct
+	public void initExcahngeComponent() {
+		hzi.getSet(getEQIdentifier().toString());
+	}
 
 	public ExchangeComponent() {
 		super(ComponentGroup.Exchange);
+		eqIdentifier = new EntryIdentifier(UUID.randomUUID(), mp.getExchangeQueueName(), getComponentGroup());
 	}
 
+	@Override
+	public EntryProperties entryProperties() {
+		EntryProperties eps = new EntryProperties(super.entryProperties());
+		eps.add(new EntryProperty(ExchangeProp.EQ_IDENTIFIER, getEQIdentifier().toString()));
+		eps.add(new EntryProperty(ExchangeProp.EQ_CAPACITY_PERCENT, getEQCapacityPercent()));
+		return eps;
+	}
+
+	private EntryIdentifier getEQIdentifier() {
+		return eqIdentifier;
+	}
+
+	private int getEQCapacityPercent() {
+		int maxSize = mp.getExchangeQueueMaxSize();
+		int rc = exchangeQueue.remainingCapacity();
+		return (maxSize - rc) / maxSize;
+	}
 }

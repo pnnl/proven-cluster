@@ -182,8 +182,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 
 	
 	/**
-	 * Component's entry identifier, this is initialized in
-	 * {@link ManagedInterceptor#verifyManagedComponent(javax.interceptor.InvocationContext)}
+	 * Component's entry identifier
 	 */
 	protected EntryIdentifier entryIdentifier;
 		

@@ -66,9 +66,9 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.DisclosureQueueCheck;
-import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.ProvenDisclosureMap;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
+import gov.pnnl.proven.cluster.lib.module.exchange.maintenance.DisclosureQueueCheck;
+import gov.pnnl.proven.cluster.lib.module.exchange.maintenance.ProvenDisclosureMap;
 
 /**
  * Wraps a Hazelcast {@link IQueue} distributed data structure for

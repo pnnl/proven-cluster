@@ -92,7 +92,7 @@ public class EntryIdentifier extends DisclosureDomain
 		this.componentName = name;
 		this.groupLabel = group.getGroupLabel();
 	}
-	
+		
 	/**
 	 * @return the componentId
 	 */

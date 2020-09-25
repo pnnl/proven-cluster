@@ -79,6 +79,13 @@ public final class EntryProperties implements IdentifiedDataSerializable, Serial
 
 	public EntryProperties() {
 	}
+	
+	/**
+	 * Copy constructor
+	 */
+	public EntryProperties(EntryProperties props) {
+		entryProperties.addAll(props.getEntryProperties());
+	}
 
 	public boolean add(EntryProperty prop) {
 		return entryProperties.add(prop);

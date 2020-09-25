@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange.Maintenance;
+package gov.pnnl.proven.cluster.lib.module.exchange.maintenance;
 
 import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity.Available;
 import static gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus.PASSED;
@@ -47,30 +47,54 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ReplicatedMap;
+
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
+import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
+import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
 
 /**
+ * Maintains Proven's disclosure map, listing DisclosureQueue components and
+ * their availability within the cluster.
  * 
  * @author d3j766
  *
  */
-public class DisclosureQueueCheck extends MaintenanceOperation {
+public class ProvenDisclosureMap extends MaintenanceOperation {
 
 	@Inject
 	Logger log;
-	
-	DisclosureQueue dq = (DisclosureQueue) operator;
 
-	public DisclosureQueueCheck() {
+	@Inject
+	HazelcastInstance hzi;
+
+	@Inject
+	ComponentRegistry cr;
+
+	MemberProperties props = MemberProperties.getInstance();
+
+	/**
+	 * A shared map indicating availability of DisclosureQueue components.
+	 * 
+	 * Key: name of the queue <br>
+	 * Value: true indicates queue is accepting new data items, false otherwise.
+	 * 
+	 * @see DisclosureQueue
+	 */
+	ReplicatedMap<String, Boolean> provenDisclosureQueues;
+
+	public ProvenDisclosureMap() {
 		super();
 	}
 
 	@PostConstruct
 	public void init() {
-		log.debug("Inside DisclosureEntriesCheck contructor");
+		log.debug("Inside ProvenDisclosureMap contructor");
 	}
 
 	@Override
@@ -80,14 +104,22 @@ public class DisclosureQueueCheck extends MaintenanceOperation {
 
 		MaintenanceOperationResult ret = new MaintenanceOperationResult(PASSED, Available);
 
-		// ret = new MaintenanceOperationResult(FAILED, Unavailable);
+		/**
+		 * Update map based on component's status.
+		 */
+		provenDisclosureQueues = hzi.getReplicatedMap(props.getProvenDisclosureMapName());
+		if (getOperator().getStatus().equals(ManagedStatus.Online)) {
+			provenDisclosureQueues.put(getOperator().entryIdentifier().toString(), true);
+		} else {
+			provenDisclosureQueues.put(getOperator().entryIdentifier().toString(), false);
+		}
 
 		return ret;
 	}
 
 	@Override
 	public MaintenanceOperationSeverity maxSeverity() {
-		return MaintenanceOperationSeverity.Severe;
+		return MaintenanceOperationSeverity.Available;
 	}
 
 }

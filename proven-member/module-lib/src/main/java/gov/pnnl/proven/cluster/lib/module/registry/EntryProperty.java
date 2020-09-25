@@ -54,6 +54,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.util.Preconditions;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
 import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
@@ -372,5 +373,6 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 		}
 		return true;
 	}
-
+	
+	public static final StringProp EQ_IDENTIFIER = new StringProp("eqIdentifier");
 }
