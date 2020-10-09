@@ -1712,6 +1712,12 @@ public class ConceptService {
 			builder.tag("instanceid", instanceId);
 		    }
 
+			if (simulationId != null )  {
+				
+			builder.tag("simulation_id", simulationId);
+		    }
+
+			
 			while (record_it.hasNext()) {
 				String record_key = record_it.next();
 
