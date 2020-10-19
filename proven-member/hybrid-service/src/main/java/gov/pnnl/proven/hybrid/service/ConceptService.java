@@ -1375,7 +1375,7 @@ public class ConceptService {
 
 
 	private ProvenMessageResponse influxWriteSimulationInput(JSONObject commandObject, InfluxDB influxDB,
-			String measurementName, String instanceId) {
+			String measurementName, String instanceId,  Long currentTime) {
 		ProvenMessageResponse ret = null;
 		Long timestamp = (long) -1;
 		String differenceMrid = null;
@@ -1504,6 +1504,9 @@ public class ConceptService {
 			Set<String> rdkeys = rdobject.keySet();
 			Iterator<String> rdit = rdkeys.iterator();
 			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
+			if (currentTime != null) {
+			    builder.addField("realtime", currentTime);
+			}
 			builder.tag("simulation_id", simulationid);
 			builder.tag("difference_mrid", differenceMrid);
 
@@ -1546,7 +1549,7 @@ public class ConceptService {
 	}
 
 	private ProvenMessageResponse influxWriteSimulationOutput(JSONObject messageObject, InfluxDB influxDB,
-			String measurementName, String instanceId) {
+			String measurementName, String instanceId, Long currentTime) {
 
 		ProvenMessageResponse ret = null;
 		Long timestamp = (long) -1;
@@ -1605,6 +1608,9 @@ public class ConceptService {
 				Iterator<String> record_it = record_keys.iterator();
 				Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
 				builder.tag("simulation_id", simulationid);
+				if (currentTime != null) {
+				    builder.addField("realtime", currentTime);
+				}
 
 				// Add instanceId tag, if any
 				if (null != instanceId) {
@@ -1792,9 +1798,9 @@ public class ConceptService {
 		objectType = detectObjectType(messageObject);
 
 		if (objectType.equalsIgnoreCase("O")) {
-			ret = influxWriteSimulationOutput((JSONObject)messageObject, influxDB, measurementName, instanceId);
+			ret = influxWriteSimulationOutput((JSONObject)messageObject, influxDB, measurementName, instanceId, realTime);
 		} else if (objectType.equalsIgnoreCase("I")) {
-			ret = influxWriteSimulationInput((JSONObject)messageObject, influxDB, measurementName, instanceId);
+			ret = influxWriteSimulationInput((JSONObject)messageObject, influxDB, measurementName, instanceId, realTime);
 		} else if (objectType.equalsIgnoreCase("A")) {
 			ret = influxWriteAlarms((JSONArray)messageObject, influxDB, measurementName, instanceId, simulationId, realTime);			
 		} else {
