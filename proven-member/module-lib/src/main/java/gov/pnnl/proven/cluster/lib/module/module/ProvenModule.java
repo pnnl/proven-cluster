@@ -60,7 +60,6 @@ import org.slf4j.Logger;
 
 import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
@@ -221,23 +220,17 @@ public abstract class ProvenModule extends ModuleComponent {
 			}
 		}
 
-		// if ((null != toActivate) && (toActivate.managers().length != 0)) {
+		// If manager's are provided then use, else include all
 		if ((null != toActivate) && (!active.isEmpty())) {
 			activeManagers = new HashSet<Class<? extends ManagerComponent>>(active);
-			// activeManagers = new HashSet<Class<? extends ManagerComponent>>(
-			// Arrays.asList((Class<? extends ManagerComponent>[])
-			// toActivate.managers()));
 		} else {
 			activeManagers = new HashSet<Class<? extends ManagerComponent>>(ManagerFactory.getManagerTypes().keySet());
-			// activeManagers = new HashSet<Class<? extends ManagerComponent>>(
-			// (Set<Class<? extends ManagerComponent>>)
-			// ManagerFactory.getManagerTypes().keySet());
 		}
 
 		// Verify required managers are present
 		Map<Class<? extends ManagerComponent>, Boolean> allManagers = ManagerFactory.getManagerTypes();
 		for (Class<? extends ManagerComponent> k : allManagers.keySet()) {
-			if (allManagers.get(k)) {
+			if (allManagers.get(k)) {	
 				if (!activeManagers.contains(k)) {
 					activeManagers.add(k);
 				}
@@ -247,7 +240,6 @@ public abstract class ProvenModule extends ModuleComponent {
 		// Create selected managers
 		for (Class<? extends ManagerComponent> c : activeManagers) {
 			if (ManagerComponent.class.isAssignableFrom(c)) {
-				//createAsync(new CreationRequest(c));
 				produceManager(c);
 			}
 		}

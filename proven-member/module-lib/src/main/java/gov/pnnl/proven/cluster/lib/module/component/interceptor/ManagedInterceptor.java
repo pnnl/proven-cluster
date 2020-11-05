@@ -39,10 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.Priority;
@@ -52,7 +50,6 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.interceptor.AroundConstruct;
-import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 
@@ -60,14 +57,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
-import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**

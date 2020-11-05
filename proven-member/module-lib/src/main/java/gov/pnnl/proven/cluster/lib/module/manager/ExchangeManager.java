@@ -40,21 +40,13 @@
 
 package gov.pnnl.proven.cluster.lib.module.manager;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.Exchanger;
-
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
-import gov.pnnl.proven.cluster.lib.module.exchange.Exchange;
-import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeComponent;
-import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
 
 /**
  * A component manager responsible for managing its set of
@@ -70,21 +62,14 @@ public class ExchangeManager extends ManagerComponent {
 
 	static Logger log = LoggerFactory.getLogger(ExchangeManager.class);
 
-	public static final int MIN_REQUEST_EXCHANGES = 4;
+	public static final String EXCHANGE_EXECUTOR_SERVICE = "concurrent/RequestExchange";
 
-	/**
-	 * Set of managed request exchange instances that provide access to
-	 * disclosure and exchange buffers supporting request processing.
-	 */
-	private Set<RequestExchange> res;
+	public static final int MIN_EXCHANGES = 2;
 
 	@PostConstruct
 	public void initialize() {
-		// Initialize manager with a new RequestExchange component
-		log.debug("Creating initial request exchange component");
-		res = new HashSet<RequestExchange>();
-		createExchange();
-
+		log.debug("Creating initial request exchange components");
+		createExchangeComponents();
 	}
 
 	public ExchangeManager() {
@@ -92,18 +77,19 @@ public class ExchangeManager extends ManagerComponent {
 	}
 
 	/**
-	 * Creates and adds a new request exchange component to the manager.
+	 * Creates minimum set of exchange components.
 	 */
-	private void createExchange() {
+	private void createExchangeComponents() {
 
-		create(new CreationRequest<DisclosureQueue>(DisclosureQueue.class)).get();
+		for (int i = 0; i < MIN_EXCHANGES; i++) {
 
-		// for (int i = 0; i < MIN_REQUEST_EXCHANGES; i++) {
-		// // RequestExchange re = reProvider.get();
-		// RequestExchange re = create(new
-		// CreationRequest<RequestExchange>(RequestExchange.class)).get();
-		// res.add(re);
-		// }
+			/**
+			 * TODO Add the other exchange components for creation
+			 */
+			create(new CreationRequest<DisclosureQueue>(DisclosureQueue.class)).get();
+
+		}
+
 	}
 
 }

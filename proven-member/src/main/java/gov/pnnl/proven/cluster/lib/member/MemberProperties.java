@@ -195,7 +195,7 @@ public class MemberProperties {
 		return new File(installRoot, MEMBER_PROVEN_INF_PAYARA_DIR);
 	}
 
-	public File getPipelineRequestLibsDir() {
+	public File getPipelineServiceLibsDir() {
 		return new File(installRoot, MEMBER_PROVEN_INF_PIPELINE_DIR);
 	}
 

@@ -81,7 +81,6 @@
 import static gov.pnnl.proven.cluster.module.hybrid.resource.HybridResourceConsts.R_REPOSITORY_STATE_DISABLED;
 import static gov.pnnl.proven.cluster.module.hybrid.resource.HybridResourceConsts.R_REPOSITORY_STATE_ENABLED;
 
-import java.io.Console;
 import java.lang.management.ManagementFactory;
 
 import javax.annotation.PostConstruct;
@@ -90,7 +89,6 @@ import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 

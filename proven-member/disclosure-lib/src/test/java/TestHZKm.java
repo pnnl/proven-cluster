@@ -16,10 +16,10 @@ import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.KnowledgeMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 
 public class TestHZKm {
 
@@ -37,7 +37,7 @@ public class TestHZKm {
 
 		// Connect client
 		ClientConfig config = new ClientConfig();
-		config.getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID, ProvenMessageIDSFactory.class);
+		config.getSerializationConfig().addDataSerializableFactoryClass(DisclosureIDSFactory.FACTORY_ID, DisclosureIDSFactory.class);
 		GroupConfig groupConfig = new GroupConfig();
 		groupConfig.setName("proven");
 		config.setGroupConfig(groupConfig);

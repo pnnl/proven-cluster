@@ -54,7 +54,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 
 /**
@@ -62,7 +62,7 @@ import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
  * 
  * @author d3j766
  *
- * @see ExchangeManager
+ * @see MessageStreamProxy
  * 
  */
 @Documented

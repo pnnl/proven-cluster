@@ -51,7 +51,7 @@ import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 
 /**
- * Represents an exchange of {@code BufferedItem}(s) between
+ * Represents a request for the exchange of {@code BufferedItem}(s) between
  * {@code ExchangeComponent}s.
  * 
  * @author d3j766
@@ -62,9 +62,12 @@ import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 public class ExchangeRequest implements Comparable<ExchangeRequest> {
 
 	/**
-	 * Contains data items being exchanged
+	 * Contains data items being exchanged.  Requests come in batches up to the maximumm
 	 */
 	private List<BufferedItem> items = new ArrayList<>();
+	
+	
+	
 	
 	
 	

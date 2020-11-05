@@ -39,8 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
-import java.util.UUID;
-
 import javax.json.Json;
 import javax.json.JsonValue;
 

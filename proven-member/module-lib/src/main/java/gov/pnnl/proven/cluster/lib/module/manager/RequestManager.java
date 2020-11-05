@@ -40,27 +40,10 @@
 
 package gov.pnnl.proven.cluster.lib.module.manager;
 
-import java.lang.reflect.Method;
-
-import gov.pnnl.proven.cluster.lib.module.request.module.ModuleRequest;
-
 public class RequestManager extends ManagerComponent {
 
 	public RequestManager() {
 		super();
 	}
 
-	public <T> void registerRequest(Class<T> mr) {
-
-		System.out.println(mr.getName());
-
-		System.out.println(mr.isAssignableFrom(ModuleRequest.class));
-
-		System.out.println(ModuleRequest.class.isAssignableFrom(mr));
-
-		Method[] methods = mr.getMethods();
-
-		System.out.println(methods.toString());
-
-	}
 }

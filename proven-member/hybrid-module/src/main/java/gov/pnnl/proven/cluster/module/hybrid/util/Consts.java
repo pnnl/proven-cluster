@@ -80,9 +80,6 @@
 
 package gov.pnnl.proven.cluster.module.hybrid.util;
 
-import gov.pnnl.proven.hybrid.util.ProvenConfig;
-import gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp;
-
 public class Consts {
 	
 	// ///////////////////////////////////////////////////////////////////

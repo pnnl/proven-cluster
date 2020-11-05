@@ -150,6 +150,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	@Any
 	protected Instance<ManagedComponent> componentProvider;
 
+	// TODO 1 schedule delays and time units should be configurable
+	
 	@Inject
 	@Scheduler(delay = 10, activateOnStartup = false)
 	protected StatusSchedule statusSchedule;

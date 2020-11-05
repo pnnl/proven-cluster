@@ -49,6 +49,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
+
 /**
  * Represents a knowledge message. Provides semantic information for processing
  * and storage in the hybrid store. Knowledge content is comprised of several
@@ -84,12 +86,12 @@ public class KnowledgeMessage extends ProvenMessage implements IdentifiedDataSer
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.KNOWLEDGE_MESSAGE_TYPE;
+		return DisclosureIDSFactory.KNOWLEDGE_MESSAGE_TYPE;
 	}
 
 }

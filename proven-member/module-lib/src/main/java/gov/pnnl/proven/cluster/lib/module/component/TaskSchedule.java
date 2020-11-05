@@ -60,12 +60,9 @@ import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.NotificationOptions;
-import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
-
-import com.hazelcast.util.executor.ManagedExecutorService;
 
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;

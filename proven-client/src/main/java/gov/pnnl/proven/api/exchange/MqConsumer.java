@@ -83,19 +83,12 @@
  */
 package gov.pnnl.proven.api.exchange;
 
-import java.io.Serializable;
-
 import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
-import javax.jms.TextMessage;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.command.ActiveMQBytesMessage;
-
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic;
 
 /**

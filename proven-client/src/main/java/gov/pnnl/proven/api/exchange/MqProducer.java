@@ -84,7 +84,6 @@
 package gov.pnnl.proven.api.exchange;
 
 import javax.jms.Connection;
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
@@ -95,7 +94,6 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 
 /**

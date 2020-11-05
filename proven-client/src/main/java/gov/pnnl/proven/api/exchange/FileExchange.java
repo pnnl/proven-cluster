@@ -84,8 +84,6 @@ import gov.pnnl.proven.api.producer.ProvenResponse;
 import gov.pnnl.proven.api.producer.SessionInfo;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
-
 import java.util.List;
 
 /**

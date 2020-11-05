@@ -49,6 +49,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
+
 /**
  * Represents a request message. Provides information describing a request being
  * made of the Proven platform. Request content is comprised of several
@@ -84,12 +86,12 @@ public class RequestMessage extends ProvenMessage implements IdentifiedDataSeria
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.REQUEST_MESSAGE_TYPE;
+		return DisclosureIDSFactory.REQUEST_MESSAGE_TYPE;
 	}
 
 }

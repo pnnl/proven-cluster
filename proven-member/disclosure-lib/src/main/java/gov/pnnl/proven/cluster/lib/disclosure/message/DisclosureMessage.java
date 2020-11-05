@@ -49,6 +49,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 
 /**
@@ -63,33 +64,46 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSerializable, Serializable {
 
 	private static final long serialVersionUID = 1L;
+
 	private static Logger log = LoggerFactory.getLogger(DisclosureMessage.class);
 
 	/**
 	 * True, if the disclosed content is in the Request message group.
 	 */
-	boolean isRequest;
+	protected boolean isRequest;
 
 	/**
 	 * True, if the disclosed content is in the Knowledge message group.
 	 */
-	boolean isKnowledge;
+	protected boolean isKnowledge;
 
 	/**
 	 * True, if the disclosed content is a {@code MessageContent#Measurement}.
 	 */
-	boolean hasMeasurements;
+	protected boolean isMeasurements;
 
 	public DisclosureMessage() {
 	}
 
 	public DisclosureMessage(DisclosureItem di) {
 		super(di);
-		MessageContent disclosedContent = di.getContent();
-		MessageContentGroup disclosedContentGroup = MessageContentGroup.getType(di.getContent());
+		MessageContent disclosedContent = di.getMessageContent();
+		MessageContentGroup disclosedContentGroup = MessageContentGroup.getType(di.getMessageContent());
 		isRequest = MessageContentGroup.Request == disclosedContentGroup;
 		isKnowledge = MessageContentGroup.Knowledge == disclosedContentGroup;
-		hasMeasurements = MessageContent.Measurement == disclosedContent;
+		isMeasurements = MessageContent.Measurement == disclosedContent;
+	}
+	
+	public boolean isRequest() {
+		return isRequest;
+	}
+
+	public boolean isKnowledge() {
+		return isKnowledge;
+	}
+
+	public boolean isMeasurements() {
+		return isMeasurements;
 	}
 
 	@Override
@@ -102,7 +116,7 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 		super.readData(in);
 		this.isRequest = in.readBoolean();
 		this.isKnowledge = in.readBoolean();
-		this.hasMeasurements = in.readBoolean();
+		this.isMeasurements = in.readBoolean();
 	}
 
 	@Override
@@ -110,17 +124,17 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 		super.writeData(out);
 		out.writeBoolean(this.isRequest);
 		out.writeBoolean(this.isKnowledge);
-		out.writeBoolean(this.hasMeasurements);
+		out.writeBoolean(this.isMeasurements);
 	}
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_MESSAGE_TYPE;
+		return DisclosureIDSFactory.DISCLOSURE_MESSAGE_TYPE;
 	}
 
 }

@@ -39,8 +39,15 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.Administrative;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.ContinuousQuery;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.ModuleService;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.PipelineService;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.Query;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.Response;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.ServiceRegistration;
+import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.getSchemaValues;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,66 +55,88 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 
 /**
- * Represents the different component groups. Marks each group with their group
- * reporting type.
+ * Represents the type of exchange components used to process
+ * {@code DisclosureItem}s. Each exchange type is mapped to zero or more content
+ * types. Where the content type for a disclosed item determines the type of
+ * exchange processing component it will be routed to by a ModuleExchange.
+ * 
+ * @see MessageContent, ModuleExchange
  * 
  * @author d3j766
  *
  */
 public enum ExchangeType {
-	
-	Module(GroupLabel.MODULE_GROUP),
 
-	Manager(GroupLabel.MANAGER_GROUP),
+	/**
+	 * Entry point for disclosed items created outside the exchange environment,
+	 * either from an external or internal source with respect to the Proven
+	 * platform.
+	 */
+	DisclosureQueue(),
 
-	Exchange(GroupLabel.EXCHANGE_GROUP),
+	/**
+	 * Manages disclosed items for entry into the Hybrid store. All schema based
+	 * message content is routed to a disclosure buffer.
+	 */
+	DisclosureBuffer(getSchemaValues()),
 
-	PipelineRequest(GroupLabel.PIPELINE_REQUEST_GROUP),
-	
-	ModuleRequest(GroupLabel.MODULE_REQUEST_GROUP),
+	/**
+	 * Processes request content.
+	 * 
+	 * @see MessageContent
+	 */
+	RequestBuffer(Query, ContinuousQuery, Administrative),
 
-	Stream(GroupLabel.STREAM_GROUP);
+	/**
+	 * Processes service content.
+	 */
+	ServiceBuffer(PipelineService, ModuleService, ServiceRegistration),
 
-	private class GroupLabel {
-		private static final String MODULE_GROUP = "module";
-		private static final String MANAGER_GROUP = "manager";
-		private static final String EXCHANGE_GROUP = "exchange";
-		private static final String PIPELINE_REQUEST_GROUP = "pipeline-request";
-		private static final String MODULE_REQUEST_GROUP = "moudlue-request";
-		private static final String STREAM_GROUP = "stream";
-	}
+	/**
+	 * Processes response content for storage in Hybrid store.
+	 */
+	RespnseBuffer(Response);
 
 	static Logger log = LoggerFactory.getLogger(ExchangeType.class);
 
-	private String groupLabel;
+	private List<MessageContent> contentTypes;
 
-	ExchangeType(String groupLabel) {
-		this.groupLabel = groupLabel;
+	ExchangeType(MessageContent... contentTypes) {
+		this.contentTypes = Arrays.asList(contentTypes);
 	}
 
 	/**
-	 * Provides the group's label.
+	 * Represents the content types that will be routed to exchange components
+	 * of this type by a ModuleExchange.
 	 * 
-	 * @return a group label as a String.
-	 * 
+	 * @see ModuleExchange
 	 */
-	public String getGroupLabel() {
-		return groupLabel;
+	public List<MessageContent> getContentTypes() {
+		return contentTypes;
 	}
 
-	public List<Annotation> getQualifiers() {
-		Field field;
-		List<Annotation> ret = new ArrayList<>();
-		try {
-			field = this.getClass().getField(this.name());
-			ret = Arrays.asList(field.getAnnotations());
-		} catch (NoSuchFieldException | SecurityException e) {
-			log.error("Invaid field name in ComponentGroup");
-			e.printStackTrace();
+	/**
+	 * Represents the exchange types supporting the provided message content
+	 * type.
+	 * 
+	 * @param mc
+	 *            the message content type
+	 * 
+	 * @return ExchangeTypes supporting the provided message content type.
+	 */
+	public List<ExchangeType> supportedExchangeTypes(MessageContent mc) {
+
+		List<ExchangeType> ret = new ArrayList<>();
+		for (ExchangeType et : values()) {
+			if (et.getContentTypes().contains(mc)) {
+				ret.add(et);
+			}
 		}
 
 		return ret;
 	}
+
 }

@@ -44,9 +44,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-
 /**
  * 
  * Message groups represent a collection of {@code MessageContent}. A
@@ -73,8 +70,8 @@ public enum MessageContentGroup {
 			GroupLabel.REQUEST_GROUP,
 			MessageContent.Administrative,
 			MessageContent.ContinuousQuery,
-			MessageContent.PipelineRequest,
-			MessageContent.ModuleRequest,
+			MessageContent.PipelineService,
+			MessageContent.ModuleService,
 			MessageContent.Query),
 
 	Response(GroupLabel.RESPONSE_GROUP, MessageContent.Response);

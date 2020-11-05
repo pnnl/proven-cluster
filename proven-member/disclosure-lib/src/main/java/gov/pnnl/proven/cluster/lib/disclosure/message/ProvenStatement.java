@@ -50,6 +50,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
+
 /**
  * Proven's general representation of a single RDF statement (s,p,o).
  * 
@@ -104,12 +106,12 @@ public class ProvenStatement implements IdentifiedDataSerializable, Serializable
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_STATEMENT_TYPE;
+		return DisclosureIDSFactory.PROVEN_STATEMENT_TYPE;
 	}
 
 	public URI getSubject() {

@@ -81,28 +81,12 @@
 package gov.pnnl.proven.cluster.module.hybrid.message;
 
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Resource;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.ObjectMessage;
-import javax.jms.Session;
-import javax.jms.Topic;
-import javax.resource.AdministeredObjectDefinition;
-import javax.resource.ConnectionFactoryDefinition;
-import org.openrdf.model.Statement;
-
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMeasurement;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenStatement;
-
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
-import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.*;
 
 //@formatter:off
 //

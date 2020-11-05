@@ -69,6 +69,7 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMainten
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
 import gov.pnnl.proven.cluster.lib.module.exchange.maintenance.DisclosureQueueCheck;
 import gov.pnnl.proven.cluster.lib.module.exchange.maintenance.ProvenDisclosureMap;
+import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 
 /**
  * Wraps a Hazelcast {@link IQueue} distributed data structure for
@@ -81,7 +82,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.maintenance.ProvenDisclosureM
  *
  */
 @Scalable(maxCount = 5)
-public class DisclosureQueue extends ExchangeComponent implements Exchanger {
+public class DisclosureQueue extends ExchangeComponent  {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureQueue.class);
 
@@ -96,7 +97,7 @@ public class DisclosureQueue extends ExchangeComponent implements Exchanger {
 
 	DisclosureBuffer localDisclosure;
 
-	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
+	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
 
 	@PostConstruct
@@ -460,6 +461,11 @@ public class DisclosureQueue extends ExchangeComponent implements Exchanger {
 		return itemQueue.remainingCapacity();
 	}
 
+	@Override 
+	public ExchangeType exchangeType() {
+		return ExchangeType.DisclosureQueue;
+	}
+	
 	@Override
 	public ComponentMaintenance scheduledMaintenance() {
 		return new ComponentMaintenance(this, DisclosureQueueCheck.class, ProvenDisclosureMap.class);

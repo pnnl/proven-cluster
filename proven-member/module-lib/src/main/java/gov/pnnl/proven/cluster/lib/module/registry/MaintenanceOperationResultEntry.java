@@ -39,12 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import java.util.UUID;
-
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperation;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
-import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationStatus;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.ComponentEvent;
 import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 

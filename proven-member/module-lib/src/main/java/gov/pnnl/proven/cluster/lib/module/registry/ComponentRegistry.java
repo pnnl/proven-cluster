@@ -41,15 +41,11 @@ package gov.pnnl.proven.cluster.lib.module.registry;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.Schedule;
 import javax.enterprise.context.ApplicationScoped;
@@ -57,25 +53,14 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import com.hazelcast.collection.impl.queue.QueueProxyImpl;
 import com.hazelcast.core.Cluster;
-import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.IQueue;
 import com.hazelcast.core.ISet;
-import com.hazelcast.core.ItemEvent;
-import com.hazelcast.core.ItemListener;
-import com.hazelcast.core.Member;
-import com.hazelcast.core.ReplicatedMap;
 import com.hazelcast.cp.lock.FencedLock;
-import com.hazelcast.map.listener.EntryAddedListener;
-import com.hazelcast.map.listener.EntryUpdatedListener;
-
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
 import gov.pnnl.proven.cluster.lib.module.exchange.Exchange;
 import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeRequest;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
@@ -326,7 +311,7 @@ public class ComponentRegistry implements Exchange {
 		}
 		try {
 
-			// Cleanup work here
+			// TODO Cleanup work here
 			log.debug("LOCAL CLEANUP TASK INVOKED");
 
 		} finally {

@@ -40,7 +40,6 @@
 package gov.pnnl.proven.cluster.lib.module.registry;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 /**
  * Provides a Request Registry at Member level.

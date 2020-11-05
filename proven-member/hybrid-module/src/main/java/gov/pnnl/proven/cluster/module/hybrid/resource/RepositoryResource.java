@@ -147,7 +147,6 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 import gov.pnnl.proven.cluster.module.hybrid.concept.ConceptUtil;
 import gov.pnnl.proven.cluster.module.hybrid.concept.DomainModel;

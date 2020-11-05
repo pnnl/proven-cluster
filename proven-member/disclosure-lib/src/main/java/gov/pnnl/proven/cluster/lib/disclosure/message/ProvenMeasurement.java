@@ -52,6 +52,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
+
 /**
  * Proven's general representation of a single time-series measurement data
  * point.
@@ -152,12 +154,12 @@ public class ProvenMeasurement implements IdentifiedDataSerializable, Serializab
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_MEASUREMENT_TYPE;
+		return DisclosureIDSFactory.PROVEN_MEASUREMENT_TYPE;
 	}
 
 	public String getMeasurementName() {

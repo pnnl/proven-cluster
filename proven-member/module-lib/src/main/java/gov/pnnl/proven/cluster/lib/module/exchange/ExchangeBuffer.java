@@ -64,6 +64,7 @@ import com.hazelcast.ringbuffer.Ringbuffer;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
+import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 
 /**
  * Wraps a Hazelcast {@link Ringbuffer} distributed data structure for
@@ -73,7 +74,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterru
  * @author d3j766
  *
  */
-public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeComponent implements Exchanger {
+public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(ExchangeBuffer.class);
 
@@ -100,7 +101,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	protected Map<BufferedItemState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
 	protected Ringbuffer<T> buffer;
 
-	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
+	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
 
 	/**
@@ -289,7 +290,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 
 	private long getUnprocessedItemCount() {
 
-		// This is a point in time view and may not be exact be depending on
+		// This is a point in time view and may not be exact, depending on
 		// buffer activity during call.
 
 		Long ret;

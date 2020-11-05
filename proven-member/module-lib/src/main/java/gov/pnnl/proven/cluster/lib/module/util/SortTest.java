@@ -40,7 +40,6 @@
 package gov.pnnl.proven.cluster.lib.module.util;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;

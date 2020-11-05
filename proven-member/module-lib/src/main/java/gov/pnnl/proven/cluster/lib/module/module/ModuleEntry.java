@@ -40,13 +40,7 @@
 package gov.pnnl.proven.cluster.lib.module.module;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.NavigableSet;
-import java.util.TreeSet;
 import java.util.UUID;
-
-import javax.inject.Inject;
-import javax.persistence.Transient;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;

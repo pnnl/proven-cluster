@@ -39,6 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 
+import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 
 /**
  * Represents a data item that is queued for processing as it enters the Proven
@@ -57,6 +58,6 @@ public interface BufferedItem {
 
 	void setItemState(BufferedItemState buffereState);
 
+	MessageContent getMessageContent();
+
 }
-
-

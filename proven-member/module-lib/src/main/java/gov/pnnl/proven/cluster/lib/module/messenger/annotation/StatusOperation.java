@@ -69,7 +69,6 @@ import javax.inject.Qualifier;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.Creator;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 
 /**
  * Used to qualify status event messages, indicating the message is for a

@@ -58,6 +58,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.MessageContentName;
 
 /**
@@ -110,12 +111,12 @@ public class ProvenMetric implements IdentifiedDataSerializable, Serializable {
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_METRIC_TYPE;
+		return DisclosureIDSFactory.PROVEN_METRIC_TYPE;
 	}
 
 	public String getLabel() {

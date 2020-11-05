@@ -52,15 +52,9 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.UUID;
-
 import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 import javax.interceptor.InterceptorBinding;
-
-import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**
  * Identifies the bean as a managed component. Meaning, the component's creation

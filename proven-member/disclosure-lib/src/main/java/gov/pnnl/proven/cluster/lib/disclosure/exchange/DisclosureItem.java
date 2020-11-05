@@ -52,7 +52,6 @@ import javax.json.JsonValue;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,14 +61,13 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageJsonUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageModel;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric;
 
 /**
  * Represents data provided to the Proven platform. This may be from an internal
@@ -175,6 +173,11 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 		this.bufferedState = BufferedItemState.New;
 		this.itemProperties = new HashMap<>(di.itemProperties);
 	}
+	
+	@Override
+	public MessageContent getMessageContent() {
+		return MessageContent.getValue(getStringProp(DisclosureProperty.CONTENT).get());
+	}
 
 	public Optional<String> getAuthToken() {
 		return getStringProp(DisclosureProperty.AUTH_TOKEN);
@@ -186,10 +189,6 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 
 	public Optional<String> getName() {
 		return getStringProp(DisclosureProperty.NAME);
-	}
-
-	public MessageContent getContent() {
-		return MessageContent.getValue(getStringProp(DisclosureProperty.CONTENT).get());
 	}
 
 	public Optional<String> getQueryType() {
@@ -288,11 +287,11 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_ITEM_TYPE;
+		return DisclosureIDSFactory.DISCLOSURE_ITEM_TYPE;
 	}
 }
