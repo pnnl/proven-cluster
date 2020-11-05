@@ -210,7 +210,93 @@ public class MessageUtils {
 				iter.remove();
 			}
 		}
+	}
 
+		public static void initializeMessageDataModel(String message, Model model) throws InvalidProvenMessageException {
+
+			// Contains original BN resource as key and replacement resource as
+			// value for subjects
+			Map<Resource, Resource> resourceBNs = new HashMap<Resource, Resource>();
+
+			Map<Resource, Integer> objectCount = new HashMap<Resource, Integer>();
+
+			// Contains replacement statements
+			Model replacementModel = ModelFactory.createDefaultModel();
+
+			// Content type of message data model
+			// Explicit is default
+			
+			// TODO - setter was removed from PM, how does this affect shacl processing.
+			//pm.setMessageContent(MessageContent.Explicit);
+
+			// Listing of statements
+			StmtIterator iter = model.listStatements();
+
+			while (iter.hasNext()) {
+
+				Statement stmt = iter.nextStatement();
+
+				Resource subject = stmt.getSubject();
+				Property predicate = stmt.getPredicate();
+				RDFNode object = stmt.getObject();
+				boolean isAnonSubject = false;
+				boolean isAnonObject = false;
+				Resource replacementSubject = subject;
+				RDFNode replacementObject = object;
+
+				// Check for Knowledge Content Type - only query and explicit
+				// currently supported.
+				// TODO add checks for other content types. Like query, should be a
+				// simple property existence check.
+				boolean contentTypeFound = false;
+				if (!contentTypeFound) {
+					if (predicate.equals(queryTypeProp)) {
+						
+						// TODO - setter was removed from PM, how does this affect shacl processing.
+						//pm.setMessageContent(MessageContent.Query);
+
+						contentTypeFound = true;
+					}
+				}
+
+				if (subject.isAnon()) {
+					isAnonSubject = true;
+					if (resourceBNs.containsKey(subject)) {
+						log.debug("SUBJECT FOUND BEFORE");
+						replacementSubject = resourceBNs.get(subject);
+					} else {
+						replacementSubject = ResourceFactory.createResource(getBNReplacementURI());
+						resourceBNs.put(subject, replacementSubject);
+						objectCount.put(replacementSubject, 0);
+					}
+				}
+
+				if (object instanceof Resource) {
+					if (object.isAnon()) {
+						isAnonObject = true;
+						Resource objectBN = (Resource) object;
+						if (resourceBNs.containsKey(objectBN)) {
+							log.debug("OBJECT FOUND BEFORE");
+							replacementObject = resourceBNs.get(objectBN);
+							objectCount.put((Resource) replacementObject, objectCount.get(replacementObject) + 1);
+						} else {
+							replacementObject = ResourceFactory.createResource(getBNReplacementURI());
+							resourceBNs.put(objectBN, (Resource) replacementObject);
+							objectCount.put((Resource) replacementObject, 1);
+						}
+					}
+				}
+
+				if (isAnonSubject || isAnonObject) {
+
+					// Create new statement and add to replacement model
+					replacementModel.add(ResourceFactory.createStatement(replacementSubject, predicate, replacementObject));
+
+					// Remove statement with blank node(s)
+					iter.remove();
+				}
+			}
+		
 		// Add content type and proven message type statements to message
 		boolean pmStatementsAdded = false;
 		for (Resource resource : objectCount.keySet()) {
@@ -218,7 +304,7 @@ public class MessageUtils {
 				log.debug("FOUND ROOT NODE");
 				replacementModel.add(ResourceFactory.createStatement(resource, rdfTypeProp, provenMessageRes));
 				replacementModel.add(ResourceFactory.createStatement(resource, messageContentProp,
-						ResourceFactory.createPlainLiteral(pm.getMessageContent().toString())));
+						ResourceFactory.createPlainLiteral(message)));
 				pmStatementsAdded = true;
 				break;
 			}

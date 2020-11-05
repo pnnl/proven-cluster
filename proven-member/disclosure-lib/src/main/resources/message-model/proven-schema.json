@@ -109,7 +109,7 @@
 		},
 		"message": {
 			"$id": "#/properties/message",
-			"type": "object",
+			"type": ["array", "object"],
 			"title": "Message",
 			"description": "Contains the message, that is, a JSON object containing the message content. "
 		},

@@ -14,6 +14,8 @@
 proven.hazelcast.members=127.0.0.1
 proven.hazelcast.member.port=5701
 proven.hazelcast.group.name=proven
+proven.hazelcast.group.password=proven
+
 
 ##
 # hazelcast jet

@@ -10,9 +10,12 @@
 		<property name="hazelcast.logging.type">slf4j</property>
 	</properties>
 
-	<group>
-		<name>${proven.hazelcast.group.name}</name>
-	</group>
+ 	<group> 		
+ 	<name>${proven.hazelcast.group.name}</name>
+<!--  	<password>${proven.hazelcast.group.password}</password> --> 
+ 	</group>
+
+<!--      <group name="${proven.hazelcast.group.name}" password="${proven.hazelcast.group.password}"/> -->   
 
 	<network>
 
