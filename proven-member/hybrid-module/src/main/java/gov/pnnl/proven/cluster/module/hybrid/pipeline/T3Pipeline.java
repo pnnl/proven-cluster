@@ -52,7 +52,6 @@ import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.nio.Address;
 
-import gov.pnnl.cluster.lib.pipeline.service.T3Service;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.KnowledgeMessage;
@@ -63,6 +62,7 @@ import gov.pnnl.proven.cluster.lib.module.service.annotation.PipelineServiceProv
 import gov.pnnl.proven.cluster.lib.module.service.pipeline.PipelineService;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import gov.pnnl.proven.cluster.lib.pipeline.service.T3Service;
 
 import java.io.Serializable;
 import java.util.AbstractMap;

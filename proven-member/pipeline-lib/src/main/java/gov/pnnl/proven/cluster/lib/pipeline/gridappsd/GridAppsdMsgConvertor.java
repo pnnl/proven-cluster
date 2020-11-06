@@ -1,4 +1,4 @@
-package gov.pnnl.cluster.lib.pipeline.gridappsd;
+package gov.pnnl.proven.cluster.lib.pipeline.gridappsd;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.cluster.lib.pipeline.response;
+package gov.pnnl.proven.cluster.lib.pipeline.response;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -47,8 +47,8 @@ import javax.ws.rs.core.Response;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-import gov.pnnl.cluster.lib.pipeline.PipelineIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.ResponseItem;
+import gov.pnnl.proven.cluster.lib.pipeline.PipelineIDSFactory;
 
 /**
  * Summary response information for a T3 storage request. This is included in a

@@ -119,13 +119,13 @@
 	<serialization>
 		<data-serializable-factories>
 			<data-serializable-factory factory-id="1">
-				gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory
+				 gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory
 			</data-serializable-factory>
 			<data-serializable-factory factory-id="2">
-					gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory
+			    gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory
 			</data-serializable-factory>		
-			<data-serializable-factory factory-id="2">
-					gov.pnnl.proven.cluster.lib.pipeline.PipelineIDSFactory
+			<data-serializable-factory factory-id="3">
+				gov.pnnl.proven.cluster.lib.pipeline.PipelineIDSFactory
 			</data-serializable-factory>	
 		</data-serializable-factories>
 	</serialization>

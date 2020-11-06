@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.cluster.lib.pipeline.service;
+package gov.pnnl.proven.cluster.lib.pipeline.service;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -58,11 +58,11 @@ import com.bigdata.rdf.sail.webapp.client.RemoteRepository;
 import com.bigdata.rdf.sail.webapp.client.RemoteRepositoryManager;
 import com.hazelcast.jet.pipeline.ContextFactory;
 
-import gov.pnnl.cluster.lib.pipeline.response.T3Response;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
+import gov.pnnl.proven.cluster.lib.pipeline.response.T3Response;
 
 /**
  * Provides services to triple store (T3).

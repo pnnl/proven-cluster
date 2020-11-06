@@ -78,35 +78,25 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.cluster.lib.pipeline.gridappsd;
+package gov.pnnl.proven.cluster.lib.pipeline.gridappsd;
 
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class Measurement {
-	
-	private String name;
-	private List<Mpoint> points = new ArrayList<Mpoint>();
+public class Results {
+    private List<Measurement> measurements = new ArrayList<Measurement>();
+ 
 
-	public String getName() {
-		return name;
+	public List<Measurement> getMeasurements() {
+		return measurements;
+	}
+	public void setMeasurements(List<Measurement> measurements) {
+		this.measurements = measurements;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public List<Mpoint> getPoints() {
-		return points;
-	}
-
-	public void setPoints(List<Mpoint> points) {
-		this.points = points;
-	}
-
-	public void addPoint(Mpoint point) {
-		this.points.add(point);
+	public void addMeasurement(Measurement measurement) {
+		this.measurements.add(measurement);
 	}
 }

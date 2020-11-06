@@ -78,7 +78,7 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.cluster.lib.pipeline.gridappsd;
+package gov.pnnl.proven.cluster.lib.pipeline.gridappsd;
 
 import java.util.HashMap;
 import java.util.Map;
