@@ -64,11 +64,12 @@ import com.hazelcast.ringbuffer.Ringbuffer;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
+import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 
 /**
- * Represents a data structure for storing {@code BufferItem}s for future
- * processing. The stored items may be exchanged with other like buffer(s)
- * within a module, member, or cluster depending on the processing requirements.
+ * Wraps a Hazelcast {@link Ringbuffer} distributed data structure for
+ * storing/processing {@code BufferItem}s. Processed items may be exchanged
+ * with another {@code Exchanger}(s).
  * 
  * @author d3j766
  *
@@ -100,7 +101,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	protected Map<BufferedItemState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
 	protected Ringbuffer<T> buffer;
 
-	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
+	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
 
 	/**
@@ -289,7 +290,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 
 	private long getUnprocessedItemCount() {
 
-		// This is a point in time view and may not be exact be depending on
+		// This is a point in time view and may not be exact, depending on
 		// buffer activity during call.
 
 		Long ret;
@@ -369,9 +370,9 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 			if (items.size() <= fsp) {
 
 				try {
-					
+
 					buffer.addAllAsync(items, OverflowPolicy.OVERWRITE).get();
-					
+
 				} catch (InterruptedException | ExecutionException e) {
 					if (e instanceof InterruptedException) {
 						Thread.currentThread().interrupt();

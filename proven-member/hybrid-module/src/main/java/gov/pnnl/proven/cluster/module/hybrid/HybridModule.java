@@ -39,12 +39,13 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.module.hybrid;
 
+import com.google.common.util.concurrent.ServiceManager;
+
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
-import gov.pnnl.proven.cluster.lib.module.manager.PipelineManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
-@ActiveManagers(managers = { StreamManager.class, PipelineManager.class, ExchangeManager.class })
+@ActiveManagers(managers = { StreamManager.class, ServiceManager.class, ExchangeManager.class })
 public class HybridModule extends ProvenModule {
 }

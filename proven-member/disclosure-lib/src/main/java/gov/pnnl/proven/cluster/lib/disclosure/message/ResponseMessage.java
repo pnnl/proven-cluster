@@ -47,7 +47,9 @@ import javax.ws.rs.core.Response;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.ResponseItem;
 
 /**
  * Messages created in response to events (e.g. disclosure, request processing,
@@ -85,17 +87,17 @@ public class ResponseMessage extends ProvenMessage {
 	public ResponseMessage() {
 	}
 	
-	public ResponseMessage(Response.Status status, JsonObject responseMessage, DisclosureItem di) {
+	public ResponseMessage(ResponseItem response, DisclosureItem di) {
 		super(di);
-		this.responseMessage = responseMessage;
-		this.status = status;
-		this.sourceContentType = di.getContent();
+		this.responseMessage = response.toJson();
+		this.status = response.getStatus();
+		this.sourceContentType = di.getMessageContent();
 	}
 	
-	public ResponseMessage(Response.Status status, JsonObject response, ProvenMessage sourceMessage) {
+	public ResponseMessage(ResponseItem response, ProvenMessage sourceMessage) {
 		super(sourceMessage);
-		this.responseMessage = response;
-		this.status = status;
+		this.responseMessage = response.toJson();
+		this.status = response.getStatus();
 		this.sourceContentType = sourceMessage.getMessageContent();
 	}
 
@@ -130,12 +132,12 @@ public class ResponseMessage extends ProvenMessage {
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.RESPONSE_MESSAGE_TYPE;
+		return DisclosureIDSFactory.RESPONSE_MESSAGE_TYPE;
 	}
 
 	@Override

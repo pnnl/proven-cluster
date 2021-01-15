@@ -40,20 +40,15 @@
 package gov.pnnl.proven.cluster.lib.module.registry;
 
 import static com.hazelcast.util.Preconditions.checkHasText;
-import static java.lang.String.format;
-
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
-import com.hazelcast.internal.serialization.impl.ArrayListStreamSerializer;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.util.Preconditions;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
@@ -372,5 +367,6 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 		}
 		return true;
 	}
-
+	
+	public static final StringProp EQ_IDENTIFIER = new StringProp("eqIdentifier");
 }

@@ -52,6 +52,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
+
 /**
  * Properties associated with a {@link ProvenMessage}
  * 
@@ -105,12 +107,12 @@ public class MessageProperties implements IdentifiedDataSerializable, Serializab
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.MESSAGE_PROPERTIES_TYPE;
+		return DisclosureIDSFactory.MESSAGE_PROPERTIES_TYPE;
 	}
 
 	public Long getDisclosure() {

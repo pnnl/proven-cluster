@@ -45,39 +45,38 @@ import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.ContextFactory;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
-import static gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequestType.*;
+import static gov.pnnl.proven.cluster.lib.module.service.pipeline.PipelineServiceType.*;
 
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.nio.Address;
 
-import gov.pnnl.cluster.lib.pipeline.T3Service;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.KnowledgeMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
-import gov.pnnl.proven.cluster.lib.module.request.annotation.PipelineRequestProvider;
-import gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequest;
+import gov.pnnl.proven.cluster.lib.module.service.annotation.PipelineServiceProvider;
+import gov.pnnl.proven.cluster.lib.module.service.pipeline.PipelineService;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import gov.pnnl.proven.cluster.lib.pipeline.service.T3Service;
 
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.Calendar;
 import java.util.Map;
 
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@PipelineRequestProvider(pipelineType = Domain, resources = { MessageStreamProxy.class,
+@PipelineServiceProvider(pipelineType = Domain, resources = { MessageStreamProxy.class,
 		DisclosureDomain.class }, isTest = true, activateOnStartup = true)
-public class T3Pipeline extends PipelineRequest implements Serializable {
+public class T3Pipeline extends PipelineService implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -147,8 +146,8 @@ public class T3Pipeline extends PipelineRequest implements Serializable {
 		ClientConfig hzClientConfig = new ClientConfig();
 		hzClientConfig.getNetworkConfig().addAddress(addressStr);
 		hzClientConfig.setGroupConfig(hzi.getConfig().getGroupConfig());
-		hzClientConfig.getSerializationConfig().addDataSerializableFactoryClass(ProvenMessageIDSFactory.FACTORY_ID,
-				ProvenMessageIDSFactory.class);
+		hzClientConfig.getSerializationConfig().addDataSerializableFactoryClass(DisclosureIDSFactory.FACTORY_ID,
+				DisclosureIDSFactory.class);
 
 		// Get T3 Service
 		ContextFactory<T3Service> t3Service = T3Service.t3Service();

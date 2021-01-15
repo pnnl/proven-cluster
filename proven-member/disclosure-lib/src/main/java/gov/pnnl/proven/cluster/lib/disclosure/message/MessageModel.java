@@ -50,7 +50,6 @@ import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.compose.MultiUnion;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.RDFDataMgr;
@@ -164,13 +163,13 @@ public class MessageModel {
 		return shapesModel;
 	}
 
-	public String getApiSchema() throws Exception {
+	public String getApiSchema() {
 
 		return getModelFile(API_SCHEMA);
 
 	}
 
-	public String getModelFile(String resourceName) throws Exception {
+	public String getModelFile(String resourceName) {
 
 		String ret = null;
 

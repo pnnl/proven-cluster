@@ -80,23 +80,7 @@
 
 package gov.pnnl.proven.cluster.module.hybrid.message;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Resource;
-import javax.ejb.Schedule;
 import javax.ejb.Stateless;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
-import javax.jms.Session;
-import javax.jms.Topic;
-
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
-
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
-import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.JNDI_CONNECTION;
 
 
 

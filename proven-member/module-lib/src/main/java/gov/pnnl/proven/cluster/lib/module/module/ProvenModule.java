@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.module;
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,11 +60,11 @@ import org.slf4j.Logger;
 
 import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
+import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**
@@ -88,6 +89,9 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	@Inject
 	protected PayaraMicroRuntime pmr;
+	
+	@Inject
+	ComponentRegistry cr;
 
 	private static final String JNDI_MODULE_NAME = "java:module/ModuleName";
 
@@ -96,6 +100,9 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	// Module name
 	private static String moduleName;
+	
+	// Time of creation
+	private long moduleCreation;
 
 	public ProvenModule() {
 		super();
@@ -107,6 +114,7 @@ public abstract class ProvenModule extends ModuleComponent {
 		UUID moduleId, managerId, creatorId;
 		moduleId = managerId = creatorId = this.id;
 		entryLocation(new EntryLocation(memberId, moduleId, managerId, creatorId));
+		moduleCreation = new Date().getTime();
 	}
 
 	public <T extends ManagerComponent> T produceManager(Class<T> clazz) {
@@ -183,6 +191,10 @@ public abstract class ProvenModule extends ModuleComponent {
 		return moduleName;
 	}
 
+	public long getModuleCreation() {
+		return moduleCreation;
+	}
+
 	/**
 	 * Create module's active managers.
 	 */
@@ -208,23 +220,17 @@ public abstract class ProvenModule extends ModuleComponent {
 			}
 		}
 
-		// if ((null != toActivate) && (toActivate.managers().length != 0)) {
+		// If manager's are provided then use, else include all
 		if ((null != toActivate) && (!active.isEmpty())) {
 			activeManagers = new HashSet<Class<? extends ManagerComponent>>(active);
-			// activeManagers = new HashSet<Class<? extends ManagerComponent>>(
-			// Arrays.asList((Class<? extends ManagerComponent>[])
-			// toActivate.managers()));
 		} else {
 			activeManagers = new HashSet<Class<? extends ManagerComponent>>(ManagerFactory.getManagerTypes().keySet());
-			// activeManagers = new HashSet<Class<? extends ManagerComponent>>(
-			// (Set<Class<? extends ManagerComponent>>)
-			// ManagerFactory.getManagerTypes().keySet());
 		}
 
 		// Verify required managers are present
 		Map<Class<? extends ManagerComponent>, Boolean> allManagers = ManagerFactory.getManagerTypes();
 		for (Class<? extends ManagerComponent> k : allManagers.keySet()) {
-			if (allManagers.get(k)) {
+			if (allManagers.get(k)) {	
 				if (!activeManagers.contains(k)) {
 					activeManagers.add(k);
 				}
@@ -234,7 +240,6 @@ public abstract class ProvenModule extends ModuleComponent {
 		// Create selected managers
 		for (Class<? extends ManagerComponent> c : activeManagers) {
 			if (ManagerComponent.class.isAssignableFrom(c)) {
-				//createAsync(new CreationRequest(c));
 				produceManager(c);
 			}
 		}

@@ -41,15 +41,11 @@ package gov.pnnl.proven.cluster.lib.module.registry;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.Schedule;
 import javax.enterprise.context.ApplicationScoped;
@@ -58,24 +54,17 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 
 import com.hazelcast.core.Cluster;
-import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.IQueue;
 import com.hazelcast.core.ISet;
-import com.hazelcast.core.ItemEvent;
-import com.hazelcast.core.ItemListener;
-import com.hazelcast.core.Member;
-import com.hazelcast.core.ReplicatedMap;
 import com.hazelcast.cp.lock.FencedLock;
-import com.hazelcast.map.listener.EntryAddedListener;
-import com.hazelcast.map.listener.EntryUpdatedListener;
-
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
-import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
+import gov.pnnl.proven.cluster.lib.module.exchange.Exchange;
+import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeRequest;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleEntry;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 
@@ -88,7 +77,7 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
  *
  */
 @ApplicationScoped
-public class ComponentRegistry {
+public class ComponentRegistry implements Exchange {
 
 	@Inject
 	Logger log;
@@ -157,6 +146,7 @@ public class ComponentRegistry {
 	 * Set of member modules. A ComponentRegistry creates and adds its
 	 * ModuleEntry to this Set at startup.
 	 */
+	@Deprecated
 	ISet<ModuleEntry> modules;
 
 	/**
@@ -164,6 +154,7 @@ public class ComponentRegistry {
 	 * to {@link #modules}
 	 * 
 	 */
+	@Deprecated
 	FencedLock modulesFencedLock;
 
 	/**
@@ -171,6 +162,7 @@ public class ComponentRegistry {
 	 * Requests may be added to the queue by this module or other modules within
 	 * the same member. This module reads and processes these requests.
 	 */
+	@Deprecated
 	IQueue<ExchangeRequest> localModuleExchangeQueue;
 
 	/**
@@ -178,6 +170,7 @@ public class ComponentRegistry {
 	 * Requests may be added to the queue by modules outside this member. Any
 	 * module within this member may read and process these requests.
 	 */
+	@Deprecated
 	IQueue<ExchangeRequest> localMemberExchangeQueue;
 
 	/**
@@ -205,45 +198,7 @@ public class ComponentRegistry {
 		 */
 		modules = hzi.getSet(props.getMemberModuleRegistryName());
 		// hzi.getCPSubsystem().getLock("myLock");
-		localModuleExchangeQueue = hzi.getQueue(props.getModuleExchangeQueueName() + "." + pm.getId().toString());
-		localMemberExchangeQueue = hzi.getQueue(props.getMemberExchangeQueueName() + "." + pm.getMemberId().toString());
 		clusterComponents = hzi.getMap(props.getClusterComponentRegistryName());
-	}
-
-	/**
-	 * @return this module's exchange queue
-	 */
-	private IQueue localModuleExchangeQueue() {
-		return hzi.getQueue(props.getModuleExchangeQueueName() + "." + pm.getId().toString());
-	}
-
-	/**
-	 * Get module exchange queue for the provided ModuleEntry
-	 * 
-	 * @param me
-	 *            provided module entry
-	 * @return module exchange queue
-	 */
-	private IQueue moduleExchangeQueue(ModuleEntry me) {
-		return hzi.getQueue(props.getModuleExchangeQueueName() + "." + me.getModuleId().toString());
-	}
-
-	/**
-	 * @return this module's member exchange queue
-	 */
-	private IQueue localMemberExchangeQueue() {
-		return hzi.getQueue(props.getMemberExchangeQueueName() + "." + pm.getMemberId().toString());
-	}
-
-	/**
-	 * Get member exchange queue for provided {@link Member}
-	 * 
-	 * @param member
-	 *            provided Member
-	 * @return member exchange queue
-	 */
-	private IQueue memberExchangeQueue(Member member) {
-		return hzi.getQueue(props.getMemberExchangeQueueName() + "." + member.getUuid());
 	}
 
 	/**
@@ -356,7 +311,7 @@ public class ComponentRegistry {
 		}
 		try {
 
-			// Cleanup work here
+			// TODO Cleanup work here
 			log.debug("LOCAL CLEANUP TASK INVOKED");
 
 		} finally {

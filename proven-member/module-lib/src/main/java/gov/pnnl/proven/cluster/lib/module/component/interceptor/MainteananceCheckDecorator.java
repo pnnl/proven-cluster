@@ -73,10 +73,10 @@ public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
 
 	/**
 	 * @see MaintenanceCheck#checkAndRepair()
+	 * 
 	 */
 	@Override
 	public MaintenanceOperationResult checkAndRepair() {
-
 		mo.setStartTime(new Date().getTime());
 		MaintenanceOperationResult result = mo.checkAndRepair();
 		mo.setResult(result);
@@ -90,7 +90,7 @@ public abstract class MainteananceCheckDecorator implements MaintenanceCheck {
 	private MaintenanceOperationResultEntry createOpEvent(MaintenanceOperation mo) {
 
 		MaintenanceOperationResultEntry moe = new MaintenanceOperationResultEntry(mo);
-		
+
 		return moe;
 	}
 

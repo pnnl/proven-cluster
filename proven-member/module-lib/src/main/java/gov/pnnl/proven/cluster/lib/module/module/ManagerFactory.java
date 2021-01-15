@@ -45,9 +45,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
@@ -56,7 +54,7 @@ import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
-import gov.pnnl.proven.cluster.lib.module.manager.PipelineManager;
+import gov.pnnl.proven.cluster.lib.module.manager.ServiceManager;
 import gov.pnnl.proven.cluster.lib.module.manager.RequestManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
@@ -89,7 +87,7 @@ public class ManagerFactory {
 	protected static Map<Class<? extends ManagerComponent>, Boolean> managerTypes = new HashMap<>();
 	static {
 		managerTypes.put(ExchangeManager.class, false);
-		managerTypes.put(PipelineManager.class, true);
+		managerTypes.put(ServiceManager.class, false);
 		managerTypes.put(RequestManager.class, false);
 		managerTypes.put(StreamManager.class, true);
 	}
@@ -119,8 +117,8 @@ public class ManagerFactory {
 
 	@Produces
 	@Manager
-	public PipelineManager pipelineManagerProducer(InjectionPoint ip) {
-		return retrieveManager(PipelineManager.class);
+	public ServiceManager pipelineManagerProducer(InjectionPoint ip) {
+		return retrieveManager(ServiceManager.class);
 	}
 
 	@Produces
@@ -147,8 +145,8 @@ public class ManagerFactory {
 
 	@Produces
 	@Managers
-	public List<PipelineManager> pipelineManagersProducer(InjectionPoint ip) {
-		return retrieveManagers(PipelineManager.class);
+	public List<ServiceManager> pipelineManagersProducer(InjectionPoint ip) {
+		return retrieveManagers(ServiceManager.class);
 	}
 
 	@Produces

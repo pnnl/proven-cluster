@@ -54,6 +54,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
+
 /**
  * Represents a time-series query.
  * 
@@ -118,13 +120,13 @@ public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serial
 	
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 	
 	
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
+		return DisclosureIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
 	}
 	
 	

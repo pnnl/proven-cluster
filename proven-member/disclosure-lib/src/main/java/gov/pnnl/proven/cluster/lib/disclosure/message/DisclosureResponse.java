@@ -53,6 +53,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
+
 /**
  * Represents response results for a {@link ProvenMessage} request.
  * 
@@ -102,12 +104,12 @@ public class DisclosureResponse extends ResponseMessage implements IdentifiedDat
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_RESPONSE_TYPE;
+		return DisclosureIDSFactory.DISCLOSURE_RESPONSE_TYPE;
 	}
 
 	public String getRequestId() {

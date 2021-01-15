@@ -40,6 +40,8 @@
 package gov.pnnl.proven.cluster.module.disclosure.resource;
 
 import java.util.Calendar;
+import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -48,14 +50,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RR_SSE;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.exchange.ResponseItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.JsonDisclosure;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageModel;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
@@ -98,7 +98,7 @@ public class TestSSEResponse {
 
 			// Create new response message and add - this should cause a send
 			// event on server
-			ResponseMessage rm = new ResponseMessage(Status.OK, dm.getDisclosureItem().getMessage(), dm);
+			ResponseMessage rm = new ResponseMessage(new ResponseItem(Status.OK, Optional.empty()), dm);
 
 			// Add message to queue
 			msp.getMessageStream().getStream().put(rm.getMessageKey(), rm);

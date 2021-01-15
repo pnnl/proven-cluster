@@ -52,7 +52,7 @@ import com.hazelcast.ringbuffer.Ringbuffer;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
-import gov.pnnl.proven.cluster.lib.module.request.module.RequestItem;
+import gov.pnnl.proven.cluster.lib.module.service.module.RequestItem;
 
 /**
  * A managed component supporting the collection and processing of
@@ -102,6 +102,12 @@ public class RequestBuffer extends ExchangeBuffer<RequestItem<?>> {
 		return SUPPORTED_ITEM_STATES;
 	}
 
+	
+	@Override 
+	public ExchangeType exchangeType() {
+		return ExchangeType.RequestBuffer;
+	}
+	
 	void addLocalDisclosure(DisclosureBuffer db) {
 		localDisclosure = db;
 	}

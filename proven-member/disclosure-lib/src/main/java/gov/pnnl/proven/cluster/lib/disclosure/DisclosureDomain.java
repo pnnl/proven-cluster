@@ -41,6 +41,7 @@ package gov.pnnl.proven.cluster.lib.disclosure;
 
 import java.io.IOException;
 import java.io.Serializable;
+
 import org.apache.commons.validator.routines.DomainValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +51,6 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
 
 /**
  * Information disclosed by external clients to a Proven Cluster are organized
@@ -162,12 +161,12 @@ public class DisclosureDomain implements IdentifiedDataSerializable, Serializabl
 
 	@Override
 	public int getFactoryId() {
-		return ProvenMessageIDSFactory.FACTORY_ID;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
 	@Override
 	public int getId() {
-		return ProvenMessageIDSFactory.DISCLOSURE_DOMAIN_TYPE;
+		return DisclosureIDSFactory.DISCLOSURE_DOMAIN_TYPE;
 	}
 
 }

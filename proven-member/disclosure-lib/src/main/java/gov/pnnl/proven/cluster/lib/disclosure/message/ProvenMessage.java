@@ -40,28 +40,18 @@
 
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonWriter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JsonSerializable;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 
 /**
@@ -149,8 +139,10 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	}
 
 	/**
-	 * Constructor for an downstream message creation. That is, after the
-	 * initial disclosure.
+	 * Constructor for a downstream message. That is, after an initial
+	 * disclosure. The new message is linked to the parent message via
+	 * {@link #sourceMessageId}. The original disclosure item is maintained
+	 * under {@link #disclosureItem}.
 	 * 
 	 * @param sourceMessage
 	 *            the parent/source message for this message.
@@ -159,7 +151,7 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 		this.created = new Date().getTime();
 		this.messageId = UUID.randomUUID();
 		this.sourceMessageId = source.getMessageId();
-		this.disclosureItem = new DisclosureItem(source.getDisclosureItem());
+		this.disclosureItem = source.getDisclosureItem();
 	}
 
 	public Long getCreated() {
@@ -190,7 +182,7 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	}
 
 	public MessageContent getMessageContent() {
-		return getDisclosureItem().getContent();
+		return getDisclosureItem().getMessageContent();
 	}
 
 	@Override

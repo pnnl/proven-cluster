@@ -66,14 +66,14 @@ import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
  *
  */
 @CreatedBy(value = { StreamManager.class })
-@Configuration(value={DisclosureDomain.class, MessageStreamType.class})
+@Configuration(value = { DisclosureDomain.class, MessageStreamType.class })
 public class MessageStream extends StreamComponent {
 
 	static Logger log = LoggerFactory.getLogger(MessageStream.class);
 
 	@Inject
 	protected HazelcastInstance hzi;
-	
+
 	private String streamName;
 	private DisclosureDomain dd;
 	private MessageStreamType mst;
@@ -89,26 +89,26 @@ public class MessageStream extends StreamComponent {
 		super();
 		log.debug("DefaultConstructer for MessageStream");
 	}
-	
-	@Override
-	public void configure(List<Object> config) {		
 
-		DisclosureDomain dd = (DisclosureDomain) config.get(0); 
+	@Override
+	public void configure(List<Object> config) {
+
+		DisclosureDomain dd = (DisclosureDomain) config.get(0);
 		MessageStreamType mst = (MessageStreamType) config.get(1);
-		
+
 		this.streamName = mst.getStreamName(dd);
 		this.dd = dd;
 		this.mst = mst;
 		this.stream = hzi.getMap(streamName);
 	}
-	
-	@Override 
+
+	@Override
 	public Object[] configuration() {
-		
+
 		Object[] ret = new Object[2];
 		ret[0] = dd;
 		ret[1] = mst;
-		
+
 		return ret;
 	}
 
@@ -132,7 +132,4 @@ public class MessageStream extends StreamComponent {
 		return hzi;
 	}
 
-	
-	
-	
 }

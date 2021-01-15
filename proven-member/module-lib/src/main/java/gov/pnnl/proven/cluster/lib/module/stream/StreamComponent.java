@@ -39,16 +39,12 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.DomainProvider.LS;
-
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 
 /**
  * 
@@ -66,8 +62,7 @@ public abstract class StreamComponent extends ManagedComponent {
 	Logger log;
 
 	public StreamComponent() {
-		super();
-		group = ComponentGroup.Stream;
+		super(ComponentGroup.Stream);
 	}
 
 }

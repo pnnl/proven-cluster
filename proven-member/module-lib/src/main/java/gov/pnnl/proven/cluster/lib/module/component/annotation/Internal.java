@@ -49,18 +49,9 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.UUID;
-
-import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
-import javax.interceptor.InterceptorBinding;
-
-import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation;
-import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 
 /**
  * 

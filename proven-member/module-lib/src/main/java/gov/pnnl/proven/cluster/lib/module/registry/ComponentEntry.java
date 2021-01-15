@@ -175,16 +175,10 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 
 		if (!location.equals(other.location)) {
 			ret = location.compareTo(other.location);
+		} else if (!entryId.equals(other.entryId)) {
+			ret = entryId.compareTo(other.entryId);
 		} else {
-			if (!getcGroupLabel().equals(other.getcGroupLabel())) {
-				ret = getcGroupLabel().compareTo(other.getcGroupLabel());
-			} else {
-				if (!getcName().equals(other.getcName())) {
-					ret = getcName().compareTo(other.getcName());
-				} else {
-					ret = (getcId().toString().compareTo(other.getcId().toString()));
-				}
-			}
+			ret = 0;
 		}
 
 		return ret;
@@ -224,16 +218,16 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
 		this.entryCreation = in.readLong();
-		
+
 		this.entryId = new EntryIdentifier();
 		this.entryId.readData(in);
-		
+
 		this.location = new EntryLocation();
 		this.location.readData(in);
 
 		this.properties = new EntryProperties();
 		this.properties.readData(in);
-		
+
 		this.componentCreation = in.readLong();
 		this.moduleStatus = ModuleStatus.valueOf(in.readUTF());
 		this.moduleName = in.readUTF();

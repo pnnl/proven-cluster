@@ -39,13 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
-import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.STATUS_LOCK;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.decorator.Decorator;
@@ -56,13 +49,9 @@ import javax.interceptor.Interceptor;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
-import gov.pnnl.proven.cluster.lib.module.component.CreationResponse;
 import gov.pnnl.proven.cluster.lib.module.component.Creator;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.component.exception.InvalidCreationRequestException;
 
 @Decorator
 @Priority(value = Interceptor.Priority.APPLICATION)

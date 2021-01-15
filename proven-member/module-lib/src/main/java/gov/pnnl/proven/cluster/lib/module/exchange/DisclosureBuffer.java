@@ -53,7 +53,6 @@ import com.hazelcast.core.DistributedObjectUtil;
 import com.hazelcast.ringbuffer.ReadResultSet;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
@@ -183,6 +182,11 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 	}
 
+	@Override 
+	public ExchangeType exchangeType() {
+		return ExchangeType.DisclosureBuffer;
+	}
+	
 	void addLocalExchange(RequestBuffer rb) {
 		localExchange = rb;
 	}

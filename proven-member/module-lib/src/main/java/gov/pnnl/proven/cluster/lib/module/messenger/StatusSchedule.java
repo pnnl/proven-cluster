@@ -59,7 +59,6 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.MessageEvent;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
-import gov.pnnl.proven.cluster.lib.module.request.pipeline.PipelineRequest;
 
 /**
  * Sends {@code StatusMessages} on a fixed delay schedule.

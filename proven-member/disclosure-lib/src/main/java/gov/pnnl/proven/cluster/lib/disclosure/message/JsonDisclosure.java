@@ -39,58 +39,42 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.message;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.io.StringReader;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Supplier;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.stream.JsonParsingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
 /**
- * Accepts Proven disclosure data represented in the JSON format. JSON data (input
- * or schema) is checked for correctness when it's added either at construction
- * or use of setter methods. Incorrect JSON values will throw a
- * {@code JsonParsingException}.
- * 
- * TODO 
- * Add support for references (e.g. URI location) to remote JSON and JSON-SCHEMA data.  
- * 
+ * Utility class providing a translator form String to JSON. Used by disclosure
+ * processing to convert and verify disclosed JSON Strings are valid JSON
+ * representations.
  * 
  * @author d3j766
- *
- * @see DisclosureMessage, ProvenMessage
  * 
  */
 public class JsonDisclosure {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static Logger log = LoggerFactory.getLogger(JsonDisclosure.class);
 
-	
 	public JsonDisclosure() {
 	}
 
 	public static JsonObject toJsonObject(String json) {
 
 		JsonObject ret = null;
-		
+
 		if (null != json) {
-	
+
 			// TODO Add @id values to message
 			JsonReader reader = Json.createReader(new StringReader(json));
-			
+
 			try {
 				ret = reader.readObject();
 			} catch (JsonParsingException e) {

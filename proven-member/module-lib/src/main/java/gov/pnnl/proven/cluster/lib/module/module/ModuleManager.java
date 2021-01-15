@@ -42,7 +42,6 @@ package gov.pnnl.proven.cluster.lib.module.module;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.event.Event;

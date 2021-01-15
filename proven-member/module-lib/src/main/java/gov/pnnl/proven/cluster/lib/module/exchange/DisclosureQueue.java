@@ -57,7 +57,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.IQueue;
-import com.hazelcast.core.ReplicatedMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
@@ -67,13 +66,15 @@ import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
-import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.DisclosureQueueCheck;
-import gov.pnnl.proven.cluster.lib.module.exchange.Maintenance.ProvenDisclosureMap;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
+import gov.pnnl.proven.cluster.lib.module.exchange.maintenance.DisclosureQueueCheck;
+import gov.pnnl.proven.cluster.lib.module.exchange.maintenance.ProvenDisclosureMap;
+import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 
 /**
- * A queue data structure used to accept/store disclosure items, providing back
- * pressure for their internal processing.
+ * Wraps a Hazelcast {@link IQueue} distributed data structure for
+ * storing/processing disclosed items from internal or external sources.
+ * Processed items may be exchanged with another {@code Exchanger}(s).
  * 
  * @author d3j766
  * 
@@ -81,7 +82,7 @@ import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInte
  *
  */
 @Scalable(maxCount = 5)
-public class DisclosureQueue extends ExchangeComponent {
+public class DisclosureQueue extends ExchangeComponent  {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureQueue.class);
 
@@ -96,7 +97,7 @@ public class DisclosureQueue extends ExchangeComponent {
 
 	DisclosureBuffer localDisclosure;
 
-	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
+	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
 
 	@PostConstruct
@@ -460,6 +461,11 @@ public class DisclosureQueue extends ExchangeComponent {
 		return itemQueue.remainingCapacity();
 	}
 
+	@Override 
+	public ExchangeType exchangeType() {
+		return ExchangeType.DisclosureQueue;
+	}
+	
 	@Override
 	public ComponentMaintenance scheduledMaintenance() {
 		return new ComponentMaintenance(this, DisclosureQueueCheck.class, ProvenDisclosureMap.class);

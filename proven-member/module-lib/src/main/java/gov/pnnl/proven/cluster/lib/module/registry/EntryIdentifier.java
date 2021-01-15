@@ -51,8 +51,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
-import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
@@ -85,13 +84,13 @@ public class EntryIdentifier extends DisclosureDomain
 	public EntryIdentifier() {
 	}
 
-	public EntryIdentifier(ManagedComponent mc) {
-		super(mc.getId() + LS + mc.getName() + LS + mc.getGroupLabel() + LS + COMPONENT_DOMAIN);
-		this.componentId = mc.getId();
-		this.componentName = mc.getName();
-		this.groupLabel = mc.getGroupLabel();
+	public EntryIdentifier(UUID id, String name, ComponentGroup group) {
+		super(id.toString() + LS + name + LS + group.getGroupLabel() + LS + COMPONENT_DOMAIN);
+		this.componentId = id;
+		this.componentName = name;
+		this.groupLabel = group.getGroupLabel();
 	}
-
+		
 	/**
 	 * @return the componentId
 	 */

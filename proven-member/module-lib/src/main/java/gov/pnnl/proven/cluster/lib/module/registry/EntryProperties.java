@@ -45,14 +45,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.BooleanProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.DoubleProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.EntryType;
@@ -78,6 +74,13 @@ public final class EntryProperties implements IdentifiedDataSerializable, Serial
 	Set<EntryProperty> entryProperties = new HashSet<>();
 
 	public EntryProperties() {
+	}
+	
+	/**
+	 * Copy constructor
+	 */
+	public EntryProperties(EntryProperties props) {
+		entryProperties.addAll(props.getEntryProperties());
 	}
 
 	public boolean add(EntryProperty prop) {

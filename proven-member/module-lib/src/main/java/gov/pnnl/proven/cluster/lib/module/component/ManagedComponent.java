@@ -150,6 +150,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	@Any
 	protected Instance<ManagedComponent> componentProvider;
 
+	// TODO 1 schedule delays and time units should be configurable
+	
 	@Inject
 	@Scheduler(delay = 10, activateOnStartup = false)
 	protected StatusSchedule statusSchedule;
@@ -180,6 +182,12 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected boolean isModule = false;
 	protected boolean isManager = false;
 
+	
+	/**
+	 * Component's entry identifier
+	 */
+	protected EntryIdentifier entryIdentifier;
+		
 	/**
 	 * Component location, this is initialized in
 	 * {@link ManagedInterceptor#verifyManagedComponent(javax.interceptor.InvocationContext)}
@@ -224,14 +232,15 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	private CreationQueue<ManagedComponent> creationQueue = new CreationQueue<>();
 
-	public ManagedComponent() {
+	public ManagedComponent(ComponentGroup group) {
 
-		id = UUID.randomUUID();
+		this.id = UUID.randomUUID();
+		this.group = group;
 		// Note: WELD specific; proxies are sub classes
-		type = (Class<? extends ManagedComponent>) this.getClass().getSuperclass();
-		isModule = ProvenModule.class.isAssignableFrom(type);
-		isManager = ManagerComponent.class.isAssignableFrom(type);
-
+		this.type = (Class<? extends ManagedComponent>) this.getClass().getSuperclass();
+		this.isModule = ProvenModule.class.isAssignableFrom(type);
+		this.isManager = ManagerComponent.class.isAssignableFrom(type);
+		this.entryIdentifier = new EntryIdentifier(id, getName(), group);
 		// Indicates component is being created - status is set to Ready in
 		// PostConstruct callback
 		setStatus(ManagedStatus.Creating);
@@ -753,7 +762,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	/**
-	 * Creates and returns {@code StatusMessages}. The status messages, if any,
+	 * Creates and returns {@code StatusOperationMessages}. These messages, if any,
 	 * are qualified by a {@code StatusOperation}, indicating to the compnent's
 	 * child observer what status operation to invoke. Messages are also
 	 * directed to the component's registry, informing the registry of it's
@@ -1289,17 +1298,17 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	public ComponentEntry entry() {
 		return new ComponentEntry(this);
 	}
-
+	
 	/**
 	 * @see EntryReporter#entryIdentifier()
 	 */
 	@Override
 	public EntryIdentifier entryIdentifier() {
-		return new EntryIdentifier(this);
+		return this.entryIdentifier;
 	}
 
 	/**
-	 * @see EntryReporter#entryLocation()
+	 * @see EntryReporter#entryLocation(EntryLocation)
 	 */
 	@Override
 	public void entryLocation(EntryLocation location) {
@@ -1311,16 +1320,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	 */
 	@Override
 	public EntryLocation entryLocation() {
-
-		//@formatter:off
-		log.debug("LOCATION COORDINATES: " + entryIdentifier() + "\n" + 
-	      "\t MEMBER: "  + (null == getMemberId()  ? "NULL" : getMemberId())  + "\n" + 
-		  "\t MODULE: "  + (null == getModuleId()  ? "NULL" : getModuleId())  + "\n" + 
-	      "\t MANAGER: " + (null == getManagerId() ? "NULL" : getManagerId()) + "\n" +  
-	      "\t CREATOR: " + (null == getCreatorId() ? "NULL" : getCreatorId()) + "\n");
-		//@formatter:on
-
-		return location;
+		return this.location;
 	}
 
 	/**

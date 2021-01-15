@@ -173,7 +173,7 @@ project('proven-member:module-lib') {
 	dependencies {
 		compile project(':proven-member:disclosure-lib')
 		compile project(':proven-member:stream-lib')
-		//compile project(':proven-member:pipeline-lib')
+		compile project(':proven-member:pipeline-lib')
 	}
 }
 

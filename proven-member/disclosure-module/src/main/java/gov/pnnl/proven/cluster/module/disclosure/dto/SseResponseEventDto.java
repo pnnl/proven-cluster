@@ -52,7 +52,7 @@ import gov.pnnl.proven.cluster.module.disclosure.sse.SseSession;
 /**
  * Represents SSE information for the addition of a {@code ResponseMessage} to a
  * domain stream. By default, the information is sent as
- * {@code MediaType#APPLICATION_JSON}. The {@code #message} fieldd represents
+ * {@code MediaType#APPLICATION_JSON}. The {@code #message} field represents
  * the data element of the SSE message, and is in the form of escaped JSON.
  * 
  * @author d3j766

@@ -39,10 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.interceptor;
 
-import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.Priority;
@@ -52,7 +50,6 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.interceptor.AroundConstruct;
-import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 
@@ -60,11 +57,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
-import gov.pnnl.proven.cluster.lib.module.component.TaskSchedule;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.ManagedAnnotationLiteral;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scheduler;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
@@ -182,10 +176,10 @@ public class ManagedInterceptor {
 		Object result = ctx.proceed();
 
 		/**
-		 * Set location values for constructed component if it is not the module
-		 * component. The module component, being the root component, has
-		 * already been initialized and its location values are passed down the
-		 * tree.
+		 * Set entry identifier and location values for constructed component if
+		 * it is not the module component. The module component, being the root
+		 * component, has already been initialized and its values are passed
+		 * down the tree.
 		 */
 		if (!moduleComponent) {
 
@@ -202,6 +196,9 @@ public class ManagedInterceptor {
 					UUID.fromString(managed.managerId()),
 					UUID.fromString(managed.creatorId())));
 			//@formatter:on
+			log.debug("MANAGED INTERCEPTOR - SETTING LOCATION");
+			log.debug(mc.entryLocation().toString());
+			log.debug("SETTING LOCATION COMPLETE");
 
 		}
 

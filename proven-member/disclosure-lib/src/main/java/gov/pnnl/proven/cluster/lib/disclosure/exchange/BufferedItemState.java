@@ -48,8 +48,8 @@ package gov.pnnl.proven.cluster.lib.disclosure.exchange;
 public enum BufferedItemState {
 
 	/**
-	 * Initial state. Any item changes to prepare it for processing is
-	 * performed.
+	 * Initial state. Any item changes to prepare it for processing are
+	 * performed here.
 	 */
 	New,
 

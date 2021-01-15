@@ -62,18 +62,35 @@
 		<backup-count>0</backup-count>
 		<empty-queue-ttl>-1</empty-queue-ttl>
 	</queue>
-	
-	<!-- This includes both staging and disclosure queues -->
-	<queue name="gov.pnnl.proven.component.exchange.*">
-		<max-size>10000</max-size>
+
+	<!-- Disclosure queue -->
+	<queue name="gov.pnnl.proven.component.exchange.${proven.lib.module.exchange.queue.disclosure.name}.*">
+		<max-size>${proven.lib.module.exchange.queue.disclosure.max_size}</max-size>
 		<async-backup-count>1</async-backup-count>
 		<backup-count>0</backup-count>
 		<empty-queue-ttl>-1</empty-queue-ttl>
 	</queue>
 	
-	<!-- Exchange buffers.  Both disclosure and request. -->
+	<!-- Exchange queue -->
+	<queue name="gov.pnnl.proven.component.exchange.${proven.lib.module.exchange.queue.exchange.name}.*">
+		<max-size>${proven.lib.module.exchange.queue.exchange.max_size}</max-size>
+		<async-backup-count>1</async-backup-count>
+		<backup-count>0</backup-count>
+		<empty-queue-ttl>-1</empty-queue-ttl>
+	</queue>
+	
+	<!-- Exchange buffer (Request & Disclosure)-->
 	<ringbuffer name="gov.pnnl.proven.component.exchange.*">
 		<capacity>1000</capacity>
+		<backup-count>0</backup-count>
+		<async-backup-count>1</async-backup-count>
+		<time-to-live-seconds>0</time-to-live-seconds>
+		<in-memory-format>BINARY</in-memory-format>
+	</ringbuffer>
+
+	<!-- Service buffer -->
+	<ringbuffer name="gov.pnnl.proven.component.exchange.ServiceBuffer.*">
+		<capacity>100</capacity>
 		<backup-count>0</backup-count>
 		<async-backup-count>1</async-backup-count>
 		<time-to-live-seconds>0</time-to-live-seconds>
@@ -102,11 +119,14 @@
 	<serialization>
 		<data-serializable-factories>
 			<data-serializable-factory factory-id="1">
-				gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageIDSFactory
+				 gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory
 			</data-serializable-factory>
 			<data-serializable-factory factory-id="2">
-					gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory
-			</data-serializable-factory>			
+			    gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory
+			</data-serializable-factory>		
+			<data-serializable-factory factory-id="3">
+				gov.pnnl.proven.cluster.lib.pipeline.PipelineIDSFactory
+			</data-serializable-factory>	
 		</data-serializable-factories>
 	</serialization>
 	

@@ -45,14 +45,16 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.core.IExecutorService;
+import com.hazelcast.core.ReplicatedMap;
+
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 
 /**
- * A managed component supporting the execution of module requests.
+ * Wraps a Hazelcast {@link IExecutorService} supporting the execution of module
+ * and pipeline services.
  * 
  * @author d3j766
- * 
- * @see RequestExchange
  *
  */
 @Scalable
@@ -63,12 +65,18 @@ public class ServiceBuffer extends ExchangeComponent {
 	@PostConstruct
 	void init() {
 		log.debug("Post construct for ServiceBuffer");
+		ReplicatedMap<String, Boolean> registry = hzi.getReplicatedMap("test");
 	}
 
 	@Inject
 	public ServiceBuffer() {
 		super();
 		log.debug("Default Constructer for ServiceBuffer");
+	}
+
+	@Override
+	public ExchangeType exchangeType() {
+		return ExchangeType.ServiceBuffer;
 	}
 
 }

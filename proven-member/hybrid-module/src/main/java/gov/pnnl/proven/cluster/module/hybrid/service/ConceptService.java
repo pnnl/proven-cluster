@@ -80,7 +80,6 @@
 
 package gov.pnnl.proven.cluster.module.hybrid.service;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric.MetricFragmentIdentifier.*;
 import static gov.pnnl.proven.cluster.module.hybrid.concept.ConceptUtil.*;
 import static gov.pnnl.proven.cluster.module.hybrid.concept.ProvenConceptSchema.*;
 import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.*;
@@ -93,14 +92,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.lang.Long;
@@ -121,7 +117,6 @@ import javax.xml.bind.Marshaller;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.eclipse.persistence.jaxb.JAXBContextProperties;
 import org.eclipse.persistence.jaxb.JAXBMarshaller;
-import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.xmlmodel.ObjectFactory;
 //import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
@@ -133,8 +128,6 @@ import org.influxdb.dto.QueryResult.Result;
 import org.influxdb.dto.QueryResult.Series;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
@@ -152,7 +145,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.message.*;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
 import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
 import gov.pnnl.proven.cluster.module.hybrid.concept.Concept;
 import gov.pnnl.proven.cluster.module.hybrid.concept.DomainModel;

@@ -80,21 +80,14 @@
 
 package gov.pnnl.proven.cluster.module.hybrid.message;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
 import gov.pnnl.proven.cluster.module.hybrid.service.ConceptService;
 import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic.TopicConfig.*;
-import static gov.pnnl.proven.cluster.module.hybrid.util.Consts.*;
-
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
-import javax.resource.AdministeredObjectDefinition;
 
 //@formatter:off
 //@AdministeredObjectDefinition(

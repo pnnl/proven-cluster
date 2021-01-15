@@ -43,12 +43,11 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -58,19 +57,18 @@ import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.OutboundSseEvent.Builder;
-import javax.ws.rs.sse.SseEventSink;
 
 import org.slf4j.Logger;
+
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
+
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
-import gov.pnnl.proven.cluster.lib.module.exchange.RequestExchange;
+import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
@@ -102,12 +100,12 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 	public static final int SSE_RECONNECT_DELAY = 4000;
 	public static final int REGISTRATIONS_PER_CLEAN = 25;
 
-	@Resource(lookup = RequestExchange.RE_EXECUTOR_SERVICE)
+	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
 
-	@Inject 
+	@Inject
 	HazelcastInstance hzi;
-	
+
 	@Inject
 	@Manager
 	StreamManager sm;
@@ -213,7 +211,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 			boolean isLastSession = isLastSessionForDomainStream(session);
 			if (isLastSession) {
-				
+
 				// Turn off the entry listener for domain stream
 				removeListener(session.getDomain(), session.getEvent().getStreamType());
 			}
@@ -442,7 +440,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 						// Check if event data should be sent to session
 						boolean hasDomain = session.hasDomain(dd);
-						boolean hasContent = session.hasContent(mc);						
+						boolean hasContent = session.hasContent(mc);
 						boolean hasRequester = session.hasRequestor(message.getDisclosureItem().getRequestorId());
 						boolean sendEvent = ((hasDomain) && (hasContent) && (hasRequester));
 

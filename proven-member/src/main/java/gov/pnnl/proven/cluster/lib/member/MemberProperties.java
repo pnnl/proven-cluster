@@ -105,12 +105,19 @@ public class MemberProperties {
 	private static final String JET_GROUP_NAME = "proven.jet.group.name";
 
 	/**
-	 * module-lib properties
+	 * module-lib exchange properties
 	 */
+	private static final String EXCHANGE_QUEUE_NAME="proven.lib.module.exchange.queue.exchange.name";
+	private static final String DISCLOSURE_QUEUE_NAME="proven.lib.module.exchange.queue.disclosure.name";
+	private static final String EXCHANGE_QUEUE_MAX_SIZE="proven.lib.module.exchange.queue.exchange.max_size";
+	private static final String DISCLOSURE_QUEUE_MAX_SIZE="proven.lib.module.exchange.queue.disclosure.max_size";
+	private static final String EXCHANGE_BUFFER_CAPACITY="proven.lib.module.exchange.buffer.capacity";
+	private static final String SERVICE_BUFFER_CAPACITY="proven.lib.module.exchange.buffer.service.capacity";
+	
+	/**
+	 * module-lib properties
+	 */	
 	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max_retries";
-	private static final String COMPONENT_EXCHANGE_QUEUE_NAME="proven.lib.module.registry.component.exchange_queue_name";
-	private static final String MODULE_EXCHANGE_QUEUE_NAME="proven.lib.module.registry.module.exchange_queue_name";
-	private static final String MEMBER_EXCHANGE_QUEUE_NAME="proven.lib.module.registry.member.exchange_queue_name";
 	private static final String MEMBER_MODULE_REGISTRY_NAME = "proven.lib.module.registry.module.member.name";
 	private static final String CLUSTER_COMPONENT_REGISTRY_NAME = "proven.lib.module.registry.component.cluster.name";
 	private static final String TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS = "proven.lib.module.schedule.task.max_skipped_entry_reports";
@@ -120,10 +127,6 @@ public class MemberProperties {
 	 * hybrid-module properties
 	 */
 	private static final String HYBRID_T3_SERVICE_URL = "proven.module.hybrid.t3.serviceUrl";
-
-	/**
-	 * hybrid-module properties
-	 */
 	private static final String HYBRID_TS_SERVICE_URL = "proven.module.hybrid.ts.serviceUrl";
 	private static final String HYBRID_TS_USE_IDB = "proven.module.hybrid.ts.useIdb";
 	private static final String HYBRID_TS_IDB_DB = "proven.module.hybrid.ts.idbDB";
@@ -131,8 +134,6 @@ public class MemberProperties {
 	private static final String HYBRID_TS_IDB_USERNAME = "proven.module.hybrid.ts.idbUsername";
 	private static final String HYBRID_TS_IDB_PASSWORD = "proven.module.hybrid.ts.idbPassword";
 
-	
-	
 	/**
 	 * Singleton instance of MemberProperties
 	 */
@@ -194,7 +195,7 @@ public class MemberProperties {
 		return new File(installRoot, MEMBER_PROVEN_INF_PAYARA_DIR);
 	}
 
-	public File getPipelineRequestLibsDir() {
+	public File getPipelineServiceLibsDir() {
 		return new File(installRoot, MEMBER_PROVEN_INF_PIPELINE_DIR);
 	}
 
@@ -244,23 +245,37 @@ public class MemberProperties {
 	}
 
 	//////////////////////////////////////////////////////
-	// MODULE-LIB PROPERTY METHODS
+	// MODULE-LIB EXCHANGE PROPERTY METHODS
+	public String getExchangeQueueName() {
+		return getPropertyValue(EXCHANGE_QUEUE_NAME, String.class);
+	}
+	
+	public String getDisclosureQueueName() {
+		return getPropertyValue(DISCLOSURE_QUEUE_NAME, String.class);
+	}
+	
+	public Integer getExchangeQueueMaxSize() {
+		return getPropertyValue(EXCHANGE_QUEUE_MAX_SIZE, Integer.class);
+	}
+	
+	public Integer getDisclosureQueueMaxSize() {
+		return getPropertyValue(DISCLOSURE_QUEUE_MAX_SIZE, Integer.class);
+	}
+	
+	public Integer getExchangeBufferCapacity() {
+		return getPropertyValue(EXCHANGE_BUFFER_CAPACITY, Integer.class);
+	}
+
+	public Integer getServiceBufferCapacity() {
+		return getPropertyValue(SERVICE_BUFFER_CAPACITY, Integer.class);
+	}
+	
+	//////////////////////////////////////////////////////
+	// MODULE-LIB EXCHANGE PROPERTY METHODS
 	public Integer getManagedComponentMaxRetries() {
 		return getPropertyValue(MANAGED_COMPONENT_MAX_RETRIES, Integer.class);
 	}
-
-	public String getComponentExchangeQueueName() {
-		return getPropertyValue(COMPONENT_EXCHANGE_QUEUE_NAME, String.class);
-	}
-		
-	public String getModuleExchangeQueueName() {
-		return getPropertyValue(MODULE_EXCHANGE_QUEUE_NAME, String.class);
-	}
-	
-	public String getMemberExchangeQueueName() {
-		return getPropertyValue(MEMBER_EXCHANGE_QUEUE_NAME, String.class);
-	}
-	
+			
 	public String getMemberModuleRegistryName() {
 		return getPropertyValue(MEMBER_MODULE_REGISTRY_NAME, String.class);
 	}
