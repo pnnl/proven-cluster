@@ -209,7 +209,9 @@ public enum MessageContent {
 
 	/**
 	 * Indicates if the message content type is included in the Proven Message's
-	 * JSON Schema.
+	 * JSON Schema. This schema is used for syntactic verification of a Proven
+	 * message. Syntactic verification is only necessary for content originating
+	 * from an external source.
 	 * 
 	 * @return true if it's part of Proven message's JSON Schema, false
 	 *         otherwise.
