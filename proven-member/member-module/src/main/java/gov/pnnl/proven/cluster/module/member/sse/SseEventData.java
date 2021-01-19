@@ -37,17 +37,13 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.member.sse;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.servers.Server;
-
-//@formatter:off
-@OpenAPIDefinition(info = @Info(title = "Proven API", 
-                                version = "2.0", 
-                                description = "Disclosure module services"), 
-                   servers = { @Server(url = "/disclosure") })
-//@formatter:on
-public class ApiMetadata {
+/**
+ * Marks implementations as a provider of data for an outbound SSE event. 
+ * 
+ * @author d3j766
+ *
+ */
+public interface SseEventData {
 }

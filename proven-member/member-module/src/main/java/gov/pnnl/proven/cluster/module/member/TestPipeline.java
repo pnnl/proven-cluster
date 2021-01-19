@@ -37,80 +37,104 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.member;
 
+import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Optional;
-
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import org.slf4j.Logger;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RR_SSE;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.ClientNetworkConfig;
+//import com.hazelcast.client.impl.protocol.task.BlockingMessageTask;
+import com.hazelcast.config.GroupConfig;
+import com.hazelcast.jet.Jet;
+import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.config.JobConfig;
+import com.hazelcast.jet.pipeline.Pipeline;
+import com.hazelcast.jet.pipeline.Sinks;
+import com.hazelcast.jet.pipeline.Sources;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.ResponseItem;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageModel;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
+import static com.hazelcast.jet.Traversers.traverseArray;
+import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
+//import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 
-@Path(RR_SSE)
-public class TestSSEResponse {
 
+public class TestPipeline implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	// TODO - provide logger classes on jet cluster classpath at startup so
+	// common logging utility can be used between imdg and jet clusters. Should not have to
+	// pass it for each job configuration.  
+	// static Logger log = LoggerFactory.getLogger(TestPipeline.class);
+
+	// Compile time message stream access
 	@Inject
-	Logger logger;
+	@StreamConfig(domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN, streamType = MessageStreamType.Knowledge)
+	MessageStreamProxy mspCompileTime;
+
+	@PostConstruct
+	public void init() {
+		System.out.println("TestPipeline post construct");
+	}
+
+	public TestPipeline() {
+	}
+
+	public void submit(MessageStreamProxy mspRunTime) {
+
+		System.out.println("START CLIENT:: " + Calendar.getInstance().getTime().toString());
 	
-	private final static String SCHEMA_TEST_FILE = "schema-test.json";
+		ClientConfig config = new ClientConfig();
+		ClientNetworkConfig networkConfig = config.getNetworkConfig();
+		networkConfig.addAddress("127.0.0.1:4701", "127.0.0.1:4702", "127.0.0.1:4703");
+		GroupConfig gconfig = config.getGroupConfig();
+		gconfig.setName("jet");
+		gconfig.setPassword("jet-pass");
 
-	@StreamConfig(domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN, streamType = MessageStreamType.Response)
-	@Inject
-	MessageStreamProxy msp;
-
-	@PUT
-	@Path("/test/response/{count}")
-	public Response addResponses(@PathParam("count") int count) throws Exception {
-
-		Response ret = Response.ok().build();
-
-		logger.debug("START :: " + Calendar.getInstance().getTime().toString());
+		// Create the specification of the computation pipeline. Note
+		// it's a pure POJO: no instance of Jet needed to create it.
+		Pipeline p = Pipeline.create();
 		
-		MessageModel mm = MessageModel.getInstance(DomainProvider.getProvenDisclosureDomain());
+//		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
+//				.filter(word -> !word.isEmpty()).groupingKey(wholeItem()).aggregate(counting())
+//				.drainTo(Sinks.map("counts"));
 
-		int i = 0;
-		int iterations = count;
-		System.out.println("START :: " + Calendar.getInstance().getTime().toString());
-		while (i <= (iterations - 1)) {
+		p.drawFrom(Sources.<String>list("text")).flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
+		.filter(word -> !word.isEmpty()).groupingKey((s2) -> {return s2;}).aggregate(counting())
+		.drainTo(Sinks.map("counts"));
 
-			JsonObject testMessage = Json.createObjectBuilder().add("response", "TESTNG EVENT DATA HOLDER")
-					.add("count", String.valueOf(i)).build();
-			logger.debug("Test Message :: " + testMessage.toString());
+		
+		// Start Jet, populate the input list
+		JetInstance jet = Jet.newJetClient(config);
 
-			// Create source message - just needed to be able to create test response message
-			DisclosureMessage dm = new DisclosureMessage(new DisclosureItem(mm.getModelFile(SCHEMA_TEST_FILE)));
+		try {
+			List<String> text = jet.getList("text");
+			text.add("hello world hello hello world");
+			text.add("world world hello world");
 
-			// Create new response message and add - this should cause a send
-			// event on server
-			ResponseMessage rm = new ResponseMessage(new ResponseItem(Status.OK, Optional.empty()), dm);
+			// Perform the computation
+			JobConfig jobConfig = new JobConfig();
+			jobConfig.addClass(TestPipeline.class, MessageStreamProxy.class);
 
-			// Add message to queue
-			msp.getMessageStream().getStream().put(rm.getMessageKey(), rm);
-			logger.debug("Added response message :: " + i);
+			// Perform the computation
+			jet.newJob(p, jobConfig).join();
 
-			Thread.sleep(1000);
+			// Check the results
+			Map<String, Long> counts = jet.getMap("counts");
+			System.out.println("Count of hello: " + counts.get("hello"));
+			System.out.println("Count of world: " + counts.get("world"));
+			System.out.println("MSP Stream: " + mspCompileTime.getStreamName());
+			System.out.println("MSP Stream: " + mspRunTime.getStreamName());
 
-			i++;
+		} finally {
+			jet.shutdown();
 		}
-		logger.debug("END :: " + Calendar.getInstance().getTime().toString());
-
-		return ret;
 	}
 
 }

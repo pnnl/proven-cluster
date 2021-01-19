@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.member.sse;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
@@ -73,8 +73,8 @@ import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-import gov.pnnl.proven.cluster.module.disclosure.dto.SseRegisterEventDto;
-import gov.pnnl.proven.cluster.module.disclosure.dto.SseResponseEventDto;
+import gov.pnnl.proven.cluster.module.member.dto.SseRegisterEventDto;
+import gov.pnnl.proven.cluster.module.member.dto.SseResponseEventDto;
 
 /**
  * Manages SSE sessions created by the resource class

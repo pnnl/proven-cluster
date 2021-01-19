@@ -37,92 +37,17 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.dto;
+package gov.pnnl.proven.cluster.module.member.resource;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.servers.Server;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.module.disclosure.sse.SseEventData;
-import gov.pnnl.proven.cluster.module.disclosure.sse.SseSession;
-
-/**
- * Represents SSE message for an {@code SseSession} registration event. By
- * default, the information is sent as {@code MediaType#APPLICATION_JSON}.
- * 
- * @author d3j766
- *
- */
-@XmlRootElement(name = "register-event")
-public class SseRegisterEventDto implements SseEventData, Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	String sessionId;
-
-	String registeredEvent;
-
-	String registeredDomain;
-
-	List<String> registeredMessageContents;
-
-	String registeredRequester;
-
-	public SseRegisterEventDto() {
-	}
-
-	public SseRegisterEventDto(SseSession session) {
-		this.sessionId = session.getSessionId().toString();
-		this.registeredEvent = session.getEvent().getEvent();
-		this.registeredDomain = session.getDomain().getDomain();
-		this.registeredMessageContents = new ArrayList<>();
-		for (MessageContent mc : session.getContents()) {
-			this.registeredMessageContents.add(mc.getName());
-		}
-		this.registeredRequester = session.getRequestor();
-	}
-
-	public String getSessionId() {
-		return sessionId;
-	}
-
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
-	}
-
-	public String getRegisteredEvent() {
-		return registeredEvent;
-	}
-
-	public void setRegisteredEvent(String registeredEvent) {
-		this.registeredEvent = registeredEvent;
-	}
-
-	public String getRegisteredDomain() {
-		return registeredDomain;
-	}
-
-	public void setRegisteredDomain(String registeredDomain) {
-		this.registeredDomain = registeredDomain;
-	}
-
-	public List<String> getRegisteredMessageContents() {
-		return registeredMessageContents;
-	}
-
-	public void setRegisteredMessageContents(List<String> registeredMessageContents) {
-		this.registeredMessageContents = registeredMessageContents;
-	}
-
-	public String getRegisteredRequester() {
-		return registeredRequester;
-	}
-
-	public void setRegisteredRequester(String registeredRequester) {
-		this.registeredRequester = registeredRequester;
-	}
-
+//@formatter:off
+@OpenAPIDefinition(info = @Info(title = "Proven API", 
+                                version = "2.0", 
+                                description = "Member module services"), 
+                   servers = { @Server(url = "/member") })
+//@formatter:on
+public class ApiMetadata {
 }

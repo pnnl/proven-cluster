@@ -51,22 +51,6 @@ import javax.ws.rs.ext.Provider;
 @Provider
 public class CorsFilter implements ContainerResponseFilter {
 
-	// Original CORS Support
-	// @Override
-	// public void filter(ContainerRequestContext requestContext,
-	// ContainerResponseContext responseContext) throws IOException {
-	// responseContext.getHeaders().add(
-	// "Access-Control-Allow-Origin", "*");
-	// responseContext.getHeaders().add(
-	// "Access-Control-Allow-Credentials", "true");
-	// responseContext.getHeaders().add(
-	// "Access-Control-Allow-Headers",
-	// "Origin, Content-Type, Accept, Authorization");
-	// responseContext.getHeaders().add(
-	// "Access-Control-Allow-Methods",
-	// "GET, POST, PUT, DELETE, OPTIONS, HEAD");
-	// }
-
 	public static final String ALLOWED_METHODS = "GET, POST, PUT, DELETE, OPTIONS, HEAD";
 	public final static int MAX_AGE = 42 * 60 * 60;
 	public final static String DEFAULT_ALLOWED_HEADERS = "origin,accept,content-type";

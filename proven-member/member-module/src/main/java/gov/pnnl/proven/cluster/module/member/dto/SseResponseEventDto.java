@@ -37,74 +37,141 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.sse;
+package gov.pnnl.proven.cluster.module.member.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
+import java.util.Optional;
 
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.module.member.sse.SseEventData;
+import gov.pnnl.proven.cluster.module.member.sse.SseSession;
 
 /**
- * Provides the different SSE event types that can be associated with an
- * {@code SseSession}. Each event type is associated with a single Proven stream
- * type as defined by {@code MessageStreamType}. The event data for the event
- * type is based on entries from its associated stream.
- * 
- * The {@code SseEvent#Register) event type is a special case, representing the
- * registration of a {@code SseSession}, it is not associated with a stream.
- * 
- * @see SseSession, MessageStreamType
- * 
+ * Represents SSE information for the addition of a {@code ResponseMessage} to a
+ * domain stream. By default, the information is sent as
+ * {@code MediaType#APPLICATION_JSON}. The {@code #message} field represents
+ * the data element of the SSE message, and is in the form of escaped JSON.
  * 
  * @author d3j766
  *
  */
-public enum SseEvent {
+@XmlRootElement(name = "response-event")
+public class SseResponseEventDto implements SseEventData, Serializable {
 
-	Register(EventLabel.REGISTER, null),
-	Response(EventLabel.RESPONSE, MessageStreamType.Response);
+	static Logger logger = LoggerFactory.getLogger(SseResponseEventDto.class);
 
-	public class EventLabel {
-		public static final String REGISTER = "sse-register-event";
-		public static final String RESPONSE = "response-events";
+	private static final long serialVersionUID = 1L;
+
+	String sessionId;
+
+	String domain;
+
+	String messageContent;
+
+	String requestorId;
+
+	String disclosureId;
+
+	int status;
+
+	String reason;
+
+	String key;
+
+	String message;
+
+	public SseResponseEventDto() {
 	}
 
-	private String event;
-	private MessageStreamType stream;
-
-	SseEvent(String eventLabel, MessageStreamType stream) {
-		this.event = eventLabel;
-		this.stream = stream;
+	public SseResponseEventDto(SseSession session, ResponseMessage message) {
+		this.sessionId = session.getSessionId().toString();
+		this.domain = message.getDisclosureItem().getDisclosureDomain().getDomain();
+		this.messageContent = message.getMessageContent().getName();
+		Optional<String> requestorIdOpt = message.getDisclosureItem().getRequestorId();
+		this.requestorId = (requestorIdOpt.isPresent()) ? requestorIdOpt.get() : "NONE";       
+		Optional<String> disclosureIdOpt = message.getDisclosureItem().getDisclosureId();
+		this.disclosureId = (disclosureIdOpt.isPresent()) ? disclosureIdOpt.get() : "NONE";
+		this.status = message.getStatus().getStatusCode();
+		this.reason = message.getStatus().getReasonPhrase();
+		this.key = message.getMessageKey();
+		this.message = message.getResponseMessage().toString();
 	}
 
-	/**
-	 * Provides the name of for the SSE event type.
-	 * 
-	 * @return name for the SSE event type
-	 */
-	public String getEvent() {
-		return event;
+	public String getSessionId() {
+		return sessionId;
 	}
 
-	/**
-	 * Provides the SSE event's associated stream type.
-	 * 
-	 * @return name for the SSE event type
-	 */
-	public MessageStreamType getStreamType() {
-		return stream;
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 
-	/**
-	 * Provides a list of all SSE event types.
-	 */
-	public static List<String> getEvents() {
+	public String getDomain() {
+		return domain;
+	}
 
-		List<String> ret = new ArrayList<>();
-		for (SseEvent event : values()) {
-			ret.add(event.getEvent());
-		}
-		return ret;
+	public void setDomain(String domain) {
+		this.domain = domain;
+	}
+
+	public String getMessageContent() {
+		return messageContent;
+	}
+
+	public void setMessageContent(String messageContent) {
+		this.messageContent = messageContent;
+	}
+
+	public String getRequester() {
+		return requestorId;
+	}
+
+	public void setRequester(String requester) {
+		this.requestorId = requester;
+	}
+
+	public String getDisclosureId() {
+		return disclosureId;
+	}
+
+	public void setDisclosureId(String disclosureId) {
+		this.disclosureId = disclosureId;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public String getReason() {
+		return reason;
+	}
+
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 }

@@ -78,22 +78,140 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.member.resource;
 
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
-import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RESOURCE_PACKAGE;
-import javax.naming.NamingException;
-import javax.ws.rs.ApplicationPath;
-import org.glassfish.jersey.server.ResourceConfig;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import static gov.pnnl.proven.cluster.module.member.resource.MemberResourceConsts.RR_SSE;
+import static gov.pnnl.proven.cluster.module.member.resource.MemberResourceConsts.R_RESPONSE_EVENTS;
 
-@ApplicationPath(M_APP_PATH)
-public class ApplicationResource extends ResourceConfig {
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-	public ApplicationResource() throws NamingException {
-		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
-		register(OpenApiResource.class);
-		register(ApiMetadata.class);
+import javax.inject.Inject;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.sse.Sse;
+import javax.ws.rs.sse.SseEventSink;
+
+import org.slf4j.Logger;
+
+import gov.pnnl.proven.cluster.module.member.sse.SseEvent;
+import gov.pnnl.proven.cluster.module.member.sse.SseSession;
+import gov.pnnl.proven.cluster.module.member.sse.SseSessionManager;
+
+/**
+ * 
+ * A resource class used for the registration and deregistration of
+ * {@code SseSession}s. Each registered session represents a connection to a
+ * client where SSE data will be pushed based on the session's configuration.
+ * 
+ * TODO - create a SseSession configuration class to support POSTing
+ * configuration.
+ * 
+ * @author d3j766
+ *
+ */
+@Path(RR_SSE)
+public class SseSessionResource {
+
+	@Inject
+	Logger logger;
+
+	@Inject
+	SseSessionManager sessions;
+
+	/**
+	 * Registers an SSE session with the client requester. Response event data
+	 * is pushed to client as it is created/added on server side. Response event
+	 * data is based on {@code ResponseMessage}s. The event data sent to the
+	 * client is filtered using query parameters provided in the service call.
+	 * 
+	 * TODO - this is initial implementation. Are there other query parameters
+	 * to add?
+	 * 
+	 * @param eventSink
+	 *            represents HTTP client connection where event data will be
+	 *            pushed. Provided by the application container.
+	 * @param domain
+	 *            (optional) identifies disclosure domain that the response
+	 *            event is based on. Only events matching this value will be
+	 *            sent. If not provided, the Proven domain is used.
+	 * @param content
+	 *            (optional) identifies the type of message contents that the
+	 *            response event is based on. The types are listed at
+	 *            {@code MessageContent#getNames()}. Only events matching these
+	 *            value will be sent. If not provided all contentTypes are
+	 *            included.
+	 * @param requestor
+	 *            (optional) identifies disclosure source (i.e. requestor) that
+	 *            the response event is based on. This must be provided at
+	 *            disclosure time for a match to be made. Only events matching
+	 *            this value will be sent. If not provided all disclosure
+	 *            sources are included.
+	 */
+	@GET
+	@Path(R_RESPONSE_EVENTS)
+	@Produces(MediaType.SERVER_SENT_EVENTS)
+	public void getResponseEvents(@Context Sse sse, @Context SseEventSink eventSink,
+			@QueryParam("domain") String domain, @QueryParam("content") String content,
+			@QueryParam("requester") String requester) {
+
+		// domain
+		Optional<String> domainOpt = Optional.ofNullable(domain);
+
+		// content list
+		List<String> contentList = null;
+		if (null != content) {
+			contentList = Stream.of(content.split(",")).map(String::trim).map(String::toLowerCase)
+					.collect(Collectors.toList());
+		}
+		Optional<List<String>> contentsOpt = Optional.ofNullable(contentList);
+
+		// requester
+		Optional<String> requesterOpt = Optional.ofNullable(requester);
+
+		SseSession session = new SseSession(SseEvent.Response, UUID.randomUUID(), sse, eventSink, domainOpt,
+				contentsOpt, requesterOpt);
+
+		sessions.register(session);
 	}
+
+	/**
+	 * Allows for explicit removal of an SSE session. This will close the
+	 * connection and remove from {@code SseSessionManager}'s registry.
+	 * 
+	 * TODO - improve response to account for errors in deregister.
+	 * 
+	 * @param sessionId
+	 *            the session id, the value is provided in the first even push
+	 *            after registration.
+	 * @return a response indicating success of session removal.
+	 */
+	@Path("/session/{sesionId}")
+	@DELETE
+	public Response deregister(@PathParam("sesionId") String sessionId) {
+
+		Response ret = Response.ok().build();
+		UUID id = null;
+
+		try {
+			id = UUID.fromString(sessionId);
+			sessions.deregister(id);
+		} catch (IllegalArgumentException e) {
+			ret = Response.status(Status.BAD_REQUEST.getStatusCode(), "Invalid UUID value provided.").build();
+		}
+
+		return ret;
+	}
+
 }

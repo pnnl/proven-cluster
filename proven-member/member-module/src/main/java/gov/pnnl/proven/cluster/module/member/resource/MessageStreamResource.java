@@ -78,136 +78,113 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.disclosure.resource;
+package gov.pnnl.proven.cluster.module.member.resource;
 
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.RR_SSE;
-import static gov.pnnl.proven.cluster.module.disclosure.resource.DisclosureResourceConsts.R_RESPONSE_EVENTS;
+import static gov.pnnl.proven.cluster.module.member.resource.MemberResourceConsts.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Set;
 
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.sse.Sse;
-import javax.ws.rs.sse.SseEventSink;
+
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.module.disclosure.sse.SseEvent;
-import gov.pnnl.proven.cluster.module.disclosure.sse.SseSession;
-import gov.pnnl.proven.cluster.module.disclosure.sse.SseSessionManager;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
+import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
+import gov.pnnl.proven.cluster.module.member.dto.MessageStreamDto;
+import io.swagger.v3.oas.annotations.Operation;
 
 /**
  * 
- * A resource class used for the registration and deregistration of
- * {@code SseSession}s. Each registered session represents a connection to a
- * client where SSE data will be pushed based on the session's configuration.
- * 
- * TODO - create a SseSession configuration class to support POSTing
- * configuration.
+ * A resource class used to retrieve information about Proven message streams.
  * 
  * @author d3j766
  *
  */
-@Path(RR_SSE)
-public class SseSessionResource {
+@Path(RR_MESSAGE_STREAM)
+@Dependent
+public class MessageStreamResource {
 
 	@Inject
 	Logger logger;
 
 	@Inject
-	SseSessionManager sessions;
+	@Manager
+	StreamManager sm;
 
 	/**
-	 * Registers an SSE session with the client requester. Response event data
-	 * is pushed to client as it is created/added on server side. Response event
-	 * data is based on {@code ResponseMessage}s. The event data sent to the
-	 * client is filtered using query parameters provided in the service call.
+	 * Returns a list of message streams associated with the provided disclosure
+	 * domain value.
 	 * 
-	 * TODO - this is initial implementation. Are there other query parameters
-	 * to add?
-	 * 
-	 * @param eventSink
-	 *            represents HTTP client connection where event data will be
-	 *            pushed. Provided by the application container.
 	 * @param domain
-	 *            (optional) identifies disclosure domain that the response
-	 *            event is based on. Only events matching this value will be
-	 *            sent. If not provided, the Proven domain is used.
-	 * @param content
-	 *            (optional) identifies the type of message contents that the
-	 *            response event is based on. The types are listed at
-	 *            {@code MessageContent#getNames()}. Only events matching these
-	 *            value will be sent. If not provided all contentTypes are
-	 *            included.
-	 * @param requestor
-	 *            (optional) identifies disclosure source (i.e. requestor) that
-	 *            the response event is based on. This must be provided at
-	 *            disclosure time for a match to be made. Only events matching
-	 *            this value will be sent. If not provided all disclosure
-	 *            sources are included.
+	 *            (optional) identifies disclosure domain that the message
+	 *            stream is associated with. If domain is not provided, the
+	 *            Proven disclosure domain streams, see
+	 *            {@code DomainProvider#PROVEN_DISCLOSURE_DOMAIN}, are returned.
+	 * 
+	 * @return returns a list of message streams. An empty list will be returned
+	 *         if there are no streams for the provided domain value. A 400 Bad
+	 *         request will be returned if an invalid domain is provided.
 	 */
 	@GET
-	@Path(R_RESPONSE_EVENTS)
-	@Produces(MediaType.SERVER_SENT_EVENTS)
-	public void getResponseEvents(@Context Sse sse, @Context SseEventSink eventSink,
-			@QueryParam("domain") String domain, @QueryParam("content") String content,
-			@QueryParam("requester") String requester) {
+	@Produces(MediaType.APPLICATION_JSON)
+	//@formatter:off
+	@Operation(summary = "Retrieve message stream information for a specific domain",
+    		   tags = {"Message Stream"},
+               description = "Returns a list of message streams. An empty list will be returned " +
+               				 "if there are no streams for the provided domain value. A 400 Bad " +
+	                         "request will be returned if an invalid domain is provided.")
+	//@formatter:on
+	public Response getMessageStreams(@QueryParam("domain") String domain) {
 
-		// domain
-		Optional<String> domainOpt = Optional.ofNullable(domain);
+		Response ret;
+		DisclosureDomain dd = DomainProvider.getProvenDisclosureDomain();
+		boolean domainProvided = (null != domain);
 
-		// content list
-		List<String> contentList = null;
-		if (null != content) {
-			contentList = Stream.of(content.split(",")).map(String::trim).map(String::toLowerCase)
-					.collect(Collectors.toList());
+		if (domainProvided) {
+			try {
+				dd = new DisclosureDomain(domain);
+			} catch (InvalidDisclosureDomainException e) {
+				// TODO Auto-generated catch block
+				logger.info("Invalid disclosure domain provided :: " + domain);
+				return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "Invalid domain value provided")
+						.build();
+			}
 		}
-		Optional<List<String>> contentsOpt = Optional.ofNullable(contentList);
 
-		// requester
-		Optional<String> requesterOpt = Optional.ofNullable(requester);
+		Optional<DisclosureDomain> domainOpt = Optional.ofNullable(dd);
+		List<MessageStreamDto> streams = getMessageStreams(domainOpt);
+		if (streams.isEmpty()) {
+			ret = Response.noContent().build();
+		} else {
+			ret = Response.ok(streams).build();
+		}
 
-		SseSession session = new SseSession(SseEvent.Response, UUID.randomUUID(), sse, eventSink, domainOpt,
-				contentsOpt, requesterOpt);
-
-		sessions.register(session);
+		return ret;
 	}
 
-	/**
-	 * Allows for explicit removal of an SSE session. This will close the
-	 * connection and remove from {@code SseSessionManager}'s registry.
-	 * 
-	 * TODO - improve response to account for errors in deregister.
-	 * 
-	 * @param sessionId
-	 *            the session id, the value is provided in the first even push
-	 *            after registration.
-	 * @return a response indicating success of session removal.
-	 */
-	@Path("/session/{sesionId}")
-	@DELETE
-	public Response deregister(@PathParam("sesionId") String sessionId) {
+	private List<MessageStreamDto> getMessageStreams(Optional<DisclosureDomain> domainOpt) {
 
-		Response ret = Response.ok().build();
-		UUID id = null;
+		List<MessageStreamDto> ret = new ArrayList<>();
 
-		try {
-			id = UUID.fromString(sessionId);
-			sessions.deregister(id);
-		} catch (IllegalArgumentException e) {
-			ret = Response.status(Status.BAD_REQUEST.getStatusCode(), "Invalid UUID value provided.").build();
+		if (domainOpt.isPresent()) {
+			Set<MessageStream> mss = sm.getManagedStreams(domainOpt.get());
+			for (MessageStream ms : mss) {
+				ret.add(new MessageStreamDto(ms));
+			}
 		}
 
 		return ret;

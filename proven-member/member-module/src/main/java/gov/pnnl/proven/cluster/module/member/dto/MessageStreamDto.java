@@ -37,139 +37,60 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.disclosure.dto;
+package gov.pnnl.proven.cluster.module.member.dto;
 
 import java.io.Serializable;
-import java.util.Optional;
-
 import javax.xml.bind.annotation.XmlRootElement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
-import gov.pnnl.proven.cluster.module.disclosure.sse.SseEventData;
-import gov.pnnl.proven.cluster.module.disclosure.sse.SseSession;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
 
 /**
- * Represents SSE information for the addition of a {@code ResponseMessage} to a
- * domain stream. By default, the information is sent as
- * {@code MediaType#APPLICATION_JSON}. The {@code #message} field represents
- * the data element of the SSE message, and is in the form of escaped JSON.
+ * A DTO representing a Proven {@code MessageStream}.
  * 
  * @author d3j766
  *
+ * @see MessageStream
+ *
  */
-@XmlRootElement(name = "response-event")
-public class SseResponseEventDto implements SseEventData, Serializable {
-
-	static Logger logger = LoggerFactory.getLogger(SseResponseEventDto.class);
+@XmlRootElement(name = "messageStreams")
+public class MessageStreamDto implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	String sessionId;
+	private String disclosureDomain;
+	private String streamType;
+	private String streamName;
 
-	String domain;
-
-	String messageContent;
-
-	String requestorId;
-
-	String disclosureId;
-
-	int status;
-
-	String reason;
-
-	String key;
-
-	String message;
-
-	public SseResponseEventDto() {
+	public MessageStreamDto() {
 	}
 
-	public SseResponseEventDto(SseSession session, ResponseMessage message) {
-		this.sessionId = session.getSessionId().toString();
-		this.domain = message.getDisclosureItem().getDisclosureDomain().getDomain();
-		this.messageContent = message.getMessageContent().getName();
-		Optional<String> requestorIdOpt = message.getDisclosureItem().getRequestorId();
-		this.requestorId = (requestorIdOpt.isPresent()) ? requestorIdOpt.get() : "NONE";       
-		Optional<String> disclosureIdOpt = message.getDisclosureItem().getDisclosureId();
-		this.disclosureId = (disclosureIdOpt.isPresent()) ? disclosureIdOpt.get() : "NONE";
-		this.status = message.getStatus().getStatusCode();
-		this.reason = message.getStatus().getReasonPhrase();
-		this.key = message.getMessageKey();
-		this.message = message.getResponseMessage().toString();
+	public MessageStreamDto(MessageStream ms) {
+		this.disclosureDomain = ms.getDd().getDomain();
+		this.streamType = ms.getMst().toString();
+		this.streamName = ms.getStreamName();
 	}
 
-	public String getSessionId() {
-		return sessionId;
+	public String getDisclosureDomain() {
+		return disclosureDomain;
 	}
 
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
+	public void setDisclosureDomain(String disclosureDomain) {
+		this.disclosureDomain = disclosureDomain;
 	}
 
-	public String getDomain() {
-		return domain;
+	public String getStreamType() {
+		return streamType;
 	}
 
-	public void setDomain(String domain) {
-		this.domain = domain;
+	public void setStreamType(String streamType) {
+		this.streamType = streamType;
 	}
 
-	public String getMessageContent() {
-		return messageContent;
+	public String getStreamName() {
+		return streamName;
 	}
 
-	public void setMessageContent(String messageContent) {
-		this.messageContent = messageContent;
-	}
-
-	public String getRequester() {
-		return requestorId;
-	}
-
-	public void setRequester(String requester) {
-		this.requestorId = requester;
-	}
-
-	public String getDisclosureId() {
-		return disclosureId;
-	}
-
-	public void setDisclosureId(String disclosureId) {
-		this.disclosureId = disclosureId;
-	}
-
-	public int getStatus() {
-		return status;
-	}
-
-	public void setStatus(int status) {
-		this.status = status;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
+	public void setStreamName(String streamName) {
+		this.streamName = streamName;
 	}
 
 }

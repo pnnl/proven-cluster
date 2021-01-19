@@ -78,7 +78,7 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.hybrid.resource;
+package gov.pnnl.proven.cluster.module.member.resource;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -94,7 +94,7 @@ import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-import gov.pnnl.proven.cluster.module.hybrid.pipeline.T3Pipeline;
+import gov.pnnl.proven.cluster.module.member.pipeline.T3Pipeline;
 
 @Path("/pipeline/t3")
 public class T3PipelineResource {
