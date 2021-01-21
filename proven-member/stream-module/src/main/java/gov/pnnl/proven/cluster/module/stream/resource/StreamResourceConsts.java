@@ -88,6 +88,4 @@ public class StreamResourceConsts {
 	// RR_ -> Root Resources	
 	public static final String RR_MESSAGE_STREAM = "/messageStreams";
 	
-	
-	
 }

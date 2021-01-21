@@ -84,7 +84,7 @@ package gov.pnnl.proven.lib.removemember.utils;
 public class Consts {
 
 	// Bootstrap constants
-	public static final String PROVEN_INF_PATH = "PROVEN-INF/";
+	public static final String  PROVEN_INF_PATH = "PROVEN-INF/";
 	public static final String PRE_BOOTSTRAP = "PRE-BOOT:: ";
 	public static final String POST_BOOTSTRAP = "POST-BOOT:: ";
 	public static final String BOOTSTRAP_SERVICES_PATH = PROVEN_INF_PATH + "services/";

@@ -27,10 +27,7 @@ dependencies {
 	payaraDeps project(path: 'module-lib', configuration: 'shadow')
 	pipelineDeps group: 'com.blazegraph', name: 'blazegraph-jar', version: '2.1.5'
 	pipelineDeps project(path: 'pipeline-lib', configuration: 'shadow')
-	deployDeps project(path: 'disclosure-module', configuration: 'war')
-	deployDeps project(path: 'hybrid-module', configuration: 'war')
 	deployDeps project(path: 'member-module', configuration: 'war')
-	deployDeps project(path: 'stream-module', configuration: 'war')
 
 }
 

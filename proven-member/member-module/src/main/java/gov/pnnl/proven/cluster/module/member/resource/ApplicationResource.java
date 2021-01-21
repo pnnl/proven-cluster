@@ -78,113 +78,23 @@
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
 
-package gov.pnnl.proven.cluster.module.stream.resource;
+package gov.pnnl.proven.cluster.module.member.resource;
 
-import static gov.pnnl.proven.cluster.module.stream.resource.StreamResourceConsts.RR_MESSAGE_STREAM;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_APP_PATH;
+import static gov.pnnl.proven.cluster.lib.module.resource.ResourceConsts.M_RESOURCE_PACKAGE;
+import static gov.pnnl.proven.cluster.module.member.resource.MemberResourceConsts.RESOURCE_PACKAGE;
 
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import org.slf4j.Logger;
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
-import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStream;
-import gov.pnnl.proven.cluster.module.stream.dto.MessageStreamDto;
-import io.swagger.v3.oas.annotations.Operation;
+import javax.naming.NamingException;
+import javax.ws.rs.ApplicationPath;
+import org.glassfish.jersey.server.ResourceConfig;
+import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 
-/**
- * 
- * A resource class used to retrieve information about Proven message streams.
- * 
- * @author d3j766
- *
- */
-@Path(RR_MESSAGE_STREAM)
-@Dependent
-public class MessageStreamResource {
+@ApplicationPath(M_APP_PATH)
+public class ApplicationResource extends ResourceConfig {
 
-	@Inject
-	Logger logger;
-
-	@Inject
-	@Manager
-	StreamManager sm;
-
-	/**
-	 * Returns a list of message streams associated with the provided disclosure
-	 * domain value.
-	 * 
-	 * @param domain
-	 *            (optional) identifies disclosure domain that the message
-	 *            stream is associated with. If domain is not provided, the
-	 *            Proven disclosure domain streams, see
-	 *            {@code DomainProvider#PROVEN_DISCLOSURE_DOMAIN}, are returned.
-	 * 
-	 * @return returns a list of message streams. An empty list will be returned
-	 *         if there are no streams for the provided domain value. A 400 Bad
-	 *         request will be returned if an invalid domain is provided.
-	 */
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	//@formatter:off
-	@Operation(summary = "Retrieve message stream information for a specific domain",
-    		   tags = {"Message Stream"},
-               description = "Returns a list of message streams. An empty list will be returned " +
-               				 "if there are no streams for the provided domain value. A 400 Bad " +
-	                         "request will be returned if an invalid domain is provided.")
-	//@formatter:on
-	public Response getMessageStreams(@QueryParam("domain") String domain) {
-
-		Response ret;
-		DisclosureDomain dd = DomainProvider.getProvenDisclosureDomain();
-		boolean domainProvided = (null != domain);
-
-		if (domainProvided) {
-			try {
-				dd = new DisclosureDomain(domain);
-			} catch (InvalidDisclosureDomainException e) {
-				// TODO Auto-generated catch block
-				logger.info("Invalid disclosure domain provided :: " + domain);
-				return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "Invalid domain value provided")
-						.build();
-			}
-		}
-
-		Optional<DisclosureDomain> domainOpt = Optional.ofNullable(dd);
-		List<MessageStreamDto> streams = getMessageStreams(domainOpt);
-		if (streams.isEmpty()) {
-			ret = Response.noContent().build();
-		} else {
-			ret = Response.ok(streams).build();
-		}
-
-		return ret;
+	public ApplicationResource() throws NamingException {
+		packages(RESOURCE_PACKAGE, M_RESOURCE_PACKAGE);
+		register(OpenApiResource.class);
+		register(ApiMetadata.class);
 	}
-
-	private List<MessageStreamDto> getMessageStreams(Optional<DisclosureDomain> domainOpt) {
-
-		List<MessageStreamDto> ret = new ArrayList<>();
-
-		if (domainOpt.isPresent()) {
-			Set<MessageStream> mss = sm.getManagedStreams(domainOpt.get());
-			for (MessageStream ms : mss) {
-				ret.add(new MessageStreamDto(ms));
-			}
-		}
-
-		return ret;
-	}
-
 }

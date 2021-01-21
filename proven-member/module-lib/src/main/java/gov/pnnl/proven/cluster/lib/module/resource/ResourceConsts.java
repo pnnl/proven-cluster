@@ -39,6 +39,12 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.resource;
 
+/**
+ * Shared resource constants across Proven modules.
+ * 
+ * @author d3j766
+ *
+ */
 public class ResourceConsts {
 
 	// Default resource application base URI path for a Proven module 
