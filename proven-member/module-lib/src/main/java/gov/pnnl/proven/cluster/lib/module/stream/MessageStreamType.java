@@ -70,17 +70,18 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
 public enum MessageStreamType {
 
 	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
-
 	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
-
+	Measurement(StreamLabel.MEASUREMENT_STREAM, MessageContentGroup.Measurement),
 	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
-
+	Reference(StreamLabel.REFERENCE_STREAM, MessageContentGroup.Reference),
 	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
 
 	private class StreamLabel {
 		private static final String DISCLOSURE_STREAM = "disclosed";
 		private static final String KNOWLEDGE_STREAM = "knowledge";
+		private static final String MEASUREMENT_STREAM = "disclosed";
 		private static final String REQUEST_STREAM = "request";
+		private static final String REFERENCE_STREAM = "disclosed";
 		private static final String RESPONSE_STREAM = "response";
 	}
 

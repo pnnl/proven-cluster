@@ -56,16 +56,20 @@ import org.slf4j.LoggerFactory;
  */
 public enum MessageContentGroup {
 
-	Disclosure(GroupLabel.DISCLOSURE_GROUP, MessageContent.Disclosure),
+	Disclosure(
+			GroupLabel.DISCLOSURE_GROUP, 
+			MessageContent.Disclosure),
 
 	Knowledge(
 			GroupLabel.KNOWLEDGE_GROUP,
 			MessageContent.Explicit,
 			MessageContent.Implicit,
-			MessageContent.Measurement,
-			MessageContent.Static,
-			MessageContent.Structure),
+			MessageContent.Measurement),
 
+	Measurement(
+			GroupLabel.MEASUREMENT_GROUP, 
+			MessageContent.Measurement),
+		
 	Request(
 			GroupLabel.REQUEST_GROUP,
 			MessageContent.Administrative,
@@ -74,12 +78,21 @@ public enum MessageContentGroup {
 			MessageContent.ModuleService,
 			MessageContent.Query),
 
-	Response(GroupLabel.RESPONSE_GROUP, MessageContent.Response);
+	Reference(
+			GroupLabel.REFERENCE_GROUP, 
+			MessageContent.Structure,
+			MessageContent.Static),
+	
+	Response(
+			GroupLabel.RESPONSE_GROUP, 
+			MessageContent.Response);
 
 	private class GroupLabel {
 		private static final String DISCLOSURE_GROUP = "disclosed";
 		private static final String KNOWLEDGE_GROUP = "knowledge";
+		private static final String MEASUREMENT_GROUP = "measurement";
 		private static final String REQUEST_GROUP = "request";
+		private static final String REFERENCE_GROUP = "reference";
 		private static final String RESPONSE_GROUP = "response";
 	}
 
