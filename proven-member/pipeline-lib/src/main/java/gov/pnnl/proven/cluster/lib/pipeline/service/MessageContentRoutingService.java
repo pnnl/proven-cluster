@@ -55,7 +55,6 @@ import javax.json.JsonValue.ValueType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,10 +66,10 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.jet.pipeline.ContextFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.message.KnowledgeMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.KnowledgeMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.pipeline.response.MessageContentRoutingResponse;
 
 /**

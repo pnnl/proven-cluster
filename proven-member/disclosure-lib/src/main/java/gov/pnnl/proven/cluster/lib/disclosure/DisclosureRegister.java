@@ -39,26 +39,27 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure;
 
-
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 
 /**
  * Represents the replicatedMap registry that holds the name and properties of
- * queues to which proven-client discloses proven message.  
+ * queues to which proven-client discloses proven message.
+ *   
  * @author raju332
  *
  */
 public class DisclosureRegister {
 
-	//public static final String DISCLOSURE_REGISTRY_NAME = "gov.pnnl.proven.component.disclosure.DisclosureRegister";
-	public static final String DISCLOSURE_REGISTRY_NAME = "PROVEN_DISCLOSURE_MAP";
+	MemberProperties props = MemberProperties.getInstance();
+	
 	String disclosureQueueName;
 	boolean availableForUse;
+	
 	public DisclosureRegister() {
-		// TODO Auto-generated constructor stub
 	}
 	
 	public String getDisclosureRegistryName() {
-		return DISCLOSURE_REGISTRY_NAME;
+		return props.getProvenDisclosureMapName();
 	};
 
 }

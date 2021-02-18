@@ -39,14 +39,14 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.Administrative;
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.ContinuousQuery;
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.ModuleService;
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.PipelineService;
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.Query;
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.Response;
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.ServiceRegistration;
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.getSchemaValues;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Administrative;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ContinuousQuery;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ModuleService;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.PipelineService;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Query;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Response;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ServiceRegistration;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.getSchemaValues;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +55,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
  * Represents the type of exchange components used to process

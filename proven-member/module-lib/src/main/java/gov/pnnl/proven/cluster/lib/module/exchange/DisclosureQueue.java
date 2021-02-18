@@ -58,12 +58,11 @@ import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.IQueue;
 
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureType;
-import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
@@ -82,7 +81,7 @@ import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
  *
  */
 @Scalable(maxCount = 5)
-public class DisclosureQueue extends ExchangeComponent  {
+public class DisclosureQueue extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureQueue.class);
 
@@ -178,7 +177,7 @@ public class DisclosureQueue extends ExchangeComponent  {
 			// local)
 			// Should not continue if local disclosure has no free space - the
 			// entries will be lost
-			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(BufferedItemState.New))) {
+			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(DisclosureItemState.New))) {
 
 				try {
 					// Will block if queue is empty
@@ -196,7 +195,7 @@ public class DisclosureQueue extends ExchangeComponent  {
 
 				boolean entriesAdded = true;
 				if ((null != entries) && (!entries.isEmpty())) {
-					BufferedItemState state = entries.get(0).getItemState();
+					DisclosureItemState state = entries.get(0).getItemState();
 					entriesAdded = localDisclosure.addItems(entries, state);
 				}
 
@@ -262,28 +261,14 @@ public class DisclosureQueue extends ExchangeComponent  {
 
 			// Should not continue if local disclosure has no free space - the
 			// entries will be lost
-			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(BufferedItemState.New))) {
+			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(DisclosureItemState.New))) {
 
 				try {
 					// Will block if queue is empty
 					disclosedItem = largeItemQueue.take();
+					entries = new ItemParser(disclosedItem).parse();
 
-					// get the type of entry
-					DisclosureType itemType = DisclosureType.getItemType(disclosedItem);
-
-					// Only Json disclosure parsing supported
-					if (DisclosureType.JSON == itemType) {
-						entries = new ItemParser(disclosedItem).parse();
-					}
-					// TODO Add support for large CSV parsing
-					// For now, create DisclosureItem without parsing
-					else if (DisclosureType.CSV == itemType) {
-						DisclosureItem csvDi = new DisclosureItem(disclosedItem);
-						entries.add(csvDi);
-					} else {
-						throw new UnsupportedDisclosureType("Could not determine entry type for large message");
-					}
-				} catch (UnsupportedDisclosureType | JsonParsingException | JSONDataValidationException | CsvParsingException e) {
+				} catch (JsonParsingException | JSONDataValidationException | CsvParsingException e) {
 					log.error("Failed to process large disclosure entry", e);
 					log.error("Entry discarded");
 					e.printStackTrace();
@@ -298,7 +283,7 @@ public class DisclosureQueue extends ExchangeComponent  {
 
 				boolean entriesAdded = true;
 				if ((null != entries) && (!entries.isEmpty())) {
-					BufferedItemState state = entries.get(0).getItemState();
+					DisclosureItemState state = entries.get(0).getItemState();
 					entriesAdded = localDisclosure.addItems(entries, state);
 				}
 
@@ -382,7 +367,7 @@ public class DisclosureQueue extends ExchangeComponent  {
 		List<DisclosureItem> entries = new ArrayList<>();
 
 		// TODO - create a service that returns the initial disclosure state
-		int max = localDisclosure.getMaxBatchSize(BufferedItemState.New);
+		int max = localDisclosure.getMaxBatchSize(DisclosureItemState.New);
 		boolean done = false;
 		boolean initialCheck = true;
 		while (!done) {
@@ -444,7 +429,8 @@ public class DisclosureQueue extends ExchangeComponent  {
 
 			try {
 				items.add(new DisclosureItem(item));
-			} catch ( JsonParsingException | CsvParsingException | JSONDataValidationException | UnsupportedDisclosureType e) {
+			} catch (JsonParsingException | CsvParsingException | JSONDataValidationException
+					| UnsupportedDisclosureType e) {
 				log.error("Failed to process a new disclosure item", e);
 				log.error("Item discarded:");
 				log.error(item);
@@ -461,11 +447,11 @@ public class DisclosureQueue extends ExchangeComponent  {
 		return itemQueue.remainingCapacity();
 	}
 
-	@Override 
+	@Override
 	public ExchangeType exchangeType() {
 		return ExchangeType.DisclosureQueue;
 	}
-	
+
 	@Override
 	public ComponentMaintenance scheduledMaintenance() {
 		return new ComponentMaintenance(this, DisclosureQueueCheck.class, ProvenDisclosureMap.class);

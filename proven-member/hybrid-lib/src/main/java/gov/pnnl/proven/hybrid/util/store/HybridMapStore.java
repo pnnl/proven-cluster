@@ -62,10 +62,10 @@ import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.MapStore;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMeasurement;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMeasurement;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMetric;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMetric.MetricFragmentIdentifier.MetricValueType;
 import gov.pnnl.proven.hybrid.util.ProvenConfig;
 
 /**

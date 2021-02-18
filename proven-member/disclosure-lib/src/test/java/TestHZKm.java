@@ -17,9 +17,9 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.KnowledgeMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.KnowledgeMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 
 public class TestHZKm {
 

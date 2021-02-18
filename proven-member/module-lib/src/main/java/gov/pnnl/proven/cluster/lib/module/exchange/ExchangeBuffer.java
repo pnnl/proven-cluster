@@ -61,8 +61,8 @@ import com.hazelcast.ringbuffer.OverflowPolicy;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 
@@ -86,19 +86,19 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	public static final Integer BATCH_MIN = 25;
 	public static final Integer BATCH_MAX = 50;
 
-	public Integer getMinBatchSize(BufferedItemState state) {
+	public Integer getMinBatchSize(DisclosureItemState state) {
 		return minMaxBatchSizeByState.get(state).getKey();
 	}
 
-	public Integer getMaxBatchSize(BufferedItemState state) {
+	public Integer getMaxBatchSize(DisclosureItemState state) {
 		return minMaxBatchSizeByState.get(state).getValue();
 	}
 
-	protected BufferedItemState[] supportedItemStates;
-	protected Map<BufferedItemState, Long> lastReadItemByState;
-	protected BufferedItemState headState = null;
-	protected Map<BufferedItemState, CompletableFuture<Void>> bufferReaders;
-	protected Map<BufferedItemState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
+	protected DisclosureItemState[] supportedItemStates;
+	protected Map<DisclosureItemState, Long> lastReadItemByState;
+	protected DisclosureItemState headState = null;
+	protected Map<DisclosureItemState, CompletableFuture<Void>> bufferReaders;
+	protected Map<DisclosureItemState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
 	protected Ringbuffer<T> buffer;
 
 	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
@@ -110,13 +110,13 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * 
 	 * @param states
 	 */
-	public ExchangeBuffer(BufferedItemState[] states) {
+	public ExchangeBuffer(DisclosureItemState[] states) {
 		super();
 		supportedItemStates = states;
-		bufferReaders = new HashMap<BufferedItemState, CompletableFuture<Void>>();
-		lastReadItemByState = new HashMap<BufferedItemState, Long>();
-		minMaxBatchSizeByState = new HashMap<BufferedItemState, SimpleEntry<Integer, Integer>>();
-		for (BufferedItemState state : states) {
+		bufferReaders = new HashMap<DisclosureItemState, CompletableFuture<Void>>();
+		lastReadItemByState = new HashMap<DisclosureItemState, Long>();
+		minMaxBatchSizeByState = new HashMap<DisclosureItemState, SimpleEntry<Integer, Integer>>();
+		for (DisclosureItemState state : states) {
 			lastReadItemByState.put(state, -1L);
 			AbstractMap.SimpleEntry<Integer, Integer> entry = new AbstractMap.SimpleEntry<>(BATCH_MIN, BATCH_MAX);
 			minMaxBatchSizeByState.put(state, entry);
@@ -126,13 +126,13 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	protected abstract void itemProcessor(ReadResultSet<T> item);
 
 	protected void startReaders() {
-		for (BufferedItemState state : supportedItemStates) {
+		for (DisclosureItemState state : supportedItemStates) {
 			log.debug("Starting exchange buffer (" + this.getClass().getSimpleName() + ") reader for state : " + state);
 			startReader(state, false);
 		}
 	}
 
-	private synchronized void startReader(BufferedItemState state, boolean replaceReader) {
+	private synchronized void startReader(DisclosureItemState state, boolean replaceReader) {
 
 		synchronized (bufferReaders) {
 
@@ -155,7 +155,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 		}
 	}
 
-	protected void runReader(BufferedItemState state) {
+	protected void runReader(DisclosureItemState state) {
 
 		while (true) {
 
@@ -239,7 +239,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 
 		synchronized (bufferReaders) {
 
-			for (BufferedItemState state : supportedItemStates) {
+			for (DisclosureItemState state : supportedItemStates) {
 				CompletableFuture<Void> cf = bufferReaders.get(state);
 				boolean hasReader = ((null != cf) && (!cf.isDone()));
 				if (hasReader) {
@@ -258,7 +258,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * 
 	 * @return true if new buffer items may be added, false otherwise.
 	 */
-	public boolean hasFreeSpace(BufferedItemState state) {
+	public boolean hasFreeSpace(DisclosureItemState state) {
 		return freeSpaceCount(state) > minMaxBatchSizeByState.get(state).getValue();
 	}
 
@@ -268,7 +268,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * 
 	 * @return count of processed buffer items.
 	 */
-	protected synchronized long freeSpaceCount(BufferedItemState state) {
+	protected synchronized long freeSpaceCount(DisclosureItemState state) {
 		log.debug("Calculating ringbuffer free space");
 
 		Long h = buffer.headSequence();
@@ -341,7 +341,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * 
 	 */
 	public long getLastReadItemForExchange() {
-		return lastReadItemByState.get(BufferedItemState.New);
+		return lastReadItemByState.get(DisclosureItemState.New);
 	}
 
 	/**
@@ -353,7 +353,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * @return true if the items were added. False is returned if there was not
 	 *         enough free space in the buffer to support the new items.
 	 */
-	public boolean addItems(Collection<T> items, BufferedItemState state) {
+	public boolean addItems(Collection<T> items, DisclosureItemState state) {
 
 		// Assume write succeeds. Either all items are added or no items
 		// are added.
@@ -403,7 +403,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * @throws BufferReaderInterruptedException
 	 *             if the thread was interrupted during the read operation.
 	 */
-	protected ReadResultSet<T> readItem(BufferedItemState state) throws BufferReaderInterruptedException {
+	protected ReadResultSet<T> readItem(DisclosureItemState state) throws BufferReaderInterruptedException {
 
 		log.debug("READ STREAM ITEMS BEGIN :: " + Calendar.getInstance().getTime().toString());
 

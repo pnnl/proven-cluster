@@ -52,11 +52,11 @@ import org.slf4j.LoggerFactory;
 import com.hazelcast.core.DistributedObjectUtil;
 import com.hazelcast.ringbuffer.ReadResultSet;
 
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
@@ -79,7 +79,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureBuffer.class);
 
-	private static final BufferedItemState[] SUPPORTED_ITEM_STATES = { BufferedItemState.New };
+	private static final DisclosureItemState[] SUPPORTED_ITEM_STATES = { DisclosureItemState.New };
 	private RequestBuffer localExchange;
 	private CompletableFuture<Void> bufferSourceReader;
 
@@ -130,7 +130,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 		if (items.size() >= 0) {
 
-			BufferedItemState state = items.get(0).getItemState();
+			DisclosureItemState state = items.get(0).getItemState();
 
 			switch (state) {
 
@@ -142,7 +142,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 				log.debug("Item processor for NEW");
 
-				MessageStreamType mst = MessageStreamType.Disclosure;
+				MessageStreamType mst = MessageStreamType.Knowledge;
 
 				items.forEach((item) -> {
 					try {

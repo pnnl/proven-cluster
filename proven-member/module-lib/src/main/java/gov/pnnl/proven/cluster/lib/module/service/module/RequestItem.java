@@ -47,8 +47,8 @@ import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
 
 /**
@@ -92,7 +92,7 @@ public class RequestItem<T> extends DisclosureItem implements Serializable {
 	 */
 	private RequestScope scope;
 
-	private BufferedItemState bufferedState;
+	private DisclosureItemState bufferedState;
 
 	/**
 	 * Request constructor. Input of request is required at time of
@@ -103,7 +103,7 @@ public class RequestItem<T> extends DisclosureItem implements Serializable {
 	 */
 	public RequestItem(T t) {
 		this.t = t;
-		this.bufferedState = BufferedItemState.New;
+		this.bufferedState = DisclosureItemState.New;
 	}
 
 	public int getRetries() {
@@ -139,13 +139,13 @@ public class RequestItem<T> extends DisclosureItem implements Serializable {
 	}
 
 	@Override
-	public BufferedItemState getItemState() {
+	public DisclosureItemState getItemState() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void setItemState(BufferedItemState bufferedState) {
+	public void setItemState(DisclosureItemState bufferedState) {
 
 	}
 

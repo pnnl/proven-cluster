@@ -3,19 +3,19 @@ package gov.pnnl.proven.cluster.lib.disclosure;
 import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureResponse;
-import gov.pnnl.proven.cluster.lib.disclosure.message.KnowledgeMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageProperties;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMeasurement;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMetric;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenQueryFilter;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenQueryTimeSeries;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenStatement;
-import gov.pnnl.proven.cluster.lib.disclosure.message.RequestMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureResponse;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.KnowledgeMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageProperties;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMeasurement;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMetric;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenQueryFilter;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenQueryTimeSeries;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenStatement;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.RequestMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.member.IDSFactory;
 
 /**

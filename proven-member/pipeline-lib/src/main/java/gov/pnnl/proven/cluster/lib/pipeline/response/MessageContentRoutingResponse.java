@@ -47,7 +47,7 @@ import javax.ws.rs.core.Response;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.ResponseItem;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.ResponseItem;
 import gov.pnnl.proven.cluster.lib.pipeline.PipelineIDSFactory;
 
 /**

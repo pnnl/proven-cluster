@@ -49,7 +49,7 @@ import com.hazelcast.core.IExecutorService;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.service.module.RequestItem;
@@ -71,8 +71,8 @@ public class RequestBuffer extends ExchangeBuffer<RequestItem<?>> {
 
 	static Logger log = LoggerFactory.getLogger(RequestBuffer.class);
 
-	public static final BufferedItemState[] SUPPORTED_ITEM_STATES = { BufferedItemState.New, BufferedItemState.Retry,
-			BufferedItemState.Ready, BufferedItemState.Running, BufferedItemState.Complete, BufferedItemState.Fail };
+	public static final DisclosureItemState[] SUPPORTED_ITEM_STATES = { DisclosureItemState.New, DisclosureItemState.Retry,
+			DisclosureItemState.Ready, DisclosureItemState.Running, DisclosureItemState.Complete, DisclosureItemState.Fail };
 
 	String doId;
 	Ringbuffer<RequestItem<?>> buffer;
@@ -98,7 +98,7 @@ public class RequestBuffer extends ExchangeBuffer<RequestItem<?>> {
 		log.debug("DefaultConstructer for ExchangeBuffer");
 	}
 
-	public BufferedItemState[] itemStates() {
+	public DisclosureItemState[] itemStates() {
 		return SUPPORTED_ITEM_STATES;
 	}
 

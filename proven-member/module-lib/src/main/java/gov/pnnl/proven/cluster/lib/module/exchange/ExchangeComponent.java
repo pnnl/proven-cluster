@@ -48,8 +48,8 @@ import org.slf4j.Logger;
 
 import com.hazelcast.core.IQueue;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;

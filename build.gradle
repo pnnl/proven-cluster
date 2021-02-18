@@ -22,14 +22,9 @@ buildscript {
 subprojects {
 
 	ext.javaEEVersion = "8.0"
-	//ext.jetVersion = "3.0"
 	ext.jetVersion = "3.2.2"
-	//ext.jetHazelcastVersion = "3.12"
 	ext.jetHazelcastVersion = "3.12.6"
-	//ext.payaraVersion = "5.192"
-	//ext.payaraVersion = "5.201"
 	ext.payaraVersion = "5.2020.7"
-	//ext.payaraHazelcastVersion = "3.12"
 	ext.payaraHazelcastVersion = "3.12.6"
 	ext.payaraJerseyVersion = "2.28"
 	ext.influxDbLibVersion = "2.8"
@@ -37,13 +32,12 @@ subprojects {
 	ext.jaxbApiVersion = "2.3.1"
 	ext.eclipseMoxyVersion = "2.7.4"
 	ext.moduleProjectSuffix = "-module"
-	ext.jsonbApiVersion = "1.0"
-	ext.jsonbYassonApiVersion = "1.0.4"
 	ext.isModuleProject = (project.name.endsWith("${moduleProjectSuffix}"))
 	ext.isMemberProject = (project.name == 'proven-member')
 
 	apply plugin: 'com.github.johnrengelman.shadow'
 	apply plugin: 'java'
+	apply plugin: 'java-library'
 	apply plugin: 'eclipse'
 	apply plugin: 'maven-publish'
 
@@ -83,7 +77,7 @@ subprojects {
 		}
 
 		war {
-			archiveName = project.name - '-module' + "-$version" + '.war'
+			archiveFileName = project.name - '-module' + "-$archiveVersion" + '.war'
 			webXml = null
 		}
 
@@ -123,32 +117,29 @@ subprojects {
 	}
 
 	dependencies {
-
 		// All subprojects
-		testCompile 'junit:junit:4.8.2'
+		testImplementation 'junit:junit:4.8.2'
 		compileOnly group: 'javax', name: 'javaee-web-api', version: "${javaEEVersion}"
 		compileOnly group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
 		compileOnly group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"
 		compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
-		compileOnly group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"
-		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-		compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
-		compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
-		compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
-		compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
-		compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.6'
-        compile group: 'au.com.bytecode', name: 'opencsv', version: '2.4'
+		compileOnly group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"		
+		implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+		implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
+		implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
+		implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
+		implementation group: 'commons-validator', name: 'commons-validator', version: '1.6'
+		implementation group: 'org.apache.commons', name: 'commons-configuration2', version: '2.6'
+        implementation group: 'au.com.bytecode', name: 'opencsv', version: '2.4'
         
-
-
 		if (!isMemberProject) {
-			compile project(':proven-member')
+			implementation project(':proven-member')
 		}
 
 		// Module subprojects
 		if (isModuleProject) {
-			compile (group: 'io.swagger.core.v3', name: 'swagger-jaxrs2', version: "${swaggerVersion}")
-			compile (group: 'io.swagger.core.v3', name: 'swagger-jaxrs2-servlet-initializer', version: "${swaggerVersion}")
+			implementation (group: 'io.swagger.core.v3', name: 'swagger-jaxrs2', version: "${swaggerVersion}")
+			implementation (group: 'io.swagger.core.v3', name: 'swagger-jaxrs2-servlet-initializer', version: "${swaggerVersion}")
 		}
 	}
 }
@@ -170,28 +161,26 @@ project('proven-member:stream-lib') {
 
 project('proven-member:module-lib') {
 	dependencies {
-		compile project(':proven-member:disclosure-lib')
-		compile project(':proven-member:stream-lib')
-		compile project(':proven-member:pipeline-lib')
+		api project(':proven-member:disclosure-lib')
+		api project(':proven-member:stream-lib')
+		api project(':proven-member:pipeline-lib')
 	}
 }
 
 project('proven-member:hybrid-lib') {
-	dependencies {  compile project(':proven-member:disclosure-lib') }
+	dependencies {  implementation project(':proven-member:disclosure-lib') }
 }
 
 project('proven-member:pipeline-lib') {
-	dependencies {  compile project(':proven-member:disclosure-lib') }
+	dependencies {  implementation project(':proven-member:disclosure-lib') }
 }
 
 project('proven-member:member-module') {
 	dependencies {
-		compile project(':proven-member:hybrid-lib')
-		compile project(':proven-member:pipeline-lib')
-		compile project(':proven-member:module-lib') 
+		implementation project(':proven-member:module-lib') 
 	}
 }
 
 project('proven-client') {
-	dependencies { compile project(':proven-member:disclosure-lib') }
+	dependencies { implementation project(':proven-member:disclosure-lib') }
 }

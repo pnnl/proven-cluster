@@ -105,6 +105,7 @@ import javax.ws.rs.sse.SseEventSink;
 
 import org.slf4j.Logger;
 
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.module.member.sse.SseEvent;
 import gov.pnnl.proven.cluster.module.member.sse.SseSession;
 import gov.pnnl.proven.cluster.module.member.sse.SseSessionManager;
@@ -147,17 +148,16 @@ public class SseSessionResource {
 	 *            event is based on. Only events matching this value will be
 	 *            sent. If not provided, the Proven domain is used.
 	 * @param content
-	 *            (optional) identifies the type of message contents that the
+	 *            (optional) identifies the type of message content that the
 	 *            response event is based on. The types are listed at
 	 *            {@code MessageContent#getNames()}. Only events matching these
 	 *            value will be sent. If not provided all contentTypes are
 	 *            included.
 	 * @param requestor
-	 *            (optional) identifies disclosure source (i.e. requestor) that
-	 *            the response event is based on. This must be provided at
-	 *            disclosure time for a match to be made. Only events matching
-	 *            this value will be sent. If not provided all disclosure
-	 *            sources are included.
+	 *            (optional) identifies user provided requestor name, that
+	 *            the response event is based on. This is provided at
+	 *            disclosure time by the requestor. Only events matching
+	 *            this value will be pushed.
 	 */
 	@GET
 	@Path(R_RESPONSE_EVENTS)
