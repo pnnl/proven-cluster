@@ -1729,10 +1729,17 @@ public class ConceptService {
 
 				if (record.get(record_key) instanceof String) {
 				builder.addField( record_key, String.valueOf((String) record.get(record_key)));	
+//				} else if (record.get(record_key) instanceof Integer) {
+//					builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
+//				} else if (record.get(record_key) instanceof Long) {
+//					builder.addField(record_key, Long.valueOf((Long) record.get(record_key)));
+				
+//  Note:  this change Feb 23, 2021 is meant to ensure that integers or longs will be changed to default decimal 
+//		   otherwise if a field is created as a integer floats will be ignored.
 				} else if (record.get(record_key) instanceof Integer) {
-					builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
-				} else if (record.get(record_key) instanceof Long) {
-					builder.addField(record_key, Long.valueOf((Long) record.get(record_key)));
+				    builder.addField( record_key, Float.valueOf((Float) record.get(record_key)));
+		    	} else if (record.get(record_key) instanceof Long) {
+				    builder.addField(record_key, Double.valueOf((Double) record.get(record_key)));
 				} else if (record.get(record_key) instanceof Float) {
 					builder.addField(record_key, Float.valueOf((Float) record.get(record_key)));
 				} else if (record.get(record_key) instanceof Double) {
