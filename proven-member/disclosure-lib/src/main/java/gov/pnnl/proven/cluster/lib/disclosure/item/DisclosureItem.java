@@ -40,235 +40,276 @@
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.UUID;
 
-import javax.activation.MimeType;
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import javax.json.bind.Jsonb;
-import javax.json.bind.annotation.JsonbTypeAdapter;
-import javax.ws.rs.core.MediaType;
+import javax.json.bind.annotation.JsonbProperty;
 
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONTokener;
+import org.leadpony.justify.api.InstanceType;
+import org.leadpony.justify.api.JsonSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//import com.hazelcast.internal.json.Json;
+//import com.hazelcast.internal.json.JsonValue;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.MessageJsonUtils;
-import gov.pnnl.proven.cluster.lib.disclosure.UUIDAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.DisclosureProperty;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageModel;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageQuery;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 
 /**
- * Represents data disclosed to the Proven platform.
+ * Immutable class representing data disclosed to the Proven platform.
  * 
  * @author d3j766
  * 
  */
-public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable {
+public class DisclosureItem implements BufferedItem, Validatable, IdentifiedDataSerializable {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
 
 	private DisclosureItemState bufferedState;
+	private JsonSchema schema;
 
 	private UUID messageId;
 	private UUID sourceMessageId;
-	private String authToken;
-	private String domain;
 	private MessageContent content;
-	private String messageName;
-	private String disclosureId;
+	private Class<MessageItem> messageItem;
+
+	private String authToken;
+	private String disclosureDomain;
+	private Integer disclosureId;
+
 	private String requestorName;
+	private String messageType;
+	private String messageName;
 	private JsonObject message;
 	private JsonObject messageSchema;
 	private boolean isTransient;
-	@JsonbTypeAdapter(UUIDAdapter.class)
 	private boolean isLinkedData;
 
-	public DisclosureItem() {
+	@JsonbProperty
+	public String getDisclosureDomain() {
+		return this.disclosureDomain;
 	}
 
-	/**
-	 * Constructs a new DisclosureItem from a JSON string. 
-	 * 
-	 * @param entry
-	 *            the disclosed JSON string
-	 * 
-	 * @throws UnsupportedDisclosureType
-	 *             if string does not represent a supported
-	 *             {@link DisclosureType}
-	 * 
-	 * @throws JSONDataValidationException
-	 *             if message can not be validated as a Proven disclosure
-	 *             message
-	 * 
-	 */
-	public DisclosureItem(String item) throws JSONDataValidationException, UnsupportedDisclosureType {
-		this(DisclosureType.getJsonItem(item));
+	@JsonbProperty
+	public void setAuthToken(String authToken) {
+		this.authToken = authToken;
 	}
 
-	/**
-	 * Schema validation is performed for provided JSON object representing the DisclosureItem.  
-	 * Validation error will throw an exception.
-	 * 
-	 * NOTE:
-	 * 
-	 * @param entry
-	 *            the disclosed JSON object
-	 * 
-	 * @throws UnsupportedDisclosureType
-	 *             if string is not a supported {@link DisclosureType}
-	 * 
-	 * @throws JSONDataValidationException
-	 *             if message can not be validated as a Proven Message
-	 * 
-	 */
-	public DisclosureItem(JsonObject item) throws JSONDataValidationException {
-
-		this.bufferedState = DisclosureItemState.New;
-
-		// Validate item against the Proven message schema
-		try {
-			// Disclosure type and schema validation
-			MessageModel mm = MessageModel.getInstance(new DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN));
-			String jsonApi = mm.getApiSchema();
-			org.json.JSONObject jsonApiSchema = new org.json.JSONObject(new JSONTokener(jsonApi));
-			Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
-			jsonSchema.validate(new org.json.JSONObject(item.toString()));
-			log.debug("Valid JSON Data item");
-
-		} catch (ValidationException e) {
-			throw new JSONDataValidationException(
-					"DisclosureItem construction failed, invalid message Data: " + e.getAllMessages(), e);
-		} catch (Exception e) {
-			throw new JSONDataValidationException(
-					"DisclosureItem construction failed, invalid message Data: " + e.getMessage(), e);
-		}
-
-		for (DisclosureProperty prop : DisclosureProperty.values()) {
-			String propName = prop.getProperty();
-			boolean hasValue = (item.containsKey(propName));
-			if (hasValue && (item.get(propName) != JsonValue.NULL)) {
-				JsonValue value = item.get(propName);
-				itemProperties.put(prop, value);
-			} else {
-				if (prop.hasDefault()) {
-					itemProperties.put(prop, prop.getDefaultValue());
-				} else {
-					itemProperties.put(prop, JsonValue.NULL);
-				}
-			}
-		}
+	@JsonbProperty
+	public void setDisclosureDomain(String disclosureDomain) {
+		this.disclosureDomain = disclosureDomain;
 	}
 
-	/**
-	 * Copy constructor
-	 */
-	public DisclosureItem(DisclosureItem di) {
-		this.bufferedState = DisclosureItemState.New;
-		this.itemProperties = new HashMap<>(di.itemProperties);
-	}
-
-	@Override
-	public MessageContent getMessageContent() {
-		return MessageContent.getValue(getStringProp(DisclosureProperty.CONTENT).get());
-	}
-
-	public Optional<String> getAuthToken() {
-		return getStringProp(DisclosureProperty.AUTH_TOKEN);
-	}
-
-	public DisclosureDomain getDisclosureDomain() {
-		return new DisclosureDomain(getStringProp(DisclosureProperty.DOMAIN).get());
-	}
-
-	public Optional<String> getName() {
-		return getStringProp(DisclosureProperty.NAME);
-	}
-
-	public Optional<String> getQueryType() {
-		return getStringProp(DisclosureProperty.QUERY_TYPE);
-	}
-
-	public Optional<String> getQueryLanguage() {
-		return getStringProp(DisclosureProperty.QUERY_LANGUAGE);
-	}
-
-	public Optional<String> getDisclosureId() {
-		return getStringProp(DisclosureProperty.DISCLOSURE_ID);
-	}
-
-	public Optional<String> getRequestorId() {
-		return getStringProp(DisclosureProperty.REQUESTOR_ID);
-	}
-
-	public boolean isStatic() {
-		return getBooleanProp(DisclosureProperty.IS_STATIC).get();
-	}
-
-	public boolean isTransient() {
-		return getBooleanProp(DisclosureProperty.IS_TRANSIENT).get();
+	@JsonbProperty
+	public void setDisclosureId(Integer disclosureId) {
+		this.disclosureId = disclosureId;
 	}
 
 	public JsonObject getMessage() {
-		return getObjectProp(DisclosureProperty.MESSAGE).get();
+		return this.message;
 	}
 
-	public Optional<JsonObject> getMessageSchema() {
-		return getObjectProp(DisclosureProperty.MESSAGE);
+	public UUID getMessageId() {
+		return this.messageId;
 	}
 
-	private Optional<String> getStringProp(DisclosureProperty prop) {
-		Optional<String> ret = Optional.empty();
-		JsonValue val = itemProperties.get(prop);
-		if (val != JsonValue.NULL) {
-			ret = Optional.of(((JsonString) val).getString());
-		}
-		return ret;
+	/**
+	 * Provides default values
+	 */
+	public DisclosureItem() {
+		log.debug("Inside DisclosureItem constructor");
+		this.disclosureDomain = DomainProvider.PROVEN_DOMAIN;
 	}
 
-	private Optional<Boolean> getBooleanProp(DisclosureProperty prop) {
-		Optional<Boolean> ret = Optional.empty();
-		JsonValue val = itemProperties.get(prop);
-		if (val != JsonValue.NULL) {
-			if (val == JsonValue.TRUE) {
-				ret = Optional.of(true);
-			} else {
-				ret = Optional.of(false);
-			}
-		}
-		return ret;
+	// @JsonbCreator
+	// public DisclosureItem() {
+	// log.debug("Inside DisclosureItem constructor");
+	// this.disclosureDomain = disclosureDomain;
+	// }
+
+	// public static DisclosureItem buildDisclosureItem(JsonObject disclosure) {
+	//
+	// }
+	//
+	// /**
+	// * Constructs a new DisclosureItem from a JSON string.
+	// *
+	// * @param entry
+	// * the disclosed JSON string
+	// *
+	// * @throws UnsupportedDisclosureType
+	// * if string does not represent a supported
+	// * {@link DisclosureType}
+	// *
+	// * @throws JSONDataValidationException
+	// * if message can not be validated as a Proven disclosure
+	// * message
+	// *
+	// */
+	// public DisclosureItem(String item) throws JSONDataValidationException,
+	// UnsupportedDisclosureType {
+	// this(DisclosureType.getJsonItem(item));
+	// }
+	//
+	// /**
+	// * Schema validation is performed for provided JSON object representing
+	// the DisclosureItem.
+	// * Validation error will throw an exception.
+	// *
+	// * NOTE:
+	// *
+	// * @param entry
+	// * the disclosed JSON object
+	// *
+	// * @throws UnsupportedDisclosureType
+	// * if string is not a supported {@link DisclosureType}
+	// *
+	// * @throws JSONDataValidationException
+	// * if message can not be validated as a Proven Message
+	// *
+	// */
+	// public DisclosureItem(JsonObject item) throws JSONDataValidationException
+	// {
+	//
+	// this.bufferedState = DisclosureItemState.New;
+	//
+	// // Validate item against the Proven message schema
+	// try {
+	// // Disclosure type and schema validation
+	// MessageModel mm = MessageModel.getInstance(new
+	// DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN));
+	// String jsonApi = mm.getApiSchema();
+	// org.json.JSONObject jsonApiSchema = new org.json.JSONObject(new
+	// JSONTokener(jsonApi));
+	// Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
+	// jsonSchema.validate(new org.json.JSONObject(item.toString()));
+	// log.debug("Valid JSON Data item");
+	//
+	// } catch (ValidationException e) {
+	// throw new JSONDataValidationException(
+	// "DisclosureItem construction failed, invalid message Data: " +
+	// e.getAllMessages(), e);
+	// } catch (Exception e) {
+	// throw new JSONDataValidationException(
+	// "DisclosureItem construction failed, invalid message Data: " +
+	// e.getMessage(), e);
+	// }
+	//
+	// for (DisclosureProperty prop : DisclosureProperty.values()) {
+	// String propName = prop.getProperty();
+	// boolean hasValue = (item.containsKey(propName));
+	// if (hasValue && (item.get(propName) != JsonValue.NULL)) {
+	// JsonValue value = item.get(propName);
+	// itemProperties.put(prop, value);
+	// } else {
+	// if (prop.hasDefault()) {
+	// itemProperties.put(prop, prop.getDefaultValue());
+	// } else {
+	// itemProperties.put(prop, JsonValue.NULL);
+	// }
+	// }
+	// }
+	// }
+	//
+	// /**
+	// * Copy constructor
+	// */
+	// public DisclosureItem(DisclosureItem di) {
+	// this.bufferedState = DisclosureItemState.New;
+	// this.itemProperties = new HashMap<>(di.itemProperties);
+	// }
+	//
+	@Override
+	public MessageContent getMessageContent() {
+		return MessageContent.Explicit;
+		// return
+		// MessageContent.getValue(getStringProp(DisclosureProperty.CONTENT).get());
 	}
 
-	private Optional<JsonObject> getObjectProp(DisclosureProperty prop) {
-		Optional<JsonObject> ret = Optional.empty();
-		JsonValue val = itemProperties.get(prop);
-		if (val != JsonValue.NULL) {
-			ret = Optional.of((JsonObject) val);
-		}
-		return ret;
-	}
-
+	//
+	// public Optional<String> getAuthToken() {
+	// return getStringProp(DisclosureProperty.AUTH_TOKEN);
+	// }
+	//
+	// public DisclosureDomain getDisclosureDomain() {
+	// return null; //new
+	// DisclosureDomain(getStringProp(DisclosureProperty.DOMAIN).get());
+	// }
+	//
+	// public Optional<String> getName() {
+	// return getStringProp(DisclosureProperty.NAME);
+	// }
+	//
+	// public Optional<String> getQueryType() {
+	// return getStringProp(DisclosureProperty.QUERY_TYPE);
+	// }
+	//
+	// public Optional<String> getQueryLanguage() {
+	// return getStringProp(DisclosureProperty.QUERY_LANGUAGE);
+	// }
+	//
+	// public Optional<String> getDisclosureId() {
+	// return getStringProp(DisclosureProperty.DISCLOSURE_ID);
+	// }
+	//
+	// public Optional<String> getRequestorId() {
+	// return getStringProp(DisclosureProperty.REQUESTOR_ID);
+	// }
+	//
+	// public boolean isStatic() {
+	// return getBooleanProp(DisclosureProperty.IS_STATIC).get();
+	// }
+	//
+	// public boolean isTransient() {
+	// return getBooleanProp(DisclosureProperty.IS_TRANSIENT).get();
+	// }
+	//
+	// public JsonObject getMessage() {
+	// return null; //getObjectProp(DisclosureProperty.MESSAGE).get();
+	// }
+	//
+	// public Optional<JsonObject> getMessageSchema() {
+	// return getObjectProp(DisclosureProperty.MESSAGE);
+	// }
+	//
+	// private Optional<String> getStringProp(DisclosureProperty prop) {
+	// Optional<String> ret = Optional.empty();
+	// JsonValue val = itemProperties.get(prop);
+	// if (val != JsonValue.NULL) {
+	// ret = Optional.of(((JsonString) val).getString());
+	// }
+	// return ret;
+	// }
+	//
+	// private Optional<Boolean> getBooleanProp(DisclosureProperty prop) {
+	// Optional<Boolean> ret = Optional.empty();
+	// JsonValue val = itemProperties.get(prop);
+	// if (val != JsonValue.NULL) {
+	// if (val == JsonValue.TRUE) {
+	// ret = Optional.of(true);
+	// } else {
+	// ret = Optional.of(false);
+	// }
+	// }
+	// return ret;
+	// }
+	//
+	// private Optional<JsonObject> getObjectProp(DisclosureProperty prop) {
+	// Optional<JsonObject> ret = Optional.empty();
+	// JsonValue val = itemProperties.get(prop);
+	// if (val != JsonValue.NULL) {
+	// ret = Optional.of((JsonObject) val);
+	// }
+	// return ret;
+	// }
+	//
 	@Override
 	public DisclosureItemState getItemState() {
 		return bufferedState;
@@ -282,22 +323,23 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeUTF(this.bufferedState.toString());
-		out.writeInt(((null == itemProperties) ? 0 : itemProperties.size()));
-		for (Entry<DisclosureProperty, JsonValue> entry : itemProperties.entrySet()) {
-			out.writeUTF(entry.getKey().toString());
-			out.writeByteArray(MessageJsonUtils.jsonValueOut(entry.getValue()));
-		}
+		// out.writeInt(((null == itemProperties) ? 0 : itemProperties.size()));
+		// for (Entry<DisclosureProperty, JsonValue> entry :
+		// itemProperties.entrySet()) {
+		// out.writeUTF(entry.getKey().toString());
+		// out.writeByteArray(MessageJsonUtils.jsonValueOut(entry.getValue()));
+		// }
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.bufferedState = DisclosureItemState.valueOf(in.readUTF());
-		int count = in.readInt();
-		for (int i = 0; i < count; i++) {
-			DisclosureProperty dp = DisclosureProperty.valueOf(in.readUTF());
-			JsonValue jv = MessageJsonUtils.jsonValueIn(in.readByteArray());
-			itemProperties.put(dp, jv);
-		}
+		// this.bufferedState = DisclosureItemState.valueOf(in.readUTF());
+		// int count = in.readInt();
+		// for (int i = 0; i < count; i++) {
+		// DisclosureProperty dp = DisclosureProperty.valueOf(in.readUTF());
+		// JsonValue jv = MessageJsonUtils.jsonValueIn(in.readByteArray());
+		// //itemProperties.put(dp, jv);
+		// }
 	}
 
 	@Override
@@ -309,4 +351,27 @@ public class DisclosureItem implements BufferedItem, IdentifiedDataSerializable 
 	public int getId() {
 		return DisclosureIDSFactory.DISCLOSURE_ITEM_TYPE;
 	}
+
+	@Override
+	public JsonSchema toSchema() {
+
+		JsonSchema ret;
+
+		if (null != this.schema) {
+			ret = this.schema;
+		} else {
+
+			ret = sbf.createBuilder().withType(InstanceType.OBJECT)
+					.withProperty("authToken", sbf.createBuilder().withType(InstanceType.STRING).build())
+					.withProperty("disclosureDomain",
+							sbf.createBuilder().withType(InstanceType.STRING)
+									.withDefault(Json.createValue("proven.pnnl.gov")).build())
+					.withProperty("disclosureId",
+							sbf.createBuilder().withType(InstanceType.INTEGER).withMinimum(0).build())
+					.withRequired("authToken", "disclosureId").build();
+		}
+
+		return ret;
+	}
+
 }

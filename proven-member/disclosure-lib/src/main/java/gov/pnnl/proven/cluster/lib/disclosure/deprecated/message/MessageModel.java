@@ -40,13 +40,16 @@
 
 package gov.pnnl.proven.cluster.lib.disclosure.deprecated.message;
 
+import static gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageModelFile.ModelConfig.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.Charset;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.compose.MultiUnion;
@@ -63,8 +66,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.Missi
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.MissingMessageModelOntologyException;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.MissingMessageModelShapesException;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.MultipleMessageModelContextException;
-
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageModelFile.ModelConfig.*;
 
 /**
  * Provides access to the message model, used to construct and validate a

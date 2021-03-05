@@ -118,7 +118,8 @@ subprojects {
 
 	dependencies {
 		// All subprojects
-		testImplementation 'junit:junit:4.8.2'
+		testImplementation 'junit:junit:4.13.2'
+		testImplementation 'org.hamcrest:hamcrest:2.2'
 		compileOnly group: 'javax', name: 'javaee-web-api', version: "${javaEEVersion}"
 		compileOnly group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
 		compileOnly group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"

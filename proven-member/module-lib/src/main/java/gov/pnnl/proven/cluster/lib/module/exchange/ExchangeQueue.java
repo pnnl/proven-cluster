@@ -58,8 +58,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
  */
 public enum ExchangeQueue {
 
-	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
-
 	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
 
 	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),

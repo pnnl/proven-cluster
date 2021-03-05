@@ -37,43 +37,110 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.deprecated.message;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.util.UUID;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 
-import javax.json.bind.annotation.JsonbCreator;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+import javax.json.JsonObject;
 
-public class ExplicitMessage implements MessageItem {
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-	UUID messageId;
-	UUID sourceMessageId;
-	
-	String message;
-	String priority; 
-	
-	@JsonbCreator
-	public ExplicitMessage() {
-		this.messageId = UUID.randomUUID();
+/**
+ * @author d3j766
+ *
+ */
+public class SchemaDeploy {
+
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	public String getMessage() {
-		return message;
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@Before
+	public void setUp() throws Exception {
 	}
 
-	public String getPriority() {
-		return priority;
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@After
+	public void tearDown() throws Exception {
 	}
 
-	public void setPriority(String priority) {
-		this.priority = priority;
+	/**
+	 * Test method for
+	 * {@link gov.pnnl.proven.cluster.lib.disclosure.item.Validatable#toJsonFromString(java.lang.String)}.
+	 * @throws IOException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 */
+	@Test
+	public void roundTrip() throws InstantiationException, IllegalAccessException, IOException {
+
+		// Get the Validatable implemenations
+		List<Class<Validatable>> vClasses = new ArrayList<>();
+		try {
+			vClasses = Validatable.getValidatables();
+		} catch (URISyntaxException | ClassNotFoundException e) {
+			fail("Failed to get list of Validatable implementations");
+		}
+
+		// 
+		// Note: the no-param constructors must create a valid Validatable
+		for (Class<Validatable> clazz : vClasses) {
+			Validatable v1 = null;
+			try {
+				v1 = (Validatable) clazz.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				fail("Instantiation failure of new Validatable: " + clazz.getSimpleName());
+			}
+			JsonObject jo = v1.toJson();
+			Validatable v2 = Validatable.toValidatable(clazz, jo);
+			assertNotEquals(v1, v2);
+		}
+
+		// System.out.println(vNames.toString());
+
+		// Validatable.class.getClassLoader().getResources(name)
+
+		DisclosureItem di = new DisclosureItem();
+		String schemaName = Validatable.getSchemaName(di.getClass());
+		File rd = new File("src/test/resources/" + Validatable.SCHEMA_RESOURCE_DIR + "/" + schemaName);
+		String rdPath = rd.getAbsolutePath();
+
+		// MatcherAssert.assertThat(jo, notNullValue());
+
+		// boolean valid = Validatable.isValid(DisclosureItem.class,
+		// jo).isEmpty();
+		// assertTrue(valid);
+
+		// fail("Not yet implemented");
 	}
-	
-	
-	
+
 }

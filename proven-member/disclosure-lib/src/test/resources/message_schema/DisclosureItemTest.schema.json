@@ -1,0 +1,15 @@
+{
+    "$id": "https://proven.pnnl.gov/DisclosureItem.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "DisclosureItemTest",
+    "type": "object",
+    "properties": {
+        "domain": {
+            "type": "string"
+        },
+        "isTransient": {
+            "type": "boolean"
+        }
+    },
+    "required": ["domain","isTransient"]
+}

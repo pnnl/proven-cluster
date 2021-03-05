@@ -37,43 +37,87 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.deprecated.message;
+package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.util.UUID;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
-import javax.json.bind.annotation.JsonbCreator;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonStructure;
+import javax.json.JsonValue;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
 
-public class ExplicitMessage implements MessageItem {
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.Is;
+import org.hamcrest.core.IsInstanceOf;
+import org.hamcrest.core.IsNot;
+import org.junit.Test;
+import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.Problem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	UUID messageId;
-	UUID sourceMessageId;
-	
-	String message;
-	String priority; 
-	
-	@JsonbCreator
-	public ExplicitMessage() {
-		this.messageId = UUID.randomUUID();
+public class DisclosureItemTest {
+
+	static Logger log = LoggerFactory.getLogger(DisclosureItemTest.class);
+
+	@Test
+	public void test() throws FileNotFoundException, URISyntaxException, IOException, InstantiationException,
+			IllegalAccessException {
+
+		JsonSchema schema = new DisclosureItem().toSchema();
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		JsonObject jo;
+		String jsonStr;
+		try (InputStream ins = classloader.getResourceAsStream("message_schema/DisclosureItemTest.json");
+				InputStreamReader insr = new InputStreamReader(ins);
+				BufferedReader br = new BufferedReader(insr)) {
+			jsonStr = br.lines().collect(Collectors.joining());
+		}
+
+		AbstractMap.SimpleEntry<JsonValue, List<Problem>> result = Validatable.validateWithDefaults(DisclosureItem.class,
+				jsonStr);
+		MatcherAssert.assertThat(result.getKey(), IsInstanceOf.instanceOf(JsonStructure.class));
+		MatcherAssert.assertThat(result.getValue(), empty());
+		
+		DisclosureItem di = Validatable.toValidatable(DisclosureItem.class, result.getKey().toString());
+		MatcherAssert.assertThat(di, notNullValue());
+		
+		
+		// classloader.getResource("message-validation/DisclosureItem.json")
+		//
+		// Files.lines()
+		//
+		// String jsonStr = new
+		// String(Files.readAllBytes(classloader.getResource("message-validation/DisclosureItem.json").toURI().getPath()));
+		//
+		//
+		//
+		// DisclosureItem di = (DisclosureItem)
+		// Validatable.toValidatable(DisclosureItem.class, jo);
+		// // DisclosureItem di = jsonb.fromJson(ins, DisclosureItem.class);
+		//
+		// MatcherAssert.assertThat("DisclosureItem not assigned a value",
+		// di.getMessageId(), notNullValue());
+		// MatcherAssert.assertThat("Domain value", di.getDisclosureDomain(),
+		// is(equalTo("proven.pnnl.gov")));
+		//
+		// fail("Not yet implemented");
 	}
 
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
-	}
-
-	public String getPriority() {
-		return priority;
-	}
-
-	public void setPriority(String priority) {
-		this.priority = priority;
-	}
-	
-	
-	
 }

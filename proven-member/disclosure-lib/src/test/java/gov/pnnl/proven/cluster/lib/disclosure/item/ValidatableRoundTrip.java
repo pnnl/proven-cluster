@@ -37,43 +37,73 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.deprecated.message;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.util.UUID;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.*;
 
-import javax.json.bind.annotation.JsonbCreator;
+import javax.json.JsonObject;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.Is;
+import org.hamcrest.core.IsEqual;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.leadpony.justify.api.JsonSchema;
 
-public class ExplicitMessage implements MessageItem {
+/**
+ * @author d3j766
+ *
+ */
+public class ValidatableRoundTrip {
 
-	UUID messageId;
-	UUID sourceMessageId;
-	
-	String message;
-	String priority; 
-	
-	@JsonbCreator
-	public ExplicitMessage() {
-		this.messageId = UUID.randomUUID();
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	public String getMessage() {
-		return message;
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@Before
+	public void setUp() throws Exception {
 	}
 
-	public String getPriority() {
-		return priority;
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@After
+	public void tearDown() throws Exception {
 	}
 
-	public void setPriority(String priority) {
-		this.priority = priority;
+	/**
+	 * Test method for {@link gov.pnnl.proven.cluster.lib.disclosure.item.Validatable#toJsonFromString(java.lang.String)}.
+	 */
+	@Test
+	public void roundTrip() {
+		
+		JsonObject jo = new DisclosureItem().toJson();
+		MatcherAssert.assertThat(jo, notNullValue());
+		
+		boolean valid = Validatable.isValid(DisclosureItem.class, jo).isEmpty();
+		//assertTrue(valid);
+		
+		//fail("Not yet implemented");
 	}
-	
-	
-	
+
 }

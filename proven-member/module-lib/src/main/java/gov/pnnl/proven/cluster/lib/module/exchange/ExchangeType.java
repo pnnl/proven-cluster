@@ -40,12 +40,10 @@
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Administrative;
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ContinuousQuery;
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ModuleService;
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.PipelineService;
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Query;
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Response;
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ServiceRegistration;
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.getSchemaValues;
 
 import java.util.ArrayList;
@@ -88,12 +86,12 @@ public enum ExchangeType {
 	 * 
 	 * @see MessageContent
 	 */
-	RequestBuffer(Query, ContinuousQuery, Administrative),
+	RequestBuffer(Query, Administrative),
 
 	/**
 	 * Processes service content.
 	 */
-	ServiceBuffer(PipelineService, ModuleService, ServiceRegistration),
+	ServiceBuffer(PipelineService, ModuleService),
 
 	/**
 	 * Processes response content for storage in Hybrid store.

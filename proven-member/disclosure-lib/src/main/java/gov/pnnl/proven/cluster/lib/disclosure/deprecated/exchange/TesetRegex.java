@@ -63,12 +63,16 @@ import javax.json.stream.JsonGenerator;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.topbraid.shacl.validation.ValidationUtil;
 
 public class TesetRegex {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 
+		//ValidationUtil.createValidationEngine(dataModel, shapesModel, validateShapes)
+		
+		
 		// Supported headers
 		String CONCEPT_HEADER = "concept";
 		String ID_HEADER = "id";

@@ -31,7 +31,7 @@ public class TestHZKm {
 		JsonObject message = jsonReader.readObject();
 
 		// Get KM
-		DisclosureItem di = new DisclosureItem(message);
+		DisclosureItem di = null; //new DisclosureItem(message);
 		DisclosureMessage dm = new DisclosureMessage(di);
 		KnowledgeMessage kmTestWrite = new KnowledgeMessage(dm);
 

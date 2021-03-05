@@ -37,43 +37,14 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.deprecated.message;
+package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.util.UUID;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
-import javax.json.bind.annotation.JsonbCreator;
+@RunWith(Suite.class)
+@SuiteClasses({ ValidatableRoundTrip.class, DisclosureItemTest.class })
+public class AllTests {
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
-
-public class ExplicitMessage implements MessageItem {
-
-	UUID messageId;
-	UUID sourceMessageId;
-	
-	String message;
-	String priority; 
-	
-	@JsonbCreator
-	public ExplicitMessage() {
-		this.messageId = UUID.randomUUID();
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
-	}
-
-	public String getPriority() {
-		return priority;
-	}
-
-	public void setPriority(String priority) {
-		this.priority = priority;
-	}
-	
-	
-	
 }

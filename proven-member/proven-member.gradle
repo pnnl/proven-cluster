@@ -1,5 +1,5 @@
 
-// TODO create a distribution task that creates Proven's executable jar.
+// TODO create a distribution task that creates Proven's deployment jar.
 jar.enabled = true
 jar {
 	exclude('PROVEN-INF')

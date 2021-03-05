@@ -56,10 +56,6 @@ import org.slf4j.LoggerFactory;
  */
 public enum MessageContentGroup {
 
-	Disclosure(
-			GroupLabel.DISCLOSURE_GROUP, 
-			MessageContent.Disclosure),
-
 	Knowledge(
 			GroupLabel.KNOWLEDGE_GROUP,
 			MessageContent.Explicit,
