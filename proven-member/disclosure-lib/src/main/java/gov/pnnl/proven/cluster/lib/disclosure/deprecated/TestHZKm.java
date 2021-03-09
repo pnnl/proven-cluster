@@ -1,3 +1,4 @@
+package gov.pnnl.proven.cluster.lib.disclosure.deprecated;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +21,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.KnowledgeMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+
 
 public class TestHZKm {
 

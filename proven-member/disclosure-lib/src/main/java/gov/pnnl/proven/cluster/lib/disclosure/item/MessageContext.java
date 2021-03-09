@@ -39,12 +39,122 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.util.Objects;
 
-@RunWith(Suite.class)
-@SuiteClasses({ ValidatableRoundTrip.class, DisclosureItemTest.class })
-public class AllTests {
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+
+/**
+ * Represents the context for a Proven message disclosure.
+ * 
+ * @author d3j766
+ * 
+ * @see DisclosureItem
+ *
+ */
+public class MessageContext {
+
+	// Required
+	private MessageContent content;
+	private Class<MessageItem> item;
+
+	// Optional w/ default
+	private DisclosureDomain domain;
+
+	// Optional w/o default
+	private String requestor;
+	private String name;
+	private String[] tags;
+
+	// Necessary for HZ serialization
+	public MessageContext() {
+	}
+
+	private MessageContext(Builder b) {
+		Objects.requireNonNull(b.content);
+		this.content = b.content;
+		Objects.requireNonNull(b.item);
+		this.item = b.item;
+		this.domain = (null != b.domain) ? b.domain : new DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN);
+		this.requestor = b.requestor;
+		this.name = b.name;
+		this.tags = (null != b.tags) ? (b.tags) : (new String[] {});
+	}
+
+	public MessageContent getContent() {
+		return content;
+	}
+
+	public Class<MessageItem> getItem() {
+		return item;
+	}
+
+	public DisclosureDomain getDomain() {
+		return domain;
+	}
+
+	public String getRequestor() {
+		return requestor;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String[] getTags() {
+		return tags;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	static final class Builder {
+
+		private MessageContent content;
+		private Class<MessageItem> item;
+		private DisclosureDomain domain;
+		private String requestor;
+		private String name;
+		private String[] tags;
+
+		private Builder() {
+		}
+
+		public Builder withContent(MessageContent content) {
+			this.content = content;
+			return this;
+		}
+
+		public Builder withItem(Class<MessageItem> item) {
+			this.item = item;
+			return this;
+		}
+
+		public Builder withDomain(DisclosureDomain domain) {
+			this.domain = domain;
+			return this;
+		}
+
+		public Builder withRequestor(String requestor) {
+			this.requestor = requestor;
+			return this;
+		}
+
+		public Builder withName(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public Builder withTags(String[] tags) {
+			this.tags = tags;
+			return this;
+		}
+
+		public MessageContext build() {
+			return new MessageContext(this);
+		}
+	}
 
 }

@@ -37,110 +37,31 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.item;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
-
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.json.JsonObject;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * @author d3j766
- *
- */
-public class SchemaDeploy {
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
+public class DisclosureItemTest {
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
+	static Logger log = LoggerFactory.getLogger(DisclosureItemTest.class);
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@After
-	public void tearDown() throws Exception {
-	}
-
-	/**
-	 * Test method for
-	 * {@link gov.pnnl.proven.cluster.lib.disclosure.item.Validatable#toJsonFromString(java.lang.String)}.
-	 * @throws IOException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 */
 	@Test
-	public void roundTrip() throws InstantiationException, IllegalAccessException, IOException {
-
-		// Get the Validatable implemenations
-		List<Class<Validatable>> vClasses = new ArrayList<>();
-		try {
-			vClasses = Validatable.getValidatables();
-		} catch (URISyntaxException | ClassNotFoundException e) {
-			fail("Failed to get list of Validatable implementations");
-		}
-
-		// 
-		// Note: the no-param constructors must create a valid Validatable
-		for (Class<Validatable> clazz : vClasses) {
-			Validatable v1 = null;
-			try {
-				v1 = (Validatable) clazz.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
-				fail("Instantiation failure of new Validatable: " + clazz.getSimpleName());
-			}
-			JsonObject jo = v1.toJson();
-			Validatable v2 = Validatable.toValidatable(clazz, jo);
-			assertNotEquals(v1, v2);
-		}
-
-		// System.out.println(vNames.toString());
-
-		// Validatable.class.getClassLoader().getResources(name)
+	public void testCreate_NoArg_ValidJson() throws FileNotFoundException, URISyntaxException, IOException,
+			InstantiationException, IllegalAccessException {
 
 		DisclosureItem di = new DisclosureItem();
-		String schemaName = Validatable.getSchemaName(di.getClass());
-		File rd = new File("src/test/resources/" + Validatable.SCHEMA_RESOURCE_DIR + "/" + schemaName);
-		String rdPath = rd.getAbsolutePath();
-
-		// MatcherAssert.assertThat(jo, notNullValue());
-
-		// boolean valid = Validatable.isValid(DisclosureItem.class,
-		// jo).isEmpty();
-		// assertTrue(valid);
-
-		// fail("Not yet implemented");
+		MatcherAssert.assertThat("Valid JSON produced for DisclosureItem no-arg constructor",
+				Validatable.validate(DisclosureItem.class, di.toJson().toString()).isEmpty());
 	}
 
 }

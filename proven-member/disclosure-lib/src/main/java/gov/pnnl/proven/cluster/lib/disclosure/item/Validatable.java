@@ -84,7 +84,7 @@ import org.slf4j.LoggerFactory;
  */
 public interface Validatable {
 
-	static Logger log = LoggerFactory.getLogger(Validatable.class);
+	static final Logger log = LoggerFactory.getLogger(Validatable.class);
 
 	static final String SCHEMA_RESOURCE_DIR = "message-validation";
 	static final String JSON_SCHEMA_SUFFIX = ".schema.json";
@@ -263,15 +263,6 @@ public interface Validatable {
 	}
 
 	/**
-	 * JSON-B serialization of this Validatable
-	 * 
-	 * @return a JSON object representing the serialization of this Validatable.
-	 */
-	default JsonObject toJson() {
-		return (JsonObject) toJsonFromString(jsonb.toJson(this));
-	}
-
-	/**
 	 * Build a Validatable from provided JSON String.
 	 * 
 	 * @param clazz
@@ -304,6 +295,15 @@ public interface Validatable {
 		}
 
 		return ret;
+	}
+
+	/**
+	 * JSON-B serialization of this Validatable
+	 * 
+	 * @return a JSON object representing the serialization of this Validatable.
+	 */
+	default JsonObject toJson() {
+		return (JsonObject) toJsonFromString(jsonb.toJson(this));
 	}
 
 	/**
