@@ -37,25 +37,21 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
 
-import java.util.UUID;
-
-import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.bind.adapter.JsonbAdapter;
 
-public class UUIDAdapter implements JsonbAdapter<UUID, JsonObject> {
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+
+public class MessageContentAdapter implements JsonbAdapter<MessageContent, String> {
 
 	@Override
-	public JsonObject adaptToJson(UUID uuid) throws Exception {
-		return Json.createObjectBuilder().add("uuid", uuid.toString()).build();
+	public String adaptToJson(MessageContent content) throws Exception {
+		return content.getName();
 	}
 
 	@Override
-	public UUID adaptFromJson(JsonObject adapted) throws Exception {
-		String uuidStr = adapted.getString("uuid");
-		UUID uuid = UUID.fromString(uuidStr);
-		return uuid;
+	public MessageContent adaptFromJson(String content) throws Exception {
+		return MessageContent.getMessageContent(content);
 	}
 }

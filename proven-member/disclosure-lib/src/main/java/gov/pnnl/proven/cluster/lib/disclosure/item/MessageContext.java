@@ -39,27 +39,65 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.util.Objects;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.readNullable;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.rw;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.writeNullable;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.ww;
+
+import java.io.IOException;
+import java.util.Set;
+
+import javax.json.Json;
+import javax.json.JsonString;
+import javax.json.JsonValue;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
+
+import org.leadpony.justify.api.InstanceType;
+import org.leadpony.justify.api.JsonSchema;
+
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
- * Represents the context for a Proven message disclosure.
+ * Represents the context for a disclosure item. The context helps to identify
+ * both exchange processing and hybrid-store message storage locations.
  * 
  * @author d3j766
  * 
  * @see DisclosureItem
  *
  */
-public class MessageContext {
+public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
-	// Required
-	private MessageContent content;
-	private Class<MessageItem> item;
+	// Jsonb properties
+	private static final String CONTENT_PROP = "content";
+	private static final String ITEM_PROP = "item";
+	private static final String DOMAIN_PROP = "domain";
+	private static final String REQUESTOR_PROP = "requestor";
+	private static final String NAME_PROP = "name";
+	private static final String TAGS_PROP = "tags";
+
+	// Defaults
+	private static final MessageContent DEFAULT_CONTENT = MessageContent.Explicit;
+	private static final Class<? extends MessageItem> DEFAULT_ITEM = ExplicitItem.class;
+	private static final DisclosureDomain DEFAULT_DOMAIN = DomainProvider.getProvenDisclosureDomain();
+
+	// Schema
+	private JsonSchema schema;
+
+	// Required (No defaults)
 
 	// Optional w/ default
+	private MessageContent content;
+	private Class<? extends MessageItem> item;
 	private DisclosureDomain domain;
 
 	// Optional w/o default
@@ -67,41 +105,54 @@ public class MessageContext {
 	private String name;
 	private String[] tags;
 
-	// Necessary for HZ serialization
+	// HZ serialization
 	public MessageContext() {
 	}
 
+	@JsonbCreator
+	public static MessageContext createMessageContext(@JsonbProperty(CONTENT_PROP) String content,
+			@JsonbProperty(ITEM_PROP) String item, @JsonbProperty(DOMAIN_PROP) String domain,
+			@JsonbProperty(REQUESTOR_PROP) String requestor, @JsonbProperty(NAME_PROP) String name,
+			@JsonbProperty(TAGS_PROP) String[] tags) {
+		return MessageContext.newBuilder().withContent(content).withItem(item).withDomain(domain)
+				.withRequestor(requestor).withName(name).withTags(tags).build();
+	}
+
 	private MessageContext(Builder b) {
-		Objects.requireNonNull(b.content);
-		this.content = b.content;
-		Objects.requireNonNull(b.item);
-		this.item = b.item;
-		this.domain = (null != b.domain) ? b.domain : new DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN);
+		this.content = (null != b.content) ? (b.content) : (DEFAULT_CONTENT);
+		this.item = (null != b.item) ? (b.item) : (DEFAULT_ITEM);
+		this.domain = (null != b.domain) ? (b.domain) : (DEFAULT_DOMAIN);
 		this.requestor = b.requestor;
 		this.name = b.name;
 		this.tags = (null != b.tags) ? (b.tags) : (new String[] {});
 	}
 
+	@JsonbProperty(CONTENT_PROP)
 	public MessageContent getContent() {
 		return content;
 	}
 
-	public Class<MessageItem> getItem() {
+	@JsonbProperty(ITEM_PROP)
+	public Class<? extends MessageItem> getItem() {
 		return item;
 	}
 
+	@JsonbProperty(DOMAIN_PROP)
 	public DisclosureDomain getDomain() {
 		return domain;
 	}
 
+	@JsonbProperty(value = REQUESTOR_PROP)
 	public String getRequestor() {
 		return requestor;
 	}
 
+	@JsonbProperty(NAME_PROP)
 	public String getName() {
 		return name;
 	}
 
+	@JsonbProperty(TAGS_PROP)
 	public String[] getTags() {
 		return tags;
 	}
@@ -110,10 +161,10 @@ public class MessageContext {
 		return new Builder();
 	}
 
-	static final class Builder {
+	public static final class Builder {
 
 		private MessageContent content;
-		private Class<MessageItem> item;
+		private Class<? extends MessageItem> item;
 		private DisclosureDomain domain;
 		private String requestor;
 		private String name;
@@ -127,13 +178,28 @@ public class MessageContext {
 			return this;
 		}
 
-		public Builder withItem(Class<MessageItem> item) {
+		public Builder withContent(String content) {
+			this.content = MessageContent.getMessageContent(content);
+			return this;
+		}
+
+		public Builder withItem(Class<? extends MessageItem> item) {
 			this.item = item;
+			return this;
+		}
+
+		public Builder withItem(String item) {
+			this.item = MessageItem.messageType(item);
 			return this;
 		}
 
 		public Builder withDomain(DisclosureDomain domain) {
 			this.domain = domain;
+			return this;
+		}
+
+		public Builder withDomain(String domain) {
+			this.domain = new DisclosureDomain(domain);
 			return this;
 		}
 
@@ -157,4 +223,110 @@ public class MessageContext {
 		}
 	}
 
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(getContent().toString());
+		out.writeObject(item);
+		getDomain().writeData(out);
+		writeNullable(getRequestor(), out, ww((v, o) -> out.writeUTF(v)));
+		writeNullable(getName(), out, ww((v, o) -> out.writeUTF(v)));
+		writeNullable(getTags(), out, ww((v, o) -> out.writeUTFArray(v)));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		this.content = MessageContent.getMessageContent(in.readUTF());
+		this.item = (Class<? extends MessageItem>) in.readObject();
+		this.domain = new DisclosureDomain();
+		this.domain.readData(in);
+		this.requestor = readNullable(in, rw((i) -> i.readUTF()));
+		this.name = readNullable(in, rw((i) -> i.readUTF()));
+		this.tags = readNullable(in, rw((i) -> i.readUTFArray()));
+	}
+
+	@JsonbTransient
+	@Override
+	public int getFactoryId() {
+		return DisclosureIDSFactory.FACTORY_ID;
+	}
+
+	@JsonbTransient
+	@Override
+	public int getId() {
+		// TODO Auto-generated method stub
+		return DisclosureIDSFactory.MESSAGE_CONTEXT_TYPE;
+	}
+
+	@Override
+	public JsonSchema toSchema() {
+
+		JsonSchema ret;
+
+		// JSON-B defaults and enumerations
+		JsonString defaultContent = Json.createValue(DEFAULT_CONTENT.getName());
+		Set<JsonValue> contents = Validatable.toJsonValues(MessageContent.getNames(true));
+		JsonString defaultItem;
+		try {
+			defaultItem = Json.createValue(DEFAULT_ITEM.newInstance().getMessageName());
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException(
+					"Could not instantiate class with no-arg constructor: " + DEFAULT_ITEM.getSimpleName(), e);
+		}
+		Set<JsonValue> items = Validatable.toJsonValues(MessageItem.messageNames());
+		JsonString defaultDomain = Json.createValue(DEFAULT_DOMAIN.getDomain());
+
+		if (null != this.schema) {
+			ret = this.schema;
+		} else {
+
+			//@formatter:off
+			ret = sbf.createBuilder()
+
+					.withId(Validatable.schemaId(this.getClass()))
+					
+					.withSchema(Validatable.schemaDialect())
+					
+					.withTitle("Message Context Schema")
+
+					.withDescription(
+							"Defines the context of a Proven message which identifies its processing and storage requirements within the platform.")
+
+					.withType(InstanceType.OBJECT)
+
+					.withProperty(CONTENT_PROP, sbf.createBuilder()
+							.withType(InstanceType.STRING, InstanceType.NULL)
+							.withEnum(contents)
+							.withDefault(defaultContent).build())
+
+					.withProperty(ITEM_PROP, sbf.createBuilder()
+							.withType(InstanceType.STRING, InstanceType.NULL)
+							.withEnum(items)
+							.withDefault(defaultItem).build())
+
+					.withProperty(DOMAIN_PROP,
+							sbf.createBuilder()
+							.withType(InstanceType.STRING, InstanceType.NULL)
+							.withDefault(defaultDomain).build())
+
+					.withProperty(REQUESTOR_PROP, sbf.createBuilder()
+							.withType(InstanceType.STRING, InstanceType.NULL)
+							.withDefault(JsonValue.NULL).build())
+
+					.withProperty(NAME_PROP, sbf.createBuilder()
+							.withType(InstanceType.STRING, InstanceType.NULL)
+							.withDefault(JsonValue.NULL).build())
+
+					.withProperty(TAGS_PROP, sbf.createBuilder()
+							.withType(InstanceType.ARRAY, InstanceType.NULL)
+							.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+							.withItems(sbf.createBuilder()
+									.withType(InstanceType.STRING).build()).build())
+					.build();
+			
+			//@formatter:on
+		}
+
+		return ret;
+	}
 }

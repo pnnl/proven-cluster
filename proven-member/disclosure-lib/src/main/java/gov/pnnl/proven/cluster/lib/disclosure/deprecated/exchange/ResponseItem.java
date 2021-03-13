@@ -191,6 +191,7 @@ public class ResponseItem implements BufferedItem, IdentifiedDataSerializable {
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.RESPONSE_ITEM_TYPE;
+		//return DisclosureIDSFactory.RESPONSE_ITEM_TYPE;
+		return 0;
 	}
 }

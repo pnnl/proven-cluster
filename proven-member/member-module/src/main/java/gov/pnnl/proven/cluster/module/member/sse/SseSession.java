@@ -105,7 +105,7 @@ public class SseSession {
 				List<MessageContent> valid = this.event.getStreamType().getMessageContents();
 				ArrayList<MessageContent> dest = new ArrayList<>();
 				for (String mcStr : source) {
-					MessageContent mc = MessageContent.getValue(mcStr);
+					MessageContent mc = MessageContent.getMessageContent(mcStr);
 					if ((null != mc) && (valid.contains(mc))) {
 						if (mc.equals(Any)) {
 							dest.clear();

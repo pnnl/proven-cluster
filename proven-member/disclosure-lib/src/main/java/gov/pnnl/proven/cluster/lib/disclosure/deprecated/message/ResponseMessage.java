@@ -138,7 +138,8 @@ public class ResponseMessage extends ProvenMessage {
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.RESPONSE_MESSAGE_TYPE;
+		//return DisclosureIDSFactory.RESPONSE_MESSAGE_TYPE;
+		return 0;
 	}
 
 	@Override

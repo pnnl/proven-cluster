@@ -107,7 +107,8 @@ public class ProvenQueryFilter implements IdentifiedDataSerializable, Serializab
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.PROVEN_QUERY_FILTER_TYPE;
+		//return DisclosureIDSFactory.PROVEN_QUERY_FILTER_TYPE;
+		return 0;
 	}
 
 	

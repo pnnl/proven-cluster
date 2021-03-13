@@ -108,10 +108,10 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 		return isMeasurements;
 	}
 
-	@Override
-	public MessageContent getMessageContent() {
-		return MessageContent.Disclosure;
-	}
+//	@Override
+//	public MessageContent getMessageContent() {
+//		return MessageContent.Disclosure;
+//	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
@@ -136,7 +136,8 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.DISCLOSURE_MESSAGE_TYPE;
+		//return DisclosureIDSFactory.DISCLOSURE_MESSAGE_TYPE;
+		return 0;
 	}
 
 }

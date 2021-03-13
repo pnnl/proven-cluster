@@ -126,7 +126,8 @@ public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serial
 	
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
+		//return DisclosureIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
+		return 0;
 	}
 	
 	

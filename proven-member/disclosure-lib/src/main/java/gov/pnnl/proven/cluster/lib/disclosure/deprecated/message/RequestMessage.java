@@ -92,7 +92,8 @@ public class RequestMessage extends ProvenMessage implements IdentifiedDataSeria
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.REQUEST_MESSAGE_TYPE;
+		//return DisclosureIDSFactory.REQUEST_MESSAGE_TYPE;
+		return 0;
 	}
 
 }

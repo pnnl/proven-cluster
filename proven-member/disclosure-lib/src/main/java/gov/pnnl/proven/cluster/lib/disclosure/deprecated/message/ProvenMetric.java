@@ -116,7 +116,8 @@ public class ProvenMetric implements IdentifiedDataSerializable, Serializable {
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.PROVEN_METRIC_TYPE;
+		//return DisclosureIDSFactory.PROVEN_METRIC_TYPE;
+		return 0;
 	}
 
 	public String getLabel() {

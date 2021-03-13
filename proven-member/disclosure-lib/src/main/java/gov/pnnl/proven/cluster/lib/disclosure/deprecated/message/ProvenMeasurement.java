@@ -159,7 +159,8 @@ public class ProvenMeasurement implements IdentifiedDataSerializable, Serializab
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.PROVEN_MEASUREMENT_TYPE;
+		//return DisclosureIDSFactory.PROVEN_MEASUREMENT_TYPE;
+		return 0;
 	}
 
 	public String getMeasurementName() {

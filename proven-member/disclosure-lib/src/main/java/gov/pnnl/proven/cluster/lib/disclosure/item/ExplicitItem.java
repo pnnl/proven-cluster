@@ -37,119 +37,57 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-
-package gov.pnnl.proven.cluster.lib.disclosure.deprecated.message;
+package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import java.io.IOException;
-import java.io.Serializable;
 
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.leadpony.justify.api.JsonSchema;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
-
-/**
- * Represents response results for a {@link ProvenMessage} request.
- * 
- * @author d3j766
- *
- */
-@Deprecated
-@XmlRootElement
-public class DisclosureResponse extends ResponseMessage implements IdentifiedDataSerializable, Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	private static Logger log = LoggerFactory.getLogger(DisclosureResponse.class);
-
-	private String requestId;
-
-	private Status status;
-
-	private int code;
-
-	private String reason;
-
-	private String response;
-
-	public DisclosureResponse() {		
-	}
-	
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.requestId = in.readUTF();
-		this.status = in.readObject();
-		this.code = in.readInt();
-		this.reason = in.readUTF();
-		this.response = in.readUTF();
-	}
+public class ExplicitItem implements MessageItem, Validatable, IdentifiedDataSerializable {
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeUTF(this.requestId);
-		out.writeObject(this.status);
-		out.writeInt(this.code);
-		out.writeUTF(this.reason);
-		out.writeUTF(this.response);
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public int getFactoryId() {
-		return DisclosureIDSFactory.FACTORY_ID;
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
-//	@Override
-//	public int getId() {
-//		return DisclosureIDSFactory.DISCLOSURE_RESPONSE_TYPE;
-//	}
-
-	public String getRequestId() {
-		return requestId;
+	@Override
+	public int getId() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
-	public void setRequestId(String requestId) {
-		this.requestId = requestId;
+	@Override
+	public JsonSchema toSchema() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	public Status getStatus() {
-		return status;
+	@Override
+	public void getContent() {
+		// TODO Auto-generated method stub
+		
 	}
 
-	public void setStatus(Status status) {
-		this.status = status;
-	}
-
-	public int getCode() {
-		return code;
-	}
-
-	public void setCode(int code) {
-		this.code = code;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public String getResponse() {
-		return response;
-	}
-
-	public void setResponse(String response) {
-		this.response = response;
+	@Override
+	public String getMessageName() {
+		return "Explicit message";
 	}
 
 }

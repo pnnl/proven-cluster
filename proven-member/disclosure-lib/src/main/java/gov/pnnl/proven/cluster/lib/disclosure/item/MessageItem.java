@@ -39,14 +39,76 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- * Marker interface for message items. Message Items represent the message
- * payload for a DisclosureItem.
+ * Message items represent the message payload for a DisclosureItem. Convenience
+ * methods also included to provide the message item names and their
+ * types.
  * 
  * @see DisclosureItem, MessageContent
  * 
  * @author d3j766
  *
  */
-public interface MessageItem {
+public interface MessageItem extends Validatable {
+
+	static Map<String, Class<? extends MessageItem>> messagesByName = MessageInitializer.messagesByName();
+	static Map<Class<? extends MessageItem>, String> messagesByType = MessageInitializer.messagesByType();
+
+	static List<String> messageNames() {
+		return new ArrayList<String>(messagesByName.keySet());
+	}
+
+	static List<Class<? extends MessageItem>> messageTypes() {
+		return new ArrayList<Class<? extends MessageItem>>(messagesByType.keySet());
+	}
+
+	static Class<? extends MessageItem> messageType(String name) {
+		return messagesByName.get(name);
+	}
+
+	static String messageName(Class<? extends MessageItem> type) {
+		return messagesByType.get(type);
+	}
+
+	String getMessageName();
+
+	void getContent();
+}
+
+class MessageInitializer {
+
+	static Map<String, Class<? extends MessageItem>> messagesByName() {
+
+		Map<String, Class<? extends MessageItem>> ret = null;
+		try {
+			ret = new HashMap<String, Class<? extends MessageItem>>();
+			List<Class<MessageItem>> cList = Validatable.getValidatables(true);
+			for (Class<MessageItem> c : cList) {
+				ret.put(c.newInstance().getMessageName(), c);
+			}
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException("Failed to load message information", e);
+		}
+		return ret;
+	}
+
+	static Map<Class<? extends MessageItem>, String> messagesByType() {
+
+		Map<Class<? extends MessageItem>, String> ret = null;
+		try {
+			ret = new HashMap<Class<? extends MessageItem>, String>();
+			List<Class<MessageItem>> cList = Validatable.getValidatables(true);
+			for (Class<MessageItem> c : cList) {
+				ret.put(c, c.newInstance().getMessageName());
+			}
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException("Failed to load message information", e);
+		}
+		return ret;
+	}
 }

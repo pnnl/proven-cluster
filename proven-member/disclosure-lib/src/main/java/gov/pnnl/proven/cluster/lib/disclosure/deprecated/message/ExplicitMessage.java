@@ -45,7 +45,7 @@ import javax.json.bind.annotation.JsonbCreator;
 
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
 
-public class ExplicitMessage implements MessageItem {
+public class ExplicitMessage {
 
 	UUID messageId;
 	UUID sourceMessageId;

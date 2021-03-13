@@ -92,7 +92,8 @@ public class KnowledgeMessage extends ProvenMessage implements IdentifiedDataSer
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.KNOWLEDGE_MESSAGE_TYPE;
+		//return DisclosureIDSFactory.KNOWLEDGE_MESSAGE_TYPE;
+		return 0;
 	}
 
 }

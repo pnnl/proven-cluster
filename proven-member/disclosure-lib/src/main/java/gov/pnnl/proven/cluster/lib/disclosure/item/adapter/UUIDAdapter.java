@@ -37,119 +37,25 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
+package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
 
-package gov.pnnl.proven.cluster.lib.disclosure.deprecated.message;
+import java.util.UUID;
 
-import java.io.IOException;
-import java.io.Serializable;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.bind.adapter.JsonbAdapter;
 
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.annotation.XmlRootElement;
+public class UUIDAdapter implements JsonbAdapter<UUID, JsonObject> {
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
-
-/**
- * Represents response results for a {@link ProvenMessage} request.
- * 
- * @author d3j766
- *
- */
-@Deprecated
-@XmlRootElement
-public class DisclosureResponse extends ResponseMessage implements IdentifiedDataSerializable, Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	private static Logger log = LoggerFactory.getLogger(DisclosureResponse.class);
-
-	private String requestId;
-
-	private Status status;
-
-	private int code;
-
-	private String reason;
-
-	private String response;
-
-	public DisclosureResponse() {		
-	}
-	
 	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.requestId = in.readUTF();
-		this.status = in.readObject();
-		this.code = in.readInt();
-		this.reason = in.readUTF();
-		this.response = in.readUTF();
+	public JsonObject adaptToJson(UUID uuid) throws Exception {
+		return Json.createObjectBuilder().add("uuid", uuid.toString()).build();
 	}
 
 	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeUTF(this.requestId);
-		out.writeObject(this.status);
-		out.writeInt(this.code);
-		out.writeUTF(this.reason);
-		out.writeUTF(this.response);
+	public UUID adaptFromJson(JsonObject adapted) throws Exception {
+		String uuidStr = adapted.getString("uuid");
+		UUID uuid = UUID.fromString(uuidStr);
+		return uuid;
 	}
-
-	@Override
-	public int getFactoryId() {
-		return DisclosureIDSFactory.FACTORY_ID;
-	}
-
-//	@Override
-//	public int getId() {
-//		return DisclosureIDSFactory.DISCLOSURE_RESPONSE_TYPE;
-//	}
-
-	public String getRequestId() {
-		return requestId;
-	}
-
-	public void setRequestId(String requestId) {
-		this.requestId = requestId;
-	}
-
-	public Status getStatus() {
-		return status;
-	}
-
-	public void setStatus(Status status) {
-		this.status = status;
-	}
-
-	public int getCode() {
-		return code;
-	}
-
-	public void setCode(int code) {
-		this.code = code;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public String getResponse() {
-		return response;
-	}
-
-	public void setResponse(String response) {
-		this.response = response;
-	}
-
 }

@@ -40,6 +40,7 @@
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.json.Json;
@@ -57,6 +58,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
@@ -72,26 +74,33 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
 
-	private DisclosureItemState bufferedState;
-	private JsonSchema schema;
-
+	// Identification
 	private UUID messageId;
 	private UUID sourceMessageId;
-	private MessageContent content;
-	private Class<MessageItem> messageItem;
-
-	private String authToken;
-	private String disclosureDomain;
-	private Integer disclosureId;
-
-	private String requestorName;
-	private String messageType;
-	private String messageName;
+	
+	// Context
+	MessageContext mc; 
+	
+	// Message
 	private JsonObject message;
 	private JsonObject messageSchema;
+	
+	// Message Properties
 	private boolean isTransient;
 	private boolean isLinkedData;
-
+	private DisclosureItemState bufferedState;
+	private String authToken;
+	
+    // Item's Schema
+	private JsonSchema schema;
+	private Integer disclosureId;
+	
+	
+	// REMOVE
+	private String disclosureDomain;
+	
+	
+	
 	@JsonbProperty
 	public String getDisclosureDomain() {
 		return this.disclosureDomain;

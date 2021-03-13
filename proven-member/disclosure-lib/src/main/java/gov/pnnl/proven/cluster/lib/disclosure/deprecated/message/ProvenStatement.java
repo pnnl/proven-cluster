@@ -111,7 +111,8 @@ public class ProvenStatement implements IdentifiedDataSerializable, Serializable
 
 	@Override
 	public int getId() {
-		return DisclosureIDSFactory.PROVEN_STATEMENT_TYPE;
+		//return DisclosureIDSFactory.PROVEN_STATEMENT_TYPE;
+		return 0;
 	}
 
 	public URI getSubject() {

@@ -42,9 +42,15 @@ package gov.pnnl.proven.cluster.lib.disclosure;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import javax.json.Json;
+import javax.json.JsonValue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.github.andrewoma.dexx.collection.HashSet;
 
 /**
  * Represents the different message content types in support of message
@@ -57,30 +63,15 @@ import org.slf4j.LoggerFactory;
  * @see DisclosureItem, ProvenMessage
  *
  */
-public enum MessageContent {
 
-	/**
-	 * Internal type only used by DisclosureMessage. It's not a valid content
-	 * type for disclosed data to the platform. A DisclosureMessage declares its
-	 * content type as {@link #Disclosure} in order to allow for its storage in
-	 * a disclosure stream.
-	 * 
-	 * Post any exchange processing, all disclosed data is routed to a domain's
-	 * disclosure stream as a DisclosureMessage. Domain disclosure streams are
-	 * the entry points for disclosed data into Proven's hybrid store's memory
-	 * grid facet (i.e. streaming environment).
-	 * 
-	 * @see DisclosureItem, DisclosureMessage
-	 * 
-	 */
-	Disclosure(MessageContentName.DISCLOSURE, false),
+public enum MessageContent {
 
 	/**
 	 * The Default content type. Explicit message content is domain instance
 	 * data that can be represented in the semantic and memory grid facets of
 	 * the hybrid store.
 	 */
-	Explicit(MessageContentName.EXPLICIT, true),
+	Explicit(MessageContentName.EXPLICIT),
 
 	/**
 	 * Static or reference message content. This is data that changes
@@ -89,14 +80,14 @@ public enum MessageContent {
 	 * store, but instead remain available in-memory for query and analysis
 	 * purposes.
 	 */
-	Static(MessageContentName.STATIC, true),
+	Static(MessageContentName.STATIC),
 
 	/**
 	 * Implicit content is content that is created from existing explicit
 	 * content. This content is considered as transient, in that it can be
 	 * regenerated on demand.
 	 */
-	Implicit(MessageContentName.IMPLICIT, true),
+	Implicit(MessageContentName.IMPLICIT),
 
 	/**
 	 * Semantic concept structure definitions and associated instance data (e.g.
@@ -104,7 +95,7 @@ public enum MessageContent {
 	 * in its own graph contributing to a single domain's knowledge model or all
 	 * domain knowledge models (e.g. an upper or foundation ontology).
 	 */
-	Structure(MessageContentName.STRUCTURE, true),
+	Structure(MessageContentName.STRUCTURE),
 
 	/**
 	 * Query message content. Knowledge describes a query for execution over
@@ -112,57 +103,58 @@ public enum MessageContent {
 	 * hybrid store, and results may be stored back in hybrid store and/or
 	 * returned to caller if requested.
 	 */
-	Query(MessageContentName.QUERY, true),
+	Query(MessageContentName.QUERY),
 
 	/**
 	 * Replay message content. Represents a request to replay a specified set of
 	 * messages starting at either disclosure (i.e. exchange) or distribution
 	 * (i.e. stream).
 	 */
-	Replay(MessageContentName.REPLAY, true),
+	Replay(MessageContentName.REPLAY),
 
 	/**
 	 * Represents a pipeline processing service request. Contains the service
-	 * object or a reference to an already registered service object.  Information
-	 * regarding the service and action to perform is contained in the message.
+	 * object or a reference to an already registered service object.
+	 * Information regarding the service and action to perform is contained in
+	 * the message.
 	 */
-	PipelineService(MessageContentName.PIPELINE_SERVICE, true),
+	PipelineService(MessageContentName.PIPELINE_SERVICE),
 
 	/**
 	 * Represents a module processing service request. Contains the service
-	 * object or a reference to an already registered service object.  Information
-	 * regarding the service and action to perform is contained in the message.
+	 * object or a reference to an already registered service object.
+	 * Information regarding the service and action to perform is contained in
+	 * the message.
 	 */
-	ModuleService(MessageContentName.MODULE_SERVICE, true),
+	ModuleService(MessageContentName.MODULE_SERVICE),
 
 	/**
 	 * Cluster administrative message content. Contains directives to configure
 	 * and manage cluster members.
 	 */
-	Administrative(MessageContentName.ADMINISTRATIVE, true),
+	Administrative(MessageContentName.ADMINISTRATIVE),
 
 	/**
 	 * Represents Proven measurement data (i.e. metrics) that will be processed
 	 * and stored into a time-series store registered with the Proven data
 	 * platform.
 	 */
-	Measurement(MessageContentName.MEASUREMENT, true),
+	Measurement(MessageContentName.MEASUREMENT),
 
 	/**
 	 * Represents response message data for an internal processing component.
 	 * Not schema validated.
 	 */
-	Response(MessageContentName.RESPONSE, false),
+	Response(MessageContentName.RESPONSE),
 
 	/**
 	 * Represents any of the JSON Schema related message content types. It
 	 * itself is not a schema based content type. This is a convenience type,
 	 * use {@link #getSchemaValues()} to return all schema based types.
 	 */
-	Any(MessageContentName.ANY, false);
+	Any(MessageContentName.ANY);
 
 	public class MessageContentName {
-		public static final String DISCLOSURE = "disclosure";
 		public static final String EXPLICIT = "explicit";
 		public static final String STATIC = "static";
 		public static final String IMPLICIT = "implicit";
@@ -182,14 +174,12 @@ public enum MessageContent {
 	private static Logger log = LoggerFactory.getLogger(MessageContent.class);
 
 	private String name;
-	private boolean schema;
 
 	MessageContent() {
 	}
 
-	MessageContent(String name, boolean schema) {
+	MessageContent(String name) {
 		this.name = name;
-		this.schema = schema;
 	}
 
 	/**
@@ -203,20 +193,7 @@ public enum MessageContent {
 		return name;
 	}
 
-	/**
-	 * Indicates if the message content type is included in the Proven Message's
-	 * JSON Schema. This schema is used for syntactic verification of a Proven
-	 * message. Syntactic verification is only necessary for content originating
-	 * from an external source.
-	 * 
-	 * @return true if it's part of Proven message's JSON Schema, false
-	 *         otherwise.
-	 */
-	public boolean isSchema() {
-		return schema;
-	}
-
-	public static MessageContent getValue(String name) {
+	public static MessageContent getMessageContent(String name) {
 
 		MessageContent ret = null;
 		for (MessageContent mc : values()) {
@@ -225,7 +202,6 @@ public enum MessageContent {
 				break;
 			}
 		}
-
 		return ret;
 	}
 
@@ -233,45 +209,25 @@ public enum MessageContent {
 	 * Provides a list of all message content names.
 	 */
 	public static List<String> getNames() {
+		boolean excludeAny = false;
+		return getNames(excludeAny);
+	}
+
+	/**
+	 * Provides a list of message content names.
+	 * 
+	 * @param excludeAny
+	 *            {@link #Any} will be excluded from the returned list if true.
+	 */
+	public static List<String> getNames(boolean excludeAny) {
 
 		List<String> ret = new ArrayList<>();
 		for (MessageContent mc : values()) {
-			ret.add(mc.getName());
+			if (!(mc.equals(MessageContent.Any) && (excludeAny))) {
+				ret.add(mc.getName());
+			}
 		}
 
 		return ret;
 	}
-
-	/**
-	 * Provides a list of all schema based message content types.
-	 * 
-	 * @see #Any
-	 */
-	public static MessageContent[] getSchemaValues() {
-
-		List<MessageContent> mcList = new ArrayList<>();
-		for (MessageContent mc : values()) {
-			if (mc.isSchema()) {
-				mcList.add(mc);
-			}
-		}
-		MessageContent ret[] = new MessageContent[mcList.size()];
-		return mcList.toArray(ret);
-	}
-
-	/**
-	 * Provides a list of all non-schema based message content types.
-	 */
-	public static MessageContent[] getNonSchemaValues() {
-
-		List<MessageContent> mcList = new ArrayList<>();
-		for (MessageContent mc : values()) {
-			if (!mc.isSchema()) {
-				mcList.add(mc);
-			}
-		}
-		MessageContent ret[] = new MessageContent[mcList.size()];
-		return mcList.toArray(ret);
-	}
-
 }

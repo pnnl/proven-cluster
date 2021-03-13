@@ -45,12 +45,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -58,10 +69,13 @@ import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonStructure;
 import javax.json.JsonValue;
+import javax.json.JsonWriter;
+import javax.json.JsonWriterFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 import javax.json.bind.JsonbException;
+import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParserFactory;
 import javax.json.stream.JsonParsingException;
@@ -73,8 +87,22 @@ import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.Problem;
 import org.leadpony.justify.api.ProblemHandler;
 import org.leadpony.justify.api.ValidationConfig;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.DisclosureDomainAdapter;
+import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageContentAdapter;
+import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageItemTypeAdapter;
 
 /**
  * Represents a JSON-SCHEMA validatable object.
@@ -82,17 +110,19 @@ import org.slf4j.LoggerFactory;
  * @author d3j766
  *
  */
-public interface Validatable {
+public interface Validatable extends IdentifiedDataSerializable {
 
 	static final Logger log = LoggerFactory.getLogger(Validatable.class);
 
 	static final String SCHEMA_RESOURCE_DIR = "message-validation";
 	static final String JSON_SCHEMA_SUFFIX = ".schema.json";
+	static final String JSON_SCHEMA_DIALECT = "http://json-schema.org/draft-07/schema#";
 
 	static final JsonParserFactory pFactory = Json.createParserFactory(null);
 	static final JsonValidationService service = JsonValidationService.newInstance();
 	static final JsonSchemaBuilderFactory sbf = service.createSchemaBuilderFactory();
-	static final JsonbConfig config = new JsonbConfig().withFormatting(true);
+	static final JsonbConfig config = new JsonbConfig().withFormatting(true).withAdapters(new MessageItemTypeAdapter(),
+			new DisclosureDomainAdapter(), new MessageContentAdapter());
 	static final Jsonb jsonb = JsonbBuilder.create(config);
 
 	/**
@@ -117,14 +147,70 @@ public interface Validatable {
 	}
 
 	/**
-	 * Returns the JSON-SCHEMA resource name for a Validatable type.
+	 * Convenience method to transfer collection of strings to JSON values.
+	 */
+	static Set<JsonValue> toJsonValues(Collection<String> source) {
+		return source.stream().map(s -> Json.createValue(s)).collect(Collectors.toSet());
+	}
+
+	static String prettyPrint(String json) {
+
+		StringWriter sw = new StringWriter();
+		try (JsonReader jr = Json.createReader(new StringReader(json))) {
+			JsonValue jobj = jr.readObject();
+			Map<String, Object> properties = new HashMap<>(1);
+			properties.put(JsonGenerator.PRETTY_PRINTING, true);
+			JsonWriterFactory writerFactory = Json.createWriterFactory(properties);
+			try (JsonWriter jsonWriter = writerFactory.createWriter(sw)) {
+				jsonWriter.write(jobj);
+				jsonWriter.close();
+			}
+		}
+		return sw.toString();
+	}
+
+	/**
+	 * Returns current JSON-SCHEMA URI used to define Validatable schemas.
 	 * 
-	 * @param clazz
-	 *            the Validatable
+	 * @return current schema dialect being used.
+	 * 
+	 * @throws RuntimeException
+	 *             if the URI syntax was entered incorrectly.
+	 */
+	static URI schemaDialect() {
+		URI dialect = null;
+		try {
+			dialect = new URI(JSON_SCHEMA_DIALECT);
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("JSON SCHEMA dialect URI is invalid", e);
+		}
+
+		return dialect;
+	}
+
+	/**
+	 * Returns the JSON-SCHEMA resource name.
+	 * 
 	 * @return the name of the schema resource
 	 */
-	static <T extends Validatable> String getSchemaName(Class<T> clazz) {
-		return clazz.getSimpleName() + ".schema.json";
+	static String schemaResource(Class<? extends Validatable> v) {
+		return v.getSimpleName() + ".schema.json";
+	}
+
+	/**
+	 * Generates and returns the schema identifier.
+	 * 
+	 * @return
+	 */
+	static URI schemaId(Class<? extends Validatable> v) {
+		URI id = null;
+		try {
+			id = new URI("http://" + DomainProvider.PROVEN_DOMAIN + "/" + schemaResource(v));
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("JSON SCHEMA dialect URI is invalid", e);
+		}
+
+		return id;
 	}
 
 	/**
@@ -144,15 +230,22 @@ public interface Validatable {
 		return clazz.newInstance().toSchema();
 	}
 
+	static <T extends Validatable> List<Class<T>> getValidatables() {
+		return getValidatables(false);
+	}
+
 	/**
 	 * Scans Package containing Validatable types and returns list of
 	 * implementations.
 	 * 
-	 * Note: This assumes all implementations of Validatable and the Validatable
-	 * interface itself are contained in the same package.
+	 * Note: This assumes following design decisions: (1) All implementations of
+	 * Validatable and the Validatable interface itself are contained in the
+	 * same package - gov.pnnl.proven.cluster.lib.disclosure.item (2)
+	 * MessageItem extends Validatable and it has implementations representing
+	 * the payload messages available to external clients
 	 * 
-	 * Note: This is meant to be called at build-time by Gradle, does not
-	 * support JAR scanning.
+	 * @param messageItemsOnly
+	 *            if true, only return the MessageItem implementations
 	 * 
 	 * @return list of Validatable implementations.
 	 * 
@@ -163,29 +256,31 @@ public interface Validatable {
 	 *             at build time.
 	 */
 	@SuppressWarnings("unchecked")
-	static <T extends Validatable> List<Class<T>> getValidatables() throws URISyntaxException, ClassNotFoundException {
+	static <T extends Validatable> List<Class<T>> getValidatables(boolean messageItemsOnly) {
 
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		ArrayList<Class<T>> names = new ArrayList<>();
-		String packageName = Validatable.class.getPackage().getName();
-		String packagePath = packageName.replace(".", "/");
-		URL packageURL = classLoader.getResource(packagePath);
+		@SuppressWarnings("rawtypes")
+		Class rootClass = Validatable.class;
+		if (messageItemsOnly)
+			rootClass = MessageItem.class;
+		Reflections reflections = new Reflections("gov.pnnl.proven.cluster.lib.disclosure.item", new SubTypesScanner());
 
-		if (packageURL.getProtocol().equals("jar")) {
-			throw new UnsupportedOperationException();
-		} else {
-			URI uri = packageURL.toURI();
-			File folder = new File(uri.getPath());
-			File[] vEntries = folder.listFiles();
-			String vName;
-			for (File vEntry : vEntries) {
-				vName = vEntry.getName();
-				String vQName = packageName + "." + vName.substring(0, vName.lastIndexOf('.'));
-				Class<?> vClass = Class.forName(vQName);
-				if ((!vClass.equals(Validatable.class)) && (Validatable.class.isAssignableFrom(vClass))) {
-					names.add((Class<T>) vClass);
-				}
-			}
+		Set<Class<? extends Validatable>> classSet = reflections.getSubTypesOf(rootClass);
+		for (Class<? extends Validatable> vClass : classSet) {
+
+			if (Modifier.isAbstract(vClass.getModifiers()) || vClass.isInterface())
+				continue;
+
+			names.add((Class<T>) vClass);
+
+			// if ((!vClass.equals(Validatable.class)) &&
+			// (Validatable.class.isAssignableFrom(vClass))) {
+			// if ((messageItemsOnly &&
+			// (Validatable.class.isAssignableFrom(vClass))) ||
+			// (!messageItemsOnly)) {
+			// names.add((Class<T>) vClass);
+			// }
+			// }
 		}
 		return names;
 	}
@@ -294,6 +389,73 @@ public interface Validatable {
 			ret = jsonb.fromJson(ins, clazz);
 		}
 
+		return ret;
+	}
+
+	/**
+	 * Write wrapper
+	 */
+	static <T, U extends ObjectDataOutput, E> BiConsumer<T, U> ww(
+			ThrowingWriteNullable<T, ObjectDataOutput, IOException> twn) {
+		return (v, o) -> {
+			try {
+				twn.accept(v, o);
+			} catch (IOException ex) {
+				throw new UncheckedIOException(ex);
+			}
+		};
+	}
+
+	/**
+	 * Convenience method that checks for null value during serialization.
+	 * 
+	 * @param val
+	 *            provided value
+	 * @param out
+	 *            ObjectDataOutput to write to
+	 * @param writeFunc
+	 *            function to perform write
+	 * @throws IOException
+	 */
+	static <T, U extends ObjectDataOutput> void writeNullable(T val, U out, BiConsumer<T, U> writeFunc)
+			throws IOException {
+		boolean hasVal = (null != val);
+		out.writeBoolean(hasVal);
+		if (hasVal) {
+			writeFunc.accept(val, out);
+		}
+	}
+
+	/**
+	 * Read wrapper
+	 */
+	static <T extends ObjectDataInput, R, E> Function<T, R> rw(
+			ThrowingReadNullable<ObjectDataInput, R, IOException> trn) {
+		return (i) -> {
+			try {
+				return trn.apply(i);
+			} catch (IOException ex) {
+				throw new UncheckedIOException(ex);
+			}
+		};
+	}
+
+	/**
+	 * Convenience method that checks for null value during deserialization.
+	 * 
+	 * @param val
+	 *            provided value
+	 * @param out
+	 *            ObjectDataInput to read from
+	 * @param writeFunc
+	 *            function to perform read
+	 * @throws IOException
+	 */
+	static <T extends ObjectDataInput, R> R readNullable(T in, Function<T, R> readFunc) throws IOException {
+		R ret = null;
+		if (in.readBoolean()) {
+			ret = readFunc.apply(in);
+		}
 		return ret;
 	}
 
