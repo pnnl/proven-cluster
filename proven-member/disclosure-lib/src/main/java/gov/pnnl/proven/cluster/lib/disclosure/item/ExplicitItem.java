@@ -41,6 +41,9 @@ package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import java.io.IOException;
 
+import javax.json.JsonValue;
+
+import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
 
 import com.hazelcast.nio.ObjectDataInput;
@@ -52,13 +55,13 @@ public class ExplicitItem implements MessageItem, Validatable, IdentifiedDataSer
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -75,14 +78,37 @@ public class ExplicitItem implements MessageItem, Validatable, IdentifiedDataSer
 
 	@Override
 	public JsonSchema toSchema() {
-		// TODO Auto-generated method stub
-		return null;
+
+		JsonSchema ret;
+
+		//@formatter:off
+		ret = sbf.createBuilder()
+
+				.withId(Validatable.schemaId(this.getClass()))
+				
+				.withSchema(Validatable.schemaDialect())
+				
+				.withTitle("Message context schema")
+
+				.withDescription(
+						"Defines the context of a proven disclosure, which identifies its "
+					  + "processing and storage requirements within the platform.")
+
+				.withType(InstanceType.OBJECT)
+
+				.withProperty("test", sbf.createBuilder()
+						.withType(InstanceType.STRING, InstanceType.NULL)
+						.withDefault(JsonValue.NULL).build())
+				.build();
+		//@formatter:on
+
+		return ret;
 	}
 
 	@Override
 	public void getContent() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

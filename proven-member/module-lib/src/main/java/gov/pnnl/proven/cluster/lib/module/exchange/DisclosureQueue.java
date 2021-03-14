@@ -429,12 +429,12 @@ public class DisclosureQueue extends ExchangeComponent {
 
 			try {
 				items.add(new DisclosureItem(item));
-			} catch (JsonParsingException | CsvParsingException | JSONDataValidationException
-					| UnsupportedDisclosureType e) {
-				log.error("Failed to process a new disclosure item", e);
-				log.error("Item discarded:");
-				log.error(item);
-			}
+//			} catch (JsonParsingException | CsvParsingException | JSONDataValidationException
+//					| UnsupportedDisclosureType e) {
+//				log.error("Failed to process a new disclosure item", e);
+//				log.error("Item discarded:");
+//				log.error(item);
+			} finally {}
 
 		}
 	}

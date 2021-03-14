@@ -105,7 +105,6 @@ import javax.ws.rs.sse.SseEventSink;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.module.member.sse.SseEvent;
 import gov.pnnl.proven.cluster.module.member.sse.SseSession;
 import gov.pnnl.proven.cluster.module.member.sse.SseSessionManager;

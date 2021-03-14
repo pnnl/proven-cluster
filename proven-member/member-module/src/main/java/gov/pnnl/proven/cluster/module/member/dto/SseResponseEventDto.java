@@ -73,7 +73,7 @@ public class SseResponseEventDto implements SseEventData, Serializable {
 
 	String messageContent;
 
-	String requestorId;
+	String requestor;
 
 	String disclosureId;
 
@@ -90,12 +90,12 @@ public class SseResponseEventDto implements SseEventData, Serializable {
 
 	public SseResponseEventDto(SseSession session, ResponseMessage message) {
 		this.sessionId = session.getSessionId().toString();
-		this.domain = message.getDisclosureItem().getDisclosureDomain().getDomain();
+		this.domain = message.getDisclosureItem().getMessageContext().getDomain().getDomain();
 		this.messageContent = message.getMessageContent().getName();
-		Optional<String> requestorIdOpt = message.getDisclosureItem().getRequestorId();
-		this.requestorId = (requestorIdOpt.isPresent()) ? requestorIdOpt.get() : "NONE";       
-		Optional<String> disclosureIdOpt = message.getDisclosureItem().getDisclosureId();
-		this.disclosureId = (disclosureIdOpt.isPresent()) ? disclosureIdOpt.get() : "NONE";
+		Optional<String> requestorIdOpt = Optional.ofNullable(message.getDisclosureItem().getMessageContext().getRequestor());
+		this.requestor = (requestorIdOpt.isPresent()) ? requestorIdOpt.get() : "NONE";       
+		//Optional<String> disclosureIdOpt = message.getDisclosureItem().getDisclosureId();
+		//this.disclosureId = (disclosureIdOpt.isPresent()) ? disclosureIdOpt.get() : "NONE";
 		this.status = message.getStatus().getStatusCode();
 		this.reason = message.getStatus().getReasonPhrase();
 		this.key = message.getMessageKey();
@@ -127,11 +127,11 @@ public class SseResponseEventDto implements SseEventData, Serializable {
 	}
 
 	public String getRequester() {
-		return requestorId;
+		return requestor;
 	}
 
 	public void setRequester(String requester) {
-		this.requestorId = requester;
+		this.requestor = requester;
 	}
 
 	public String getDisclosureId() {

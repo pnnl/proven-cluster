@@ -44,7 +44,7 @@ import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ModuleServic
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.PipelineService;
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Query;
 import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Response;
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.getSchemaValues;
+//import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.getSchemaValues;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,7 +79,7 @@ public enum ExchangeType {
 	 * Manages disclosed items for entry into the Hybrid store. All schema based
 	 * message content is routed to a disclosure buffer.
 	 */
-	DisclosureBuffer(getSchemaValues()),
+	DisclosureBuffer(),
 
 	/**
 	 * Processes request content.

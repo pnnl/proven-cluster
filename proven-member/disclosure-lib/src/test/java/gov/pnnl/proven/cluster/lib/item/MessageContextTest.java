@@ -75,7 +75,7 @@ public class MessageContextTest {
 	}
 
 	@Test
-	public void testCreate_NoArgBuilder_ValidJson() throws InstantiationException, IllegalAccessException {
+	public void testCreate_noArgBuilder_validJson() throws InstantiationException, IllegalAccessException {
 		MessageContext mc = MessageContext.newBuilder().build();
 		String jsonStr = mc.toJson().toString();
 		MatcherAssert.assertThat("Valid JSON produced for MessageContext no-arg builder",
@@ -83,10 +83,22 @@ public class MessageContextTest {
 	}	
 	
 	@Test
-	public void testRoundTrip_NoArgBuilder_ValidJsonAndValidCreate() throws InstantiationException, IllegalAccessException, IOException {
+	public void testRoundTrip_noArgBuilder_validCreateFromJson() throws InstantiationException, IllegalAccessException, IOException {
 		MessageContext mc = MessageContext.newBuilder().build();
 		String jsonStr = mc.toJson().toString();
+		@SuppressWarnings("unused")
 		MessageContext mc2 = Validatable.toValidatable(MessageContext.class, jsonStr);
 	}		
 	
+	@Test 
+	public void testSchema_validJson_passValidate() {
+		// All facets of schema involved in example json
+	}
+
+	
+	@Test 
+	public void testSchema_invalidJson_failValidate() {
+		// All facets of schema involved in example json
+	}
+
 }

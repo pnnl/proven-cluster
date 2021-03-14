@@ -287,10 +287,11 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 					
 					.withSchema(Validatable.schemaDialect())
 					
-					.withTitle("Message Context Schema")
+					.withTitle("Message context schema")
 
 					.withDescription(
-							"Defines the context of a Proven message which identifies its processing and storage requirements within the platform.")
+							"Defines the context of a proven disclosure, which identifies its "
+						  + "processing and storage requirements within the platform.")
 
 					.withType(InstanceType.OBJECT)
 

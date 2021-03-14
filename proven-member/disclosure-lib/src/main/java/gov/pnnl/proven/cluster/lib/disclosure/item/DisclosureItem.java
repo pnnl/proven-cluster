@@ -45,7 +45,9 @@ import java.util.UUID;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbProperty;
+import javax.json.stream.JsonParsingException;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
@@ -63,6 +65,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.CsvParsingException;
 
 /**
  * Immutable class representing data disclosed to the Proven platform.
@@ -128,6 +131,10 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 	public UUID getMessageId() {
 		return this.messageId;
 	}
+	
+	public MessageContext getMessageContext() {
+		return mc;
+	}
 
 	/**
 	 * Provides default values
@@ -137,16 +144,26 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 		this.disclosureDomain = DomainProvider.PROVEN_DOMAIN;
 	}
 
-	// @JsonbCreator
-	// public DisclosureItem() {
-	// log.debug("Inside DisclosureItem constructor");
-	// this.disclosureDomain = disclosureDomain;
-	// }
+	
+	
+	
+	
+//	 @JsonbCreator
+//	 public DisclosureItem() {
+//	 log.debug("Inside DisclosureItem constructor");
+//	 this.disclosureDomain = disclosureDomain;
+//	 }
 
-	// public static DisclosureItem buildDisclosureItem(JsonObject disclosure) {
-	//
-	// }
-	//
+	 public DisclosureItem(JsonObject disclosure) {
+	
+	 }
+
+	 public DisclosureItem(String disclosure) throws CsvParsingException {
+			throw new CsvParsingException();
+	 }
+	 
+	 
+	 //
 	// /**
 	// * Constructs a new DisclosureItem from a JSON string.
 	// *
@@ -366,19 +383,26 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 
 		JsonSchema ret;
 
-		if (null != this.schema) {
-			ret = this.schema;
-		} else {
+		//@formatter:off
+		ret = sbf.createBuilder()
 
-			ret = sbf.createBuilder().withType(InstanceType.OBJECT)
-					.withProperty("authToken", sbf.createBuilder().withType(InstanceType.STRING).build())
-					.withProperty("disclosureDomain",
-							sbf.createBuilder().withType(InstanceType.STRING)
-									.withDefault(Json.createValue("proven.pnnl.gov")).build())
-					.withProperty("disclosureId",
-							sbf.createBuilder().withType(InstanceType.INTEGER).withMinimum(0).build())
-					.withRequired("authToken", "disclosureId").build();
-		}
+				.withId(Validatable.schemaId(this.getClass()))
+				
+				.withSchema(Validatable.schemaDialect())
+				
+				.withTitle("Message context schema")
+
+				.withDescription(
+						"Defines the context of a proven disclosure, which identifies its "
+					  + "processing and storage requirements within the platform.")
+
+				.withType(InstanceType.OBJECT)
+
+				.withProperty("test", sbf.createBuilder()
+						.withType(InstanceType.STRING, InstanceType.NULL)
+						.withDefault(JsonValue.NULL).build())
+				.build();
+		//@formatter:on
 
 		return ret;
 	}

@@ -39,8 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -50,12 +51,10 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,9 +88,6 @@ import org.leadpony.justify.api.ProblemHandler;
 import org.leadpony.justify.api.ValidationConfig;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -475,4 +471,15 @@ public interface Validatable extends IdentifiedDataSerializable {
 	 */
 	JsonSchema toSchema();
 
+	static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException {
+		String schemaDir = args[0];
+		for (Class<Validatable> v : getValidatables()) {
+
+			String schemaPath = schemaDir + "/" + schemaResource(v);
+			String schema = prettyPrint(retrieveSchema(v).toString());
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(schemaPath))) {
+				writer.append(schema);
+			}
+		}
+	}
 }
