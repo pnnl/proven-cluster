@@ -6,6 +6,8 @@ task createSchemas(type: JavaExec) {
     main = "gov.pnnl.proven.cluster.lib.disclosure.item.Validatable"
     args = [schemaFiles]
 }
+build.finalizedBy createSchemas
+
 configurations {
   schema
 }

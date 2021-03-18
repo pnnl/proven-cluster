@@ -37,30 +37,99 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure.deprecated.message;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.annotation.JsonbCreator;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
+import javax.json.JsonWriter;
+import javax.json.JsonWriterFactory;
+import javax.json.stream.JsonGenerator;
 
-public class TestJB {
 
-	public static void main(String[] args) {
+public class MessageJsonUtils {
 		
-		Jsonb jsonb = JsonbBuilder.create();
- 		//TestJb tjb = jsonb.fromJson(str, type)
-		
-		
- 				
- 				
- 				
+
+	public static JsonValue jsonValueIn(byte[] content) throws IOException {
+
+		JsonValue ret = null;
+
+		if (content.length > 0) {
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(content);
+					JsonReader reader = Json.createReader(bais)) {
+				ret = reader.readValue();
+			}
+		}
+		return ret;
+	}
+
+	public static byte[] jsonValueOut(JsonValue value) throws IOException {
+
+		byte[] ret = new byte[0];
+
+		if (null != value) {
+			try (ByteArrayOutputStream oos = new ByteArrayOutputStream(); JsonWriter writer = Json.createWriter(oos)) {
+				writer.write(value);
+				writer.close();
+				oos.flush();
+				ret = oos.toByteArray();
+			}
+		}
+		return ret;
 	}
 	
-	@JsonbCreator
-	public TestJB() {
-		
-		
-		
+	
+	public static JsonObject jsonIn(byte[] content) throws IOException {
+
+		JsonObject ret = null;
+
+		if (content.length > 0) {
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(content);
+					JsonReader reader = Json.createReader(bais)) {
+				ret = reader.readObject();
+			}
+		}
+		return ret;
 	}
 
+	public static byte[] jsonOut(JsonObject object) throws IOException {
+
+		byte[] ret = new byte[0];
+
+		if (null != object) {
+			try (ByteArrayOutputStream oos = new ByteArrayOutputStream(); JsonWriter writer = Json.createWriter(oos)) {
+				writer.writeObject(object);
+				writer.close();
+				oos.flush();
+				ret = oos.toByteArray();
+			}
+		}
+		return ret;
+	}
+	
+	public static String prettyPrint(JsonValue val) {
+
+		Map<String, Boolean> config = new HashMap<>();
+		config.put(JsonGenerator.PRETTY_PRINTING, true);
+		JsonWriterFactory writerFactory = Json.createWriterFactory(config);
+
+		String jsonString = "";
+		try (Writer writer = new StringWriter()) {
+			writerFactory.createWriter(writer).write(val);
+			jsonString = writer.toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return jsonString;
+	}
+
+	
 }

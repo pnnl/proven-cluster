@@ -39,27 +39,47 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.item;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.json.JsonValue;
 
+import org.everit.json.schema.loader.SchemaLoader.SchemaLoaderBuilder;
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.matchers.JUnitMatchers;
+import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.Problem;
+import org.leadpony.justify.internal.keyword.core.Ref;
+import org.leadpony.justify.internal.schema.SchemaCatalog;
 
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class MessageContextTest {
 
+	private static final String META_SCHEMA = "draft-07.schema.json";
+
+	private static String metaSchema;
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		// InputStream ins =
+		// MessageContext.class.getResourceAsStream(META_SCHEMA);
+		// metaSchema = new BufferedReader(new
+		// InputStreamReader(ins)).lines().collect(Collectors.joining());
 	}
 
 	@AfterClass
@@ -68,6 +88,7 @@ public class MessageContextTest {
 
 	@Before
 	public void setUp() throws Exception {
+
 	}
 
 	@After
@@ -78,27 +99,23 @@ public class MessageContextTest {
 	public void testCreate_noArgBuilder_validJson() throws InstantiationException, IllegalAccessException {
 		MessageContext mc = MessageContext.newBuilder().build();
 		String jsonStr = mc.toJson().toString();
-		MatcherAssert.assertThat("Valid JSON produced for MessageContext no-arg builder",
+		assertThat("Valid JSON produced for MessageContext no-arg builder",
 				Validatable.validate(MessageContext.class, jsonStr).isEmpty());
-	}	
-	
+	}
+
 	@Test
-	public void testRoundTrip_noArgBuilder_validCreateFromJson() throws InstantiationException, IllegalAccessException, IOException {
+	public void testRoundTrip_noArgBuilder_validCreateFromJson()
+			throws InstantiationException, IllegalAccessException, IOException {
 		MessageContext mc = MessageContext.newBuilder().build();
 		String jsonStr = mc.toJson().toString();
 		@SuppressWarnings("unused")
 		MessageContext mc2 = Validatable.toValidatable(MessageContext.class, jsonStr);
-	}		
-	
-	@Test 
-	public void testSchema_validJson_passValidate() {
-		// All facets of schema involved in example json
 	}
 
-	
-	@Test 
-	public void testSchema_invalidJson_failValidate() {
-		// All facets of schema involved in example json
+	@Test
+	public void testSchema_toSchema_passValidate() throws InstantiationException, IllegalAccessException {
+		MatcherAssert.assertThat("MessageContext generates a valid schema",
+				Validatable.hasValidSchema(MessageContext.class));
 	}
 
 }

@@ -68,7 +68,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
  * Represents the context for a disclosure item. The context helps to identify
- * both exchange processing and hybrid-store message storage locations.
+ * both exchange processing and hybrid-store message storage locations. This is
+ * an immutable class.
  * 
  * @author d3j766
  * 
@@ -77,30 +78,24 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
  */
 public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
-	// Jsonb properties
+	// Jsonb property names and rules
 	private static final String CONTENT_PROP = "content";
 	private static final String ITEM_PROP = "item";
 	private static final String DOMAIN_PROP = "domain";
 	private static final String REQUESTOR_PROP = "requestor";
 	private static final String NAME_PROP = "name";
 	private static final String TAGS_PROP = "tags";
+	private static final int MAX_TAGS = 10;
 
 	// Defaults
 	private static final MessageContent DEFAULT_CONTENT = MessageContent.Explicit;
 	private static final Class<? extends MessageItem> DEFAULT_ITEM = ExplicitItem.class;
 	private static final DisclosureDomain DEFAULT_DOMAIN = DomainProvider.getProvenDisclosureDomain();
 
-	// Schema
-	private JsonSchema schema;
-
-	// Required (No defaults)
-
-	// Optional w/ default
+	// Properties
 	private MessageContent content;
 	private Class<? extends MessageItem> item;
 	private DisclosureDomain domain;
-
-	// Optional w/o default
 	private String requestor;
 	private String name;
 	private String[] tags;
@@ -276,58 +271,58 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 		Set<JsonValue> items = Validatable.toJsonValues(MessageItem.messageNames());
 		JsonString defaultDomain = Json.createValue(DEFAULT_DOMAIN.getDomain());
 
-		if (null != this.schema) {
-			ret = this.schema;
-		} else {
+		//@formatter:off
 
-			//@formatter:off
-			ret = sbf.createBuilder()
+		ret = sbf.createBuilder()
 
-					.withId(Validatable.schemaId(this.getClass()))
+				.withId(Validatable.schemaId(this.getClass()))
 					
-					.withSchema(Validatable.schemaDialect())
+				.withSchema(Validatable.schemaDialect())
 					
-					.withTitle("Message context schema")
+				.withTitle("Message context schema")
 
-					.withDescription(
-							"Defines the context of a proven disclosure, which identifies its "
-						  + "processing and storage requirements within the platform.")
+				.withDescription(
+						"Defines the context for Proven disclosure items.  The context identifies a disclosure item's "
+						+ "processing and storage requirements within the platform.")
 
-					.withType(InstanceType.OBJECT)
+				.withType(InstanceType.OBJECT)
 
-					.withProperty(CONTENT_PROP, sbf.createBuilder()
-							.withType(InstanceType.STRING, InstanceType.NULL)
-							.withEnum(contents)
-							.withDefault(defaultContent).build())
+				.withProperty(CONTENT_PROP, sbf.createBuilder()
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withEnum(contents)
+					.withDefault(defaultContent).build())
 
-					.withProperty(ITEM_PROP, sbf.createBuilder()
-							.withType(InstanceType.STRING, InstanceType.NULL)
-							.withEnum(items)
-							.withDefault(defaultItem).build())
+				.withProperty(ITEM_PROP, sbf.createBuilder()
+						.withType(InstanceType.STRING, InstanceType.NULL)
+						.withEnum(items)
+						.withDefault(defaultItem).build())
 
-					.withProperty(DOMAIN_PROP,
-							sbf.createBuilder()
-							.withType(InstanceType.STRING, InstanceType.NULL)
-							.withDefault(defaultDomain).build())
+				.withProperty(DOMAIN_PROP,
+						sbf.createBuilder()
+						.withType(InstanceType.STRING, InstanceType.NULL)
+						.withDefault(defaultDomain).build())
 
-					.withProperty(REQUESTOR_PROP, sbf.createBuilder()
-							.withType(InstanceType.STRING, InstanceType.NULL)
-							.withDefault(JsonValue.NULL).build())
+				.withProperty(REQUESTOR_PROP, sbf.createBuilder()
+						.withType(InstanceType.STRING, InstanceType.NULL)
+						.withDefault(JsonValue.NULL).build())
 
-					.withProperty(NAME_PROP, sbf.createBuilder()
-							.withType(InstanceType.STRING, InstanceType.NULL)
-							.withDefault(JsonValue.NULL).build())
+				.withProperty(NAME_PROP, sbf.createBuilder()
+						.withType(InstanceType.STRING, InstanceType.NULL)
+						.withDefault(JsonValue.NULL).build())
 
-					.withProperty(TAGS_PROP, sbf.createBuilder()
-							.withType(InstanceType.ARRAY, InstanceType.NULL)
-							.withDefault(JsonValue.EMPTY_JSON_ARRAY)
-							.withItems(sbf.createBuilder()
-									.withType(InstanceType.STRING).build()).build())
-					.build();
+				.withProperty(TAGS_PROP, sbf.createBuilder()
+						.withType(InstanceType.ARRAY, InstanceType.NULL)
+						.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+						.withItems(sbf.createBuilder()
+								.withType(InstanceType.STRING).
+								withMaxItems(MAX_TAGS).build())
+						.build())
+		
+				.build();
 			
 			//@formatter:on
-		}
 
 		return ret;
 	}
+
 }

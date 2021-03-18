@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
 /**
  * Message items represent the message payload for a DisclosureItem. Convenience
  * methods also included to provide the message item names and their
@@ -54,7 +56,7 @@ import java.util.Map;
  * @author d3j766
  *
  */
-public interface MessageItem extends Validatable {
+public interface MessageItem extends Validatable, IdentifiedDataSerializable {
 
 	static Map<String, Class<? extends MessageItem>> messagesByName = MessageInitializer.messagesByName();
 	static Map<Class<? extends MessageItem>, String> messagesByType = MessageInitializer.messagesByType();

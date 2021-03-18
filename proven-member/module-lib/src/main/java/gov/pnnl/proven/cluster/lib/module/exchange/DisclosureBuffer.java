@@ -147,7 +147,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 				items.forEach((item) -> {
 					try {
 						DisclosureMessage dm = new DisclosureMessage(item);
-						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDisclosureItem().getMessageContext().getDomain(), mst);
+						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDisclosureItem().getContext().getDomain(), mst);
 						msp.addMessage(dm);
 						log.debug("Added Disclosure messsage to stream :: " + dm.getMessageKey());
 					} catch (UnsupportedMessageContentException | JsonParsingException

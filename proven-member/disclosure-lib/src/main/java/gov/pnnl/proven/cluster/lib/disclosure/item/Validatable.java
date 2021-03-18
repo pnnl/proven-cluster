@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -76,7 +77,6 @@ import javax.json.bind.JsonbConfig;
 import javax.json.bind.JsonbException;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonParser;
-import javax.json.stream.JsonParserFactory;
 import javax.json.stream.JsonParsingException;
 
 import org.leadpony.justify.api.JsonSchema;
@@ -93,7 +93,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.DisclosureDomainAdapter;
@@ -106,15 +105,17 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageItemTypeAdapte
  * @author d3j766
  *
  */
-public interface Validatable extends IdentifiedDataSerializable {
+public interface Validatable {
 
 	static final Logger log = LoggerFactory.getLogger(Validatable.class);
 
-	static final String SCHEMA_RESOURCE_DIR = "message-validation";
 	static final String JSON_SCHEMA_SUFFIX = ".schema.json";
-	static final String JSON_SCHEMA_DIALECT = "http://json-schema.org/draft-07/schema#";
+	static final String SCHEMA_RESOURCE_DIR = "/schema";
+	static final String DRAFT_07_DIALECT = "http://json-schema.org/draft-07/schema#";
+	static final String DRAFT_07_SCHEMA_RESOURCE = SCHEMA_RESOURCE_DIR + "/" + "draft-07.schema.json";
+	static final String JSONLD_SCHEMA_RESOURCE = SCHEMA_RESOURCE_DIR + "/" + "jsonld.schema.json";
 
-	static final JsonParserFactory pFactory = Json.createParserFactory(null);
+	static final ConcurrentHashMap<URI, JsonSchema> catalog = new ConcurrentHashMap<>();
 	static final JsonValidationService service = JsonValidationService.newInstance();
 	static final JsonSchemaBuilderFactory sbf = service.createSchemaBuilderFactory();
 	static final JsonbConfig config = new JsonbConfig().withFormatting(true).withAdapters(new MessageItemTypeAdapter(),
@@ -176,7 +177,7 @@ public interface Validatable extends IdentifiedDataSerializable {
 	static URI schemaDialect() {
 		URI dialect = null;
 		try {
-			dialect = new URI(JSON_SCHEMA_DIALECT);
+			dialect = new URI(DRAFT_07_DIALECT);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException("JSON SCHEMA dialect URI is invalid", e);
 		}
@@ -194,14 +195,14 @@ public interface Validatable extends IdentifiedDataSerializable {
 	}
 
 	/**
-	 * Generates and returns the schema identifier.
+	 * Generates and returns the schema identifier for a Validatable.
 	 * 
-	 * @return
+	 * @return the JSON-SCHEMA $id for this Validatable.
 	 */
 	static URI schemaId(Class<? extends Validatable> v) {
 		URI id = null;
 		try {
-			id = new URI("http://" + DomainProvider.PROVEN_DOMAIN + "/" + schemaResource(v));
+			id = new URI("http://" + DomainProvider.PROVEN_DOMAIN + "/" + "schemas" + "/" + schemaResource(v));
 		} catch (URISyntaxException e) {
 			throw new RuntimeException("JSON SCHEMA dialect URI is invalid", e);
 		}
@@ -221,13 +222,19 @@ public interface Validatable extends IdentifiedDataSerializable {
 	 * @throws InstantiationException
 	 *             could not instantiate a new Validatable
 	 */
-	static <T extends Validatable> JsonSchema retrieveSchema(Class<T> clazz)
-			throws InstantiationException, IllegalAccessException {
-		return clazz.newInstance().toSchema();
-	}
-
-	static <T extends Validatable> List<Class<T>> getValidatables() {
-		return getValidatables(false);
+	static <T extends Validatable> JsonSchema retrieveSchema(Class<T> clazz) {
+		JsonSchema ret;
+		URI id = schemaId(clazz);
+		ret = catalog.get(id);
+		if (null == ret) {
+			try {
+				ret = clazz.newInstance().toSchema();
+				catalog.put(id, ret);
+			} catch (InstantiationException | IllegalAccessException e) {
+				throw new RuntimeException("Could not instantiate a new Validatable for schema generation", e);
+			}
+		}
+		return ret;
 	}
 
 	/**
@@ -281,11 +288,14 @@ public interface Validatable extends IdentifiedDataSerializable {
 		return names;
 	}
 
+	static <T extends Validatable> List<Class<T>> getValidatables() {
+		return getValidatables(false);
+	}
+
 	/**
 	 * Validates provided JSON string using JSON-SCHEMA associated with the
 	 * provided Validatable. Default values are filled in for missing
-	 * properties. Used by {@link #toValidatable(Class, JsonObject)} before
-	 * deserialization.
+	 * properties.
 	 * 
 	 * @param validatable
 	 *            the Validatable type
@@ -308,7 +318,7 @@ public interface Validatable extends IdentifiedDataSerializable {
 
 		AbstractMap.SimpleEntry<JsonValue, List<Problem>> ret;
 		List<Problem> problems = new ArrayList<>();
-		JsonSchema schema = clazz.newInstance().toSchema();
+		JsonSchema schema = retrieveSchema(clazz);
 		ProblemHandler handler = ProblemHandler.collectingTo(problems);
 		ValidationConfig config = service.createValidationConfig();
 		config.withSchema(schema).withProblemHandler(handler).withDefaultValues(true);
@@ -338,10 +348,62 @@ public interface Validatable extends IdentifiedDataSerializable {
 	 */
 	static <T extends Validatable> List<Problem> validate(Class<T> clazz, String jsonStr)
 			throws InstantiationException, IllegalAccessException {
+		JsonSchema schema = retrieveSchema(clazz);
+		return validate(schema, jsonStr);
+	}
+
+	static List<Problem> validate(JsonSchema schema, String jsonStr)
+			throws InstantiationException, IllegalAccessException {
+		List<Problem> problems = new ArrayList<>();
+		Reader reader = new StringReader(jsonStr);
+		ProblemHandler handler = ProblemHandler.collectingTo(problems);
+
+		try (JsonParser parser = service.createParser(reader, schema, handler)) {
+			while (parser.hasNext()) {
+				JsonParser.Event event = parser.next();
+				System.out.println(event);
+			}
+		}
+		return problems;
+	}
+
+	static <T extends Validatable> boolean hasValidSchema(Class<T> clazz)
+			throws InstantiationException, IllegalAccessException {
+		String jsonStr = retrieveSchema(clazz).toString();
+		JsonSchema schema = retrieveSchema(JsonMetaSchema.class);
+		// JsonSchema schema =
+		// service.readSchema(Validatable.class.getResourceAsStream(DRAFT_07_SCHEMA));
+		return validate(schema, jsonStr).isEmpty();
+	}
+
+	static <T extends Validatable> boolean isValidJsonLD(JsonStructure json)
+			throws InstantiationException, IllegalAccessException {
+		String jsonStr = json.toString();
+		JsonSchema schema = service.readSchema(Validatable.class.getResourceAsStream(JSONLD_SCHEMA_RESOURCE));
+		return validate(schema, jsonStr).isEmpty();
+	}
+
+	/**
+	 * Validates JSON string using JSON-SCHEMA for the provided Validatable
+	 * type.
+	 * 
+	 * @param schema
+	 *            the schema to validate the provided JSON string with.
+	 * @param json
+	 *            the JSON string to validate
+	 * @return a list of problems, if any, encountered during the validation
+	 *         process. Empty list indicates the validation was successful.
+	 * 
+	 * @throws IllegalAccessException
+	 *             if no access to Validatable definition
+	 * @throws InstantiationException
+	 *             could not instantiate a new Validatable
+	 */
+	static <T extends Validatable> List<Problem> validatate(JsonSchema schema, String jsonStr)
+			throws InstantiationException, IllegalAccessException {
 
 		List<Problem> problems = new ArrayList<>();
 		Reader reader = new StringReader(jsonStr);
-		JsonSchema schema = retrieveSchema(clazz);
 		ProblemHandler handler = ProblemHandler.collectingTo(problems);
 
 		try (JsonParser parser = service.createParser(reader, schema, handler)) {
@@ -360,6 +422,9 @@ public interface Validatable extends IdentifiedDataSerializable {
 	 *            the type of Validatable to build
 	 * @param jsonStr
 	 *            the JSON string to build from
+	 * 
+	 * @param skipValidation
+	 *            if true do not perform validation on provided JSON.
 	 * @return a new Validatable for the provided type.
 	 *
 	 * @throws IllegalAccessException
@@ -371,21 +436,30 @@ public interface Validatable extends IdentifiedDataSerializable {
 	 * @throws JsonValidatingException
 	 *             if schema validation fails
 	 */
-	static <T extends Validatable> T toValidatable(Class<T> clazz, String jsonStr)
+	static <T extends Validatable> T toValidatable(Class<T> clazz, String jsonStr, boolean skipValidation)
 			throws IOException, InstantiationException, IllegalAccessException {
 
 		T ret;
+		String jsonToValidate = jsonStr;
 
-		AbstractMap.SimpleEntry<JsonValue, List<Problem>> result = validateWithDefaults(clazz, jsonStr);
-		if (!result.getValue().isEmpty()) {
-			throw new JsonValidatingException(result.getValue());
+		if (!skipValidation) {
+			AbstractMap.SimpleEntry<JsonValue, List<Problem>> result = validateWithDefaults(clazz, jsonStr);
+			if (!result.getValue().isEmpty()) {
+				throw new JsonValidatingException(result.getValue());
+			}
+			jsonToValidate = result.getKey().toString();
 		}
 
-		try (InputStream ins = new ByteArrayInputStream(result.getKey().toString().getBytes())) {
+		try (InputStream ins = new ByteArrayInputStream(jsonToValidate.getBytes())) {
 			ret = jsonb.fromJson(ins, clazz);
 		}
 
 		return ret;
+	}
+
+	static <T extends Validatable> T toValidatable(Class<T> clazz, String jsonStr)
+			throws IOException, InstantiationException, IllegalAccessException {
+		return toValidatable(clazz, jsonStr, false);
 	}
 
 	/**
@@ -471,15 +545,50 @@ public interface Validatable extends IdentifiedDataSerializable {
 	 */
 	JsonSchema toSchema();
 
+	/**
+	 * Creates schemas for DisclosureItem and all MessageItem implementations.
+	 * Schemas are stored in provided path provided in args.
+	 * 
+	 * @param args
+	 *            0 - target directory path to store generated schemas.
+	 * @throws IOException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
 	static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException {
 		String schemaDir = args[0];
-		for (Class<Validatable> v : getValidatables()) {
 
-			String schemaPath = schemaDir + "/" + schemaResource(v);
-			String schema = prettyPrint(retrieveSchema(v).toString());
-			try (BufferedWriter writer = new BufferedWriter(new FileWriter(schemaPath))) {
-				writer.append(schema);
+		// Disclosure Item and MessageItems
+		for (Class<Validatable> v : getValidatables()) {
+			if ((v.equals(DisclosureItem.class)) || (MessageItem.class.isAssignableFrom(v))) {
+				String schemaPath = schemaDir + "/" + schemaResource(v);
+				String schema = prettyPrint(retrieveSchema(v).toString());
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(schemaPath))) {
+					writer.append(schema);
+				}
 			}
 		}
+	}
+}
+
+/**
+ * Wrapper for meta-schema
+ */
+class JsonMetaSchema implements Validatable {
+
+	@Override
+	public JsonSchema toSchema() {
+		return service.readSchema(Validatable.class.getResourceAsStream(DRAFT_07_SCHEMA_RESOURCE));
+	}
+}
+
+/**
+ * Wrapper for JSON-LD schema
+ */
+class JsonLdSchema implements Validatable {
+
+	@Override
+	public JsonSchema toSchema() {
+		return service.readSchema(Validatable.class.getResourceAsStream(JSONLD_SCHEMA_RESOURCE));
 	}
 }

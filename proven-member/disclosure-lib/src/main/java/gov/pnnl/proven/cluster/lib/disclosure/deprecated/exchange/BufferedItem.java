@@ -57,7 +57,7 @@ public interface BufferedItem {
 
 	DisclosureItemState getItemState();
 
-	void setItemState(DisclosureItemState buffereState);
+	void setItemState(DisclosureItemState bufferedState);
 
 	MessageContent getMessageContent();
 

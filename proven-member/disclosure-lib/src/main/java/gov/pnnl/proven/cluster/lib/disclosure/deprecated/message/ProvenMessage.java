@@ -54,7 +54,6 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.MessageJsonUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 
 /**
@@ -97,7 +96,7 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 
 		String ret = "";
 		ret += this.messageId + MESSAGE_KEY_DELIMETER;
-		ret += this.disclosureItem.getDisclosureDomain() + MESSAGE_KEY_DELIMETER;
+		ret += this.disclosureItem.getContext().getDomain().getDomain() + MESSAGE_KEY_DELIMETER;
 		ret += this.created;
 
 		return ret;

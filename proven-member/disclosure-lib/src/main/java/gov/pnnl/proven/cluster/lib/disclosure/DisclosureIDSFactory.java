@@ -1,5 +1,21 @@
 package gov.pnnl.proven.cluster.lib.disclosure;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
+import javax.json.JsonWriter;
+import javax.json.JsonWriterFactory;
+import javax.json.stream.JsonGenerator;
+
 import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
@@ -55,4 +71,34 @@ public class DisclosureIDSFactory implements DataSerializableFactory {
 		}
 	}
 
+	
+	public static JsonValue jsonValueIn(byte[] content) throws IOException {
+
+		JsonValue ret = null;
+
+		if (content.length > 0) {
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(content);
+					JsonReader reader = Json.createReader(bais)) {
+				ret = reader.readValue();
+			}
+		}
+		return ret;
+	}
+
+	public static byte[] jsonValueOut(JsonValue value) throws IOException {
+
+		byte[] ret = new byte[0];
+
+		if (null != value) {
+			try (ByteArrayOutputStream oos = new ByteArrayOutputStream(); JsonWriter writer = Json.createWriter(oos)) {
+				writer.write(value);
+				writer.close();
+				oos.flush();
+				ret = oos.toByteArray();
+			}
+		}
+		return ret;
+	}
+	
+	
 }

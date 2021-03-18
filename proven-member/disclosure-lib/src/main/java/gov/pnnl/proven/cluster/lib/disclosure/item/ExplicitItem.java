@@ -50,7 +50,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-public class ExplicitItem implements MessageItem, Validatable, IdentifiedDataSerializable {
+public class ExplicitItem implements MessageItem {
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
@@ -100,6 +100,7 @@ public class ExplicitItem implements MessageItem, Validatable, IdentifiedDataSer
 						.withType(InstanceType.STRING, InstanceType.NULL)
 						.withDefault(JsonValue.NULL).build())
 				.build();
+		
 		//@formatter:on
 
 		return ret;

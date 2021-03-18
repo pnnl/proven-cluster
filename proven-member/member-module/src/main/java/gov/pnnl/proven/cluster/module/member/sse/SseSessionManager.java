@@ -430,7 +430,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			try {
 				MessageContent mc = message.getMessageContent();
 				MessageStreamType mst = MessageStreamType.getType(mc);
-				DisclosureDomain dd = message.getDisclosureItem().getMessageContext().getDomain();
+				DisclosureDomain dd = message.getDisclosureItem().getContext().getDomain();
 				SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 				Set<SseSession> sessions = sessionRegistry.get(se);
 				boolean hasSessions = ((null != sessions) && (!sessions.isEmpty()));
@@ -442,7 +442,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 						// Check if event data should be sent to session
 						boolean hasDomain = session.hasDomain(dd);
 						boolean hasContent = session.hasContent(mc);
-						boolean hasRequester = session.hasRequestor(Optional.ofNullable(message.getDisclosureItem().getMessageContext().getRequestor()));
+						boolean hasRequester = session.hasRequestor(Optional.ofNullable(message.getDisclosureItem().getContext().getRequestor()));
 						boolean sendEvent = ((hasDomain) && (hasContent) && (hasRequester));
 
 						if (sendEvent) {

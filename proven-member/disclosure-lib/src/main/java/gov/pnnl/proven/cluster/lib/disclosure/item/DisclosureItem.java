@@ -39,33 +39,35 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
+import static gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory.jsonValueIn;
+import static gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory.jsonValueOut;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState.New;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.readNullable;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.rw;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.writeNullable;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.ww;
+
 import java.io.IOException;
-import java.util.Set;
+import java.util.Date;
 import java.util.UUID;
 
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonValue;
+import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
-import javax.json.stream.JsonParsingException;
+import javax.json.bind.annotation.JsonbTransient;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//import com.hazelcast.internal.json.Json;
-//import com.hazelcast.internal.json.JsonValue;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.CsvParsingException;
 
 /**
  * Immutable class representing data disclosed to the Proven platform.
@@ -77,268 +79,262 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
 
+	// Jsonb property names
+	private static final String MESSAGE_ID_PROP = "messageId";
+	private static final String SYSTEM_SENT_TIME_PROP = "systemSentTime";
+	private static final String SOURCE_MESSAGE_ID_PROP = "sourceMessageId";
+	private static final String BUFFERED_STATE_PROP = "bufferedState";
+	private static final String AUTH_TOKEN_PROP = "content";
+	private static final String CONTEXT_PROP = "item";
+	private static final String MESSAGE_PROP = "domain";
+	private static final String MESSAGE_SCHEMA_PROP = "requestor";
+	private static final String IS_TRANSIENT_PROP = "name";
+	private static final String IS_LINKED_DATA_PROP = "tags";
+	private static final String APPLICATION_SENT_TIME_PROP = "applicationSentTime";
+
+	// Defaults
+	private static final MessageContext DEFAULT_CONTEXT = MessageContext.newBuilder().build();
+
+	// Exchange processing state
+	private DisclosureItemState bufferedState;
+
 	// Identification
 	private UUID messageId;
 	private UUID sourceMessageId;
-	
-	// Context
-	MessageContext mc; 
-	
-	// Message
+
+	// Sent times
+	Long systemSentTime;
+	Long applicationSentTime;
+
+	// Jsonb Properties
+	private String authToken;
+	private MessageContext context;
 	private JsonObject message;
 	private JsonObject messageSchema;
-	
-	// Message Properties
 	private boolean isTransient;
 	private boolean isLinkedData;
-	private DisclosureItemState bufferedState;
-	private String authToken;
-	
-    // Item's Schema
-	private JsonSchema schema;
-	private Integer disclosureId;
-	
-	
-	// REMOVE
-	private String disclosureDomain;
-	
-	
-	
-	@JsonbProperty
-	public String getDisclosureDomain() {
-		return this.disclosureDomain;
-	}
 
-	@JsonbProperty
-	public void setAuthToken(String authToken) {
-		this.authToken = authToken;
-	}
-
-	@JsonbProperty
-	public void setDisclosureDomain(String disclosureDomain) {
-		this.disclosureDomain = disclosureDomain;
-	}
-
-	@JsonbProperty
-	public void setDisclosureId(Integer disclosureId) {
-		this.disclosureId = disclosureId;
-	}
-
-	public JsonObject getMessage() {
-		return this.message;
-	}
-
-	public UUID getMessageId() {
-		return this.messageId;
-	}
-	
-	public MessageContext getMessageContext() {
-		return mc;
-	}
-
-	/**
-	 * Provides default values
-	 */
+	// HZ Serialization
 	public DisclosureItem() {
-		log.debug("Inside DisclosureItem constructor");
-		this.disclosureDomain = DomainProvider.PROVEN_DOMAIN;
 	}
 
+	// TODO - REMOVE
+	public DisclosureItem(JsonObject obj) {
+	}
+	public DisclosureItem(String str) {
+	}	
 	
-	
-	
-	
-//	 @JsonbCreator
-//	 public DisclosureItem() {
-//	 log.debug("Inside DisclosureItem constructor");
-//	 this.disclosureDomain = disclosureDomain;
-//	 }
+	/**
+	 * Creation based on a previous DisclosureItem. Provided message item will
+	 * be the new payload.
+	 * 
+	 * @param di
+	 *            original message
+	 * @param mi
+	 *            new payload
+	 */
+	public static DisclosureItem createFromDisclosureItem(DisclosureItem di, MessageItem mi) {
+		return DisclosureItem.newBuilder().withDisclosureItem(di).withMessage(mi.toJson()).build();
+	}
 
-	 public DisclosureItem(JsonObject disclosure) {
-	
-	 }
+	@JsonbCreator
+	public static DisclosureItem createDisclosureItem(@JsonbProperty(AUTH_TOKEN_PROP) String authToken,
+			@JsonbProperty(CONTEXT_PROP) JsonObject context, @JsonbProperty(MESSAGE_PROP) JsonObject message,
+			@JsonbProperty(MESSAGE_SCHEMA_PROP) JsonObject messageSchema,
+			@JsonbProperty(IS_TRANSIENT_PROP) boolean isTransient,
+			@JsonbProperty(IS_LINKED_DATA_PROP) boolean isLinkedData)
+			throws InstantiationException, IllegalAccessException, IOException {
+		return DisclosureItem.newBuilder().withAuthToken(authToken).withContext(context).withMessage(message)
+				.withMessageSchema(messageSchema).withIsTransient(isTransient).withIsLinkedData(isLinkedData).build();
+	}
 
-	 public DisclosureItem(String disclosure) throws CsvParsingException {
-			throw new CsvParsingException();
-	 }
-	 
-	 
-	 //
-	// /**
-	// * Constructs a new DisclosureItem from a JSON string.
-	// *
-	// * @param entry
-	// * the disclosed JSON string
-	// *
-	// * @throws UnsupportedDisclosureType
-	// * if string does not represent a supported
-	// * {@link DisclosureType}
-	// *
-	// * @throws JSONDataValidationException
-	// * if message can not be validated as a Proven disclosure
-	// * message
-	// *
-	// */
-	// public DisclosureItem(String item) throws JSONDataValidationException,
-	// UnsupportedDisclosureType {
-	// this(DisclosureType.getJsonItem(item));
-	// }
-	//
-	// /**
-	// * Schema validation is performed for provided JSON object representing
-	// the DisclosureItem.
-	// * Validation error will throw an exception.
-	// *
-	// * NOTE:
-	// *
-	// * @param entry
-	// * the disclosed JSON object
-	// *
-	// * @throws UnsupportedDisclosureType
-	// * if string is not a supported {@link DisclosureType}
-	// *
-	// * @throws JSONDataValidationException
-	// * if message can not be validated as a Proven Message
-	// *
-	// */
-	// public DisclosureItem(JsonObject item) throws JSONDataValidationException
-	// {
-	//
-	// this.bufferedState = DisclosureItemState.New;
-	//
-	// // Validate item against the Proven message schema
-	// try {
-	// // Disclosure type and schema validation
-	// MessageModel mm = MessageModel.getInstance(new
-	// DisclosureDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN));
-	// String jsonApi = mm.getApiSchema();
-	// org.json.JSONObject jsonApiSchema = new org.json.JSONObject(new
-	// JSONTokener(jsonApi));
-	// Schema jsonSchema = SchemaLoader.load(jsonApiSchema);
-	// jsonSchema.validate(new org.json.JSONObject(item.toString()));
-	// log.debug("Valid JSON Data item");
-	//
-	// } catch (ValidationException e) {
-	// throw new JSONDataValidationException(
-	// "DisclosureItem construction failed, invalid message Data: " +
-	// e.getAllMessages(), e);
-	// } catch (Exception e) {
-	// throw new JSONDataValidationException(
-	// "DisclosureItem construction failed, invalid message Data: " +
-	// e.getMessage(), e);
-	// }
-	//
-	// for (DisclosureProperty prop : DisclosureProperty.values()) {
-	// String propName = prop.getProperty();
-	// boolean hasValue = (item.containsKey(propName));
-	// if (hasValue && (item.get(propName) != JsonValue.NULL)) {
-	// JsonValue value = item.get(propName);
-	// itemProperties.put(prop, value);
-	// } else {
-	// if (prop.hasDefault()) {
-	// itemProperties.put(prop, prop.getDefaultValue());
-	// } else {
-	// itemProperties.put(prop, JsonValue.NULL);
-	// }
-	// }
-	// }
-	// }
-	//
-	// /**
-	// * Copy constructor
-	// */
-	// public DisclosureItem(DisclosureItem di) {
-	// this.bufferedState = DisclosureItemState.New;
-	// this.itemProperties = new HashMap<>(di.itemProperties);
-	// }
-	//
+	private DisclosureItem(Builder b) {
+		this.messageId = UUID.randomUUID();
+		this.systemSentTime = new Date().getTime();
+		this.applicationSentTime = b.applicationSentTime;
+		this.bufferedState = New;
+		this.sourceMessageId = b.sourceMessageId;
+		this.authToken = b.authToken;
+		this.context = (null != b.context) ? (b.context) : (DEFAULT_CONTEXT);
+		this.message = b.message;
+		this.messageSchema = b.messageSchema;
+		this.isTransient = b.isTransient;
+		this.isLinkedData = b.isLinkedData;
+	}
+
+	@JsonbProperty(MESSAGE_ID_PROP)
+	public UUID getMessageId() {
+		return messageId;
+	}
+
+	@JsonbProperty(SYSTEM_SENT_TIME_PROP)
+	public Long getSystemSentTime() {
+		return systemSentTime;
+	}
+
+	@JsonbProperty(APPLICATION_SENT_TIME_PROP)
+	public Long getApplicationSentTime() {
+		return applicationSentTime;
+	}
+
+	@JsonbProperty(SOURCE_MESSAGE_ID_PROP)
+	public UUID getSourceMessageId() {
+		return sourceMessageId;
+	}
+
+	@JsonbProperty(BUFFERED_STATE_PROP)
+	public DisclosureItemState getBufferedState() {
+		return bufferedState;
+	}
+
+	@JsonbProperty(AUTH_TOKEN_PROP)
+	public String getAuthToken() {
+		return authToken;
+	}
+
+	@JsonbProperty(CONTEXT_PROP)
+	public MessageContext getContext() {
+		return context;
+	}
+
+	@JsonbProperty(MESSAGE_PROP)
+	public JsonObject getMessage() {
+		return message;
+	}
+
+	@JsonbProperty(value = MESSAGE_SCHEMA_PROP)
+	public JsonObject getMessageSchema() {
+		return messageSchema;
+	}
+
+	@JsonbProperty(IS_TRANSIENT_PROP)
+	public boolean getIsTransient() {
+		return isTransient;
+	}
+
+	@JsonbProperty(IS_LINKED_DATA_PROP)
+	public boolean getIsLinkedData() {
+		return isLinkedData;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	public static final class Builder {
+
+		private UUID sourceMessageId;
+		private Long applicationSentTime;
+		private String authToken;
+		private MessageContext context;
+		private JsonObject message;
+		private JsonObject messageSchema;
+		private boolean isTransient;
+		private boolean isLinkedData;
+
+		private Builder() {
+		}
+
+		public Builder withSourceMessageId(UUID sourceMessageId) {
+			this.sourceMessageId = sourceMessageId;
+			return this;
+		}
+
+		public Builder withApplicationSentTime(Long applicationSentTime) {
+			this.applicationSentTime = applicationSentTime;
+			return this;
+		}
+
+		public Builder withAuthToken(String authToken) {
+			this.authToken = authToken;
+			return this;
+		}
+
+		public Builder withContext(JsonObject context)
+				throws InstantiationException, IllegalAccessException, IOException {
+			this.context = Validatable.toValidatable(MessageContext.class, context.toString(), true);
+			return this;
+		}
+
+		public Builder withContext(MessageContext context) {
+			this.context = context;
+			return this;
+		}
+
+		public Builder withMessage(JsonObject message) {
+			this.message = message;
+			return this;
+		}
+
+		public Builder withMessage(MessageItem message) {
+			this.message = message.toJson();
+			return this;
+		}
+
+		public Builder withMessageSchema(JsonObject messageSchema) {
+			this.messageSchema = messageSchema;
+			return this;
+		}
+
+		public Builder withIsTransient(boolean isTransient) {
+			this.isTransient = isTransient;
+			return this;
+		}
+
+		public Builder withIsLinkedData(boolean isLinkedData) {
+			this.isLinkedData = isLinkedData;
+			return this;
+		}
+
+		public Builder withDisclosureItem(DisclosureItem di) {
+			return withSourceMessageId(di.getSourceMessageId()).withApplicationSentTime(di.getApplicationSentTime())
+					.withAuthToken(di.getAuthToken()).withContext(di.getContext()).withMessage(di.getMessage())
+					.withMessageSchema(di.getMessageSchema()).withIsTransient(di.getIsTransient())
+					.withIsLinkedData(di.getIsLinkedData());
+		}
+
+		public DisclosureItem build() {
+			return new DisclosureItem(this);
+		}
+	}
+
 	@Override
-	public MessageContent getMessageContent() {
-		return MessageContent.Explicit;
-		// return
-		// MessageContent.getValue(getStringProp(DisclosureProperty.CONTENT).get());
+	public void writeData(ObjectDataOutput out) throws IOException {
+		writeNullable(getAuthToken(), out, ww((v, o) -> out.writeUTF(v)));
+		this.context.writeData(out);
+		out.writeByteArray(jsonValueOut(getMessage()));
+		writeNullable(getMessageSchema(), out, ww((v, o) -> out.writeByteArray(jsonValueOut(getMessageSchema()))));
+		out.writeBoolean(isTransient);
+		out.writeBoolean(isLinkedData);
 	}
 
-	//
-	// public Optional<String> getAuthToken() {
-	// return getStringProp(DisclosureProperty.AUTH_TOKEN);
-	// }
-	//
-	// public DisclosureDomain getDisclosureDomain() {
-	// return null; //new
-	// DisclosureDomain(getStringProp(DisclosureProperty.DOMAIN).get());
-	// }
-	//
-	// public Optional<String> getName() {
-	// return getStringProp(DisclosureProperty.NAME);
-	// }
-	//
-	// public Optional<String> getQueryType() {
-	// return getStringProp(DisclosureProperty.QUERY_TYPE);
-	// }
-	//
-	// public Optional<String> getQueryLanguage() {
-	// return getStringProp(DisclosureProperty.QUERY_LANGUAGE);
-	// }
-	//
-	// public Optional<String> getDisclosureId() {
-	// return getStringProp(DisclosureProperty.DISCLOSURE_ID);
-	// }
-	//
-	// public Optional<String> getRequestorId() {
-	// return getStringProp(DisclosureProperty.REQUESTOR_ID);
-	// }
-	//
-	// public boolean isStatic() {
-	// return getBooleanProp(DisclosureProperty.IS_STATIC).get();
-	// }
-	//
-	// public boolean isTransient() {
-	// return getBooleanProp(DisclosureProperty.IS_TRANSIENT).get();
-	// }
-	//
-	// public JsonObject getMessage() {
-	// return null; //getObjectProp(DisclosureProperty.MESSAGE).get();
-	// }
-	//
-	// public Optional<JsonObject> getMessageSchema() {
-	// return getObjectProp(DisclosureProperty.MESSAGE);
-	// }
-	//
-	// private Optional<String> getStringProp(DisclosureProperty prop) {
-	// Optional<String> ret = Optional.empty();
-	// JsonValue val = itemProperties.get(prop);
-	// if (val != JsonValue.NULL) {
-	// ret = Optional.of(((JsonString) val).getString());
-	// }
-	// return ret;
-	// }
-	//
-	// private Optional<Boolean> getBooleanProp(DisclosureProperty prop) {
-	// Optional<Boolean> ret = Optional.empty();
-	// JsonValue val = itemProperties.get(prop);
-	// if (val != JsonValue.NULL) {
-	// if (val == JsonValue.TRUE) {
-	// ret = Optional.of(true);
-	// } else {
-	// ret = Optional.of(false);
-	// }
-	// }
-	// return ret;
-	// }
-	//
-	// private Optional<JsonObject> getObjectProp(DisclosureProperty prop) {
-	// Optional<JsonObject> ret = Optional.empty();
-	// JsonValue val = itemProperties.get(prop);
-	// if (val != JsonValue.NULL) {
-	// ret = Optional.of((JsonObject) val);
-	// }
-	// return ret;
-	// }
-	//
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		this.authToken = readNullable(in, rw((i) -> i.readUTF()));
+		this.context = new MessageContext();
+		this.context.readData(in);
+		this.message = (JsonObject) jsonValueIn(in.readByteArray());
+		this.messageSchema = readNullable(in, rw((i) -> (JsonObject) jsonValueIn(i.readByteArray())));
+		this.isTransient = in.readBoolean();
+		this.isLinkedData = in.readBoolean();
+	}
+
+	@JsonbTransient
+	@Override
+	public int getFactoryId() {
+		return DisclosureIDSFactory.FACTORY_ID;
+	}
+
+	@JsonbTransient
+	@Override
+	public int getId() {
+		// TODO Auto-generated method stub
+		return DisclosureIDSFactory.MESSAGE_CONTEXT_TYPE;
+	}
+
 	@Override
 	public DisclosureItemState getItemState() {
-		return bufferedState;
+		return this.bufferedState;
 	}
 
 	@Override
@@ -347,35 +343,8 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 	}
 
 	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(this.bufferedState.toString());
-		// out.writeInt(((null == itemProperties) ? 0 : itemProperties.size()));
-		// for (Entry<DisclosureProperty, JsonValue> entry :
-		// itemProperties.entrySet()) {
-		// out.writeUTF(entry.getKey().toString());
-		// out.writeByteArray(MessageJsonUtils.jsonValueOut(entry.getValue()));
-		// }
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		// this.bufferedState = DisclosureItemState.valueOf(in.readUTF());
-		// int count = in.readInt();
-		// for (int i = 0; i < count; i++) {
-		// DisclosureProperty dp = DisclosureProperty.valueOf(in.readUTF());
-		// JsonValue jv = MessageJsonUtils.jsonValueIn(in.readByteArray());
-		// //itemProperties.put(dp, jv);
-		// }
-	}
-
-	@Override
-	public int getFactoryId() {
-		return DisclosureIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return DisclosureIDSFactory.DISCLOSURE_ITEM_TYPE;
+	public MessageContent getMessageContent() {
+		return this.context.getContent();
 	}
 
 	@Override
@@ -384,25 +353,30 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 		JsonSchema ret;
 
 		//@formatter:off
-		ret = sbf.createBuilder()
+		
+			ret = sbf.createBuilder()
 
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
+					.withId(Validatable.schemaId(this.getClass()))
+					
+					.withSchema(Validatable.schemaDialect())
+					
+					.withTitle("Message context schema")
 
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
+					.withDescription(
+							"Defines the context of a proven disclosure, which identifies its "
+						  + "processing and storage requirements within the platform.")
 
-				.withType(InstanceType.OBJECT)
+					.withType(InstanceType.OBJECT)
 
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
-		//@formatter:on
+					.withProperty(CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
+					
+					.withProperty(MESSAGE_PROP, sbf.createBuilder()							
+							.withType(InstanceType.OBJECT)
+							.build())
+					
+					.build();
+			
+			//@formatter:on
 
 		return ret;
 	}

@@ -90,9 +90,9 @@ public class SseResponseEventDto implements SseEventData, Serializable {
 
 	public SseResponseEventDto(SseSession session, ResponseMessage message) {
 		this.sessionId = session.getSessionId().toString();
-		this.domain = message.getDisclosureItem().getMessageContext().getDomain().getDomain();
+		this.domain = message.getDisclosureItem().getContext().getDomain().getDomain();
 		this.messageContent = message.getMessageContent().getName();
-		Optional<String> requestorIdOpt = Optional.ofNullable(message.getDisclosureItem().getMessageContext().getRequestor());
+		Optional<String> requestorIdOpt = Optional.ofNullable(message.getDisclosureItem().getContext().getRequestor());
 		this.requestor = (requestorIdOpt.isPresent()) ? requestorIdOpt.get() : "NONE";       
 		//Optional<String> disclosureIdOpt = message.getDisclosureItem().getDisclosureId();
 		//this.disclosureId = (disclosureIdOpt.isPresent()) ? disclosureIdOpt.get() : "NONE";
