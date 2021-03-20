@@ -52,7 +52,7 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
-public class ExplicitItem implements MessageItem {
+public class AdministrativeItem implements MessageItem {
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
@@ -90,7 +90,7 @@ public class ExplicitItem implements MessageItem {
 				
 				.withSchema(Validatable.schemaDialect())
 				
-				.withTitle("Message context schema")
+				.withTitle("Implicit message schema")
 
 				.withDescription(
 						"Defines the context of a proven disclosure, which identifies its "
@@ -110,12 +110,12 @@ public class ExplicitItem implements MessageItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.Explicit;
+		return MessageContent.Administrative;
 	}
 
 	@Override
 	public String messageName() {
-		return "Explicit message";
+		return "Administrative message";
 	}
 
 }

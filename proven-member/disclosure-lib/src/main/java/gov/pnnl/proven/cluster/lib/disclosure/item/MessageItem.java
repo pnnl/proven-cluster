@@ -46,6 +46,8 @@ import java.util.Map;
 
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+
 /**
  * Message items represent the message payload for a DisclosureItem. Convenience
  * methods also included to provide the message item names and their
@@ -77,9 +79,9 @@ public interface MessageItem extends Validatable, IdentifiedDataSerializable {
 		return messagesByType.get(type);
 	}
 
-	String getMessageName();
+	String messageName();
 
-	void getContent();
+	MessageContent messageContent();
 }
 
 class MessageInitializer {
@@ -91,7 +93,7 @@ class MessageInitializer {
 			ret = new HashMap<String, Class<? extends MessageItem>>();
 			List<Class<MessageItem>> cList = Validatable.getValidatables(true);
 			for (Class<MessageItem> c : cList) {
-				ret.put(c.newInstance().getMessageName(), c);
+				ret.put(c.newInstance().messageName(), c);
 			}
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new RuntimeException("Failed to load message information", e);
@@ -106,7 +108,7 @@ class MessageInitializer {
 			ret = new HashMap<Class<? extends MessageItem>, String>();
 			List<Class<MessageItem>> cList = Validatable.getValidatables(true);
 			for (Class<MessageItem> c : cList) {
-				ret.put(c, c.newInstance().getMessageName());
+				ret.put(c, c.newInstance().messageName());
 			}
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new RuntimeException("Failed to load message information", e);

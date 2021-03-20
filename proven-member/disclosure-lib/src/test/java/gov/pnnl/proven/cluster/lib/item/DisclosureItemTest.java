@@ -39,29 +39,104 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.item;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.util.Date;
+import java.util.UUID;
+
+import javax.json.JsonValue;
 
 import org.hamcrest.MatcherAssert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.AdministrativeItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class DisclosureItemTest {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItemTest.class);
 
-	@Test
-	public void testCreate_NoArgBuilder_ValidJson() throws FileNotFoundException, URISyntaxException, IOException,
-			InstantiationException, IllegalAccessException {
+	MessageContext mc;
+	DisclosureItem di;
 
-//		DisclosureItem di = new DisclosureItem();
-//		MatcherAssert.assertThat("Valid JSON produced for DisclosureItem no-arg builder",
-//				Validatable.validate(DisclosureItem.class, di.toJson().toString()).isEmpty());
+	@Rule
+	public ExpectedException exceptionGrabber = ExpectedException.none();
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
+	}
+
+	@Before
+	public void setUp() throws Exception {
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+
+		mc = MessageContext.newBuilder().withContent(MessageContent.Explicit)
+				.withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN).withItem(ExplicitItem.class).withName("TEST NAME")
+				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
+
+		di = DisclosureItem.newBuilder().withSourceMessageId(UUID.randomUUID())
+				.withApplicationSentTime(new Date().getTime())
+				.withAuthToken(
+						"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ")
+				.withContext(mc).withMessage(JsonValue.EMPTY_JSON_OBJECT).withMessageSchema(JsonValue.EMPTY_JSON_OBJECT)
+				.withIsTransient(false).withIsLinkedData(false).build();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+	}
+
+	@Test
+	public void testSchema_toSchema_passValidate() {
+		MatcherAssert.assertThat("DisclosureItem generates a valid schema",
+				Validatable.hasValidSchema(DisclosureItem.class));
+	}
+
+	@Test
+	public void testCreate_builder_validJson() {
+		String jsonStr = di.toJson().toString();
+		assertThat("Valid JSON produced for DisclosureItem builder",
+				Validatable.validate(DisclosureItem.class, jsonStr).isEmpty());
+	}
+
+	@Test
+	public void testRoundTrip_builder_diObjectsNotEqual() {
+		String jsonStr = di.toJson().toString();
+		DisclosureItem di2 = Validatable.toValidatable(DisclosureItem.class, jsonStr);
+		MatcherAssert.assertThat("Valid round trip", !di.equals(di2));
+	}
+
+	@Test
+	public void testLinkedDataRule_builder_throwValidatableBuildException() {
+		
+		mc = MessageContext.newBuilder().withContent(MessageContent.Query)
+				.withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN).withItem(AdministrativeItem.class).withName("TEST NAME")
+				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
+		
+		exceptionGrabber.expect(ValidatableBuildException.class);
+		di = DisclosureItem.newBuilder().withSourceMessageId(UUID.randomUUID())
+				.withApplicationSentTime(new Date().getTime())
+				.withAuthToken(
+						"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ")
+				.withContext(mc).withMessage(JsonValue.EMPTY_JSON_OBJECT).withMessageSchema(JsonValue.EMPTY_JSON_OBJECT)
+				.withIsTransient(true).withIsLinkedData(true).build();
+	}
 }

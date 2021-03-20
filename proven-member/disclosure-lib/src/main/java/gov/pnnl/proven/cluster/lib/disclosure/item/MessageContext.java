@@ -45,6 +45,8 @@ import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.writeNulla
 import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.ww;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import javax.json.Json;
@@ -56,6 +58,8 @@ import javax.json.bind.annotation.JsonbTransient;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonValidatingException;
+import org.leadpony.justify.api.Problem;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -65,6 +69,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
 /**
  * Represents the context for a disclosure item. The context helps to identify
@@ -78,21 +83,14 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
  */
 public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
-	// Jsonb property names and rules
-	private static final String CONTENT_PROP = "content";
-	private static final String ITEM_PROP = "item";
-	private static final String DOMAIN_PROP = "domain";
-	private static final String REQUESTOR_PROP = "requestor";
-	private static final String NAME_PROP = "name";
-	private static final String TAGS_PROP = "tags";
-	private static final int MAX_TAGS = 10;
+	// Jsonb property names
+	static final String CONTENT_PROP = "content";
+	static final String ITEM_PROP = "item";
+	static final String DOMAIN_PROP = "domain";
+	static final String REQUESTOR_PROP = "requestor";
+	static final String NAME_PROP = "name";
+	static final String TAGS_PROP = "tags";
 
-	// Defaults
-	private static final MessageContent DEFAULT_CONTENT = MessageContent.Explicit;
-	private static final Class<? extends MessageItem> DEFAULT_ITEM = ExplicitItem.class;
-	private static final DisclosureDomain DEFAULT_DOMAIN = DomainProvider.getProvenDisclosureDomain();
-
-	// Properties
 	private MessageContent content;
 	private Class<? extends MessageItem> item;
 	private DisclosureDomain domain;
@@ -110,16 +108,16 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 			@JsonbProperty(REQUESTOR_PROP) String requestor, @JsonbProperty(NAME_PROP) String name,
 			@JsonbProperty(TAGS_PROP) String[] tags) {
 		return MessageContext.newBuilder().withContent(content).withItem(item).withDomain(domain)
-				.withRequestor(requestor).withName(name).withTags(tags).build();
+				.withRequestor(requestor).withName(name).withTags(tags).buildWithNoValidation();
 	}
 
 	private MessageContext(Builder b) {
-		this.content = (null != b.content) ? (b.content) : (DEFAULT_CONTENT);
-		this.item = (null != b.item) ? (b.item) : (DEFAULT_ITEM);
-		this.domain = (null != b.domain) ? (b.domain) : (DEFAULT_DOMAIN);
+		this.content = b.content;
+		this.item = b.item;
+		this.domain = b.domain;
 		this.requestor = b.requestor;
 		this.name = b.name;
-		this.tags = (null != b.tags) ? (b.tags) : (new String[] {});
+		this.tags = b.tags;
 	}
 
 	@JsonbProperty(CONTENT_PROP)
@@ -207,15 +205,36 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 			this.name = name;
 			return this;
 		}
-
-		public Builder withTags(String[] tags) {
+		
+		public Builder withTags(String... tags) {
 			this.tags = tags;
 			return this;
 		}
 
+		/**
+		 * Builds new instance. Instance is validated post construction.
+		 * 
+		 * @return new instance
+		 * 
+		 * @throws JsonValidatingException
+		 *             if created instance fails JSON-SCHEMA validation.
+		 * 
+		 */
 		public MessageContext build() {
+
+			MessageContext ret = new MessageContext(this);
+			List<Problem> problems = ret.validate();
+
+			if (!problems.isEmpty()) {
+				throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+			}
+			return ret;
+		}
+
+		public MessageContext buildWithNoValidation() {
 			return new MessageContext(this);
 		}
+
 	}
 
 	@Override
@@ -258,18 +277,13 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
 		JsonSchema ret;
 
-		// JSON-B defaults and enumerations
-		JsonString defaultContent = Json.createValue(DEFAULT_CONTENT.getName());
-		Set<JsonValue> contents = Validatable.toJsonValues(MessageContent.getNames(true));
-		JsonString defaultItem;
-		try {
-			defaultItem = Json.createValue(DEFAULT_ITEM.newInstance().getMessageName());
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new RuntimeException(
-					"Could not instantiate class with no-arg constructor: " + DEFAULT_ITEM.getSimpleName(), e);
-		}
-		Set<JsonValue> items = Validatable.toJsonValues(MessageItem.messageNames());
-		JsonString defaultDomain = Json.createValue(DEFAULT_DOMAIN.getDomain());
+		// Schema defaults
+		final JsonString defaultContent = Json.createValue(MessageContent.Explicit.getName());
+		final Set<JsonValue> contents = Validatable.toJsonValues(MessageContent.getNames(true));
+		final JsonString defaultItem = Json.createValue(MessageItem.messageName(ExplicitItem.class));
+		final Set<JsonValue> items = Validatable.toJsonValues(MessageItem.messageNames());
+		final JsonString defaultDomain = Json.createValue(DomainProvider.getProvenDisclosureDomain().getDomain());
+		final int maxTags = 10;
 
 		//@formatter:off
 
@@ -290,33 +304,39 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 				.withProperty(CONTENT_PROP, sbf.createBuilder()
 					.withType(InstanceType.STRING, InstanceType.NULL)
 					.withEnum(contents)
-					.withDefault(defaultContent).build())
+					.withDefault(defaultContent)
+					.build())
 
 				.withProperty(ITEM_PROP, sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withEnum(items)
-						.withDefault(defaultItem).build())
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withEnum(items)
+					.withDefault(defaultItem)
+					.build())
 
 				.withProperty(DOMAIN_PROP,
-						sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(defaultDomain).build())
+					sbf.createBuilder()
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(defaultDomain)
+					.build())
 
 				.withProperty(REQUESTOR_PROP, sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.build())
 
 				.withProperty(NAME_PROP, sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.build())
 
 				.withProperty(TAGS_PROP, sbf.createBuilder()
-						.withType(InstanceType.ARRAY, InstanceType.NULL)
-						.withDefault(JsonValue.EMPTY_JSON_ARRAY)
-						.withItems(sbf.createBuilder()
-								.withType(InstanceType.STRING).
-								withMaxItems(MAX_TAGS).build())
-						.build())
+					.withType(InstanceType.ARRAY, InstanceType.NULL)
+					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+					.withItems(sbf.createBuilder()
+							.withType(InstanceType.STRING).
+							withMaxItems(maxTags)
+							.build())
+					.build())
 		
 				.build();
 			
@@ -325,4 +345,65 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 		return ret;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((content == null) ? 0 : content.hashCode());
+		result = prime * result + ((domain == null) ? 0 : domain.hashCode());
+		result = prime * result + ((item == null) ? 0 : item.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((requestor == null) ? 0 : requestor.hashCode());
+		result = prime * result + Arrays.hashCode(tags);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof MessageContext)) {
+			return false;
+		}
+		MessageContext other = (MessageContext) obj;
+		if (content != other.content) {
+			return false;
+		}
+		if (domain == null) {
+			if (other.domain != null) {
+				return false;
+			}
+		} else if (!domain.equals(other.domain)) {
+			return false;
+		}
+		if (item == null) {
+			if (other.item != null) {
+				return false;
+			}
+		} else if (!item.getName().equals(other.item.getName())) {
+			return false;
+		}
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		if (requestor == null) {
+			if (other.requestor != null) {
+				return false;
+			}
+		} else if (!requestor.equals(other.requestor)) {
+			return false;
+		}
+		if (!Arrays.equals(tags, other.tags)) {
+			return false;
+		}
+		return true;
+	}
 }

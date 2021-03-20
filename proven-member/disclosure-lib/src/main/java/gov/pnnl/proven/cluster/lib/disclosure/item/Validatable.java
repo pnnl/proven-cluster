@@ -95,6 +95,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.DisclosureDomainAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageContentAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageItemTypeAdapter;
@@ -346,41 +347,9 @@ public interface Validatable {
 	 * @throws InstantiationException
 	 *             could not instantiate a new Validatable
 	 */
-	static <T extends Validatable> List<Problem> validate(Class<T> clazz, String jsonStr)
-			throws InstantiationException, IllegalAccessException {
+	static <T extends Validatable> List<Problem> validate(Class<T> clazz, String jsonStr) {
 		JsonSchema schema = retrieveSchema(clazz);
 		return validate(schema, jsonStr);
-	}
-
-	static List<Problem> validate(JsonSchema schema, String jsonStr)
-			throws InstantiationException, IllegalAccessException {
-		List<Problem> problems = new ArrayList<>();
-		Reader reader = new StringReader(jsonStr);
-		ProblemHandler handler = ProblemHandler.collectingTo(problems);
-
-		try (JsonParser parser = service.createParser(reader, schema, handler)) {
-			while (parser.hasNext()) {
-				JsonParser.Event event = parser.next();
-				System.out.println(event);
-			}
-		}
-		return problems;
-	}
-
-	static <T extends Validatable> boolean hasValidSchema(Class<T> clazz)
-			throws InstantiationException, IllegalAccessException {
-		String jsonStr = retrieveSchema(clazz).toString();
-		JsonSchema schema = retrieveSchema(JsonMetaSchema.class);
-		// JsonSchema schema =
-		// service.readSchema(Validatable.class.getResourceAsStream(DRAFT_07_SCHEMA));
-		return validate(schema, jsonStr).isEmpty();
-	}
-
-	static <T extends Validatable> boolean isValidJsonLD(JsonStructure json)
-			throws InstantiationException, IllegalAccessException {
-		String jsonStr = json.toString();
-		JsonSchema schema = service.readSchema(Validatable.class.getResourceAsStream(JSONLD_SCHEMA_RESOURCE));
-		return validate(schema, jsonStr).isEmpty();
 	}
 
 	/**
@@ -389,7 +358,7 @@ public interface Validatable {
 	 * 
 	 * @param schema
 	 *            the schema to validate the provided JSON string with.
-	 * @param json
+	 * @param jsonStr
 	 *            the JSON string to validate
 	 * @return a list of problems, if any, encountered during the validation
 	 *         process. Empty list indicates the validation was successful.
@@ -399,9 +368,7 @@ public interface Validatable {
 	 * @throws InstantiationException
 	 *             could not instantiate a new Validatable
 	 */
-	static <T extends Validatable> List<Problem> validatate(JsonSchema schema, String jsonStr)
-			throws InstantiationException, IllegalAccessException {
-
+	static List<Problem> validate(JsonSchema schema, String jsonStr) {
 		List<Problem> problems = new ArrayList<>();
 		Reader reader = new StringReader(jsonStr);
 		ProblemHandler handler = ProblemHandler.collectingTo(problems);
@@ -409,10 +376,43 @@ public interface Validatable {
 		try (JsonParser parser = service.createParser(reader, schema, handler)) {
 			while (parser.hasNext()) {
 				JsonParser.Event event = parser.next();
-				System.out.println(event);
+				log.info(event.toString());
 			}
 		}
 		return problems;
+	}
+
+	/**
+	 * Determines if the provided Validatable generates a valid JSON-Schema.
+	 * 
+	 * @param clazz
+	 *            the Validatable
+	 * @return true if schema is valid, false otherwise
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	static <T extends Validatable> boolean hasValidSchema(Class<T> clazz) {
+		String jsonStr = retrieveSchema(clazz).toString();
+		JsonSchema schema = retrieveSchema(JsonMetaSchema.class);
+		log.debug("Validataing Schema: " + schemaResource(clazz));
+		log.debug(schema.toString());
+		return validate(schema, jsonStr).isEmpty();
+	}
+
+	/**
+	 * Determines if the provided JSON-LD is syntacticly valid.
+	 * 
+	 * @param json
+	 *            provided JSON object or array
+	 * @return
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	static <T extends Validatable> boolean isValidJsonLD(JsonStructure json)
+			throws InstantiationException, IllegalAccessException {
+		String jsonStr = json.toString();
+		JsonSchema schema = service.readSchema(Validatable.class.getResourceAsStream(JSONLD_SCHEMA_RESOURCE));
+		return validate(schema, jsonStr).isEmpty();
 	}
 
 	/**
@@ -427,38 +427,36 @@ public interface Validatable {
 	 *            if true do not perform validation on provided JSON.
 	 * @return a new Validatable for the provided type.
 	 *
-	 * @throws IllegalAccessException
-	 *             if no access to Validatable definition
-	 * @throws InstantiationException
-	 *             could not instantiate a new Validatable
-	 * @throws JsonbException
-	 *             if JSON-B deserialization fails
-	 * @throws JsonValidatingException
-	 *             if schema validation fails
+	 * @throws ValidatableBuildException
+	 *             if exception encountered during build process
 	 */
-	static <T extends Validatable> T toValidatable(Class<T> clazz, String jsonStr, boolean skipValidation)
-			throws IOException, InstantiationException, IllegalAccessException {
+	static <T extends Validatable> T toValidatable(Class<T> clazz, String jsonStr, boolean skipValidation) {
 
 		T ret;
 		String jsonToValidate = jsonStr;
 
-		if (!skipValidation) {
-			AbstractMap.SimpleEntry<JsonValue, List<Problem>> result = validateWithDefaults(clazz, jsonStr);
-			if (!result.getValue().isEmpty()) {
-				throw new JsonValidatingException(result.getValue());
-			}
-			jsonToValidate = result.getKey().toString();
-		}
+		try {
 
-		try (InputStream ins = new ByteArrayInputStream(jsonToValidate.getBytes())) {
-			ret = jsonb.fromJson(ins, clazz);
+			if (!skipValidation) {
+				AbstractMap.SimpleEntry<JsonValue, List<Problem>> result = validateWithDefaults(clazz, jsonStr);
+				if (!result.getValue().isEmpty()) {
+					throw new JsonValidatingException(result.getValue());
+				}
+				jsonToValidate = result.getKey().toString();
+			}
+
+			try (InputStream ins = new ByteArrayInputStream(jsonToValidate.getBytes())) {
+				ret = jsonb.fromJson(ins, clazz);
+			}
+
+		} catch (Exception e) {
+			throw new ValidatableBuildException("JSON to Validatable failed", e);
 		}
 
 		return ret;
 	}
 
-	static <T extends Validatable> T toValidatable(Class<T> clazz, String jsonStr)
-			throws IOException, InstantiationException, IllegalAccessException {
+	static <T extends Validatable> T toValidatable(Class<T> clazz, String jsonStr) {
 		return toValidatable(clazz, jsonStr, false);
 	}
 
@@ -539,6 +537,16 @@ public interface Validatable {
 	}
 
 	/**
+	 * Determines if the instance is valid.
+	 * 
+	 * @return a list of problems, if any, encountered during the validation
+	 *         process. Empty list indicates the validation was successful.
+	 */
+	default List<Problem> validate() {
+		return validate(this.getClass(), this.toJson().toString());
+	}
+
+	/**
 	 * JSON-SCHEMA generation.
 	 * 
 	 * @return a JSON-SCHEMA object for the Validatable.
@@ -555,7 +563,7 @@ public interface Validatable {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException {
+	static void main(String[] args) throws IOException {
 		String schemaDir = args[0];
 
 		// Disclosure Item and MessageItems

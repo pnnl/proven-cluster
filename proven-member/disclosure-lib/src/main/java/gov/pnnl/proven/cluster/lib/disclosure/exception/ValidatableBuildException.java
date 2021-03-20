@@ -37,85 +37,37 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.exception;
 
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.json.JsonValue;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+/**
+ * Indicates a Validatable build exception.
+ * 
+ * @author d3j766
+ * 
+ * @see DisclosureDomain
+ *
+ */
+public class ValidatableBuildException extends RuntimeException {
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+	private static final long serialVersionUID = 1L;
+	static Logger log = LoggerFactory.getLogger(ValidatableBuildException.class);
 
-public class ExplicitItem implements MessageItem {
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		// TODO Auto-generated method stub
-
+	public ValidatableBuildException() {
+		super();
 	}
 
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		// TODO Auto-generated method stub
-
+	public ValidatableBuildException(String message) {
+		super(message);
 	}
 
-	@Override
-	public int getFactoryId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		ret = sbf.createBuilder()
-
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
-
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
-
-				.withType(InstanceType.OBJECT)
-
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
-		
-		//@formatter:on
-
-		return ret;
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Explicit;
-	}
-
-	@Override
-	public String messageName() {
-		return "Explicit message";
+	public ValidatableBuildException(String message, Throwable e) {
+		super(message, e);
 	}
 
 }
