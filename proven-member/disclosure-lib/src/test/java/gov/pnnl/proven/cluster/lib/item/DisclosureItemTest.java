@@ -88,9 +88,9 @@ public class DisclosureItemTest {
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
 
-		mc = MessageContext.newBuilder().withContent(MessageContent.Explicit)
-				.withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN).withItem(ExplicitItem.class).withName("TEST NAME")
-				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
+		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
+				.withItem(ExplicitItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
+				.withTags("TEST TAG1", "TEST TAG2").build();
 
 		di = DisclosureItem.newBuilder().withSourceMessageId(UUID.randomUUID())
 				.withApplicationSentTime(new Date().getTime())
@@ -126,11 +126,11 @@ public class DisclosureItemTest {
 
 	@Test
 	public void testLinkedDataRule_builder_throwValidatableBuildException() {
-		
-		mc = MessageContext.newBuilder().withContent(MessageContent.Query)
-				.withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN).withItem(AdministrativeItem.class).withName("TEST NAME")
-				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
-		
+
+		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
+				.withItem(AdministrativeItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
+				.withTags("TEST TAG1", "TEST TAG2").build();
+
 		exceptionGrabber.expect(ValidatableBuildException.class);
 		di = DisclosureItem.newBuilder().withSourceMessageId(UUID.randomUUID())
 				.withApplicationSentTime(new Date().getTime())

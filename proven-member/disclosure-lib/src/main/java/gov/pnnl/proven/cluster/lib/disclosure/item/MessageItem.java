@@ -62,6 +62,8 @@ public interface MessageItem extends Validatable, IdentifiedDataSerializable {
 
 	static Map<String, Class<? extends MessageItem>> messagesByName = MessageInitializer.messagesByName();
 	static Map<Class<? extends MessageItem>, String> messagesByType = MessageInitializer.messagesByType();
+	static Map<Class<? extends MessageItem>, MessageContent> messageContentByType = MessageInitializer.messageContentByType();
+	
 
 	static List<String> messageNames() {
 		return new ArrayList<String>(messagesByName.keySet());
@@ -69,7 +71,7 @@ public interface MessageItem extends Validatable, IdentifiedDataSerializable {
 
 	static List<Class<? extends MessageItem>> messageTypes() {
 		return new ArrayList<Class<? extends MessageItem>>(messagesByType.keySet());
-	}
+	}	
 
 	static Class<? extends MessageItem> messageType(String name) {
 		return messagesByName.get(name);
@@ -78,7 +80,11 @@ public interface MessageItem extends Validatable, IdentifiedDataSerializable {
 	static String messageName(Class<? extends MessageItem> type) {
 		return messagesByType.get(type);
 	}
-
+	
+	static MessageContent messageContent(Class<? extends MessageItem> type) {
+		return messageContentByType.get(type);
+	}
+	
 	String messageName();
 
 	MessageContent messageContent();
@@ -115,4 +121,20 @@ class MessageInitializer {
 		}
 		return ret;
 	}
+	
+	static Map<Class<? extends MessageItem>, MessageContent> messageContentByType() {
+
+		Map<Class<? extends MessageItem>, MessageContent> ret = null;
+		try {
+			ret = new HashMap<Class<? extends MessageItem>, MessageContent>();
+			List<Class<MessageItem>> cList = Validatable.getValidatables(true);
+			for (Class<MessageItem> c : cList) {
+				ret.put(c, c.newInstance().messageContent());
+			}
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException("Failed to load message information", e);
+		}
+		return ret;
+	}
+		
 }

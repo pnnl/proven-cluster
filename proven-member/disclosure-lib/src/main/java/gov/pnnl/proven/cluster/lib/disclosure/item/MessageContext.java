@@ -103,17 +103,16 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 	}
 
 	@JsonbCreator
-	public static MessageContext createMessageContext(@JsonbProperty(CONTENT_PROP) String content,
-			@JsonbProperty(ITEM_PROP) String item, @JsonbProperty(DOMAIN_PROP) String domain,
-			@JsonbProperty(REQUESTOR_PROP) String requestor, @JsonbProperty(NAME_PROP) String name,
-			@JsonbProperty(TAGS_PROP) String[] tags) {
-		return MessageContext.newBuilder().withContent(content).withItem(item).withDomain(domain)
-				.withRequestor(requestor).withName(name).withTags(tags).buildWithNoValidation();
+	public static MessageContext createMessageContext(@JsonbProperty(ITEM_PROP) String item,
+			@JsonbProperty(DOMAIN_PROP) String domain, @JsonbProperty(REQUESTOR_PROP) String requestor,
+			@JsonbProperty(NAME_PROP) String name, @JsonbProperty(TAGS_PROP) String[] tags) {
+		return MessageContext.newBuilder().withItem(item).withDomain(domain).withRequestor(requestor).withName(name)
+				.withTags(tags).buildWithNoValidation();
 	}
 
 	private MessageContext(Builder b) {
-		this.content = b.content;
 		this.item = b.item;
+		this.content = MessageItem.messageContent(b.item);
 		this.domain = b.domain;
 		this.requestor = b.requestor;
 		this.name = b.name;
@@ -156,7 +155,6 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
 	public static final class Builder {
 
-		private MessageContent content;
 		private Class<? extends MessageItem> item;
 		private DisclosureDomain domain;
 		private String requestor;
@@ -164,16 +162,6 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 		private String[] tags;
 
 		private Builder() {
-		}
-
-		public Builder withContent(MessageContent content) {
-			this.content = content;
-			return this;
-		}
-
-		public Builder withContent(String content) {
-			this.content = MessageContent.getMessageContent(content);
-			return this;
 		}
 
 		public Builder withItem(Class<? extends MessageItem> item) {
@@ -205,7 +193,7 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 			this.name = name;
 			return this;
 		}
-		
+
 		public Builder withTags(String... tags) {
 			this.tags = tags;
 			return this;
@@ -278,8 +266,6 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 		JsonSchema ret;
 
 		// Schema defaults
-		final JsonString defaultContent = Json.createValue(MessageContent.Explicit.getName());
-		final Set<JsonValue> contents = Validatable.toJsonValues(MessageContent.getNames(true));
 		final JsonString defaultItem = Json.createValue(MessageItem.messageName(ExplicitItem.class));
 		final Set<JsonValue> items = Validatable.toJsonValues(MessageItem.messageNames());
 		final JsonString defaultDomain = Json.createValue(DomainProvider.getProvenDisclosureDomain().getDomain());
@@ -300,12 +286,6 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 						+ "processing and storage requirements within the platform.")
 
 				.withType(InstanceType.OBJECT)
-
-				.withProperty(CONTENT_PROP, sbf.createBuilder()
-					.withType(InstanceType.STRING, InstanceType.NULL)
-					.withEnum(contents)
-					.withDefault(defaultContent)
-					.build())
 
 				.withProperty(ITEM_PROP, sbf.createBuilder()
 					.withType(InstanceType.STRING, InstanceType.NULL)
