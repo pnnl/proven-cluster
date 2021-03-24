@@ -98,10 +98,13 @@ public enum MessageContent {
 	Structure(MessageContentName.STRUCTURE),
 
 	/**
-	 * Query message content. Knowledge describes a query for execution over
-	 * Proven's hybrid store. These are "select" only query types run against
-	 * hybrid store, and results may be stored back in hybrid store and/or
-	 * returned to caller if requested.
+	 * Model content represents a semantic data model supporting domain based
+	 * operations within the Proven platform.
+	 */
+	Model(MessageContentName.MODEL),
+
+	/**
+	 * Query message content. Represents requests to query the Hybrid Store.
 	 */
 	Query(MessageContentName.QUERY),
 
@@ -159,6 +162,7 @@ public enum MessageContent {
 		public static final String STATIC = "static";
 		public static final String IMPLICIT = "implicit";
 		public static final String STRUCTURE = "structure";
+		public static final String MODEL = "messageModel";
 		public static final String QUERY = "query";
 		public static final String REPLAY = "replay";
 		public static final String CONTINUOUS_QUERY = "continuous";
