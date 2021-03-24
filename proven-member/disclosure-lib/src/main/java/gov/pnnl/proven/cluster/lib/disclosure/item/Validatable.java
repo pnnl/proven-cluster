@@ -274,17 +274,7 @@ public interface Validatable {
 
 			if (Modifier.isAbstract(vClass.getModifiers()) || vClass.isInterface())
 				continue;
-
 			names.add((Class<T>) vClass);
-
-			// if ((!vClass.equals(Validatable.class)) &&
-			// (Validatable.class.isAssignableFrom(vClass))) {
-			// if ((messageItemsOnly &&
-			// (Validatable.class.isAssignableFrom(vClass))) ||
-			// (!messageItemsOnly)) {
-			// names.add((Class<T>) vClass);
-			// }
-			// }
 		}
 		return names;
 	}
@@ -408,8 +398,7 @@ public interface Validatable {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	static <T extends Validatable> boolean isValidJsonLD(JsonStructure json)
-			throws InstantiationException, IllegalAccessException {
+	static <T extends Validatable> boolean isValidJsonLD(JsonStructure json) {
 		String jsonStr = json.toString();
 		JsonSchema schema = service.readSchema(Validatable.class.getResourceAsStream(JSONLD_SCHEMA_RESOURCE));
 		return validate(schema, jsonStr).isEmpty();

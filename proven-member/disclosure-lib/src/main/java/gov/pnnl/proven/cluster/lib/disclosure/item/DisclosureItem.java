@@ -133,7 +133,7 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 	 *            new payload
 	 */
 	public static DisclosureItem createFromDisclosureItem(DisclosureItem di, MessageItem mi) {
-		return DisclosureItem.newBuilder().withDisclosureItem(di).withMessage(mi.toJson()).buildWithNoValidation();
+		return DisclosureItem.newBuilder().withDisclosureItem(di).withMessage(mi.toJson()).build(true);
 	}
 
 	/**
@@ -154,7 +154,7 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 			@JsonbProperty(IS_LINKED_DATA_PROP) boolean isLinkedData) {
 		return DisclosureItem.newBuilder().withApplicationSentTime(applicationSentTime).withAuthToken(authToken)
 				.withContext(context).withMessage(message).withMessageSchema(messageSchema).withIsTransient(isTransient)
-				.withIsLinkedData(isLinkedData).buildWithNoValidation();
+				.withIsLinkedData(isLinkedData).build(true);
 	}
 
 	private DisclosureItem(Builder b) {
@@ -315,18 +315,27 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 		 * 
 		 */
 		public DisclosureItem build() {
-
-			DisclosureItem ret = new DisclosureItem(this);
-			List<Problem> problems = ret.validate();
-
-			if (!problems.isEmpty()) {
-				throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-			}
-			return ret;
+			return build(false);
 		}
 
-		private DisclosureItem buildWithNoValidation() {
-			return new DisclosureItem(this);
+		private DisclosureItem build(boolean trustedBuilder) {
+
+			DisclosureItem ret = new DisclosureItem(this);
+
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
+			}
+			
+			if (ret.getIsLinkedData()) {
+				if (!Validatable.isValidJsonLD(ret.getMessage())) {
+					throw new ValidatableBuildException("Builder failure: Invalid JSON-LD included in payload");
+				}
+			}
+			
+			return ret;
 		}
 	}
 
