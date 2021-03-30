@@ -1463,10 +1463,17 @@ public class ConceptService {
 
 				if (fdobject.get(fdkey) instanceof String) {
 					builder.addField(fdkey, (String) fdobject.get(fdkey));
+//
+// Changed March 30, 2021 to change any numeric field into a float or double
+// 
+//				} else if (fdobject.get(fdkey) instanceof Integer) {
+//					builder.addField(fdkey, Integer.valueOf((Integer) fdobject.get(fdkey)));
+//				} else if (fdobject.get(fdkey) instanceof Long) {
+//					builder.addField(fdkey, Long.valueOf((Long) fdobject.get(fdkey)));
 				} else if (fdobject.get(fdkey) instanceof Integer) {
-					builder.addField(fdkey, Integer.valueOf((Integer) fdobject.get(fdkey)));
+					builder.addField(fdkey, Float.valueOf((Float)fdobject.get(fdkey)));
 				} else if (fdobject.get(fdkey) instanceof Long) {
-					builder.addField(fdkey, Long.valueOf((Long) fdobject.get(fdkey)));
+					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
 				} else if (fdobject.get(fdkey) instanceof Float) {
 					builder.addField(fdkey, Float.valueOf((Float) fdobject.get(fdkey)));
 				} else if (fdobject.get(fdkey) instanceof Double) {
@@ -1479,6 +1486,10 @@ public class ConceptService {
 				}
 
 			}
+			
+					
+			
+			
 			try {
 				influxDB.write(idbDB, idbRP, builder.build());
 			} catch (Exception e) {
@@ -1632,10 +1643,17 @@ public class ConceptService {
 							// 02/03/2020							builder.tag(record_key, (String) record.get(record_key));
 							builder.addField(record_key, (String) record.get(record_key));
 						}
+// Changed March 30, 2021
+// Gridapps-D wanted all numeric data to be either Float or Double.
+//						
+//					} else if (record.get(record_key) instanceof Integer) {
+//						builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
+//					} else if (record.get(record_key) instanceof Long) {
+//						builder.addField(record_key, Long.valueOf((Long) record.get(record_key)));						
 					} else if (record.get(record_key) instanceof Integer) {
-						builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
+						builder.addField( record_key, Float.valueOf(record.get(record_key).toString()));
 					} else if (record.get(record_key) instanceof Long) {
-						builder.addField(record_key, Long.valueOf((Long) record.get(record_key)));
+						builder.addField(record_key, Double.valueOf(record.get(record_key).toString()));
 					} else if (record.get(record_key) instanceof Float) {
 						builder.addField(record_key, Float.valueOf((Float) record.get(record_key)));
 					} else if (record.get(record_key) instanceof Double) {
@@ -1726,7 +1744,8 @@ public class ConceptService {
 			
 			while (record_it.hasNext()) {
 				String record_key = record_it.next();
-
+				if (!record_key.equalsIgnoreCase("timestamp")) {
+				
 				if (record.get(record_key) instanceof String) {
 				builder.addField( record_key, String.valueOf((String) record.get(record_key)));	
 //				} else if (record.get(record_key) instanceof Integer) {
@@ -1737,13 +1756,14 @@ public class ConceptService {
 //  Note:  this change Feb 23, 2021 is meant to ensure that integers or longs will be changed to default decimal 
 //		   otherwise if a field is created as a integer floats will be ignored.
 				} else if (record.get(record_key) instanceof Integer) {
-				    builder.addField( record_key, Float.valueOf((Float) record.get(record_key)));
+				    builder.addField( record_key, Float.valueOf(record.get(record_key).toString()));
 		    	} else if (record.get(record_key) instanceof Long) {
-				    builder.addField(record_key, Double.valueOf((Double) record.get(record_key)));
+				    builder.addField(record_key, Double.valueOf(record.get(record_key).toString()));
 				} else if (record.get(record_key) instanceof Float) {
 					builder.addField(record_key, Float.valueOf((Float) record.get(record_key)));
 				} else if (record.get(record_key) instanceof Double) {
 					builder.addField(record_key, Double.valueOf((Double) record.get(record_key)));
+				}
 				}
 			}
 			influxDB.write(idbDB, idbRP, builder.build());
