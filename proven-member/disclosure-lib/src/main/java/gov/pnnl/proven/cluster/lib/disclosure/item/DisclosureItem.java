@@ -41,7 +41,6 @@ package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import static gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory.jsonValueIn;
 import static gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory.jsonValueOut;
-import static gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState.New;
 import static gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem.messageName;
 import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.readNullable;
 import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.rw;
@@ -71,9 +70,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.Disclosable;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
 /**
@@ -82,7 +80,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  * @author d3j766
  * 
  */
-public class DisclosureItem implements BufferedItem, Validatable, IdentifiedDataSerializable {
+public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataSerializable {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
 
@@ -90,7 +88,6 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 	private static final String MESSAGE_ID_PROP = "messageId";
 	private static final String SYSTEM_SENT_TIME_PROP = "systemSentTime";
 	private static final String SOURCE_MESSAGE_ID_PROP = "sourceMessageId";
-	private static final String BUFFERED_STATE_PROP = "bufferedState";
 	private static final String AUTH_TOKEN_PROP = "authToken";
 	private static final String CONTEXT_PROP = "context";
 	private static final String MESSAGE_PROP = "message";
@@ -102,7 +99,6 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 	private UUID messageId;
 	private UUID sourceMessageId;
 	private Long systemSentTime;
-	private DisclosureItemState bufferedState;
 	private Long applicationSentTime;
 	private String authToken;
 	private MessageContext context;
@@ -162,7 +158,6 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 		this.messageId = UUID.randomUUID();
 		this.sourceMessageId = b.sourceMessageId;
 		this.systemSentTime = new Date().getTime();
-		this.bufferedState = New;
 
 		// Schema props
 		this.applicationSentTime = b.applicationSentTime;
@@ -188,11 +183,6 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 	@JsonbProperty(SYSTEM_SENT_TIME_PROP)
 	public Long getSystemSentTime() {
 		return systemSentTime;
-	}
-
-	@JsonbProperty(BUFFERED_STATE_PROP)
-	public DisclosureItemState getBufferedState() {
-		return bufferedState;
 	}
 
 	@JsonbProperty(APPLICATION_SENT_TIME_PROP)
@@ -328,13 +318,13 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
 				}
 			}
-			
+
 			if (ret.getIsLinkedData()) {
 				if (!Validatable.isValidJsonLD(ret.getMessage())) {
 					throw new ValidatableBuildException("Builder failure: Invalid JSON-LD included in payload");
 				}
 			}
-			
+
 			return ret;
 		}
 	}
@@ -344,7 +334,6 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 		out.writeUTF(getMessageId().toString());
 		writeNullable(getSourceMessageId().toString(), out, ww((v, o) -> out.writeUTF(v)));
 		out.writeLong(getSystemSentTime());
-		out.writeUTF(getBufferedState().toString());
 		writeNullable(getApplicationSentTime(), out, ww((v, o) -> out.writeLong(v)));
 		writeNullable(getAuthToken(), out, ww((v, o) -> out.writeUTF(v)));
 		this.context.writeData(out);
@@ -359,7 +348,6 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 		this.messageId = UUID.fromString(in.readUTF());
 		this.sourceMessageId = readNullable(in, rw((i) -> UUID.fromString(in.readUTF())));
 		this.systemSentTime = in.readLong();
-		this.bufferedState = DisclosureItemState.valueOf(in.readUTF());
 		this.applicationSentTime = readNullable(in, rw((i) -> i.readLong()));
 		this.authToken = readNullable(in, rw((i) -> i.readUTF()));
 		this.context = new MessageContext();
@@ -381,21 +369,6 @@ public class DisclosureItem implements BufferedItem, Validatable, IdentifiedData
 	public int getId() {
 		// TODO Auto-generated method stub
 		return DisclosureIDSFactory.MESSAGE_CONTEXT_TYPE;
-	}
-
-	@Override
-	public DisclosureItemState getItemState() {
-		return this.bufferedState;
-	}
-
-	@Override
-	public void setItemState(DisclosureItemState bufferedState) {
-		this.bufferedState = bufferedState;
-	}
-
-	@Override
-	public MessageContent getMessageContent() {
-		return this.context.getContent();
 	}
 
 	@Override

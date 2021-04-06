@@ -37,41 +37,16 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.disclosure;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.hazelcast.core.IExecutorService;
-import com.hazelcast.core.ReplicatedMap;
-
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 
 /**
- * Wraps a Hazelcast {@link IExecutorService} supporting the execution of module
- * and pipeline services.
+ * Represents an object that may be disclosed to a Proven platform.
  * 
  * @author d3j766
  *
  */
-@Scalable
-public class ServiceBuffer extends ExchangeComponent {
+public interface Disclosable {
 
-	static Logger log = LoggerFactory.getLogger(ServiceBuffer.class);
-
-	@PostConstruct
-	void init() {
-		log.debug("Post construct for ServiceBuffer");
-		ReplicatedMap<String, Boolean> registry = hzi.getReplicatedMap("test");
-	}
-
-	@Inject
-	public ServiceBuffer() {
-		super();
-		log.debug("Default Constructer for ServiceBuffer");
-	}
-
+	
 }

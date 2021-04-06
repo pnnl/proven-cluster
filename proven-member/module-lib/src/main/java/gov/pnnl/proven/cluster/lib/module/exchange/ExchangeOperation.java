@@ -56,17 +56,14 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
- * Represents the type of exchange components used to process
- * {@code DisclosureItem}s. Each exchange type is mapped to zero or more content
- * types. Where the content type for a disclosed item determines the type of
- * exchange processing component it will be routed to by a ModuleExchange.
+ * Identifies supported operations for an ExchangeBuffer. 
  * 
- * @see MessageContent, ModuleExchange
+ * @see ExchangeBuffer
  * 
  * @author d3j766
  *
  */
-public enum ExchangeType {
+public enum ExchangeOperation {
 
 	/**
 	 * Entry point for disclosed items created outside the exchange environment,
@@ -98,11 +95,11 @@ public enum ExchangeType {
 	 */
 	RespnseBuffer(Response);
 
-	static Logger log = LoggerFactory.getLogger(ExchangeType.class);
+	static Logger log = LoggerFactory.getLogger(ExchangeOperation.class);
 
 	private List<MessageContent> contentTypes;
 
-	ExchangeType(MessageContent... contentTypes) {
+	ExchangeOperation(MessageContent... contentTypes) {
 		this.contentTypes = Arrays.asList(contentTypes);
 	}
 
@@ -125,10 +122,10 @@ public enum ExchangeType {
 	 * 
 	 * @return ExchangeTypes supporting the provided message content type.
 	 */
-	public List<ExchangeType> supportedExchangeTypes(MessageContent mc) {
+	public List<ExchangeOperation> supportedExchangeTypes(MessageContent mc) {
 
-		List<ExchangeType> ret = new ArrayList<>();
-		for (ExchangeType et : values()) {
+		List<ExchangeOperation> ret = new ArrayList<>();
+		for (ExchangeOperation et : values()) {
 			if (et.getContentTypes().contains(mc)) {
 				ret.add(et);
 			}

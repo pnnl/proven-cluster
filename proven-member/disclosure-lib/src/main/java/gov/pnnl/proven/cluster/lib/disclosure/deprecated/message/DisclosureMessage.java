@@ -89,8 +89,8 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 
 	public DisclosureMessage(DisclosureItem di) {
 		super(di);
-		MessageContent disclosedContent = di.getMessageContent();
-		MessageContentGroup disclosedContentGroup = MessageContentGroup.getType(di.getMessageContent());
+		MessageContent disclosedContent = di.getContext().getContent();
+		MessageContentGroup disclosedContentGroup = MessageContentGroup.getType(di.getContext().getContent());
 		isRequest = MessageContentGroup.Request == disclosedContentGroup;
 		isKnowledge = MessageContentGroup.Knowledge == disclosedContentGroup;
 		isMeasurements = MessageContent.Measurement == disclosedContent;
@@ -107,11 +107,6 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 	public boolean isMeasurements() {
 		return isMeasurements;
 	}
-
-//	@Override
-//	public MessageContent getMessageContent() {
-//		return MessageContent.Disclosure;
-//	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {

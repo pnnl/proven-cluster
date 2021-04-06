@@ -414,7 +414,7 @@ public class MessageUtils {
 		Model shapesModel = mm.getShapesModel();
 		Model ontologyModel = mm.getOntologyModel();
 		Model dataAndOntologyModel = dataModel.union(ontologyModel);
-
+		
 		Model results = RuleUtil.executeRules(dataModel, shapesModel, null, null);
 		return dataModel.union(results);
 	}

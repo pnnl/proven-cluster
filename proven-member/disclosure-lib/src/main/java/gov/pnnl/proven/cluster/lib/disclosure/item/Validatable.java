@@ -74,7 +74,6 @@ import javax.json.JsonWriterFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
-import javax.json.bind.JsonbException;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParsingException;
@@ -141,6 +140,7 @@ public interface Validatable {
 		try (JsonReader reader = Json.createReader(new StringReader(jsonStr))) {
 			ret = reader.readObject();
 		}
+
 		return ret;
 	}
 

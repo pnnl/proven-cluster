@@ -61,9 +61,9 @@ import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
 /**
  * Represents an exchange component. These components are responsible for
  * exchanging disclosed items with other exchange components inside the cluster
- * for performance and processing purposes.
+ * for processing before distribution to IMDG.
  * 
- * @see DisclosureItem
+ * @see DisclosureItem, ExchangeRequest
  * 
  * @author d3j766
  *
@@ -81,11 +81,6 @@ public abstract class ExchangeComponent extends ManagedComponent {
 		public static final StringProp EQ_IDENTIFIER = new StringProp("eqIdentifier");
 
 		/**
-		 * Exchange Queue Identifier
-		 */
-		public static final StringProp EXCHANGE_TYPE = new StringProp("exchangeType");
-
-		/**
 		 * Exchange Queue percent of maximum capacity that is being used
 		 */
 		public static final IntegerProp EQ_CAPACITY_PERCENT = new IntegerProp("remainingCapacityPercent");		
@@ -96,11 +91,6 @@ public abstract class ExchangeComponent extends ManagedComponent {
 	 * Exchange queue identifier
 	 */
 	EntryIdentifier eqIdentifier;
-
-	/**
-	 * Type of exchange
-	 */
-	ExchangeType exchangeType;
 
 	/**
 	 * Component's exchange queue. Component reads items from this queue to
@@ -128,22 +118,12 @@ public abstract class ExchangeComponent extends ManagedComponent {
 	public EntryProperties entryProperties() {
 		EntryProperties eps = new EntryProperties(super.entryProperties());
 		eps.add(new EntryProperty(ExchangeProp.EQ_IDENTIFIER, getEQIdentifier().toString()));
-		eps.add(new EntryProperty(ExchangeProp.EXCHANGE_TYPE, getExchangeType().toString()));
 		eps.add(new EntryProperty(ExchangeProp.EQ_CAPACITY_PERCENT, getEQCapacityPercent()));
 		return eps;
 	}
 
 	private EntryIdentifier getEQIdentifier() {
 		return eqIdentifier;
-	}
-	
-	abstract protected ExchangeType exchangeType();
-	
-	private ExchangeType getExchangeType() {
-		if (null == exchangeType) {
-			exchangeType = exchangeType();
-		}
-		return exchangeType;
 	}
 
 	private int getEQCapacityPercent() {

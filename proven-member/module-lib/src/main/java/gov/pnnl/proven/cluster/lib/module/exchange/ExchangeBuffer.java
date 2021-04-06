@@ -62,6 +62,7 @@ import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
@@ -74,7 +75,7 @@ import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
  * @author d3j766
  *
  */
-public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeComponent {
+public abstract class ExchangeBuffer extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(ExchangeBuffer.class);
 
@@ -99,7 +100,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	protected DisclosureItemState headState = null;
 	protected Map<DisclosureItemState, CompletableFuture<Void>> bufferReaders;
 	protected Map<DisclosureItemState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
-	protected Ringbuffer<T> buffer;
+	protected Ringbuffer<DisclosureItem> buffer;
 
 	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
@@ -123,7 +124,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 		}
 	}
 
-	protected abstract void itemProcessor(ReadResultSet<T> item);
+	protected abstract void itemProcessor(ReadResultSet<DisclosureItem> item);
 
 	protected void startReaders() {
 		for (DisclosureItemState state : supportedItemStates) {
@@ -165,7 +166,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 
 			log.debug(moduleName + ":: Item processor for :: " + state);
 
-			ReadResultSet<T> bufferedItems = readItem(state);
+			ReadResultSet<DisclosureItem> bufferedItems = readItem(state);
 
 			// TODO - item processor is now on it's own thread, and any
 			// transfers should be taken care of in this thread.
@@ -403,7 +404,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * @throws BufferReaderInterruptedException
 	 *             if the thread was interrupted during the read operation.
 	 */
-	protected ReadResultSet<T> readItem(DisclosureItemState state) throws BufferReaderInterruptedException {
+	protected ReadResultSet<DisclosureItem> readItem(DisclosureItemState state) throws BufferReaderInterruptedException {
 
 		log.debug("READ STREAM ITEMS BEGIN :: " + Calendar.getInstance().getTime().toString());
 

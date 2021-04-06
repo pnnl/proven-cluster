@@ -184,7 +184,7 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	}
 
 	public MessageContent getMessageContent() {
-		return getDisclosureItem().getMessageContent();
+		return getDisclosureItem().getContext().getContent();
 	}
 
 	@Override

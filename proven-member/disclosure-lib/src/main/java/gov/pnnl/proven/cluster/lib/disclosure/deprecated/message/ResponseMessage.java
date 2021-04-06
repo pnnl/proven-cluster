@@ -92,7 +92,7 @@ public class ResponseMessage extends ProvenMessage {
 		super(di);
 		this.responseMessage = response.toJson();
 		this.status = response.getStatus();
-		this.sourceContentType = di.getMessageContent();
+		this.sourceContentType = di.getContext().getContent();
 	}
 	
 	public ResponseMessage(ResponseItem response, ProvenMessage sourceMessage) {

@@ -71,8 +71,9 @@ public class RequestBuffer extends ExchangeBuffer<RequestItem<?>> {
 
 	static Logger log = LoggerFactory.getLogger(RequestBuffer.class);
 
-	public static final DisclosureItemState[] SUPPORTED_ITEM_STATES = { DisclosureItemState.New, DisclosureItemState.Retry,
-			DisclosureItemState.Ready, DisclosureItemState.Running, DisclosureItemState.Complete, DisclosureItemState.Fail };
+	public static final DisclosureItemState[] SUPPORTED_ITEM_STATES = { DisclosureItemState.New,
+			DisclosureItemState.Retry, DisclosureItemState.Ready, DisclosureItemState.Running,
+			DisclosureItemState.Complete, DisclosureItemState.Fail };
 
 	String doId;
 	Ringbuffer<RequestItem<?>> buffer;
@@ -102,12 +103,6 @@ public class RequestBuffer extends ExchangeBuffer<RequestItem<?>> {
 		return SUPPORTED_ITEM_STATES;
 	}
 
-	
-	@Override 
-	public ExchangeType exchangeType() {
-		return ExchangeType.RequestBuffer;
-	}
-	
 	void addLocalDisclosure(DisclosureBuffer db) {
 		localDisclosure = db;
 	}

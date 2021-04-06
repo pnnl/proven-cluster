@@ -39,18 +39,14 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NavigableSet;
-import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import gov.pnnl.proven.cluster.lib.disclosure.Disclosable;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 
@@ -64,14 +60,19 @@ import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
  * @see ExchangeComponent
  *
  */
-public class ExchangeRequest implements Comparable<ExchangeRequest> {
+public class ExchangeRequestOriginal implements Comparable<ExchangeRequestOriginal> {
 
-	private Disclosable disclosable;
-	private SortedSet<SimpleEntry<ExchangeOperation, ExchangeOperationState> operations = new TreeSet<>();
-	private Simple
-	
-	
-	
+	/**
+	 * Contains data items being exchanged. Requests come in batches up to the
+	 * maximumm
+	 */
+	private List<BufferedItem> items = new ArrayList<>();
+
+	private UUID moduleId;
+	private ModuleStatus moduleStatus;
+	private String moduleName;
+	private long moduleCreation;
+
 	/**
 	 * Block synchronization lock for adding a new ComponentEntry
 	 */
@@ -83,10 +84,7 @@ public class ExchangeRequest implements Comparable<ExchangeRequest> {
 	private TreeSet<ComponentEntry> moduleComponents = new TreeSet<ComponentEntry>();
 	private NavigableSet<ComponentEntry> moduleExchange = Collections.unmodifiableNavigableSet(moduleComponents);
 
-	
-	public 
-	
-	public ExchangeRequest(ComponentEntry ce) {
+	public ExchangeRequestOriginal(ComponentEntry ce) {
 		this.moduleId = ce.getLocation().getModuleId();
 		this.moduleStatus = ce.getModuleStatus();
 		this.moduleName = ce.getModuleName();
@@ -161,7 +159,7 @@ public class ExchangeRequest implements Comparable<ExchangeRequest> {
 	}
 
 	@Override
-	public int compareTo(ExchangeRequest other) {
+	public int compareTo(ExchangeRequestOriginal other) {
 
 		int ret;
 
@@ -199,10 +197,10 @@ public class ExchangeRequest implements Comparable<ExchangeRequest> {
 		if (obj == null) {
 			return false;
 		}
-		if (!(obj instanceof ExchangeRequest)) {
+		if (!(obj instanceof ExchangeRequestOriginal)) {
 			return false;
 		}
-		ExchangeRequest other = (ExchangeRequest) obj;
+		ExchangeRequestOriginal other = (ExchangeRequestOriginal) obj;
 		if (moduleId == null) {
 			if (other.moduleId != null) {
 				return false;

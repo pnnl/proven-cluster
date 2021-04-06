@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
+import static gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState.New;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +62,6 @@ import com.hazelcast.core.IQueue;
 
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.UnsupportedDisclosureType;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
@@ -195,8 +196,12 @@ public class DisclosureQueue extends ExchangeComponent {
 
 				boolean entriesAdded = true;
 				if ((null != entries) && (!entries.isEmpty())) {
-					DisclosureItemState state = entries.get(0).getItemState();
-					entriesAdded = localDisclosure.addItems(entries, state);
+					// DisclosureItemState state =
+					// entries.get(0).getItemState();
+					// TODO This should be changed to send to MessageExchange
+					// DisclosureItem does not have state information, this is
+					// imposed by exchange buffer operations
+					entriesAdded = localDisclosure.addItems(entries, New);
 				}
 
 				log.debug("ENTRY ADDED TO DISCLOSURE BUFFER");
@@ -283,8 +288,12 @@ public class DisclosureQueue extends ExchangeComponent {
 
 				boolean entriesAdded = true;
 				if ((null != entries) && (!entries.isEmpty())) {
-					DisclosureItemState state = entries.get(0).getItemState();
-					entriesAdded = localDisclosure.addItems(entries, state);
+					// DisclosureItemState state =
+					// entries.get(0).getItemState();
+					// TODO This should be changed to send to MessageExchange
+					// DisclosureItem does not have state information, this is
+					// imposed by exchange buffer operations
+					entriesAdded = localDisclosure.addItems(entries, New);
 				}
 
 				log.debug("ENTRY ADDED TO DISCLOSURE BUFFER");
@@ -429,12 +438,14 @@ public class DisclosureQueue extends ExchangeComponent {
 
 			try {
 				items.add(new DisclosureItem(item));
-//			} catch (JsonParsingException | CsvParsingException | JSONDataValidationException
-//					| UnsupportedDisclosureType e) {
-//				log.error("Failed to process a new disclosure item", e);
-//				log.error("Item discarded:");
-//				log.error(item);
-			} finally {}
+				// } catch (JsonParsingException | CsvParsingException |
+				// JSONDataValidationException
+				// | UnsupportedDisclosureType e) {
+				// log.error("Failed to process a new disclosure item", e);
+				// log.error("Item discarded:");
+				// log.error(item);
+			} finally {
+			}
 
 		}
 	}
@@ -445,11 +456,6 @@ public class DisclosureQueue extends ExchangeComponent {
 
 	public int getRemainingCapacity() {
 		return itemQueue.remainingCapacity();
-	}
-
-	@Override
-	public ExchangeType exchangeType() {
-		return ExchangeType.DisclosureQueue;
 	}
 
 	@Override

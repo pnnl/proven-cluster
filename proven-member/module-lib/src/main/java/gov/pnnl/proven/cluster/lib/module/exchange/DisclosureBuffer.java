@@ -67,7 +67,7 @@ import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageCon
 
 /**
  * A managed component supporting the collection and processing of
- * {@code DisclosureItem}s. 
+ * {@code DisclosureItem}s.
  * 
  * @author d3j766
  * 
@@ -75,7 +75,7 @@ import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageCon
  *
  */
 @Scalable
-public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
+public class DisclosureBuffer extends ExchangeBuffer {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureBuffer.class);
 
@@ -97,7 +97,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 		doId = entryIdentifier().toString();
 		de = create(new CreationRequest<DisclosureQueue>(DisclosureQueue.class)).get();
-		
+
 		// Create buffer instance
 		buffer = hzi.getRingbuffer(doId);
 		log.debug("Disclosure Buffer created. DO-ID:: " + DistributedObjectUtil.getName(buffer));
@@ -130,7 +130,8 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 		if (items.size() >= 0) {
 
-			DisclosureItemState state = items.get(0).getItemState();
+			// DisclosureItemState state = items.get(0).getItemState();
+			DisclosureItemState state = DisclosureItemState.New;
 
 			switch (state) {
 
@@ -147,7 +148,8 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 				items.forEach((item) -> {
 					try {
 						DisclosureMessage dm = new DisclosureMessage(item);
-						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDisclosureItem().getContext().getDomain(), mst);
+						MessageStreamProxy msp = sm
+								.getMessageStreamProxy(dm.getDisclosureItem().getContext().getDomain(), mst);
 						msp.addMessage(dm);
 						log.debug("Added Disclosure messsage to stream :: " + dm.getMessageKey());
 					} catch (UnsupportedMessageContentException | JsonParsingException
@@ -182,11 +184,6 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 	}
 
-	@Override 
-	public ExchangeType exchangeType() {
-		return ExchangeType.DisclosureBuffer;
-	}
-	
 	void addLocalExchange(RequestBuffer rb) {
 		localExchange = rb;
 	}
