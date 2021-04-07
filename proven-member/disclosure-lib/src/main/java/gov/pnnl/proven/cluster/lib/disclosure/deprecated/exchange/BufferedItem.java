@@ -40,7 +40,6 @@
 package gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange;
 
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 
 /**
  * Represents a data item that is queued for processing as it enters the Proven

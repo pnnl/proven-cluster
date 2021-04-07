@@ -115,7 +115,7 @@ public class ModelItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return "Explicit message";
+		return "Model message";
 	}
 
 }

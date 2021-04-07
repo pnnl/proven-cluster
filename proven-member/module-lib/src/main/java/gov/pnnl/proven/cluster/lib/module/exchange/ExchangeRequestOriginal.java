@@ -66,7 +66,7 @@ public class ExchangeRequestOriginal implements Comparable<ExchangeRequestOrigin
 	 * Contains data items being exchanged. Requests come in batches up to the
 	 * maximumm
 	 */
-	private List<BufferedItem> items = new ArrayList<>();
+	//private List<BufferedItem> items = new ArrayList<>();
 
 	private UUID moduleId;
 	private ModuleStatus moduleStatus;

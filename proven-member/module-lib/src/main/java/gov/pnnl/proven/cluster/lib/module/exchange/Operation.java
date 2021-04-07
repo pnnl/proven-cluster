@@ -37,114 +37,47 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.service.module;
-
-import java.io.Serializable;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.module.exchange.OperationState;
-import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
-
 /**
- * Represents a module request item serviced by a {@link RequestBuffer}
+ * Identifies supported operations for an ExchangeBuffer.
  * 
- * @see RequestBuffer
+ * @see ExchangeBuffer
  * 
  * @author d3j766
  *
  */
-public class RequestItem<T> extends DisclosureItem implements Serializable {
+public enum Operation {
 
-	private static final long serialVersionUID = 1L;
+	Filter(-10),
+	Disclosure(0),
+	Transform(10),
+	Others(20);
 
-	static Logger log = LoggerFactory.getLogger(RequestItem.class);
+	static Logger log = LoggerFactory.getLogger(Operation.class);
 
-	/**
-	 * Request input type
-	 */
-	T t;
+	private int priority;
 
-	/**
-	 * Maximum number of request retries before being sent to error stream
-	 */
-	private int retries;
-
-	/**
-	 * Time to live (in seconds) before being removed from a request buffer.
-	 */
-	private int ttl;
-
-	/**
-	 * Priority of request as defined in {@link RequestPriority}. Higher
-	 * priority requests are services before lower priority requests.
-	 */
-	private RequestPriority priority;
-
-	/**
-	 * Scope of the reuest's service execution as defined in
-	 * {@link RequestScope}
-	 */
-	private RequestScope scope;
-
-	private OperationState bufferedState;
-
-	/**
-	 * Request constructor. Input of request is required at time of
-	 * construction.
-	 * 
-	 * @param t
-	 *            the type of input for the request
-	 */
-	public RequestItem(T t) {
-		this.t = t;
-		this.bufferedState = OperationState.New;
-	}
-
-	public int getRetries() {
-		return retries;
-	}
-
-	public void setRetries(int retries) {
-		this.retries = retries;
-	}
-
-	public int getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
-	}
-
-	public RequestPriority getPriority() {
-		return priority;
-	}
-
-	public void setPriority(RequestPriority priority) {
+	Operation(int priority) {
 		this.priority = priority;
 	}
 
-	public RequestScope getScope() {
-		return scope;
+	public int getPriority() {
+		return priority;
 	}
 
-	public void setScope(RequestScope scope) {
-		this.scope = scope;
-	}
+	public static String[] getOperationNames() {
 
-	public OperationState getItemState() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void setItemState(OperationState bufferedState) {
-
+		Operation[] operations = Operation.values();
+		String[] ret = new String[operations.length];
+		int i = 0;
+		for (Operation op : operations) {
+			ret[i] = op.toString();
+		}
+		return ret;
 	}
 
 }

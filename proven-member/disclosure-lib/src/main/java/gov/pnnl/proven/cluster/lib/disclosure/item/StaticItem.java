@@ -115,7 +115,7 @@ public class StaticItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return "Explicit message";
+		return "Static message";
 	}
 
 }

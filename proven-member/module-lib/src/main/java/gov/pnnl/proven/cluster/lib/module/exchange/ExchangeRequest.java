@@ -39,20 +39,23 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.NavigableSet;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Explicit;
+import static gov.pnnl.proven.cluster.lib.module.exchange.OperationState.New;
+
+import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.Disclosable;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
-import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 
 /**
  * Represents a request for an exchange within the exchange environment. An
@@ -64,153 +67,90 @@ import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
  * @see ExchangeComponent
  *
  */
-public class ExchangeRequest implements Comparable<ExchangeRequest> {
+public class ExchangeRequest implements IdentifiedDataSerializable {
 
+	static Logger log = LoggerFactory.getLogger(ExchangeRequest.class);
+
+	/**
+	 * Message data
+	 */
 	private Disclosable disclosable;
-	private SortedSet<SimpleEntry<ExchangeOperation, ExchangeOperationState> operations = new TreeSet<>();
-	private Simple
-	
-	
-	
-	/**
-	 * Block synchronization lock for adding a new ComponentEntry
-	 */
-	private final Object componentEntryLock = new Object();
 
 	/**
-	 * (Local) Module component and exchange entries
+	 * Current operation and state
 	 */
-	private TreeSet<ComponentEntry> moduleComponents = new TreeSet<ComponentEntry>();
-	private NavigableSet<ComponentEntry> moduleExchange = Collections.unmodifiableNavigableSet(moduleComponents);
-
-	
-	public 
-	
-	public ExchangeRequest(ComponentEntry ce) {
-		this.moduleId = ce.getLocation().getModuleId();
-		this.moduleStatus = ce.getModuleStatus();
-		this.moduleName = ce.getModuleName();
-		this.moduleCreation = ce.getModuleCreation();
-	}
+	Operation op;
+	OperationState opState;
 
 	/**
-	 * @return the number of component entries for the module
+	 * Start/Finish times for Disclosable processing.
 	 */
-	public int getEntryCount() {
-		return moduleComponents.size();
-	}
+	Long startTime;
+	Long finishTime;
 
 	/**
-	 * Adds the provided ComponentEntry to this module. Provided entry will
-	 * replace existing entry if it exists.
-	 * 
-	 * @param ce
-	 *            entry to add
-	 * 
-	 * @throw IllegalArgumentException if provided entry's module does not match
-	 *        this module entry.
+	 * Ordered Set of Operations to be applied to Disclosable
 	 */
-	public void addComponent(ComponentEntry ce) {
+	private SortedSet<OperationContext> operations = new TreeSet<>();
 
-		if (!ce.getLocation().getModuleId().equals(moduleId)) {
-			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
-		}
-
-		synchronized (componentEntryLock) {
-			if (!moduleComponents.add(ce)) {
-				moduleComponents.remove(ce);
-				moduleComponents.add(ce);
-			}
-		}
+	
+	
+	public ExchangeRequest(DisclosureItem di) {
+		// TODO Remove - here to avoid build problems
 	}
-
-	public void removeComponent(ComponentEntry ce) {
-
-		if (!ce.getLocation().getModuleId().equals(moduleId)) {
-			throw new IllegalArgumentException("Component entry's module does not match ModuleEntry");
-		}
-
-		synchronized (componentEntryLock) {
-			moduleComponents.remove(ce);
-		}
-	}
-
-	public ComponentEntry exchangeComponent() {
+	
+	public ExchangeRequest(Disclosable disclosable, SortedSet<OperationContext> operations) {
 		// TODO
-		return null;
+	}
+	
+	public Disclosable getDisclosable() {
+		return disclosable;
+	}
+	
+	
+	/**
+	 * TODO Remove
+	 */
+	OperationState getItemState() {
+		return New;
 	}
 
-	public UUID getModuleId() {
-		return moduleId;
+	/**
+	 * TODO Remove
+	 */
+	void setItemState(OperationState bufferedState) {
 	}
 
-	public ModuleStatus getModuleStatus() {
-		return moduleStatus;
-	}
-
-	public void setModuleStatus(ModuleStatus moduleStatus) {
-		this.moduleStatus = moduleStatus;
-	}
-
-	public String getModuleName() {
-		return moduleName;
-	}
-
-	public long getModuleCreation() {
-		return moduleCreation;
-	}
-
-	@Override
-	public int compareTo(ExchangeRequest other) {
-
-		int ret;
-
-		if (moduleId.equals(other.getModuleId())) {
-			ret = 0;
-		} else {
-			if (moduleCreation != other.getModuleCreation()) {
-				int diff = (int) (moduleCreation - other.getModuleCreation());
-				ret = ((diff < 0) ? (-1) : (1));
-			} else {
-				/**
-				 * Need to pick a non-zero value here. Returning zero would
-				 * violate equals()
-				 */
-				ret = -1;
-			}
-		}
-
-		return ret;
+	/**
+	 * TODO Remove
+	 */
+	MessageContent getMessageContent() {
+		return Explicit;
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((moduleId == null) ? 0 : moduleId.hashCode());
-		return result;
+	public void writeData(ObjectDataOutput out) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof ExchangeRequest)) {
-			return false;
-		}
-		ExchangeRequest other = (ExchangeRequest) obj;
-		if (moduleId == null) {
-			if (other.moduleId != null) {
-				return false;
-			}
-		} else if (!moduleId.equals(other.moduleId)) {
-			return false;
-		}
-		return true;
+	public void readData(ObjectDataInput in) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
+
+	@Override
+	public int getFactoryId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 
 }

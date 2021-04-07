@@ -61,7 +61,6 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 
 /**
  * Base class for internal response messaging.

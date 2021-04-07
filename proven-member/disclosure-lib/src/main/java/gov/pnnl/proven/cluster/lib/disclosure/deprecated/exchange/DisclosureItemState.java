@@ -37,114 +37,44 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-/**
- * 
- */
-package gov.pnnl.proven.cluster.lib.module.service.module;
-
-import java.io.Serializable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.module.exchange.OperationState;
-import gov.pnnl.proven.cluster.lib.module.exchange.RequestBuffer;
+package gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange;
 
 /**
- * Represents a module request item serviced by a {@link RequestBuffer}
- * 
- * @see RequestBuffer
+ * Represents the processing status of a Disclosable.
  * 
  * @author d3j766
  *
  */
-public class RequestItem<T> extends DisclosureItem implements Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	static Logger log = LoggerFactory.getLogger(RequestItem.class);
+public enum DisclosureItemState {
 
 	/**
-	 * Request input type
+	 * Initial state. Any steps to prepare for processing are performed.
 	 */
-	T t;
+	New,
 
 	/**
-	 * Maximum number of request retries before being sent to error stream
+	 * Initial State. Indicates processing failed and a retry will be attempted.
+	 * Any steps to prepare for processing are performed.
 	 */
-	private int retries;
+	Retry,
 
 	/**
-	 * Time to live (in seconds) before being removed from a request buffer.
+	 * Processing is ready to be initiated.
 	 */
-	private int ttl;
+	Ready,
 
 	/**
-	 * Priority of request as defined in {@link RequestPriority}. Higher
-	 * priority requests are services before lower priority requests.
+	 * Processing is active.
 	 */
-	private RequestPriority priority;
+	Running,
 
 	/**
-	 * Scope of the reuest's service execution as defined in
-	 * {@link RequestScope}
+	 * Terminal state. Indicates processing failed.
 	 */
-	private RequestScope scope;
-
-	private OperationState bufferedState;
+	Fail,
 
 	/**
-	 * Request constructor. Input of request is required at time of
-	 * construction.
-	 * 
-	 * @param t
-	 *            the type of input for the request
+	 * Terminal state. Indicates processing completed normally.
 	 */
-	public RequestItem(T t) {
-		this.t = t;
-		this.bufferedState = OperationState.New;
-	}
-
-	public int getRetries() {
-		return retries;
-	}
-
-	public void setRetries(int retries) {
-		this.retries = retries;
-	}
-
-	public int getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
-	}
-
-	public RequestPriority getPriority() {
-		return priority;
-	}
-
-	public void setPriority(RequestPriority priority) {
-		this.priority = priority;
-	}
-
-	public RequestScope getScope() {
-		return scope;
-	}
-
-	public void setScope(RequestScope scope) {
-		this.scope = scope;
-	}
-
-	public OperationState getItemState() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void setItemState(OperationState bufferedState) {
-
-	}
-
+	Complete;
 }

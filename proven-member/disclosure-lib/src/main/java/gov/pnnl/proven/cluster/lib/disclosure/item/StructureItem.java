@@ -115,7 +115,7 @@ public class StructureItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return "Explicit message";
+		return "Structure message";
 	}
 
 }

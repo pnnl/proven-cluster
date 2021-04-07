@@ -56,7 +56,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureMessa
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
@@ -79,8 +78,8 @@ public class DisclosureBuffer extends ExchangeBuffer {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureBuffer.class);
 
-	private static final DisclosureItemState[] SUPPORTED_ITEM_STATES = { DisclosureItemState.New };
-	private RequestBuffer localExchange;
+	private static final OperationState[] SUPPORTED_ITEM_STATES = { OperationState.New };
+	//private RequestBuffer localExchange;
 	private CompletableFuture<Void> bufferSourceReader;
 
 	String doId;
@@ -126,12 +125,12 @@ public class DisclosureBuffer extends ExchangeBuffer {
 	}
 
 	@Override
-	protected void itemProcessor(ReadResultSet<DisclosureItem> items) {
+	protected void itemProcessor(ReadResultSet<ExchangeRequest> items) {
 
 		if (items.size() >= 0) {
 
 			// DisclosureItemState state = items.get(0).getItemState();
-			DisclosureItemState state = DisclosureItemState.New;
+			OperationState state = OperationState.New;
 
 			switch (state) {
 
@@ -147,7 +146,7 @@ public class DisclosureBuffer extends ExchangeBuffer {
 
 				items.forEach((item) -> {
 					try {
-						DisclosureMessage dm = new DisclosureMessage(item);
+						DisclosureMessage dm = new DisclosureMessage((DisclosureItem) item.getDisclosable());
 						MessageStreamProxy msp = sm
 								.getMessageStreamProxy(dm.getDisclosureItem().getContext().getDomain(), mst);
 						msp.addMessage(dm);
@@ -184,8 +183,8 @@ public class DisclosureBuffer extends ExchangeBuffer {
 
 	}
 
-	void addLocalExchange(RequestBuffer rb) {
-		localExchange = rb;
-	}
+//	void addLocalExchange(RequestBuffer rb) {
+//		localExchange = rb;
+//	}
 
 }

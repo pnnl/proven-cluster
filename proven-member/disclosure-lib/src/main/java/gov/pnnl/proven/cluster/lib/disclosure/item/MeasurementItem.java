@@ -115,7 +115,7 @@ public class MeasurementItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return "Explicit message";
+		return "Measurement message";
 	}
 
 }

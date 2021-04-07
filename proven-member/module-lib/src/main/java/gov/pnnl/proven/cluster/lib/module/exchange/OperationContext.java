@@ -37,45 +37,68 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
-/**
- * Represents the processing status of a BufferedItem.
- * 
- * @author d3j766
- *
- */
-public enum DisclosureItemState {
+import static gov.pnnl.proven.cluster.lib.module.exchange.OperationState.New;
 
-	/**
-	 * Initial state. Any item changes to prepare it for processing are
-	 * performed here.
-	 */
-	New,
+import java.io.IOException;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
-	/**
-	 * Initial State. Indicates item is being reprocessed because of a previous
-	 * failure. Any item changes to prepare it for processing is performed.
-	 */
-	Retry,
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-	/**
-	 * Item is ready to be processed.
-	 */
-	Ready,
+public class OperationContext implements IdentifiedDataSerializable, Comparator<OperationContext> {
 
-	/**
-	 * Item processing is running.
-	 */
-	Running,
+	private Operation op;
+	private OperationState state;
+	private boolean hasModel;
+	private Long OperationStartTime;
+	private Long OperationFinishTime;
+	private Map<OperationState, SimpleEntry<Long, Long>> stateStartFinishTime = new HashMap<>();
+	private int retries;
+	private boolean isFinished;
 
-	/**
-	 * Terminal state. Indicates item processing failed.
-	 */
-	Fail,
+	public OperationContext() {
+	}
 
-	/**
-	 * Terminal state. Indicates item processing completed normally.
-	 */
-	Complete;
+	public OperationContext(Operation op, boolean hasModel) {
+		this.op = op;
+		this.state = New;
+		this.hasModel = hasModel;
+		this.retries = 0;
+		this.isFinished = false;
+	}
+
+	@Override
+	public int compare(OperationContext o1, OperationContext o2) {
+		// TODO
+		return 0;
+	}
+
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public int getFactoryId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

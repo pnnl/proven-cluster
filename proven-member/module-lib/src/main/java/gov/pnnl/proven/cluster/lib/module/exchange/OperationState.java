@@ -39,99 +39,42 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Administrative;
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ModuleService;
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.PipelineService;
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Query;
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Response;
-//import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.getSchemaValues;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-
 /**
- * Identifies supported operations for an ExchangeBuffer. 
- * 
- * @see ExchangeBuffer
+ * Represents the processing status of a Disclosable.
  * 
  * @author d3j766
  *
  */
-public enum ExchangeOperation {
+public enum OperationState {
 
 	/**
-	 * Entry point for disclosed items created outside the exchange environment,
-	 * either from an external or internal source with respect to the Proven
-	 * platform.
+	 * Initial state. Any steps to prepare for processing are performed.
 	 */
-	DisclosureQueue(),
+	New,
 
 	/**
-	 * Manages disclosed items for entry into the Hybrid store. All schema based
-	 * message content is routed to a disclosure buffer.
+	 * Initial State. Indicates processing failed and a retry will be attempted.
+	 * Any steps to prepare for processing are performed.
 	 */
-	DisclosureBuffer(),
+	Retry,
 
 	/**
-	 * Processes request content.
-	 * 
-	 * @see MessageContent
+	 * Processing is ready to be initiated.
 	 */
-	RequestBuffer(Query, Administrative),
+	Ready,
 
 	/**
-	 * Processes service content.
+	 * Processing is active.
 	 */
-	ServiceBuffer(PipelineService, ModuleService),
+	Running,
 
 	/**
-	 * Processes response content for storage in Hybrid store.
+	 * Terminal state. Indicates processing failed.
 	 */
-	RespnseBuffer(Response);
-
-	static Logger log = LoggerFactory.getLogger(ExchangeOperation.class);
-
-	private List<MessageContent> contentTypes;
-
-	ExchangeOperation(MessageContent... contentTypes) {
-		this.contentTypes = Arrays.asList(contentTypes);
-	}
+	Fail,
 
 	/**
-	 * Represents the content types that will be routed to exchange components
-	 * of this type by a ModuleExchange.
-	 * 
-	 * @see ModuleExchange
+	 * Terminal state. Indicates processing completed normally.
 	 */
-	public List<MessageContent> getContentTypes() {
-		return contentTypes;
-	}
-
-	/**
-	 * Represents the exchange types supporting the provided message content
-	 * type.
-	 * 
-	 * @param mc
-	 *            the message content type
-	 * 
-	 * @return ExchangeTypes supporting the provided message content type.
-	 */
-	public List<ExchangeOperation> supportedExchangeTypes(MessageContent mc) {
-
-		List<ExchangeOperation> ret = new ArrayList<>();
-		for (ExchangeOperation et : values()) {
-			if (et.getContentTypes().contains(mc)) {
-				ret.add(et);
-			}
-		}
-
-		return ret;
-	}
-
+	Complete;
 }

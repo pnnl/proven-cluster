@@ -97,7 +97,7 @@ public abstract class ExchangeComponent extends ManagedComponent {
 	 * process. Items are added to this queue via exchange requests performed by
 	 * a ModuleExchange or MemberExchange component.
 	 */
-	IQueue<BufferedItem> exchangeQueue;
+	IQueue<ExchangeRequest> exchangeQueue;
 
 	/**
 	 * TODO add reader implementation for exchange queue as well as other

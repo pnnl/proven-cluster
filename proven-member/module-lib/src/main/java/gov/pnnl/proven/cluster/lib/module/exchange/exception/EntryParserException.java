@@ -40,13 +40,13 @@
 
 package gov.pnnl.proven.cluster.lib.module.exchange.exception;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
+import gov.pnnl.proven.cluster.lib.module.exchange.OperationState;
 
 public class EntryParserException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 	
-	DisclosureItemState state;
+	OperationState state;
 
 	public EntryParserException() {
 		super();

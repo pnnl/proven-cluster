@@ -39,7 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState.New;
+import static gov.pnnl.proven.cluster.lib.module.exchange.OperationState.New;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,6 @@ import com.hazelcast.core.IQueue;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.JSONDataValidationException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItemState;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.ComponentMaintenance;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.DisclosureEntryInterruptedException;
@@ -178,7 +177,7 @@ public class DisclosureQueue extends ExchangeComponent {
 			// local)
 			// Should not continue if local disclosure has no free space - the
 			// entries will be lost
-			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(DisclosureItemState.New))) {
+			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(OperationState.New))) {
 
 				try {
 					// Will block if queue is empty
@@ -266,7 +265,7 @@ public class DisclosureQueue extends ExchangeComponent {
 
 			// Should not continue if local disclosure has no free space - the
 			// entries will be lost
-			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(DisclosureItemState.New))) {
+			if ((null != localDisclosure) && (localDisclosure.hasFreeSpace(OperationState.New))) {
 
 				try {
 					// Will block if queue is empty
@@ -376,7 +375,7 @@ public class DisclosureQueue extends ExchangeComponent {
 		List<DisclosureItem> entries = new ArrayList<>();
 
 		// TODO - create a service that returns the initial disclosure state
-		int max = localDisclosure.getMaxBatchSize(DisclosureItemState.New);
+		int max = localDisclosure.getMaxBatchSize(OperationState.New);
 		boolean done = false;
 		boolean initialCheck = true;
 		while (!done) {

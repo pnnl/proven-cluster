@@ -8,10 +8,11 @@ allprojects {
 
 	task provenVersion {
 		doLast {
-			println "$version"
-			println "$name"
+			println version
+			println name
 		}
 	}
+	
 }
 
 buildscript {
@@ -20,7 +21,7 @@ buildscript {
 }
 
 subprojects {
-
+	
 	ext.javaEEVersion = "8.0"
 	ext.jetVersion = "3.2.2"
 	ext.jetHazelcastVersion = "3.12.6"
@@ -77,7 +78,7 @@ subprojects {
 		}
 
 		war {
-			archiveFileName = project.name - '-module' + "-$archiveVersion" + '.war'
+			archiveFileName = project.name - "-module" + "-$version" + ".war"
 			webXml = null
 		}
 
