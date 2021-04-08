@@ -1,5 +1,5 @@
 
-// TODO create a distribution task that creates Proven's executable jar.
+// TODO create a distribution task that creates Proven's deployment jar.
 jar.enabled = true
 jar {
 	exclude('PROVEN-INF')
@@ -10,6 +10,9 @@ configurations {
 
 	deployDeps
 	deployDeps.transitive = false
+	
+	schemaDeps
+	schemaDeps.transitive = false
 	
 	payaraDeps
 	payaraDeps.transitive = false
@@ -28,7 +31,7 @@ dependencies {
 	pipelineDeps group: 'com.blazegraph', name: 'blazegraph-jar', version: '2.1.5'
 	pipelineDeps project(path: 'pipeline-lib', configuration: 'shadow')
 	deployDeps project(path: 'member-module', configuration: 'war')
-
+	schemaDeps project(path: 'disclosure-lib', configuration: 'schema')
 }
 
 
@@ -46,6 +49,10 @@ task copyDistributionResources(type: Copy) {
 	
 	into('lib/pipeline-request') {
 		from configurations.pipelineDeps
+	}
+	
+	into('schema') {
+		from configurations.schemaDeps
 	}
 
 }

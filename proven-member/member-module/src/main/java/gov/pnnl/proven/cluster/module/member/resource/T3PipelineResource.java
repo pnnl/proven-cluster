@@ -109,6 +109,7 @@ public class T3PipelineResource {
 	@Managed
 	T3Pipeline t3p;
 
+	@SuppressWarnings("deprecation")
 	@GET
 	@Path("/{domain}")
 	public Response submitTestPipeline(@PathParam("domain") String domain) {

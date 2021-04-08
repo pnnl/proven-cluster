@@ -83,6 +83,6 @@ public @interface StreamConfig {
 	/**
 	 * (Optional) The {@code MessageStreamType}.  Default is {@code MessageStreamType#Disclosure}
 	 */
-	MessageStreamType streamType() default MessageStreamType.Disclosure;
+	MessageStreamType streamType() default MessageStreamType.Knowledge;
 
 }

@@ -42,7 +42,7 @@ package gov.pnnl.proven.cluster.lib.module.stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.module.stream.annotation.StreamConfig;
 import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageContentException;
 

@@ -89,7 +89,8 @@ import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageTopic;
+
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageTopic;
 
 /**
  * @author raju332

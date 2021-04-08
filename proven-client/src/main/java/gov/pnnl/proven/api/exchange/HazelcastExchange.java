@@ -96,8 +96,8 @@ import com.hazelcast.core.ReplicatedMap;
 import gov.pnnl.proven.api.producer.ProvenResponse;
 import gov.pnnl.proven.api.producer.SessionInfo;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureRegister;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
 
 /**
  * Provides implementation for Hazelcast based Exchange.

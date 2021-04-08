@@ -49,7 +49,6 @@ import com.hazelcast.core.IExecutorService;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.service.module.RequestItem;
@@ -67,53 +66,50 @@ import gov.pnnl.proven.cluster.lib.module.service.module.RequestItem;
  *
  */
 @Scalable
-public class RequestBuffer extends ExchangeBuffer<RequestItem<?>> {
+public class RequestBuffer {
 
-	static Logger log = LoggerFactory.getLogger(RequestBuffer.class);
-
-	public static final BufferedItemState[] SUPPORTED_ITEM_STATES = { BufferedItemState.New, BufferedItemState.Retry,
-			BufferedItemState.Ready, BufferedItemState.Running, BufferedItemState.Complete, BufferedItemState.Fail };
-
-	String doId;
-	Ringbuffer<RequestItem<?>> buffer;
-	IExecutorService serviceBuffer;
-	DisclosureBuffer localDisclosure;
-
-	@Inject
-	@Managed
-	private ServiceBuffer sb;
-
-	@PostConstruct
-	void init() {
-		log.debug("Post construct for ExchangeBuffer");
-		// TODO Add default declarative configurations for buffers
-		// TODO Integrate buffer id's into their names
-		doId = entryIdentifier().toString();
-		buffer = hzi.getRingbuffer(doId);
-	}
-
-	@Inject
-	public RequestBuffer() {
-		super(SUPPORTED_ITEM_STATES);
-		log.debug("DefaultConstructer for ExchangeBuffer");
-	}
-
-	public BufferedItemState[] itemStates() {
-		return SUPPORTED_ITEM_STATES;
-	}
-
-	
-	@Override 
-	public ExchangeType exchangeType() {
-		return ExchangeType.RequestBuffer;
-	}
-	
-	void addLocalDisclosure(DisclosureBuffer db) {
-		localDisclosure = db;
-	}
-
-	@Override
-	protected void itemProcessor(ReadResultSet<RequestItem<?>> items) {
-	}
+//extends ExchangeBuffer<RequestItem<?>> {
+//
+//	static Logger log = LoggerFactory.getLogger(RequestBuffer.class);
+//
+//	public static final OperationState[] SUPPORTED_ITEM_STATES = { OperationState.New,
+//			OperationState.Retry, OperationState.Ready, OperationState.Running,
+//			OperationState.Complete, OperationState.Fail };
+//
+//	String doId;
+//	Ringbuffer<RequestItem<?>> buffer;
+//	IExecutorService serviceBuffer;
+//	DisclosureBuffer localDisclosure;
+//
+//	@Inject
+//	@Managed
+//	private ServiceBuffer sb;
+//
+//	@PostConstruct
+//	void init() {
+//		log.debug("Post construct for ExchangeBuffer");
+//		// TODO Add default declarative configurations for buffers
+//		// TODO Integrate buffer id's into their names
+//		doId = entryIdentifier().toString();
+//		buffer = hzi.getRingbuffer(doId);
+//	}
+//
+//	@Inject
+//	public RequestBuffer() {
+//		super(SUPPORTED_ITEM_STATES);
+//		log.debug("DefaultConstructer for ExchangeBuffer");
+//	}
+//
+//	public OperationState[] itemStates() {
+//		return SUPPORTED_ITEM_STATES;
+//	}
+//
+//	void addLocalDisclosure(DisclosureBuffer db) {
+//		localDisclosure = db;
+//	}
+//
+//	@Override
+//	protected void itemProcessor(ReadResultSet<RequestItem<?>> items) {
+//	}
 
 }

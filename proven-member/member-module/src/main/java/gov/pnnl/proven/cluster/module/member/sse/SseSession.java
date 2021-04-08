@@ -39,6 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.module.member.sse;
 
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,8 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import static gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent.*;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
  * Represents an SSE session. SSE Sessions are created by the resource class
@@ -104,7 +105,7 @@ public class SseSession {
 				List<MessageContent> valid = this.event.getStreamType().getMessageContents();
 				ArrayList<MessageContent> dest = new ArrayList<>();
 				for (String mcStr : source) {
-					MessageContent mc = MessageContent.getValue(mcStr);
+					MessageContent mc = MessageContent.getMessageContent(mcStr);
 					if ((null != mc) && (valid.contains(mc))) {
 						if (mc.equals(Any)) {
 							dest.clear();

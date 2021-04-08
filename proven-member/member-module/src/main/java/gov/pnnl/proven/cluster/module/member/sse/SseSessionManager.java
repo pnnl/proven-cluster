@@ -43,6 +43,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -65,9 +66,9 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.listener.EntryAddedListener;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
@@ -429,7 +430,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			try {
 				MessageContent mc = message.getMessageContent();
 				MessageStreamType mst = MessageStreamType.getType(mc);
-				DisclosureDomain dd = message.getDisclosureItem().getDisclosureDomain();
+				DisclosureDomain dd = message.getDisclosureItem().getContext().getDomain();
 				SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 				Set<SseSession> sessions = sessionRegistry.get(se);
 				boolean hasSessions = ((null != sessions) && (!sessions.isEmpty()));
@@ -441,7 +442,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 						// Check if event data should be sent to session
 						boolean hasDomain = session.hasDomain(dd);
 						boolean hasContent = session.hasContent(mc);
-						boolean hasRequester = session.hasRequestor(message.getDisclosureItem().getRequestorId());
+						boolean hasRequester = session.hasRequestor(Optional.ofNullable(message.getDisclosureItem().getContext().getRequestor()));
 						boolean sendEvent = ((hasDomain) && (hasContent) && (hasRequester));
 
 						if (sendEvent) {

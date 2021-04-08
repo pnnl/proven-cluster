@@ -97,8 +97,8 @@ import gov.pnnl.proven.api.exception.CreateMessageException;
 import gov.pnnl.proven.api.exception.NullExchangeInfoException;
 import gov.pnnl.proven.api.exception.SendMessageException;
 import gov.pnnl.proven.api.exchange.ExchangeInfo;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
 
 
 /**

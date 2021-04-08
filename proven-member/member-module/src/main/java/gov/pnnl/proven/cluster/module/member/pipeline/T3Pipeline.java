@@ -54,10 +54,10 @@ import com.hazelcast.nio.Address;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
-import gov.pnnl.proven.cluster.lib.disclosure.message.KnowledgeMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.KnowledgeMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.module.service.annotation.PipelineServiceProvider;
 import gov.pnnl.proven.cluster.lib.module.service.pipeline.PipelineService;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;

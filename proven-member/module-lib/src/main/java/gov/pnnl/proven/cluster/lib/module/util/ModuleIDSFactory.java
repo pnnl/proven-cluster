@@ -3,7 +3,7 @@ package gov.pnnl.proven.cluster.lib.module.util;
 import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.ResponseItem;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.ResponseItem;
 import gov.pnnl.proven.cluster.lib.member.IDSFactory;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;

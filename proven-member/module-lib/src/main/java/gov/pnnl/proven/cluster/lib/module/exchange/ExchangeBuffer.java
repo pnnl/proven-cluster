@@ -41,6 +41,7 @@ package gov.pnnl.proven.cluster.lib.module.exchange;
 
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
@@ -61,20 +63,19 @@ import com.hazelcast.ringbuffer.OverflowPolicy;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.module.exchange.exception.BufferReaderInterruptedException;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 
 /**
  * Wraps a Hazelcast {@link Ringbuffer} distributed data structure for
- * storing/processing {@code BufferItem}s. Processed items may be exchanged
- * with another {@code Exchanger}(s).
+ * storing/processing {@code BufferItem}s. Processed items may be exchanged with
+ * another {@code Exchanger}(s).
  * 
  * @author d3j766
  *
  */
-public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeComponent {
+public abstract class ExchangeBuffer extends ExchangeComponent {
 
 	static Logger log = LoggerFactory.getLogger(ExchangeBuffer.class);
 
@@ -86,20 +87,20 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	public static final Integer BATCH_MIN = 25;
 	public static final Integer BATCH_MAX = 50;
 
-	public Integer getMinBatchSize(BufferedItemState state) {
+	public Integer getMinBatchSize(OperationState state) {
 		return minMaxBatchSizeByState.get(state).getKey();
 	}
 
-	public Integer getMaxBatchSize(BufferedItemState state) {
+	public Integer getMaxBatchSize(OperationState state) {
 		return minMaxBatchSizeByState.get(state).getValue();
 	}
 
-	protected BufferedItemState[] supportedItemStates;
-	protected Map<BufferedItemState, Long> lastReadItemByState;
-	protected BufferedItemState headState = null;
-	protected Map<BufferedItemState, CompletableFuture<Void>> bufferReaders;
-	protected Map<BufferedItemState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
-	protected Ringbuffer<T> buffer;
+	protected OperationState[] supportedItemStates;
+	protected Map<OperationState, Long> lastReadItemByState;
+	protected OperationState headState = null;
+	protected Map<OperationState, CompletableFuture<Void>> bufferReaders;
+	protected Map<OperationState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
+	protected Ringbuffer<ExchangeRequest> buffer;
 
 	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
 	ManagedExecutorService mes;
@@ -110,29 +111,29 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * 
 	 * @param states
 	 */
-	public ExchangeBuffer(BufferedItemState[] states) {
+	public ExchangeBuffer(OperationState[] states) {
 		super();
 		supportedItemStates = states;
-		bufferReaders = new HashMap<BufferedItemState, CompletableFuture<Void>>();
-		lastReadItemByState = new HashMap<BufferedItemState, Long>();
-		minMaxBatchSizeByState = new HashMap<BufferedItemState, SimpleEntry<Integer, Integer>>();
-		for (BufferedItemState state : states) {
+		bufferReaders = new HashMap<OperationState, CompletableFuture<Void>>();
+		lastReadItemByState = new HashMap<OperationState, Long>();
+		minMaxBatchSizeByState = new HashMap<OperationState, SimpleEntry<Integer, Integer>>();
+		for (OperationState state : states) {
 			lastReadItemByState.put(state, -1L);
 			AbstractMap.SimpleEntry<Integer, Integer> entry = new AbstractMap.SimpleEntry<>(BATCH_MIN, BATCH_MAX);
 			minMaxBatchSizeByState.put(state, entry);
 		}
 	}
 
-	protected abstract void itemProcessor(ReadResultSet<T> item);
+	protected abstract void itemProcessor(ReadResultSet<ExchangeRequest> item);
 
 	protected void startReaders() {
-		for (BufferedItemState state : supportedItemStates) {
+		for (OperationState state : supportedItemStates) {
 			log.debug("Starting exchange buffer (" + this.getClass().getSimpleName() + ") reader for state : " + state);
 			startReader(state, false);
 		}
 	}
 
-	private synchronized void startReader(BufferedItemState state, boolean replaceReader) {
+	private synchronized void startReader(OperationState state, boolean replaceReader) {
 
 		synchronized (bufferReaders) {
 
@@ -155,7 +156,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 		}
 	}
 
-	protected void runReader(BufferedItemState state) {
+	protected void runReader(OperationState state) {
 
 		while (true) {
 
@@ -165,7 +166,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 
 			log.debug(moduleName + ":: Item processor for :: " + state);
 
-			ReadResultSet<T> bufferedItems = readItem(state);
+			ReadResultSet<ExchangeRequest> bufferedItems = readItem(state);
 
 			// TODO - item processor is now on it's own thread, and any
 			// transfers should be taken care of in this thread.
@@ -239,7 +240,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 
 		synchronized (bufferReaders) {
 
-			for (BufferedItemState state : supportedItemStates) {
+			for (OperationState state : supportedItemStates) {
 				CompletableFuture<Void> cf = bufferReaders.get(state);
 				boolean hasReader = ((null != cf) && (!cf.isDone()));
 				if (hasReader) {
@@ -258,7 +259,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * 
 	 * @return true if new buffer items may be added, false otherwise.
 	 */
-	public boolean hasFreeSpace(BufferedItemState state) {
+	public boolean hasFreeSpace(OperationState state) {
 		return freeSpaceCount(state) > minMaxBatchSizeByState.get(state).getValue();
 	}
 
@@ -268,7 +269,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * 
 	 * @return count of processed buffer items.
 	 */
-	protected synchronized long freeSpaceCount(BufferedItemState state) {
+	protected synchronized long freeSpaceCount(OperationState state) {
 		log.debug("Calculating ringbuffer free space");
 
 		Long h = buffer.headSequence();
@@ -341,7 +342,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * 
 	 */
 	public long getLastReadItemForExchange() {
-		return lastReadItemByState.get(BufferedItemState.New);
+		return lastReadItemByState.get(OperationState.New);
 	}
 
 	/**
@@ -353,7 +354,14 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * @return true if the items were added. False is returned if there was not
 	 *         enough free space in the buffer to support the new items.
 	 */
-	public boolean addItems(Collection<T> items, BufferedItemState state) {
+	public boolean addItems(Collection<DisclosureItem> diItems, OperationState state) {
+
+		/**
+		 * TODO Replace with ExchangeQueue
+		 */
+		Collection<ExchangeRequest> items = diItems.stream().map(i -> new ExchangeRequest(i))
+				.collect(Collectors.toList());
+
 
 		// Assume write succeeds. Either all items are added or no items
 		// are added.
@@ -403,7 +411,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 	 * @throws BufferReaderInterruptedException
 	 *             if the thread was interrupted during the read operation.
 	 */
-	protected ReadResultSet<T> readItem(BufferedItemState state) throws BufferReaderInterruptedException {
+	protected ReadResultSet<ExchangeRequest> readItem(OperationState state) throws BufferReaderInterruptedException {
 
 		log.debug("READ STREAM ITEMS BEGIN :: " + Calendar.getInstance().getTime().toString());
 
@@ -415,7 +423,7 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 		int u = (int) (t - r);
 		int minCount = (u <= 0) ? (1) : (Math.min(u, minBatch));
 		int maxCount = maxBatch;
-		ReadResultSet<T> rs;
+		ReadResultSet<ExchangeRequest> rs;
 
 		log.debug(moduleName + " :: BATCH READ STARTING FOR STATE :: " + state);
 		log.debug("start sequence :: " + startSeq);
@@ -425,9 +433,10 @@ public abstract class ExchangeBuffer<T extends BufferedItem> extends ExchangeCom
 		try {
 
 			// Batch read
-			ICompletableFuture<ReadResultSet<T>> icf = buffer.readManyAsync(startSeq, minCount, maxCount, (bi) -> {
-				return (bi.getItemState().equals(state));
-			});
+			ICompletableFuture<ReadResultSet<ExchangeRequest>> icf = buffer.readManyAsync(startSeq, minCount, maxCount,
+					(bi) -> {
+						return (bi.getItemState().equals(state));
+					});
 			rs = icf.get();
 			log.debug("NUMBER OF ITEMS READ FROM DISCLOSURE BUFFER :: " + rs.size());
 			log.debug("BATCH READ COMPLETED FOR STATE :: " + state);

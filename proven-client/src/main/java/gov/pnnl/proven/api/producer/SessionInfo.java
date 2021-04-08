@@ -86,7 +86,7 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
 
 /**
  * Information related to a provenance exchange session. This information is initially provided by a

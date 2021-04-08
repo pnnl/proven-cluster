@@ -93,10 +93,8 @@ import gov.pnnl.proven.api.exchange.Exchange;
 import gov.pnnl.proven.api.exchange.ExchangeInfo;
 import gov.pnnl.proven.api.exchange.ExchangeLocator;
 import gov.pnnl.proven.api.exchange.ExchangeType;
-
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
-import gov.pnnl.proven.cluster.lib.disclosure.message.exception.InvalidProvenMessageException;
-
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.InvalidProvenMessageException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

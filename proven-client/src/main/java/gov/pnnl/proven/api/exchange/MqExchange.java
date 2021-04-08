@@ -82,8 +82,9 @@ package gov.pnnl.proven.api.exchange;
 
 import gov.pnnl.proven.api.producer.ProvenResponse;
 import gov.pnnl.proven.api.producer.SessionInfo;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessageOriginal;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
+
 import java.util.List;
 
 import javax.jms.JMSException;

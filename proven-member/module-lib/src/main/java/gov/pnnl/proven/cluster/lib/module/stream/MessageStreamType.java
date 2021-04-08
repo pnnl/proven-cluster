@@ -48,8 +48,8 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
 
 /**
  * Message streams store {@code ProvenMessage} instances, that have been
@@ -69,7 +69,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.message.MessageContentGroup;
  */
 public enum MessageStreamType {
 
-	Disclosure(StreamLabel.DISCLOSURE_STREAM, MessageContentGroup.Disclosure),
 	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
 	Measurement(StreamLabel.MEASUREMENT_STREAM, MessageContentGroup.Measurement),
 	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
@@ -77,7 +76,6 @@ public enum MessageStreamType {
 	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
 
 	private class StreamLabel {
-		private static final String DISCLOSURE_STREAM = "disclosed";
 		private static final String KNOWLEDGE_STREAM = "knowledge";
 		private static final String MEASUREMENT_STREAM = "disclosed";
 		private static final String REQUEST_STREAM = "request";

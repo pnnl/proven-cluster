@@ -52,11 +52,10 @@ import org.slf4j.LoggerFactory;
 import com.hazelcast.core.DistributedObjectUtil;
 import com.hazelcast.ringbuffer.ReadResultSet;
 
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.exception.CsvParsingException;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainException;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.exception.CsvParsingException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
@@ -67,7 +66,7 @@ import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageCon
 
 /**
  * A managed component supporting the collection and processing of
- * {@code DisclosureItem}s. 
+ * {@code DisclosureItem}s.
  * 
  * @author d3j766
  * 
@@ -75,12 +74,12 @@ import gov.pnnl.proven.cluster.lib.module.stream.exception.UnsupportedMessageCon
  *
  */
 @Scalable
-public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
+public class DisclosureBuffer extends ExchangeBuffer {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureBuffer.class);
 
-	private static final BufferedItemState[] SUPPORTED_ITEM_STATES = { BufferedItemState.New };
-	private RequestBuffer localExchange;
+	private static final OperationState[] SUPPORTED_ITEM_STATES = { OperationState.New };
+	//private RequestBuffer localExchange;
 	private CompletableFuture<Void> bufferSourceReader;
 
 	String doId;
@@ -97,7 +96,7 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 		doId = entryIdentifier().toString();
 		de = create(new CreationRequest<DisclosureQueue>(DisclosureQueue.class)).get();
-		
+
 		// Create buffer instance
 		buffer = hzi.getRingbuffer(doId);
 		log.debug("Disclosure Buffer created. DO-ID:: " + DistributedObjectUtil.getName(buffer));
@@ -126,11 +125,12 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 	}
 
 	@Override
-	protected void itemProcessor(ReadResultSet<DisclosureItem> items) {
+	protected void itemProcessor(ReadResultSet<ExchangeRequest> items) {
 
 		if (items.size() >= 0) {
 
-			BufferedItemState state = items.get(0).getItemState();
+			// DisclosureItemState state = items.get(0).getItemState();
+			OperationState state = OperationState.New;
 
 			switch (state) {
 
@@ -142,12 +142,13 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 				log.debug("Item processor for NEW");
 
-				MessageStreamType mst = MessageStreamType.Disclosure;
+				MessageStreamType mst = MessageStreamType.Knowledge;
 
 				items.forEach((item) -> {
 					try {
-						DisclosureMessage dm = new DisclosureMessage(item);
-						MessageStreamProxy msp = sm.getMessageStreamProxy(dm.getDisclosureItem().getDisclosureDomain(), mst);
+						DisclosureMessage dm = new DisclosureMessage((DisclosureItem) item.getDisclosable());
+						MessageStreamProxy msp = sm
+								.getMessageStreamProxy(dm.getDisclosureItem().getContext().getDomain(), mst);
 						msp.addMessage(dm);
 						log.debug("Added Disclosure messsage to stream :: " + dm.getMessageKey());
 					} catch (UnsupportedMessageContentException | JsonParsingException
@@ -182,13 +183,8 @@ public class DisclosureBuffer extends ExchangeBuffer<DisclosureItem> {
 
 	}
 
-	@Override 
-	public ExchangeType exchangeType() {
-		return ExchangeType.DisclosureBuffer;
-	}
-	
-	void addLocalExchange(RequestBuffer rb) {
-		localExchange = rb;
-	}
+//	void addLocalExchange(RequestBuffer rb) {
+//		localExchange = rb;
+//	}
 
 }

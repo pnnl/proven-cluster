@@ -58,9 +58,9 @@ import com.bigdata.rdf.sail.webapp.client.RemoteRepository;
 import com.bigdata.rdf.sail.webapp.client.RemoteRepositoryManager;
 import com.hazelcast.jet.pipeline.ContextFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.message.MessageUtils;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageUtils;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.pipeline.response.T3Response;
 
@@ -118,12 +118,12 @@ public class T3Service {
 		try {
 
 			// Construct initial data model
-			String message = MessageUtils.prependContext(sourceMessage.getDisclosureItem().getDisclosureDomain(),
+			String message = MessageUtils.prependContext(sourceMessage.getDisclosureItem().getContext().getDomain(),
 					sourceMessage.getDisclosureItem().getMessage().toString());
 			Model dataModel = MessageUtils.createMessageDataModel(sourceMessage, message);
 
 			// SHACL rule processing to produce final message data model
-			dataModel = MessageUtils.addShaclRuleResults(sourceMessage.getDisclosureItem().getDisclosureDomain(),
+			dataModel = MessageUtils.addShaclRuleResults(sourceMessage.getDisclosureItem().getContext().getDomain(),
 					dataModel);
 
 			// Load message into T3 store and return response
@@ -176,7 +176,7 @@ public class T3Service {
 				}
 			}).start();
 			ValueFactoryImpl vf = ValueFactoryImpl.getInstance();
-			URI context = vf.createURI("http://" + sourceMessage.getDisclosureItem().getDisclosureDomain().getDomain());
+			URI context = vf.createURI("http://" + sourceMessage.getDisclosureItem().getContext().getDomain());
 			RemoteRepository.AddOp operation = new RemoteRepository.AddOp(pis, addFormat);
 			operation.setContext(context);
 			long t3Count = repo.add(operation);

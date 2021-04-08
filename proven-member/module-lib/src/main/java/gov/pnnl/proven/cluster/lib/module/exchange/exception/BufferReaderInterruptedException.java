@@ -40,30 +40,30 @@
 
 package gov.pnnl.proven.cluster.lib.module.exchange.exception;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exchange.BufferedItemState;
+import gov.pnnl.proven.cluster.lib.module.exchange.OperationState;
 
 public class BufferReaderInterruptedException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 	
-	BufferedItemState state;
+	OperationState state;
 
-	public BufferReaderInterruptedException(BufferedItemState state) {
+	public BufferReaderInterruptedException(OperationState state) {
 		super();
 		this.state = state;
 	}
 
-	public BufferReaderInterruptedException(String message, BufferedItemState state) {
+	public BufferReaderInterruptedException(String message, OperationState state) {
 		super(message);
 		this.state = state;
 	}
 
-	public BufferReaderInterruptedException(String message, BufferedItemState state, Throwable e) {
+	public BufferReaderInterruptedException(String message, OperationState state, Throwable e) {
 		super(message, e);
 		this.state= state;
 	}
 	
-	public BufferedItemState getState() {
+	public OperationState getState() {
 		return state;
 	}
 	

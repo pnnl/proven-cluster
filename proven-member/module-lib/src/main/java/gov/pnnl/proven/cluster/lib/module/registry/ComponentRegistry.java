@@ -62,7 +62,7 @@ import com.hazelcast.cp.lock.FencedLock;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.exchange.Exchange;
-import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeRequest;
+import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeRequestOriginal;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleEntry;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
@@ -148,30 +148,6 @@ public class ComponentRegistry implements Exchange {
 	 */
 	@Deprecated
 	ISet<ModuleEntry> modules;
-
-	/**
-	 * A Hazelcast FencedLock used to support concurrent (read and write) access
-	 * to {@link #modules}
-	 * 
-	 */
-	@Deprecated
-	FencedLock modulesFencedLock;
-
-	/**
-	 * This module's exchange queue. Contains pending exchange requests.
-	 * Requests may be added to the queue by this module or other modules within
-	 * the same member. This module reads and processes these requests.
-	 */
-	@Deprecated
-	IQueue<ExchangeRequest> localModuleExchangeQueue;
-
-	/**
-	 * This members exchange queue. Contains pending member exchange requests.
-	 * Requests may be added to the queue by modules outside this member. Any
-	 * module within this member may read and process these requests.
-	 */
-	@Deprecated
-	IQueue<ExchangeRequest> localMemberExchangeQueue;
 
 	/**
 	 * (IMDG) Cluster components
