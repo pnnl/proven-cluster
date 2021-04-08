@@ -107,7 +107,7 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 			@JsonbProperty(DOMAIN_PROP) String domain, @JsonbProperty(REQUESTOR_PROP) String requestor,
 			@JsonbProperty(NAME_PROP) String name, @JsonbProperty(TAGS_PROP) String[] tags) {
 		return MessageContext.newBuilder().withItem(item).withDomain(domain).withRequestor(requestor).withName(name)
-				.withTags(tags).buildWithNoValidation();
+				.withTags(tags).build(true);
 	}
 
 	private MessageContext(Builder b) {
@@ -209,20 +209,22 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 		 * 
 		 */
 		public MessageContext build() {
+			return build(false);
+		}
+
+		private MessageContext build(boolean trustedBuilder) {
 
 			MessageContext ret = new MessageContext(this);
-			List<Problem> problems = ret.validate();
 
-			if (!problems.isEmpty()) {
-				throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
 			}
+
 			return ret;
 		}
-
-		public MessageContext buildWithNoValidation() {
-			return new MessageContext(this);
-		}
-
 	}
 
 	@Override

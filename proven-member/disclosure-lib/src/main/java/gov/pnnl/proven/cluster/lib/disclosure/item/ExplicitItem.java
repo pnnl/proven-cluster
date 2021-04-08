@@ -41,41 +41,55 @@ package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import java.io.IOException;
 
-import javax.json.JsonValue;
+import javax.json.bind.annotation.JsonbTransient;
 
-import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
+/**
+ * Represents an explicit message item.
+ * 
+ * @author d3j766
+ *
+ */
 public class ExplicitItem implements MessageItem {
+
+	public ExplicitItem() {
+	}
+
+	@Override
+	public MessageContent messageContent() {
+		return MessageContent.Explicit;
+	}
+
+	@Override
+	public String messageName() {
+		return "Explicit message";
+	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		// TODO Auto-generated method stub
-
 	}
 
+	@JsonbTransient
 	@Override
 	public int getFactoryId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return DisclosureIDSFactory.FACTORY_ID;
 	}
 
+	@JsonbTransient
 	@Override
 	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return DisclosureIDSFactory.EXPLICIT_ITEM_TYPE;
 	}
 
 	@Override
@@ -92,30 +106,13 @@ public class ExplicitItem implements MessageItem {
 				
 				.withTitle("Message context schema")
 
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
+				.withDescription("Explicit message item schema")
 
-				.withType(InstanceType.OBJECT)
-
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
 				.build();
 		
 		//@formatter:on
 
 		return ret;
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Explicit;
-	}
-
-	@Override
-	public String messageName() {
-		return "Explicit message";
 	}
 
 }
