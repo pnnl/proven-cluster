@@ -1352,21 +1352,44 @@ public class ConceptService {
 
 		while (ioit.hasNext()) 	{
 			String iokey = ioit.next();
+			
+			
+			
+//  Replaced April 19, 2021			
+//		} else if (fdobject.get(fdkey) instanceof Integer) {
+//		    builder.addField( fdkey, Float.valueOf(fdobject.get(fdkey).toString()));
+//    	} else if (fdobject.get(fdkey) instanceof Long) {
+//		    builder.addField(fdkey, Double.valueOf(fdobject.get(fdkey).toString()));
+//		} else if (fdobject.get(fdkey) instanceof Float) {
+//			builder.addField(fdkey, Float.valueOf((Float) fdobject.get(fdkey)));
+//		} else if (fdobject.get(fdkey) instanceof Double) {
+//			builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
+//		} else if (fdobject.get(fdkey) instanceof JSONObject) {
+//
+//			JSONObject iObject = (JSONObject)fdobject.get(fdkey);
+//			builder = processNestedObject(iObject, fdkey,  builder);
+//
+//		}			
+			
+			
 
+			
 			if (iObject.get(iokey) instanceof String) {
 				ret.addField(iokey, (String) iObject.get(iokey));
 			} else if (iObject.get(iokey) instanceof Integer) {
-				ret.addField(iokey, Integer.valueOf((Integer) iObject.get(iokey)));
+				ret.addField(iokey, Float.valueOf( iObject.get(iokey).toString()));
 			} else if (iObject.get(iokey) instanceof Long) {
-				ret.addField(iokey, Long.valueOf((Long) iObject.get(iokey)));
+				ret.addField(iokey, Double.valueOf(iObject.get(iokey).toString()));
 			} else if (iObject.get(iokey) instanceof Float) {
-				ret.addField(iokey, Float.valueOf((Float) iObject.get(iokey)));
+				ret.addField(iokey, Float.valueOf(iObject.get(iokey).toString()));
 			} else if (iObject.get(iokey) instanceof Double) {
-				ret.addField(iokey, Double.valueOf((Double) iObject.get(iokey)));
+				ret.addField(iokey, Double.valueOf(iObject.get(iokey).toString()));
 			} else 	if  (iObject.get(iokey) instanceof JSONObject) {
 				JSONObject i2Object = (JSONObject) iObject.get(iokey);
 				ret = processNestedObject (i2Object, iokey, ret);
-			}
+			}			
+						
+			
 		}
 
 		return ret;
@@ -1470,20 +1493,40 @@ public class ConceptService {
 //					builder.addField(fdkey, Integer.valueOf((Integer) fdobject.get(fdkey)));
 //				} else if (fdobject.get(fdkey) instanceof Long) {
 //					builder.addField(fdkey, Long.valueOf((Long) fdobject.get(fdkey)));
+				
+
+// Changed April 19, 2021 to change any numeric field into a float or double
+//					} else if (fdobject.get(fdkey) instanceof Integer) {
+//					builder.addField(fdkey, Float.valueOf((Float)fdobject.get(fdkey)));
+//				} else if (fdobject.get(fdkey) instanceof Long) {
+//					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
+//				} else if (fdobject.get(fdkey) instanceof Float) {
+//					builder.addField(fdkey, Float.valueOf((Float) fdobject.get(fdkey)));
+//				} else if (fdobject.get(fdkey) instanceof Double) {
+//					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
+//				} else 	if  (fdobject.get(fdkey) instanceof JSONObject) {
+//
+//					JSONObject iObject = (JSONObject)fdobject.get(fdkey);
+//					builder = processNestedObject(iObject, fdkey,  builder);
+//
+//				}
+					
 				} else if (fdobject.get(fdkey) instanceof Integer) {
-					builder.addField(fdkey, Float.valueOf((Float)fdobject.get(fdkey)));
-				} else if (fdobject.get(fdkey) instanceof Long) {
-					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
+				    builder.addField( fdkey, Float.valueOf(fdobject.get(fdkey).toString()));
+		    	} else if (fdobject.get(fdkey) instanceof Long) {
+				    builder.addField(fdkey, Double.valueOf(fdobject.get(fdkey).toString()));
 				} else if (fdobject.get(fdkey) instanceof Float) {
 					builder.addField(fdkey, Float.valueOf((Float) fdobject.get(fdkey)));
 				} else if (fdobject.get(fdkey) instanceof Double) {
 					builder.addField(fdkey, Double.valueOf((Double) fdobject.get(fdkey)));
-				} else 	if  (fdobject.get(fdkey) instanceof JSONObject) {
+				} else if (fdobject.get(fdkey) instanceof JSONObject) {
 
 					JSONObject iObject = (JSONObject)fdobject.get(fdkey);
 					builder = processNestedObject(iObject, fdkey,  builder);
 
 				}
+					
+
 
 			}
 			
@@ -1533,9 +1576,9 @@ public class ConceptService {
 				if (rdobject.get(rdkey) instanceof String) {
 					builder.addField(rdkey, (String) rdobject.get(rdkey));
 				} else if (rdobject.get(rdkey) instanceof Integer) {
-					builder.addField(rdkey, Integer.valueOf((Integer) rdobject.get(rdkey)));
+					builder.addField(rdkey, Float.valueOf(rdobject.get(rdkey).toString()));
 				} else if (rdobject.get(rdkey) instanceof Long) {
-					builder.addField(rdkey, Long.valueOf((Long) rdobject.get(rdkey)));
+					builder.addField(rdkey, Double.valueOf(rdobject.get(rdkey).toString()));
 				} else if (rdobject.get(rdkey) instanceof Float) {
 					builder.addField(rdkey, Float.valueOf((Float) rdobject.get(rdkey)));
 				} else if (rdobject.get(rdkey) instanceof Double) {
