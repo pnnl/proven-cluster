@@ -72,9 +72,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
 /**
- * Represents the context for a disclosure item. The context helps to identify
- * both exchange processing and hybrid-store message storage locations. This is
- * an immutable class.
+ * Immutable class representing the context of a disclosure item. The context
+ * helps to identify both exchange processing and distribution to hybrid-store.
  * 
  * @author d3j766
  * 
@@ -283,13 +282,14 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 					
 				.withTitle("Message context schema")
 
-				.withDescription(
-						"Defines the context for Proven disclosure items.  The context identifies a disclosure item's "
-						+ "processing and storage requirements within the platform.")
+				.withDescription("Defines a context for disclosure items.  The context "
+							+ "identifies a disclosure item's processing and storage "
+							+ "requirements within the platform.")
 
 				.withType(InstanceType.OBJECT)
 
 				.withProperty(ITEM_PROP, sbf.createBuilder()
+					.withDescription("Identifies the type message item contained in a disclosure item.")
 					.withType(InstanceType.STRING, InstanceType.NULL)
 					.withEnum(items)
 					.withDefault(defaultItem)
@@ -297,8 +297,10 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
 				.withProperty(DOMAIN_PROP,
 					sbf.createBuilder()
+					.withDescription("Identifies the disclosure's domain value.")
 					.withType(InstanceType.STRING, InstanceType.NULL)
 					.withDefault(defaultDomain)
+					.withPattern("((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}")
 					.build())
 
 				.withProperty(REQUESTOR_PROP, sbf.createBuilder()
@@ -315,9 +317,9 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 					.withType(InstanceType.ARRAY, InstanceType.NULL)
 					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
 					.withItems(sbf.createBuilder()
-							.withType(InstanceType.STRING).
-							withMaxItems(maxTags)
-							.build())
+						.withType(InstanceType.STRING)
+						.withMaxItems(maxTags)
+						.build())
 					.build())
 		
 				.build();

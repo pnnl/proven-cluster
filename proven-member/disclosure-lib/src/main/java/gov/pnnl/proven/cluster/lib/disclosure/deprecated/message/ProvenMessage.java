@@ -174,7 +174,7 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 
 	public String getMessageStr(boolean pretty) {
 		String ret;
-		JsonObject message = disclosureItem.getMessage();
+		JsonObject message = (JsonObject) disclosureItem.getMessage();
 		if (pretty) {
 			ret = MessageJsonUtils.prettyPrint(message);
 		} else {

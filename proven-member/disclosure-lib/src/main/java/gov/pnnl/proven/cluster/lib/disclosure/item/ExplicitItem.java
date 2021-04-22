@@ -39,27 +39,38 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
+import javax.json.Json;
+import javax.json.JsonPatch;
+import javax.json.JsonStructure;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTypeSerializer;
 
-import javax.json.bind.annotation.JsonbTransient;
-
+import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
- * Represents an explicit message item.
+ * Immutable class representing domain knowledge disclosures.
  * 
  * @author d3j766
  *
  */
 public class ExplicitItem implements MessageItem {
 
+	private JsonStructure message;
+
 	public ExplicitItem() {
+	}
+
+	@JsonbCreator
+	public ExplicitItem(@JsonbProperty("message") JsonStructure message) {
+		this.message = message;
+	}
+
+	public JsonStructure getMessage() {
+		return message;
 	}
 
 	@Override
@@ -73,23 +84,8 @@ public class ExplicitItem implements MessageItem {
 	}
 
 	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-	}
-
-	@JsonbTransient
-	@Override
-	public int getFactoryId() {
-		return DisclosureIDSFactory.FACTORY_ID;
-	}
-
-	@JsonbTransient
-	@Override
-	public int getId() {
-		return DisclosureIDSFactory.EXPLICIT_ITEM_TYPE;
+	public JsonStructure toJson() {
+		return message;
 	}
 
 	@Override
@@ -98,21 +94,31 @@ public class ExplicitItem implements MessageItem {
 		JsonSchema ret;
 
 		//@formatter:off
+		
 		ret = sbf.createBuilder()
 
 				.withId(Validatable.schemaId(this.getClass()))
 				
 				.withSchema(Validatable.schemaDialect())
 				
-				.withTitle("Message context schema")
+				.withTitle("Explicit item message schema")
 
-				.withDescription("Explicit message item schema")
+				.withDescription("Explicit message item schema.  An explicit message item represents "
+						+ "domain knowledge disclosed to the platform.  As such, it does not have "
+						+ " a schema adherence requirement other than it being valid JSON. ")
 
+				.withType(InstanceType.OBJECT, InstanceType.ARRAY)
+				.withDescription("Domain knowledge, an outer Object or Array is permitted.")
+				
 				.build();
 		
 		//@formatter:on
 
 		return ret;
 	}
+	
+	
+	
+	
 
 }

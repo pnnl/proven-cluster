@@ -39,43 +39,185 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.IS_METADATA_HEADER;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.IS_METADATA_IDX;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.LABEL_HEADER;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.LABEL_IDX;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.METRIC_LENGTH;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.VALUE_HEADER;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.VALUE_IDX;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.VALUE_TYPE_HEADER;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.VALUE_TYPE_IDX;
 
-import javax.json.JsonValue;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
-
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import org.leadpony.justify.api.JsonValidatingException;
+import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
+/**
+ * Immutable class representing time-series measurement data. A measurement item
+ * is composed of a measurement name, a timestamp, and one or more record values
+ * each of which contains time-series metrics.
+ * 
+ * @author d3j766
+ * 
+ * @see MeasurementRecord
+ *
+ */
 public class MeasurementItem implements MessageItem {
 
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		// TODO Auto-generated method stub
+	static final int MIN_VALUES = 1;
 
+	// Jsonb property names
+	static final String MEASUREMENT_PROP = "measurement";
+	static final String TIMESTAMP_PROP = "timestamp";
+	static final String HEADER_PROP = "header";
+	static final String VALUES_PROP = "values";
+
+	private String measurement;
+	private Long timestamp;
+	private String[] header;
+	private List<MeasurementRecord> values = new ArrayList<>();
+
+	// HZ Serialization
+	public MeasurementItem() {
+	}
+
+	@JsonbCreator
+	public static MeasurementItem createMeasurementItem(@JsonbProperty(MEASUREMENT_PROP) String measurement,
+			@JsonbProperty(TIMESTAMP_PROP) Long timestamp, @JsonbProperty(HEADER_PROP) String[] header,
+			@JsonbProperty(VALUES_PROP) List<MeasurementRecord> values) {
+		return MeasurementItem.newBuilder().withMeasurement(measurement).withTimestamp(timestamp).withValues(values)
+				.build(true);
+	}
+
+	private MeasurementItem(Builder b) {
+		header = getHeader();
+		this.measurement = b.measurement;
+		this.timestamp = b.timestamp;
+		this.values = b.values;
+	}
+
+	@JsonbProperty(MEASUREMENT_PROP)
+	public String getMeasurement() {
+		return measurement;
+	}
+
+	@JsonbProperty(TIMESTAMP_PROP)
+	public Long getTimestamp() {
+		return timestamp;
+	}
+
+	@JsonbProperty(HEADER_PROP)
+	public String[] getHeader() {
+
+		String[] ret = this.header;
+		if (null == ret) {
+			ret = new String[METRIC_LENGTH];
+			ret[IS_METADATA_IDX] = IS_METADATA_HEADER;
+			ret[LABEL_IDX] = LABEL_HEADER;
+			ret[VALUE_IDX] = VALUE_HEADER;
+			ret[VALUE_TYPE_IDX] = VALUE_TYPE_HEADER;
+			this.header = ret;
+		}
+		return this.header;
+	}
+
+	@JsonbProperty(VALUES_PROP)
+	public List<MeasurementRecord> getValues() {
+		return values;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	public static final class Builder {
+
+		private String measurement;
+		private Long timestamp;
+		private List<MeasurementRecord> values = new ArrayList<>();
+
+		private Builder() {
+		}
+
+		public Builder withMeasurement(String measurement) {
+			this.measurement = measurement;
+			return this;
+		}
+
+		public Builder withTimestamp(Long timestamp) {
+			this.timestamp = timestamp;
+			return this;
+		}
+
+		public Builder withValue(MeasurementRecord value) {
+			this.values.add(value);
+			return this;
+		}
+
+		public Builder withValues(List<MeasurementRecord> values) {
+			this.values = values;
+			return this;
+		}
+
+		/**
+		 * Builds new instance. Instance is validated post construction.
+		 * 
+		 * @return new instance
+		 * 
+		 * @throws JsonValidatingException
+		 *             if created instance fails JSON-SCHEMA validation.
+		 * 
+		 */
+		public MeasurementItem build() {
+			return build(false);
+		}
+
+		private MeasurementItem build(boolean trustedBuilder) {
+
+			MeasurementItem ret = new MeasurementItem(this);
+
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
+			}
+
+			return ret;
+		}
 	}
 
 	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		// TODO Auto-generated method stub
-
+	public MessageContent messageContent() {
+		return MessageContent.Measurement;
 	}
 
 	@Override
-	public int getFactoryId() {
-		// TODO Auto-generated method stub
-		return 0;
+	public String messageName() {
+		return "Measurement message";
 	}
 
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
+	private JsonArray getHeaderArray() {
+		JsonArrayBuilder ab = Json.createArrayBuilder();
+		String[] header = getHeader();
+		for (int i = 0; i < METRIC_LENGTH; i++) {
+			ab.add(header[i]);
+		}
+		return ab.build();
 	}
 
 	@Override
@@ -86,36 +228,53 @@ public class MeasurementItem implements MessageItem {
 		//@formatter:off
 		ret = sbf.createBuilder()
 
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
+			.withId(Validatable.schemaId(this.getClass()))
+			
+			.withSchema(Validatable.schemaDialect())
+			
+			.withTitle("Measurement item message schema")
 
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
+			.withDescription("Proven's time-series measurement data representation. A measurement item is "
+						+ "composed of a measurement name, a timestamp, and one or more record values, each of which "
+						+ "contain the metric values. A pre-defined 'header' value is described as a const in this schema. "
+						+ "The 'header' describes content and order of fields for a metric's comma delimited string. "
+						+ "A metric must adhere to this header's definition.")
 
-				.withType(InstanceType.OBJECT)
+			.withType(InstanceType.OBJECT)
 
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
+			.withProperty(MEASUREMENT_PROP,
+				sbf.createBuilder()
+				.withType(InstanceType.STRING)
+				.withPattern("^[a-zA-Z]([A-Za-z0-9-_]){1,64}$")
+				.build())
+			
+			.withProperty(TIMESTAMP_PROP, sbf.createBuilder()
+				.withDescription("Timestamp for measurement data. "
+						+ "This is a timestamp formatted as epoch time in milliseconds.")
+				.withType(InstanceType.INTEGER)
+				.withMinimum(0)
+				.withMaximum(Long.MAX_VALUE)
+				.build())					
+
+			.withProperty(HEADER_PROP, sbf.createBuilder()
+				.withDescription("Const value for the header.")
+				.withType(InstanceType.ARRAY)
+				.withConst(getHeaderArray())
+				.build())
+			
+			.withProperty(VALUES_PROP, sbf.createBuilder()
+				.withType(InstanceType.ARRAY)
+				.withItems(Validatable.retrieveSchema(MeasurementRecord.class))
+				.withMinItems(MIN_VALUES)
+				.build())
+									
+			.withRequired(MEASUREMENT_PROP, TIMESTAMP_PROP, HEADER_PROP, VALUES_PROP)
+			
+			.build();
 		
 		//@formatter:on
 
 		return ret;
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Explicit;
-	}
-
-	@Override
-	public String messageName() {
-		return "Measurement message";
 	}
 
 }

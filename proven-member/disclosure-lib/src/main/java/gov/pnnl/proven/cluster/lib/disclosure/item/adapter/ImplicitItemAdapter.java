@@ -37,61 +37,22 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
 
-import java.io.IOException;
+import javax.json.JsonStructure;
+import javax.json.bind.adapter.JsonbAdapter;
 
-import javax.json.JsonValue;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ImplicitItem;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
-
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-
-public class ModelItem implements MessageItem {
+public class ImplicitItemAdapter implements JsonbAdapter<ImplicitItem, JsonStructure> {
 
 	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		ret = sbf.createBuilder()
-
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
-
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
-
-				.withType(InstanceType.OBJECT)
-
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
-		
-		//@formatter:on
-
-		return ret;
+	public JsonStructure adaptToJson(ImplicitItem ii) throws Exception {
+		return ii.getMessage();
 	}
 
 	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Model;
+	public ImplicitItem adaptFromJson(JsonStructure json) throws Exception {
+		return new ImplicitItem(json);
 	}
-
-	@Override
-	public String messageName() {
-		return "Model message";
-	}
-
 }

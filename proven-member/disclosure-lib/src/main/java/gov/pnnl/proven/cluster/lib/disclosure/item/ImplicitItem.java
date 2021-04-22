@@ -39,42 +39,45 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
-
-import javax.json.JsonValue;
+import javax.json.JsonStructure;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
+/**
+ * Immutable class representing implicit domain knowledge disclosures.
+ *
+ */
 public class ImplicitItem implements MessageItem {
 
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		// TODO Auto-generated method stub
+	private JsonStructure message;
 
+	public ImplicitItem() {
+	}
+
+	public ImplicitItem(JsonStructure message) {
+		this.message = message;
+	}
+	
+	public JsonStructure getMessage() {
+		return message;
+	}
+	
+	@Override
+	public MessageContent messageContent() {
+		return MessageContent.Implicit;
 	}
 
 	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		// TODO Auto-generated method stub
-
+	public String messageName() {
+		return "Implicit message";
 	}
 
 	@Override
-	public int getFactoryId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
+	public JsonStructure toJson() {
+		return message;
 	}
 
 	@Override
@@ -89,33 +92,21 @@ public class ImplicitItem implements MessageItem {
 				
 				.withSchema(Validatable.schemaDialect())
 				
-				.withTitle("Implicit message schema")
+				.withTitle("Implicit item message schema")
 
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
+				.withDescription("Implicit message item schema.  An implicit message item represents "
+						+ "domain knowledge created from other domain knowledge.  Similar to explicit " 
+						+ "item message, it does not have a schema adherence requirement "
+						+ "other than it being valid JSON. ")
 
-				.withType(InstanceType.OBJECT)
-
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
+				.withType(InstanceType.OBJECT, InstanceType.ARRAY)
+				.withDescription("Implicit domain knowledge, an outer Object or Array is permitted.")
+				
 				.build();
 		
 		//@formatter:on
 
 		return ret;
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Implicit;
-
-	}
-
-	@Override
-	public String messageName() {
-		return "Implicit message";
 	}
 
 }

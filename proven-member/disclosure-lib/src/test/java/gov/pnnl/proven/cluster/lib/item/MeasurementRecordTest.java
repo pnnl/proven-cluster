@@ -37,61 +37,71 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.item;
 
-import java.io.IOException;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import javax.json.JsonValue;
+import javax.json.Json;
+import javax.json.JsonPatch;
+import javax.json.JsonStructure;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
+import org.hamcrest.MatcherAssert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.MetricValueType;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+public class MeasurementRecordTest {
 
-public class ModelItem implements MessageItem {
+	static Logger log = LoggerFactory.getLogger(MeasurementItemTest.class);
 
-	@Override
-	public JsonSchema toSchema() {
+	MeasurementRecord mr;
 
-		JsonSchema ret;
-
-		//@formatter:off
-		ret = sbf.createBuilder()
-
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
-
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
-
-				.withType(InstanceType.OBJECT)
-
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
-		
-		//@formatter:on
-
-		return ret;
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Model;
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
 	}
 
-	@Override
-	public String messageName() {
-		return "Model message";
+	@Before
+	public void setUp() throws Exception {
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+		mr = MeasurementRecord.newBuilder().withMetric("test1", "2", false, MetricValueType.IntegerType).build();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+	}
+
+	@Test
+	public void testSchema_toSchema_passValidate() {
+		MatcherAssert.assertThat("MeasurementRecord generates a valid schema",
+				Validatable.hasValidSchema(MeasurementRecord.class));
+	}
+
+	@Test
+	public void testCreate_builder_validJson() {
+		String jsonStr = mr.toJson().toString();
+		assertThat("Valid JSON produced for MeasurementRecord builder",
+				Validatable.validate(MeasurementRecord.class, jsonStr).isEmpty());
+	}
+
+	@Test
+	public void testRoundTrip_builder_mcObjectsEqual() {
+		JsonStructure json = mr.toJson();
+		String jsonStr = json.toString();
+		MeasurementRecord mr2 = Validatable.toValidatable(MeasurementRecord.class, jsonStr);
+		JsonPatch jp = Json.createDiff(json, mr2.toJson());
+		MatcherAssert.assertThat("Valid round trip", jp.toJsonArray().size() == 0);
 	}
 
 }

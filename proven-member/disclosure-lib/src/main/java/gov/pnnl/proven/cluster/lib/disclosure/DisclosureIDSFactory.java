@@ -25,7 +25,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.KnowledgeMessag
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageProperties;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMeasurement;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMetric;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenQueryFilter;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenQueryTimeSeries;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenStatement;
@@ -55,7 +54,6 @@ public class DisclosureIDSFactory implements DataSerializableFactory {
 	public static final int DISCLOSURE_DOMAIN_TYPE = 1;
 	public static final int DISCLOSURE_ITEM_TYPE = 2;
 	public static final int MESSAGE_CONTEXT_TYPE = 3;
-	public static final int EXPLICIT_ITEM_TYPE = 4;
 	
 	@Override
 	public IdentifiedDataSerializable create(int typeId) {
@@ -68,8 +66,6 @@ public class DisclosureIDSFactory implements DataSerializableFactory {
 			return new DisclosureItem();
 		case (MESSAGE_CONTEXT_TYPE):
 			return new MessageContext();
-		case (EXPLICIT_ITEM_TYPE):
-			return new ExplicitItem();
 		default:
 			return null;
 		}

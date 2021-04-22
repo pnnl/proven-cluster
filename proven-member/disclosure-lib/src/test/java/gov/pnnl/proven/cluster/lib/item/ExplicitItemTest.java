@@ -37,61 +37,77 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.item;
 
-import java.io.IOException;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import javax.json.JsonValue;
+import javax.json.Json;
+import javax.json.JsonPatch;
+import javax.json.bind.adapter.JsonbAdapter;
+import javax.json.bind.serializer.DeserializationContext;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
+import org.hamcrest.MatcherAssert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+public class ExplicitItemTest {
 
-public class ModelItem implements MessageItem {
+	static Logger log = LoggerFactory.getLogger(ExplicitItemTest.class);
 
-	@Override
-	public JsonSchema toSchema() {
+	ExplicitItem ei;
 
-		JsonSchema ret;
-
-		//@formatter:off
-		ret = sbf.createBuilder()
-
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
-
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
-
-				.withType(InstanceType.OBJECT)
-
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
-		
-		//@formatter:on
-
-		return ret;
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Model;
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
 	}
 
-	@Override
-	public String messageName() {
-		return "Model message";
+	@Before
+	public void setUp() throws Exception {
+
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+
+		// Use JSON from another item for test
+		ei = new ExplicitItem(MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
+				.withItem(ExplicitItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
+				.withTags("TEST TAG1", "TEST TAG2").build().toJson());
 	}
 
+	@After
+	public void tearDown() throws Exception {
+	}
+
+	@Test
+	public void testSchema_toSchema_passValidate() {
+		MatcherAssert.assertThat("ExplicitItem generates a valid schema",
+				Validatable.hasValidSchema(ExplicitItem.class));
+	}
+
+	@Test
+	public void testCreate_builder_validJson() {
+		String jsonStr = ei.toJson().toString();
+		assertThat("Valid JSON produced for ExplicitItem builder",
+				Validatable.validate(ExplicitItem.class, jsonStr).isEmpty());
+	}
+
+	@Test
+	public void testRoundTrip_builder_mcObjectsEqual() {
+
+		String jsonStr = ei.toJson().toString();
+		ExplicitItem ei2 = Validatable.toValidatable(ExplicitItem.class, jsonStr);
+		JsonPatch jp = Json.createDiff(ei.getMessage(), ei2.getMessage());
+		MatcherAssert.assertThat("Valid round trip", jp.toJsonArray().size() == 0);
+	}
 }
