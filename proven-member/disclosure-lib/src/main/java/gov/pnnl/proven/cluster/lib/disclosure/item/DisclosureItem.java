@@ -80,7 +80,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  * @author d3j766
  * 
  */
-public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataSerializable {
+public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
 
@@ -378,86 +378,86 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 
 		//@formatter:off
 		
-			ret = sbf.createBuilder()
+		ret = sbf.createBuilder()
 
-					.withId(Validatable.schemaId(this.getClass()))
-					
-					.withSchema(Validatable.schemaDialect())
-					
-					.withTitle("Proven message schema")
-
-					.withDescription(
-						"Proven's message container supporting information disclosure to a Proven platform.")
-
-					.withType(InstanceType.OBJECT)
-
-					.withProperty(APPLICATION_SENT_TIME_PROP, sbf.createBuilder()
-						.withTitle("Application message sent time")
-						.withDescription("Sent time defined by message's sender.  "
-						 + "This is a timestamp formatted as an epoch time in millsiseconds.")
-						.withType(InstanceType.INTEGER, InstanceType.NULL)
-						.withDefault(JsonValue.NULL)
-						.withMinimum(0)
-						.withMaximum(Long.MAX_VALUE)
-						.build())					
-					
-					.withProperty(AUTH_TOKEN_PROP, sbf.createBuilder()							
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL)
-						.withPattern("^[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*$")
-						.build())
-					
-					.withProperty(CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
-					
-					.withProperty(MESSAGE_PROP, sbf.createBuilder()
-						.withTitle("Message payload")
-						.withDescription("Contains a message item of the type selected in the context property (i.e. item)")
-						.withType(InstanceType.OBJECT)
-						.withComment("Json will be validated for the item type selected.")
-						.build())
-
-					.withProperty(MESSAGE_SCHEMA_PROP, sbf.createBuilder()							
-						.withType(InstanceType.OBJECT, InstanceType.NULL)
-						.withDefault(JsonValue.NULL)
-						.withComment("Unsupported")
-						.build())
-
-					.withProperty(IS_TRANSIENT_PROP, sbf.createBuilder()
-						.withTitle("Transient message")
-						.withDescription("If true, message will not be archived.  "
-						 + "The content will be distributed to the Hybrid Store's IMDG and will be removed "
-						 + "based on its domain's expiration policy.")
-						.withType(InstanceType.BOOLEAN)
-						.withDefault(JsonValue.FALSE)
-						.build())
-					
-					.withProperty(IS_LINKED_DATA_PROP, sbf.createBuilder()
-						.withTitle("Linked Data message")
-						.withDescription("if true, indicates message is in JSON-LD format.  "
-						 + "The selecetd Message item type must be " + MessageItem.messageName(ExplicitItem.class)
-						 + " for this property to be true.")
-						.withType(InstanceType.BOOLEAN)
-						.withDefault(JsonValue.FALSE)
-						.build())
+				.withId(Validatable.schemaId(this.getClass()))
 				
-					.withIf(sbf.createBuilder()
-						.withProperty(IS_LINKED_DATA_PROP, sbf.createBuilder()
-								.withConst(JsonValue.TRUE)
-								.build())
-						.build())
-					.withThen(sbf.createBuilder()
-						.withProperty(CONTEXT_PROP, sbf.createBuilder()
-								.withProperty(MessageContext.ITEM_PROP, sbf.createBuilder()
-										.withAnyOf(
-										  sbf.createBuilder().withConst(Json.createValue(messageName(ExplicitItem.class))).build(),
-										  sbf.createBuilder().withConst(Json.createValue(messageName(ImplicitItem.class))).build())
-										.build())
-								.build())
-						.build())
-					
-					.withRequired(MESSAGE_PROP, CONTEXT_PROP)
-					
-					.build();
+				.withSchema(Validatable.schemaDialect())
+				
+				.withTitle("Proven message schema")
+
+				.withDescription(
+					"Proven's message container supporting information disclosure to a Proven platform.")
+
+				.withType(InstanceType.OBJECT)
+
+				.withProperty(APPLICATION_SENT_TIME_PROP, sbf.createBuilder()
+					.withTitle("Application message sent time")
+					.withDescription("Sent time defined by message's sender.  "
+					 + "This is a timestamp formatted as an epoch time in milliseconds.")
+					.withType(InstanceType.INTEGER, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.withMinimum(0)
+					.withMaximum(Long.MAX_VALUE)
+					.build())					
+				
+				.withProperty(AUTH_TOKEN_PROP, sbf.createBuilder()							
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.withPattern("^[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*$")
+					.build())
+				
+				.withProperty(CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
+				
+				.withProperty(MESSAGE_PROP, sbf.createBuilder()
+					.withTitle("Message payload")
+					.withDescription("Contains a message item of the type selected in the context property (i.e. item)")
+					.withType(InstanceType.OBJECT)
+					.withComment("Json will be validated for the item type selected.")
+					.build())
+
+				.withProperty(MESSAGE_SCHEMA_PROP, sbf.createBuilder()							
+					.withType(InstanceType.OBJECT, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.withComment("Unsupported")
+					.build())
+
+				.withProperty(IS_TRANSIENT_PROP, sbf.createBuilder()
+					.withTitle("Transient message")
+					.withDescription("If true, message will not be archived.  "
+					 + "The content will be distributed to the Hybrid Store's IMDG and will be removed "
+					 + "based on its domain's expiration policy.")
+					.withType(InstanceType.BOOLEAN)
+					.withDefault(JsonValue.FALSE)
+					.build())
+				
+				.withProperty(IS_LINKED_DATA_PROP, sbf.createBuilder()
+					.withTitle("Linked Data message")
+					.withDescription("if true, indicates message is in JSON-LD format.  "
+					 + "The selecetd Message item type must be " + MessageItem.messageName(ExplicitItem.class)
+					 + " for this property to be true.")
+					.withType(InstanceType.BOOLEAN)
+					.withDefault(JsonValue.FALSE)
+					.build())
+			
+				.withIf(sbf.createBuilder()
+					.withProperty(IS_LINKED_DATA_PROP, sbf.createBuilder()
+							.withConst(JsonValue.TRUE)
+							.build())
+					.build())
+				.withThen(sbf.createBuilder()
+					.withProperty(CONTEXT_PROP, sbf.createBuilder()
+							.withProperty(MessageContext.ITEM_PROP, sbf.createBuilder()
+									.withAnyOf(
+									  sbf.createBuilder().withConst(Json.createValue(messageName(ExplicitItem.class))).build(),
+									  sbf.createBuilder().withConst(Json.createValue(messageName(ImplicitItem.class))).build())
+									.build())
+							.build())
+					.build())
+				
+				.withRequired(MESSAGE_PROP, CONTEXT_PROP)
+				
+				.build();
 			
 			//@formatter:on
 

@@ -58,7 +58,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
  *
  */
 public class ExplicitItem implements MessageItem {
-
+	
+	
 	public ExplicitItem() {
 	}
 
@@ -71,27 +72,7 @@ public class ExplicitItem implements MessageItem {
 	public String messageName() {
 		return "Explicit message";
 	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-	}
-
-	@JsonbTransient
-	@Override
-	public int getFactoryId() {
-		return DisclosureIDSFactory.FACTORY_ID;
-	}
-
-	@JsonbTransient
-	@Override
-	public int getId() {
-		return DisclosureIDSFactory.EXPLICIT_ITEM_TYPE;
-	}
-
+	
 	@Override
 	public JsonSchema toSchema() {
 
@@ -106,7 +87,8 @@ public class ExplicitItem implements MessageItem {
 				
 				.withTitle("Message context schema")
 
-				.withDescription("Explicit message item schema")
+				.withDescription("Explicit message item schema.  Explicity message represents \"raw\" "
+						       + "JSON disclosure and does not have an associated schema.")
 
 				.build();
 		

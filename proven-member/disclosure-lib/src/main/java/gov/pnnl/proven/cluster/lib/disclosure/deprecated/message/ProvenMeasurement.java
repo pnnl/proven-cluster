@@ -148,7 +148,7 @@ public class ProvenMeasurement implements IdentifiedDataSerializable, Serializab
 		out.writeUTF((null == this.provenMessageMeasurement) ? ("") : this.provenMessageMeasurement.toString());
 		out.writeInt(((null == metrics) ? 0 : metrics.size()));
 		for (ProvenMetric metric : metrics) {
-			metric.writeData(out);
+//			metric.writeData(out);
 		}
 	}
 

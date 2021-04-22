@@ -39,43 +39,43 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.IS_METADATA_HEADER;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.LABEL_HEADER;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.VALUE_HEADER;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.VALUE_TYPE_HEADER;
 
 import javax.json.JsonValue;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 public class MeasurementItem implements MessageItem {
 
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		// TODO Auto-generated method stub
+	// Jsonb property names
+	static final String MEASUREMENT_PROP = "measurement";
+	static final String TIMESTAMP_PROP = "timestamp";
+	static final String HEADER_PROP = "header";
+	static final String VALUES_PROP = "values";
 
+	private String measurement;
+	private Long timestamp;
+	private static final String[] header = { IS_METADATA_HEADER, LABEL_HEADER, VALUE_HEADER, VALUE_TYPE_HEADER };
+	private MeasurementRecord[] values;
+
+	// HZ Serialization
+	public MeasurementItem() {
 	}
 
 	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		// TODO Auto-generated method stub
-
+	public MessageContent messageContent() {
+		return MessageContent.Measurement;
 	}
 
 	@Override
-	public int getFactoryId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
+	public String messageName() {
+		return "Measurement message";
 	}
 
 	@Override
@@ -106,16 +106,6 @@ public class MeasurementItem implements MessageItem {
 		//@formatter:on
 
 		return ret;
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Explicit;
-	}
-
-	@Override
-	public String messageName() {
-		return "Measurement message";
 	}
 
 }
