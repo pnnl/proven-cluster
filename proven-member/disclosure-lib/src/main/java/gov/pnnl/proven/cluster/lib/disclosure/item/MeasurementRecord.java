@@ -257,7 +257,5 @@ public class MeasurementRecord implements Validatable {
 		//@formatter:on
 
 		return ret;
-
 	}
-
 }

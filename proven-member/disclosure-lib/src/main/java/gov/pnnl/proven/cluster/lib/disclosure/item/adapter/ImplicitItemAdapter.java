@@ -53,6 +53,6 @@ public class ImplicitItemAdapter implements JsonbAdapter<ImplicitItem, JsonStruc
 
 	@Override
 	public ImplicitItem adaptFromJson(JsonStructure json) throws Exception {
-		return new ImplicitItem(json);
+		return ImplicitItem.newBuilder().withMessage(json).build();
 	}
 }

@@ -199,6 +199,7 @@ public class MeasurementItem implements MessageItem {
 
 			return ret;
 		}
+
 	}
 
 	@Override

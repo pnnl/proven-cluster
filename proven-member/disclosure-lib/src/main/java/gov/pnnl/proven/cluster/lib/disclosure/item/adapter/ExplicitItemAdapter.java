@@ -53,6 +53,6 @@ public class ExplicitItemAdapter implements JsonbAdapter<ExplicitItem, JsonStruc
 
 	@Override
 	public ExplicitItem adaptFromJson(JsonStructure json) throws Exception {
-		return new ExplicitItem(json);
+		return ExplicitItem.newBuilder().withMessage(json).build();
 	}
 }

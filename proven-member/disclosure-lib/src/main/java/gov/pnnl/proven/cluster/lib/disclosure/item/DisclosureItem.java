@@ -255,12 +255,11 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 		}
 
 		public Builder withContext(JsonObject context) {
-			this.context = Validatable.toValidatable(MessageContext.class, context.toString());
+			this.context = Validatable.toValidatable(MessageContext.class, context.toString(), true);
 			return this;
 		}
 
 		public Builder withContext(MessageContext context) {
-			this.trustedMessageItem = true;
 			this.context = context;
 			return this;
 		}
@@ -272,6 +271,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 		}
 
 		public Builder withMessage(MessageItem message) {
+			this.trustedMessageItem = true;
 			this.message = message.toJson();
 			return this;
 		}
@@ -323,7 +323,10 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 			}
 			
 			if (!trustedMessageItem) {
-				
+				List<Problem> problems = Validatable.validate(context.getItem(), message.toString());
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}				
 			}
 
 			if (ret.getIsLinkedData()) {

@@ -80,9 +80,9 @@ public class ImplicitItemTest {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
 
 		// Use JSON from another item for test
-		ii = new ImplicitItem(MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
+		ii = ImplicitItem.newBuilder().withMessage(MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
 				.withItem(ImplicitItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
-				.withTags("TEST TAG1", "TEST TAG2").build().toJson());
+				.withTags("TEST TAG1", "TEST TAG2").build().toJson()).build();
 	}
 
 	@After
