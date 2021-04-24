@@ -96,6 +96,8 @@ import com.hazelcast.nio.ObjectDataOutput;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.DisclosureDomainAdapter;
+import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ExplicitItemAdapter;
+import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ImplicitItemAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageContentAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageItemTypeAdapter;
 
@@ -119,7 +121,8 @@ public interface Validatable {
 	static final JsonValidationService service = JsonValidationService.newInstance();
 	static final JsonSchemaBuilderFactory sbf = service.createSchemaBuilderFactory();
 	static final JsonbConfig config = new JsonbConfig().withFormatting(true).withAdapters(new MessageItemTypeAdapter(),
-			new DisclosureDomainAdapter(), new MessageContentAdapter());
+			new DisclosureDomainAdapter(), new MessageContentAdapter(), new ExplicitItemAdapter(),
+			new ImplicitItemAdapter());
 	static final Jsonb jsonb = JsonbBuilder.create(config);
 
 	/**
@@ -138,9 +141,8 @@ public interface Validatable {
 
 		JsonStructure ret;
 		try (JsonReader reader = Json.createReader(new StringReader(jsonStr))) {
-			ret = reader.readObject();
+			ret = reader.read();
 		}
-
 		return ret;
 	}
 
@@ -521,8 +523,8 @@ public interface Validatable {
 	 * 
 	 * @return a JSON object representing the serialization of this Validatable.
 	 */
-	default JsonObject toJson() {
-		return (JsonObject) toJsonFromString(jsonb.toJson(this));
+	default JsonStructure toJson() {
+		return toJsonFromString(jsonb.toJson(this));
 	}
 
 	/**

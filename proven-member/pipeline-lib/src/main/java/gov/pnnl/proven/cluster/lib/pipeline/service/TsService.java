@@ -131,7 +131,7 @@ public class TsService {
 		ret = new ResponseMessage(new TsResponse(Response.Status.CREATED, Optional.of(message), 0L), sourceMessage);
 
 		// Construct initial data model
-		JsonObject mObject = sourceMessage.getDisclosureItem().getMessage();
+		JsonObject mObject = (JsonObject) sourceMessage.getDisclosureItem().getMessage();
 
 		if (useIdb) {
 

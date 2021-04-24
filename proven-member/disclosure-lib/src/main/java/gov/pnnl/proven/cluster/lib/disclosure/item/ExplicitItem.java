@@ -39,27 +39,85 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
+import java.util.List;
 
-import javax.json.bind.annotation.JsonbTransient;
+import javax.json.JsonStructure;
 
+import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonValidatingException;
+import org.leadpony.justify.api.Problem;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
 /**
- * Represents an explicit message item.
+ * Immutable class representing domain knowledge disclosures.
  * 
  * @author d3j766
  *
  */
 public class ExplicitItem implements MessageItem {
 
+	private JsonStructure message;
+
 	public ExplicitItem() {
+	}
+
+	private ExplicitItem(Builder b) {
+		this.message = b.message;
+	}
+
+	public JsonStructure getMessage() {
+		return message;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	public static final class Builder {
+
+		private JsonStructure message;
+
+		private Builder() {
+		}
+
+		public Builder withMessage(JsonStructure message) {
+			this.message = message;
+			return this;
+		}
+
+		/**
+		 * Builds new instance. Instance is validated post construction.
+		 * 
+		 * @return new instance
+		 * 
+		 * @throws JsonValidatingException
+		 *             if created instance fails JSON-SCHEMA validation.
+		 * 
+		 */
+		public ExplicitItem build() {
+
+			/**
+			 * Currently nothing to validate, meaning this is a trusted builder.
+			 */
+			return build(true);
+		}
+
+		private ExplicitItem build(boolean trustedBuilder) {
+
+			ExplicitItem ret = new ExplicitItem(this);
+
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
+			}
+
+			return ret;
+		}
 	}
 
 	@Override
@@ -73,23 +131,8 @@ public class ExplicitItem implements MessageItem {
 	}
 
 	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-	}
-
-	@JsonbTransient
-	@Override
-	public int getFactoryId() {
-		return DisclosureIDSFactory.FACTORY_ID;
-	}
-
-	@JsonbTransient
-	@Override
-	public int getId() {
-		return DisclosureIDSFactory.EXPLICIT_ITEM_TYPE;
+	public JsonStructure toJson() {
+		return message;
 	}
 
 	@Override
@@ -98,21 +141,26 @@ public class ExplicitItem implements MessageItem {
 		JsonSchema ret;
 
 		//@formatter:off
+		
 		ret = sbf.createBuilder()
 
 				.withId(Validatable.schemaId(this.getClass()))
 				
 				.withSchema(Validatable.schemaDialect())
 				
-				.withTitle("Message context schema")
+				.withTitle("Explicit item message schema")
 
-				.withDescription("Explicit message item schema")
+				.withDescription("Explicit message item schema.  An explicit message item represents "
+						+ "domain knowledge disclosed to the platform.  As such, it does not have "
+						+ " a schema adherence requirement other than it being valid JSON. "
+						+ " An outer Object or Array is permitted.")
 
+				.withType(InstanceType.OBJECT, InstanceType.ARRAY)
+				
 				.build();
 		
 		//@formatter:on
 
 		return ret;
 	}
-
 }

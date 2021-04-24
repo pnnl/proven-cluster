@@ -39,19 +39,17 @@ package gov.pnnl.proven.hybrid.util.store;
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-
-
-import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.*;
-
-
+import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.PROVEN_IDB_DB;
+import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.PROVEN_IDB_PASSWORD;
+import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.PROVEN_IDB_RP;
+import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.PROVEN_IDB_URL;
+import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.PROVEN_IDB_USERNAME;
+import static gov.pnnl.proven.hybrid.util.ProvenConfig.ProvenEnvProp.PROVEN_USE_IDB;
 
 import java.util.Collection;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.lang.Long;
-
 
 //import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
@@ -79,7 +77,7 @@ public class HybridMapStore implements MapStore<String, ProvenMessageOriginal> {
 
 	private final Logger log = LoggerFactory.getLogger(HybridMapStore.class);
 
-	private ProvenConfig pg;	
+	private ProvenConfig pg;
 
 	private boolean useIdb;
 	private String idbDB;
@@ -103,12 +101,12 @@ public class HybridMapStore implements MapStore<String, ProvenMessageOriginal> {
 		// BatchOptions.DEFAULT_BATCH_INTERVAL_DURATION, TimeUnit.SECONDS);
 		influxDB.enableBatch(20000, 10, TimeUnit.SECONDS);
 	}
-	
-	  @Override
-	  public void finalize() {
-	    influxDB.close();
-	  }
-	
+
+	@Override
+	public void finalize() {
+		influxDB.close();
+	}
+
 	public ProvenMessageOriginal load(String key) {
 		// TODO Auto-generated method stub
 		return null;
@@ -129,30 +127,31 @@ public class HybridMapStore implements MapStore<String, ProvenMessageOriginal> {
 
 	}
 
-
-
 	@Override
-	public void storeAll(Map<String, ProvenMessageOriginal> map) { //1
+	public void storeAll(Map<String, ProvenMessageOriginal> map) { // 1
 		// TODO Auto-generated method stub
-		if (useIdb) { //2
-			for (Map.Entry<String, ProvenMessageOriginal> entry : map.entrySet()) { //3
+		if (useIdb) { // 2
+			for (Map.Entry<String, ProvenMessageOriginal> entry : map.entrySet()) { // 3
 				// OLD Long startTime = System.currentTimeMillis();
-//				influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
-//				// influxDB.enableBatch(BatchOptions.DEFAULT_BATCH_ACTIONS_LIMIT,
-//				// BatchOptions.DEFAULT_BATCH_INTERVAL_DURATION, TimeUnit.SECONDS);
-//				influxDB.enableBatch(20000, 10, TimeUnit.SECONDS);
+				// influxDB = InfluxDBFactory.connect(idbUrl, idbUsername,
+				// idbPassword);
+				// //
+				// influxDB.enableBatch(BatchOptions.DEFAULT_BATCH_ACTIONS_LIMIT,
+				// // BatchOptions.DEFAULT_BATCH_INTERVAL_DURATION,
+				// TimeUnit.SECONDS);
+				// influxDB.enableBatch(20000, 10, TimeUnit.SECONDS);
 				ProvenMessageOriginal message = (ProvenMessageOriginal) entry.getValue();
-				Collection<ProvenMeasurement> measurements = message.getMeasurements();  
-				for (ProvenMeasurement measurement : measurements) { //4
+				Collection<ProvenMeasurement> measurements = message.getMeasurements();
+				for (ProvenMeasurement measurement : measurements) { // 4
 
 					Set<ProvenMetric> pms = measurement.getMetrics();
 
 					Point.Builder builder = Point.measurement(measurement.getMeasurementName())
 							.time(measurement.getTimestamp(), TimeUnit.MILLISECONDS);
 
-					for (ProvenMetric pm : pms) { //5
+					for (ProvenMetric pm : pms) { // 5
 
-						if (pm.isMetadata()) { //6
+						if (pm.isMetadata()) { // 6
 
 							builder.tag(pm.getLabel(), pm.getValue());
 
@@ -162,10 +161,10 @@ public class HybridMapStore implements MapStore<String, ProvenMessageOriginal> {
 							System.out.println(pm.getValue());
 							System.out.println("------------------------------");
 
-						} else { //6
+						} else { // 6
 
-							try { //7
-								if (pm.getValueType().equals(MetricValueType.Integer)) { //8
+							try { // 7
+								if (pm.getValueType().equals(MetricValueType.Integer)) { // 8
 									builder.addField(pm.getLabel(), Integer.valueOf(pm.getValue()));
 
 								} else if (pm.getValueType().equals(MetricValueType.Long)) {
@@ -181,25 +180,23 @@ public class HybridMapStore implements MapStore<String, ProvenMessageOriginal> {
 									builder.addField(pm.getLabel(), Boolean.valueOf(pm.getValue()));
 								} else {
 									builder.addField(pm.getLabel(), pm.getValue());
-								} //8
+								} // 8
 							} catch (NumberFormatException e) {
 								builder.addField(pm.getLabel(), pm.getValue());
-							} //7
+							} // 7
 
+						} // 6
 
-
-						} //6
-
-					} //5 else not metadata 
+					} // 5 else not metadata
 					influxDB.write(idbDB, idbRP, builder.build());
-					
-				}  //4 for
-				//influxDB.close();
-			} //3 for
 
-		}  //2 if
+				} // 4 for
+					// influxDB.close();
+			} // 3 for
 
-	}  //1 Method storeAll
+		} // 2 if
+
+	} // 1 Method storeAll
 
 	@Override
 	public void delete(String key) {

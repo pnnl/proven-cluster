@@ -493,10 +493,10 @@ public class MessageContentRoutingService {
 			System.out.println("!!!!!!!!ADD!!!!!!!!!!!!!!!!!     "
 					+ detectObjectType(sourceMessage.getDisclosureItem().getMessage()));
 			if (detectObjectType(sourceMessage.getDisclosureItem().getMessage()).equalsIgnoreCase("I")) {
-				JsonObject x = simulationInput2ProvenMeasurement(sourceMessage.getDisclosureItem().getMessage());
+				JsonObject x = simulationInput2ProvenMeasurement((JsonObject) sourceMessage.getDisclosureItem().getMessage());
 				loadResponse = writeKnowledgeMessage(sourceMessage);
 			} else if (detectObjectType(sourceMessage.getDisclosureItem().getMessage()).equalsIgnoreCase("O")) {
-				JsonObject x = simulationOutput2ProvenMeasurement(sourceMessage.getDisclosureItem().getMessage());
+				JsonObject x = simulationOutput2ProvenMeasurement((JsonObject) sourceMessage.getDisclosureItem().getMessage());
 				loadResponse = writeKnowledgeMessage(sourceMessage);
 			}
 			ret = new ResponseMessage(loadResponse, sourceMessage);

@@ -55,30 +55,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 public class StaticItem implements MessageItem {
 
 	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public int getFactoryId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public JsonSchema toSchema() {
 
 		JsonSchema ret;

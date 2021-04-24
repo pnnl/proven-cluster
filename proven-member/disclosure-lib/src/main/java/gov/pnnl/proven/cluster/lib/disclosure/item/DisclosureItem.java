@@ -54,6 +54,7 @@ import java.util.UUID;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonStructure;
 import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
@@ -70,17 +71,16 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.Disclosable;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
 /**
- * Immutable class representing data disclosed to the Proven platform.
+ * Immutable class representing data disclosed to a Proven platform.
  * 
  * @author d3j766
  * 
  */
-public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataSerializable {
+public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
 
@@ -102,7 +102,7 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 	private Long applicationSentTime;
 	private String authToken;
 	private MessageContext context;
-	private JsonObject message;
+	private JsonStructure message;
 	private JsonObject messageSchema;
 	private boolean isTransient;
 	private boolean isLinkedData;
@@ -124,7 +124,7 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 	 * be assigned as the new payload.
 	 * 
 	 * @param di
-	 *            original message
+	 *            original disclosure item
 	 * @param mi
 	 *            new payload
 	 */
@@ -201,7 +201,7 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 	}
 
 	@JsonbProperty(MESSAGE_PROP)
-	public JsonObject getMessage() {
+	public JsonStructure getMessage() {
 		return message;
 	}
 
@@ -226,11 +226,12 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 
 	public static final class Builder {
 
+		private boolean trustedMessageItem = false;
 		private UUID sourceMessageId;
 		private Long applicationSentTime;
 		private String authToken;
 		private MessageContext context;
-		private JsonObject message;
+		private JsonStructure message;
 		private JsonObject messageSchema;
 		private boolean isTransient;
 		private boolean isLinkedData;
@@ -263,12 +264,14 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 			return this;
 		}
 
-		public Builder withMessage(JsonObject message) {
+		public Builder withMessage(JsonStructure message) {
+			this.trustedMessageItem = false;
 			this.message = message;
 			return this;
 		}
 
 		public Builder withMessage(MessageItem message) {
+			this.trustedMessageItem = true;
 			this.message = message.toJson();
 			return this;
 		}
@@ -290,8 +293,7 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 
 		public Builder withDisclosureItem(DisclosureItem di) {
 			return withSourceMessageId(di.getSourceMessageId()).withApplicationSentTime(di.getApplicationSentTime())
-					.withAuthToken(di.getAuthToken()).withContext(di.getContext()).withMessage(di.getMessage())
-					.withMessageSchema(di.getMessageSchema()).withIsTransient(di.getIsTransient())
+					.withAuthToken(di.getAuthToken()).withContext(di.getContext()).withIsTransient(di.getIsTransient())
 					.withIsLinkedData(di.getIsLinkedData());
 		}
 
@@ -311,12 +313,20 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 		private DisclosureItem build(boolean trustedBuilder) {
 
 			DisclosureItem ret = new DisclosureItem(this);
+			
 
 			if (!trustedBuilder) {
 				List<Problem> problems = ret.validate();
 				if (!problems.isEmpty()) {
 					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
 				}
+			}
+			
+			if (!trustedMessageItem) {
+				List<Problem> problems = Validatable.validate(context.getItem(), message.toString());
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}				
 			}
 
 			if (ret.getIsLinkedData()) {
@@ -352,7 +362,7 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 		this.authToken = readNullable(in, rw((i) -> i.readUTF()));
 		this.context = new MessageContext();
 		this.context.readData(in);
-		this.message = (JsonObject) jsonValueIn(in.readByteArray());
+		this.message = (JsonStructure) jsonValueIn(in.readByteArray());
 		this.messageSchema = readNullable(in, rw((i) -> (JsonObject) jsonValueIn(i.readByteArray())));
 		this.isTransient = in.readBoolean();
 		this.isLinkedData = in.readBoolean();
@@ -378,86 +388,88 @@ public class DisclosureItem implements Validatable, Disclosable, IdentifiedDataS
 
 		//@formatter:off
 		
-			ret = sbf.createBuilder()
+		ret = sbf.createBuilder()
 
-					.withId(Validatable.schemaId(this.getClass()))
-					
-					.withSchema(Validatable.schemaDialect())
-					
-					.withTitle("Proven message schema")
-
-					.withDescription(
-						"Proven's message container supporting information disclosure to a Proven platform.")
-
-					.withType(InstanceType.OBJECT)
-
-					.withProperty(APPLICATION_SENT_TIME_PROP, sbf.createBuilder()
-						.withTitle("Application message sent time")
-						.withDescription("Sent time defined by message's sender.  "
-						 + "This is a timestamp formatted as an epoch time in millsiseconds.")
-						.withType(InstanceType.INTEGER, InstanceType.NULL)
-						.withDefault(JsonValue.NULL)
-						.withMinimum(0)
-						.withMaximum(Long.MAX_VALUE)
-						.build())					
-					
-					.withProperty(AUTH_TOKEN_PROP, sbf.createBuilder()							
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL)
-						.withPattern("^[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*$")
-						.build())
-					
-					.withProperty(CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
-					
-					.withProperty(MESSAGE_PROP, sbf.createBuilder()
-						.withTitle("Message payload")
-						.withDescription("Contains a message item of the type selected in the context property (i.e. item)")
-						.withType(InstanceType.OBJECT)
-						.withComment("Json will be validated for the item type selected.")
-						.build())
-
-					.withProperty(MESSAGE_SCHEMA_PROP, sbf.createBuilder()							
-						.withType(InstanceType.OBJECT, InstanceType.NULL)
-						.withDefault(JsonValue.NULL)
-						.withComment("Unsupported")
-						.build())
-
-					.withProperty(IS_TRANSIENT_PROP, sbf.createBuilder()
-						.withTitle("Transient message")
-						.withDescription("If true, message will not be archived.  "
-						 + "The content will be distributed to the Hybrid Store's IMDG and will be removed "
-						 + "based on its domain's expiration policy.")
-						.withType(InstanceType.BOOLEAN)
-						.withDefault(JsonValue.FALSE)
-						.build())
-					
-					.withProperty(IS_LINKED_DATA_PROP, sbf.createBuilder()
-						.withTitle("Linked Data message")
-						.withDescription("if true, indicates message is in JSON-LD format.  "
-						 + "The selecetd Message item type must be " + MessageItem.messageName(ExplicitItem.class)
-						 + " for this property to be true.")
-						.withType(InstanceType.BOOLEAN)
-						.withDefault(JsonValue.FALSE)
-						.build())
+				.withId(Validatable.schemaId(this.getClass()))
 				
-					.withIf(sbf.createBuilder()
-						.withProperty(IS_LINKED_DATA_PROP, sbf.createBuilder()
-								.withConst(JsonValue.TRUE)
-								.build())
-						.build())
-					.withThen(sbf.createBuilder()
-						.withProperty(CONTEXT_PROP, sbf.createBuilder()
-								.withProperty(MessageContext.ITEM_PROP, sbf.createBuilder()
-										.withAnyOf(
-										  sbf.createBuilder().withConst(Json.createValue(messageName(ExplicitItem.class))).build(),
-										  sbf.createBuilder().withConst(Json.createValue(messageName(ImplicitItem.class))).build())
-										.build())
-								.build())
-						.build())
-					
-					.withRequired(MESSAGE_PROP, CONTEXT_PROP)
-					
-					.build();
+				.withSchema(Validatable.schemaDialect())
+				
+				.withTitle("Disclosure item message schema")
+
+				.withDescription(
+					"Proven's message container for information disclosure to the platform.  It contains "
+				  + "general information pertaining to the contained message as well as the messsage itself, "
+				  + "which is provided in the 'message' object")
+
+				.withType(InstanceType.OBJECT)
+
+				.withProperty(APPLICATION_SENT_TIME_PROP, sbf.createBuilder()
+					.withTitle("Application message sent time")
+					.withDescription("Sent time defined by message's sender.  "
+					 + "This is a timestamp formatted as an epoch time in milliseconds.")
+					.withType(InstanceType.INTEGER, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.withMinimum(0)
+					.withMaximum(Long.MAX_VALUE)
+					.build())					
+				
+				.withProperty(AUTH_TOKEN_PROP, sbf.createBuilder()							
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.withPattern("^[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*$")
+					.build())
+				
+				.withProperty(CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
+				
+				.withProperty(MESSAGE_PROP, sbf.createBuilder()
+					.withTitle("Message payload")
+					.withDescription("Contains a message item of type selected in the 'context' property.")
+					.withType(InstanceType.OBJECT, InstanceType.ARRAY)
+					.withComment("Json will be validated for the item type selected.")
+					.build())
+
+				.withProperty(MESSAGE_SCHEMA_PROP, sbf.createBuilder()							
+					.withType(InstanceType.OBJECT, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.withComment("Unsupported")
+					.build())
+
+				.withProperty(IS_TRANSIENT_PROP, sbf.createBuilder()
+					.withTitle("Transient message")
+					.withDescription("If true, message will not be archived.  "
+					 + "The content will be distributed to the Hybrid Store's IMDG and will be removed "
+					 + "based on its domain's expiration policy and will not be added to a registered archive.")
+					.withType(InstanceType.BOOLEAN)
+					.withDefault(JsonValue.FALSE)
+					.build())
+				
+				.withProperty(IS_LINKED_DATA_PROP, sbf.createBuilder()
+					.withTitle("Linked Data message")
+					.withDescription("if true, indicates message is in JSON-LD format.  "
+					 + "The selecetd Message item type must be " + MessageItem.messageName(ExplicitItem.class)
+					 + " for this property to be true.")
+					.withType(InstanceType.BOOLEAN)
+					.withDefault(JsonValue.FALSE)
+					.build())
+			
+				.withIf(sbf.createBuilder()
+					.withProperty(IS_LINKED_DATA_PROP, sbf.createBuilder()
+							.withConst(JsonValue.TRUE)
+							.build())
+					.build())
+				.withThen(sbf.createBuilder()
+					.withProperty(CONTEXT_PROP, sbf.createBuilder()
+							.withProperty(MessageContext.ITEM_PROP, sbf.createBuilder()
+									.withAnyOf(
+									  sbf.createBuilder().withConst(Json.createValue(messageName(ExplicitItem.class))).build(),
+									  sbf.createBuilder().withConst(Json.createValue(messageName(ImplicitItem.class))).build())
+									.build())
+							.build())
+					.build())
+				
+				.withRequired(MESSAGE_PROP, CONTEXT_PROP)
+				
+				.build();
 			
 			//@formatter:on
 

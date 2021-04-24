@@ -37,129 +37,76 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.item;
 
-import java.util.List;
+import static org.hamcrest.MatcherAssert.assertThat;
 
+import javax.json.Json;
+import javax.json.JsonPatch;
 import javax.json.JsonStructure;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
-import org.leadpony.justify.api.JsonValidatingException;
-import org.leadpony.justify.api.Problem;
+import org.hamcrest.MatcherAssert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MeasurementRecord.MetricValueType;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-/**
- * Immutable class representing implicit domain knowledge disclosures.
- *
- */
-public class ImplicitItem implements MessageItem {
+public class MeasurementItemTest {
 
-	private JsonStructure message;
+	static Logger log = LoggerFactory.getLogger(MeasurementItemTest.class);
 
-	public ImplicitItem() {
+	MeasurementItem mi;
+	MeasurementRecord mr;
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	private ImplicitItem(Builder b) {
-		this.message = b.message;
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
 	}
 
-	public JsonStructure getMessage() {
-		return message;
+	@Before
+	public void setUp() throws Exception {
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+		mr = MeasurementRecord.newBuilder().withMetric("test1", "2", false, MetricValueType.IntegerType).build();
+		mi = MeasurementItem.newBuilder().withValue(mr).withMeasurement("testMeasurement1")
+				.withTimestamp(1619224620123L).build();
 	}
 
-	public static Builder newBuilder() {
-		return new Builder();
+	@After
+	public void tearDown() throws Exception {
 	}
 
-	public static final class Builder {
-
-		private JsonStructure message;
-
-		private Builder() {
-		}
-
-		public Builder withMessage(JsonStructure message) {
-			this.message = message;
-			return this;
-		}
-
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public ImplicitItem build() {
-
-			/**
-			 * Currently nothing to validate, meaning this is a trusted builder.
-			 */
-			return build(true);
-		}
-
-		private ImplicitItem build(boolean trustedBuilder) {
-
-			ImplicitItem ret = new ImplicitItem(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
+	@Test
+	public void testSchema_toSchema_passValidate() {
+		MatcherAssert.assertThat("MeasurementItem generates a valid schema",
+				Validatable.hasValidSchema(MeasurementItem.class));
 	}
 
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Implicit;
+	@Test
+	public void testCreate_builder_validJson() {
+		String jsonStr = mi.toJson().toString();
+		assertThat("Valid JSON produced for MeasurementItem builder",
+				Validatable.validate(MeasurementItem.class, jsonStr).isEmpty());
 	}
 
-	@Override
-	public String messageName() {
-		return "Implicit message";
-	}
-
-	@Override
-	public JsonStructure toJson() {
-		return message;
-	}
-
-	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		ret = sbf.createBuilder()
-
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Implicit item message schema")
-
-				.withDescription("Implicit message item schema.  An implicit message item represents "
-						+ "domain knowledge created from other domain knowledge.  Similar to explicit " 
-						+ "item message, it does not have a schema adherence requirement "
-						+ "other than it being valid JSON. An outer Object or Array is permitted.")
-
-				.withType(InstanceType.OBJECT, InstanceType.ARRAY)
-				.withDescription("Implicit domain knowledge, .")
-				
-				.build();
-		
-		//@formatter:on
-
-		return ret;
+	@Test
+	public void testRoundTrip_builder_mcObjectsEqual() {
+		JsonStructure json = mi.toJson();
+		String jsonStr = json.toString();
+		MeasurementItem mi2 = Validatable.toValidatable(MeasurementItem.class, jsonStr);
+		JsonStructure target = mi2.toJson();
+		JsonPatch jp = Json.createDiff(json, target);
+		MatcherAssert.assertThat("Valid round trip", jp.toJsonArray().size() == 0);
 	}
 
 }

@@ -37,129 +37,22 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
-
-import java.util.List;
+package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
 
 import javax.json.JsonStructure;
+import javax.json.bind.adapter.JsonbAdapter;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
-import org.leadpony.justify.api.JsonValidatingException;
-import org.leadpony.justify.api.Problem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ImplicitItem;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+public class ImplicitItemAdapter implements JsonbAdapter<ImplicitItem, JsonStructure> {
 
-/**
- * Immutable class representing implicit domain knowledge disclosures.
- *
- */
-public class ImplicitItem implements MessageItem {
-
-	private JsonStructure message;
-
-	public ImplicitItem() {
-	}
-
-	private ImplicitItem(Builder b) {
-		this.message = b.message;
-	}
-
-	public JsonStructure getMessage() {
-		return message;
-	}
-
-	public static Builder newBuilder() {
-		return new Builder();
-	}
-
-	public static final class Builder {
-
-		private JsonStructure message;
-
-		private Builder() {
-		}
-
-		public Builder withMessage(JsonStructure message) {
-			this.message = message;
-			return this;
-		}
-
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public ImplicitItem build() {
-
-			/**
-			 * Currently nothing to validate, meaning this is a trusted builder.
-			 */
-			return build(true);
-		}
-
-		private ImplicitItem build(boolean trustedBuilder) {
-
-			ImplicitItem ret = new ImplicitItem(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
+	@Override
+	public JsonStructure adaptToJson(ImplicitItem ii) throws Exception {
+		return ii.getMessage();
 	}
 
 	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Implicit;
+	public ImplicitItem adaptFromJson(JsonStructure json) throws Exception {
+		return ImplicitItem.newBuilder().withMessage(json).build();
 	}
-
-	@Override
-	public String messageName() {
-		return "Implicit message";
-	}
-
-	@Override
-	public JsonStructure toJson() {
-		return message;
-	}
-
-	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		ret = sbf.createBuilder()
-
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Implicit item message schema")
-
-				.withDescription("Implicit message item schema.  An implicit message item represents "
-						+ "domain knowledge created from other domain knowledge.  Similar to explicit " 
-						+ "item message, it does not have a schema adherence requirement "
-						+ "other than it being valid JSON. An outer Object or Array is permitted.")
-
-				.withType(InstanceType.OBJECT, InstanceType.ARRAY)
-				.withDescription("Implicit domain knowledge, .")
-				
-				.build();
-		
-		//@formatter:on
-
-		return ret;
-	}
-
 }

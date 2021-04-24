@@ -58,7 +58,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
  * @author d3j766
  *
  */
-public interface MessageItem extends Validatable, IdentifiedDataSerializable {
+public interface MessageItem extends Validatable {
 
 	static Map<String, Class<? extends MessageItem>> messagesByName = MessageInitializer.messagesByName();
 	static Map<Class<? extends MessageItem>, String> messagesByType = MessageInitializer.messagesByType();

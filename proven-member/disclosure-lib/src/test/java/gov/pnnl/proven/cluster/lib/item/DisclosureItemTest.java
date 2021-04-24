@@ -70,6 +70,7 @@ public class DisclosureItemTest {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureItemTest.class);
 
+	ExplicitItem ei;
 	MessageContext mc;
 	DisclosureItem di;
 
@@ -98,6 +99,8 @@ public class DisclosureItemTest {
 						"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ")
 				.withContext(mc).withMessage(JsonValue.EMPTY_JSON_OBJECT).withMessageSchema(JsonValue.EMPTY_JSON_OBJECT)
 				.withIsTransient(false).withIsLinkedData(false).build();
+
+		ei = ExplicitItem.newBuilder().withMessage(mc.toJson()).build();
 	}
 
 	@After
@@ -106,7 +109,7 @@ public class DisclosureItemTest {
 
 	@Test
 	public void testSchema_toSchema_passValidate() {
-		MatcherAssert.assertThat("DisclosureItem generates a valid schema",
+		assertThat("DisclosureItem generates a valid schema",
 				Validatable.hasValidSchema(DisclosureItem.class));
 	}
 
@@ -121,12 +124,18 @@ public class DisclosureItemTest {
 	public void testRoundTrip_builder_diObjectsNotEqual() {
 		String jsonStr = di.toJson().toString();
 		DisclosureItem di2 = Validatable.toValidatable(DisclosureItem.class, jsonStr);
-		MatcherAssert.assertThat("Valid round trip", !di.equals(di2));
+		assertThat("Valid round trip", !di.equals(di2));
 	}
 
 	@Test
 	public void testLinkedDataRule_builder_throwValidatableBuildException() {
 
+		/**
+		 * Schema rule under test : If is linked data then message item must be
+		 * [Explicit | Implicit]
+		 * 
+		 * Exception should be thrown because message item is Administrative.
+		 */
 		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
 				.withItem(AdministrativeItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
 				.withTags("TEST TAG1", "TEST TAG2").build();
@@ -139,4 +148,13 @@ public class DisclosureItemTest {
 				.withContext(mc).withMessage(JsonValue.EMPTY_JSON_OBJECT).withMessageSchema(JsonValue.EMPTY_JSON_OBJECT)
 				.withIsTransient(true).withIsLinkedData(true).build();
 	}
+
+	@Test
+	public void createFromDisclosureItem_construct_createdWithNewIdentifier() {
+		DisclosureItem di2 = DisclosureItem.createFromDisclosureItem(di, ei);
+		assertThat("New identifier assigned", di2.getMessage() != di.getMessageSchema());
+	}
+	
+	
+
 }
