@@ -223,7 +223,7 @@ public class ConceptService {
 	private String idbUrl;
 	private String idbUsername;
 	private String idbPassword;
-
+    private String x;
 	// //////////////////////////////////////////////////////////
 	// Named queries
 
