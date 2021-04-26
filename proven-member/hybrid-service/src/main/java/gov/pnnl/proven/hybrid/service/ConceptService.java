@@ -1732,7 +1732,7 @@ public class ConceptService {
 
 		ProvenMessageResponse ret = null;
 		
-		Long timestamp = -1L;
+		Long timestamp = -1L;  
 
 		Iterator<JSONObject> iterator = messageObject.iterator();
 		
