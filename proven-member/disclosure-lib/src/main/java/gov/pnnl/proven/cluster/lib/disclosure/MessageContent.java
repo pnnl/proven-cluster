@@ -74,15 +74,6 @@ public enum MessageContent {
 	Explicit(MessageContentName.EXPLICIT),
 
 	/**
-	 * Static or reference message content. This is data that changes
-	 * infrequently (i.e. lookup data) and is a form of {@link #Explicit}.
-	 * Static content will not age-off of the memory grid facet of the hybrid
-	 * store, but instead remain available in-memory for query and analysis
-	 * purposes.
-	 */
-	Static(MessageContentName.STATIC),
-
-	/**
 	 * Implicit content is content that is created from existing explicit
 	 * content. This content is considered as transient, in that it can be
 	 * regenerated on demand.
@@ -90,16 +81,11 @@ public enum MessageContent {
 	Implicit(MessageContentName.IMPLICIT),
 
 	/**
-	 * Semantic concept structure definitions and associated instance data (e.g.
-	 * an ontology or vocabulary sources). Structure message content is stored
-	 * in its own graph contributing to a single domain's knowledge model or all
-	 * domain knowledge models (e.g. an upper or foundation ontology).
-	 */
-	Structure(MessageContentName.STRUCTURE),
-
-	/**
 	 * Model content represents a semantic data model supporting domain based
-	 * operations within the Proven platform.
+	 * operations and queries within the Proven platform. Essentially, model
+	 * content is a knowledge graph that may be referenced for said queries and
+	 * operations. This may include instance data and/or structure data
+	 * depending on the model's purpose.
 	 */
 	Model(MessageContentName.MODEL),
 
@@ -159,9 +145,7 @@ public enum MessageContent {
 
 	public class MessageContentName {
 		public static final String EXPLICIT = "explicit";
-		public static final String STATIC = "static";
 		public static final String IMPLICIT = "implicit";
-		public static final String STRUCTURE = "structure";
 		public static final String MODEL = "messageModel";
 		public static final String QUERY = "query";
 		public static final String REPLAY = "replay";

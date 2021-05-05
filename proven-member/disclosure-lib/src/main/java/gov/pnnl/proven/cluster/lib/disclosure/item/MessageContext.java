@@ -82,7 +82,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  */
 public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
-	// Jsonb property names
 	static final String CONTENT_PROP = "content";
 	static final String ITEM_PROP = "item";
 	static final String DOMAIN_PROP = "domain";
@@ -97,7 +96,6 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 	private String name;
 	private String[] tags;
 
-	// HZ serialization
 	public MessageContext() {
 	}
 
@@ -282,8 +280,8 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 					
 				.withTitle("Message context schema")
 
-				.withDescription("Defines a context for disclosure items.  The context "
-							+ "identifies a disclosure item's processing and storage "
+				.withDescription("Defines the context for a disclosure item.  The context "
+							+ "identifies its processing and storage "
 							+ "requirements within the platform.")
 
 				.withType(InstanceType.OBJECT)

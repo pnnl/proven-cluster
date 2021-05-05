@@ -75,8 +75,6 @@ public enum MessageContentGroup {
 
 	Reference(
 			GroupLabel.REFERENCE_GROUP, 
-			MessageContent.Structure,
-			MessageContent.Static,
 			MessageContent.Model),
 	
 	Response(

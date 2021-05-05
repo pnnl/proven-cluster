@@ -39,59 +39,103 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.json.JsonValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
+/**
+ * Represents pre-defined exchange processing operations.
+ * 
+ * @author d3j766
+ *
+ */
+public enum ItemOperation {
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+	Contextualize(OperationName.CONTEXTUALIZE, true, -20),
+	Filter(OperationName.FILTER, false, -10),
+	Disclosure(OperationName.DISCLOSURE, true, 0),
+	Transform(OperationName.TRANSFORM, false, 10),
+	Validation(OperationName.VALIDATION, false, 20),
+	Inference(OperationName.INFERENCE, false, 30);
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+	public class OperationName {
+		public static final String CONTEXTUALIZE = "Contextualize";
+		public static final String FILTER = "Filter";
+		public static final String DISCLOSURE = "Disclosure";
+		public static final String TRANSFORM = "Transform";
+		public static final String VALIDATION = "Validation";
+		public static final String INFERENCE = "Inference";
+	}
 
-public class StaticItem implements MessageItem {
+	private static Logger log = LoggerFactory.getLogger(ItemOperation.class);
 
-	@Override
-	public JsonSchema toSchema() {
+	private String opName;
+	private boolean internal;
+	private int priority;
+	
 
-		JsonSchema ret;
+	ItemOperation(String opName, boolean internal, int priority) {
+		this.opName = opName;
+		this.internal = internal;
+		this.priority = priority;
+	}
 
-		//@formatter:off
-		ret = sbf.createBuilder()
+	public String getOpName() {
+		return opName;
+	}
 
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
+	public boolean isInternal() {
+		return internal;
+	}
 
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
+	public int getPriority() {
+		return priority;
+	}
 
-				.withType(InstanceType.OBJECT)
+	/**
+	 * Returns ItemOperation associated with the provided operation name.
+	 * 
+	 * @param operation
+	 *            name
+	 * @return associated ItemOperation, else null
+	 */
+	public static ItemOperation getItemOperation(String opName) {
 
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
-		
-		//@formatter:on
+		ItemOperation ret = null;
 
+		for (ItemOperation op : values()) {
+			if (opName.equals(op.getOpName())) {
+				ret = op;
+				break;
+			}
+		}
 		return ret;
 	}
 
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Static;
+	/**
+	 * Provides a list of all operation names.
+	 */
+	public static List<String> getOpNames() {
+		return getOpNames(false);
 	}
 
-	@Override
-	public String messageName() {
-		return "Static message";
+	/**
+	 * Provides a list of operation names. Internal operation names may be
+	 * excluded from list.
+	 */
+	public static List<String> getOpNames(boolean excludeInternalOperations) {
+
+		List<String> ret = new ArrayList<>();
+
+		for (ItemOperation op : values()) {
+			if (!op.isInternal() || !excludeInternalOperations) {
+				ret.add(op.getOpName());
+			}
+		}
+
+		return ret;
 	}
 
 }

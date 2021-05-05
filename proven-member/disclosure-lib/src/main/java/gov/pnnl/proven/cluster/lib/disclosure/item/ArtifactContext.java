@@ -39,20 +39,127 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
+import java.util.List;
 
+import javax.json.Json;
 import javax.json.JsonValue;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonValidatingException;
+import org.leadpony.justify.api.Problem;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+/**
+ * Immutable class representing the context of an artifact item. The context
+ * helps to identify an artifact in terms of its identifier and version for use
+ * in model messages.
+ * 
+ * @author d3j766
+ * 
+ * @see ModelArtifactItem, ModelItem
+ *
+ */
+public class ArtifactContext implements Validatable {
 
-public class StructureItem implements MessageItem {
+	static final String UNVERSIONED = "unversioned";
+
+	static final String ID_PROP = "id";
+	static final String VERSION_PROP = "item";
+	static final String LATEST_PROP = "domain";
+
+	private String id;
+	private String version;
+	private Boolean latest;
+
+	public ArtifactContext() {
+	}
+
+	@JsonbCreator
+	public static ArtifactContext createArtifactContext(@JsonbProperty(ID_PROP) String id,
+			@JsonbProperty(VERSION_PROP) String version, @JsonbProperty(LATEST_PROP) Boolean latest) {
+		return ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build(true);
+	}
+
+	private ArtifactContext(Builder b) {
+		this.id = b.id;
+		this.version = b.version;
+		this.latest = b.latest;
+	}
+
+	@JsonbProperty(ID_PROP)
+	public String getId() {
+		return id;
+	}
+
+	@JsonbProperty(VERSION_PROP)
+	public String getVersion() {
+		return version;
+	}
+
+	@JsonbProperty(LATEST_PROP)
+	public Boolean isLatest() {
+		return latest;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	public static final class Builder {
+
+		private String id;
+		private String version;
+		private Boolean latest;
+
+		private Builder() {
+		}
+
+		public Builder withId(String id) {
+			this.id = id;
+			return this;
+		}
+
+		public Builder withVersion(String version) {
+			this.version = version;
+			return this;
+		}
+
+		public Builder withLatest(Boolean latest) {
+			this.latest = latest;
+			return this;
+		}
+
+		/**
+		 * Builds new instance. Instance is validated post construction.
+		 * 
+		 * @return new instance
+		 * 
+		 * @throws JsonValidatingException
+		 *             if created instance fails JSON-SCHEMA validation.
+		 * 
+		 */
+		public ArtifactContext build() {
+			return build(false);
+		}
+
+		private ArtifactContext build(boolean trustedBuilder) {
+
+			ArtifactContext ret = new ArtifactContext(this);
+
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
+			}
+
+			return ret;
+		}
+	}
 
 	@Override
 	public JsonSchema toSchema() {
@@ -66,32 +173,38 @@ public class StructureItem implements MessageItem {
 				
 				.withSchema(Validatable.schemaDialect())
 				
-				.withTitle("Message context schema")
-
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
+				.withTitle("Artifact context")
+				
+				.withDescription("The context helps to identify an artifact in terms of its "
+						+ "identifier and version for use in model item messages.")
 
 				.withType(InstanceType.OBJECT)
+				
+				.withProperty(ID_PROP, sbf.createBuilder()
+					.withDescription("Artifact identifier, represented as an URI.  If the URI is designated as a locator"
+							+ "(see 'locator' property) then contents will be retrieved from this location")
+					.withType(InstanceType.STRING)
+					.withPattern("^(https?|ftp|file):\\/\\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]$")
+					.build())
 
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
+				.withProperty(VERSION_PROP, sbf.createBuilder()
+					.withDescription("Artifact's version.")
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(Json.createValue(UNVERSIONED))
+					.build())
+				
+				.withProperty(LATEST_PROP, sbf.createBuilder()
+					.withDescription("If true, indicates this artifact is the latest version.")
+					.withType(InstanceType.BOOLEAN, InstanceType.NULL)
+					.withDefault(JsonValue.TRUE)
+					.build())
+								
+				.withRequired(ID_PROP)
+				
 				.build();
 		
 		//@formatter:on
 
 		return ret;
 	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Structure;
-	}
-
-	@Override
-	public String messageName() {
-		return "Structure message";
-	}
-
 }
