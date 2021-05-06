@@ -65,11 +65,9 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  */
 public class ArtifactContext implements Validatable {
 
-	static final String UNVERSIONED = "unversioned";
-
 	static final String ID_PROP = "id";
 	static final String VERSION_PROP = "item";
-	static final String LATEST_PROP = "domain";
+	static final String LATEST_PROP = "latest";
 
 	private String id;
 	private String version;
@@ -190,12 +188,12 @@ public class ArtifactContext implements Validatable {
 				.withProperty(VERSION_PROP, sbf.createBuilder()
 					.withDescription("Artifact's version.")
 					.withType(InstanceType.STRING, InstanceType.NULL)
-					.withDefault(Json.createValue(UNVERSIONED))
+					.withDefault(JsonValue.NULL)
 					.build())
 				
 				.withProperty(LATEST_PROP, sbf.createBuilder()
 					.withDescription("If true, indicates this artifact is the latest version.")
-					.withType(InstanceType.BOOLEAN, InstanceType.NULL)
+					.withType(InstanceType.BOOLEAN)
 					.withDefault(JsonValue.TRUE)
 					.build())
 								

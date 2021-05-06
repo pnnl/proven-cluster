@@ -143,7 +143,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 	@JsonbCreator
 	public static DisclosureItem createDisclosureItem(
 			@JsonbProperty(APPLICATION_SENT_TIME_PROP) long applicationSentTime,
-			@JsonbProperty(AUTH_TOKEN_PROP) String authToken, @JsonbProperty(CONTEXT_PROP) JsonObject context,
+			@JsonbProperty(AUTH_TOKEN_PROP) String authToken, @JsonbProperty(CONTEXT_PROP) MessageContext context,
 			@JsonbProperty(MESSAGE_PROP) JsonStructure message,
 			@JsonbProperty(MESSAGE_SCHEMA_PROP) JsonObject messageSchema,
 			@JsonbProperty(IS_TRANSIENT_PROP) boolean isTransient,

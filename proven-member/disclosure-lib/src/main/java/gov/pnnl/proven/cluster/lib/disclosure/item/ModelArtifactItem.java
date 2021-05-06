@@ -75,21 +75,21 @@ public class ModelArtifactItem implements MessageItem {
 		N3("N3"),
 		NQUADS("N-Quads");
 
-		private String schemaName;
+		private String syntaxName;
 
-		private Syntax(String name) {
-			this.schemaName = name;
+		private Syntax(String syntaxName) {
+			this.syntaxName = syntaxName;
 		}
 
-		public String getSchemaName() {
-			return schemaName;
+		public String getSyntaxName() {
+			return syntaxName;
 		}
 
-		public static List<String> getNames() {
+		public static List<String> getSyntaxNames() {
 
 			List<String> ret = new ArrayList<String>();
 			for (Syntax syntax : Syntax.values()) {
-				ret.add(syntax.getSchemaName());
+				ret.add(syntax.getSyntaxName());
 			}
 
 			return ret;
@@ -260,28 +260,27 @@ public class ModelArtifactItem implements MessageItem {
 			.withProperty(LOCATOR_PROP, sbf.createBuilder()
 				.withDescription("If true, indicates artifact's identifier is a locator and will be used to "
 						+ "retrieve artifact's contents.")
-				.withType(InstanceType.BOOLEAN, InstanceType.NULL)
-				.withDefault(JsonValue.FALSE)
+				.withType(InstanceType.BOOLEAN)
 				.build())
 						
 			.withProperty(LD_CONTEXT_PROP, sbf.createBuilder()
 				.withDescription("If true, indicates the artifact is a JSON-LD @context object.")
-				.withType(InstanceType.BOOLEAN, InstanceType.NULL)
-				.withDefault(JsonValue.FALSE)
+				.withType(InstanceType.BOOLEAN)
 				.build())
 			
 			.withProperty(CONTENT_PROP, sbf.createBuilder()
 				.withDescription("BASE64 encoding of the artifact's content; required if locator property is false.")
 				.withType(InstanceType.STRING, InstanceType.NULL)
+				.withDefault(JsonValue.NULL)
 				.withContentEncoding("base64")
 				.build())
 			
 			.withProperty(SYNTAX_PROP, sbf.createBuilder()
 				.withDescription("Identifies graph syntax.")
 				.withType(InstanceType.STRING, InstanceType.NULL)
-				.withDefault(Json.createValue(Syntax.getDefaultSyntax().getSchemaName()))
-				.withEnum(Validatable.toJsonValues(Syntax.getNames()))
-				.withDefault(Json.createValue(Syntax.JSONLD.getSchemaName()))
+				.withDefault(Json.createValue(Syntax.getDefaultSyntax().getSyntaxName()))
+				.withEnum(Validatable.toJsonValues(Syntax.getSyntaxNames()))
+				.withDefault(Json.createValue(Syntax.JSONLD.getSyntaxName()))
 				.build())
 			
 			.withAllOf(
@@ -294,7 +293,7 @@ public class ModelArtifactItem implements MessageItem {
 					.build())
 				.withThen(sbf.createBuilder()
 					.withProperty(SYNTAX_PROP, sbf.createBuilder()
-						.withConst(Json.createValue(Syntax.JSONLD.getSchemaName()))
+						.withConst(Json.createValue(Syntax.JSONLD.getSyntaxName()))
 						.build())
 					.build())
 				.build(),								
@@ -312,7 +311,7 @@ public class ModelArtifactItem implements MessageItem {
 					.build())
 				.build())								
 			
-			.withRequired(ARTIFACT_PROP)
+			.withRequired(ARTIFACT_PROP, LOCATOR_PROP, LD_CONTEXT_PROP)
 			
 			.build();
 		
