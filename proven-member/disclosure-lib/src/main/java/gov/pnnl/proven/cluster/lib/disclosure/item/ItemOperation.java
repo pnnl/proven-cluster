@@ -46,24 +46,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents pre-defined exchange processing operations.
+ * Represents pre-defined exchange processing operations. Internal operations
+ * will always be performed. Non-internal operations will be performed if it has
+ * a Model definition with a matching message context.
+ * 
+ * @see ModelItem, MessageContext
  * 
  * @author d3j766
  *
  */
 public enum ItemOperation {
 
+	Disclosure(OperationName.DISCLOSURE, true, -30),
 	Contextualize(OperationName.CONTEXTUALIZE, true, -20),
 	Filter(OperationName.FILTER, false, -10),
-	Disclosure(OperationName.DISCLOSURE, true, 0),
+	Distribute(OperationName.DISTRIBUTE, true, 0),
 	Transform(OperationName.TRANSFORM, false, 10),
 	Validation(OperationName.VALIDATION, false, 20),
 	Inference(OperationName.INFERENCE, false, 30);
 
 	public class OperationName {
+
+		public static final String DISCLOSURE = "Disclosure";
 		public static final String CONTEXTUALIZE = "Contextualize";
 		public static final String FILTER = "Filter";
-		public static final String DISCLOSURE = "Disclosure";
+		public static final String DISTRIBUTE = "Distribute";
 		public static final String TRANSFORM = "Transform";
 		public static final String VALIDATION = "Validation";
 		public static final String INFERENCE = "Inference";
@@ -74,7 +81,6 @@ public enum ItemOperation {
 	private String opName;
 	private boolean internal;
 	private int priority;
-	
 
 	ItemOperation(String opName, boolean internal, int priority) {
 		this.opName = opName;
