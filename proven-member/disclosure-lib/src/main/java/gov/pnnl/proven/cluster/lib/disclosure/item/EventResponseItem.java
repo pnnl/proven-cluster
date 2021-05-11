@@ -39,134 +39,59 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.json.JsonValue;
 
-/**
- * Represents the pre-defined exchange processing operations. Operations may be
- * assigned model definitions via ModelItem messages and/or may also be included
- * in SSE event response messages via a EventResponseItem message.
- * 
- * @see ModelItem, EventResponseItem
- * 
- * @author d3j766
- *
- */
-public enum ItemOperation {
+import org.leadpony.justify.api.InstanceType;
+import org.leadpony.justify.api.JsonSchema;
 
-	Disclose(OperationName.DISCLOSE, false, false, 0),
-	Contextualize(OperationName.CONTEXTUALIZE, false, false, 10),
-	Filter(OperationName.FILTER, true, true, 20),
-	Distribute(OperationName.DISTRIBUTE, false, false, 30),
-	Transform(OperationName.TRANSFORM, true, true, 40),
-	Validate(OperationName.VALIDATE, true, true, 50),
-	Infer(OperationName.INFER, true, true, 60),
-	Provenance(OperationName.PROVENANCE, true, true, 70),
-	Request(OperationName.REQUEST, false, true, 80),
-	Service(OperationName.SERVICE, false, true, 90);
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-	public class OperationName {
-		public static final String DISCLOSE = "Disclose";
-		public static final String CONTEXTUALIZE = "Contextualize";
-		public static final String FILTER = "Filter";
-		public static final String DISTRIBUTE = "Distribute";
-		public static final String TRANSFORM = "Transform";
-		public static final String VALIDATE = "Validate";
-		public static final String INFER = "Infer";
-		public static final String PROVENANCE = "Provenance";
-		public static final String REQUEST = "Request";
-		public static final String SERVICE = "Service";
-	}
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
-	private static Logger log = LoggerFactory.getLogger(ItemOperation.class);
+public class EventResponseItem implements MessageItem {
 
-	private String opName;
-	private boolean model;
-	private boolean event;
-	private int priority;
+	@Override
+	public JsonSchema toSchema() {
 
-	ItemOperation(String opName, boolean model, boolean event, int priority) {
-		this.opName = opName;
-		this.model = model;
-		this.event = event;
-		this.priority = priority;
-	}
+		JsonSchema ret;
 
-	public String getOpName() {
-		return opName;
-	}
+		//@formatter:off
+		ret = sbf.createBuilder()
 
-	public boolean isModel() {
-		return model;
-	}
+				.withId(Validatable.schemaId(this.getClass()))
+				
+				.withSchema(Validatable.schemaDialect())
+				
+				.withTitle("Implicit message schema")
 
-	public boolean isEvent() {
-		return event;
-	}
+				.withDescription(
+						"Defines the context of a proven disclosure, which identifies its "
+					  + "processing and storage requirements within the platform.")
 
-	public int getPriority() {
-		return priority;
-	}
+				.withType(InstanceType.OBJECT)
 
-	/**
-	 * Returns ItemOperation associated with the provided operation name.
-	 * 
-	 * @param operation
-	 *            name
-	 * @return associated ItemOperation, else null
-	 */
-	public static ItemOperation getItemOperation(String opName) {
-
-		ItemOperation ret = null;
-
-		for (ItemOperation op : values()) {
-			if (opName.equals(op.getOpName())) {
-				ret = op;
-				break;
-			}
-		}
-		return ret;
-	}
-
-	/**
-	 * Provides a list of operation names that may be assigned Model
-	 * definitions.
-	 * 
-	 * @see ModelArtifactItem
-	 */
-	public static List<String> getModelOperationNames() {
-
-		List<String> ret = new ArrayList<>();
-
-		for (ItemOperation op : values()) {
-			if (!op.isModel()) {
-				ret.add(op.getOpName());
-			}
-		}
+				.withProperty("test", sbf.createBuilder()
+						.withType(InstanceType.STRING, InstanceType.NULL)
+						.withDefault(JsonValue.NULL).build())
+				.build();
+		
+		//@formatter:on
 
 		return ret;
 	}
 
-	/**
-	 * Provides a list of operation names that may be included in an SSE event
-	 * response subscription.
-	 * 
-	 * @see EventContext
-	 */
-	public static List<String> getEventOperationNames() {
+	@Override
+	public MessageContent messageContent() {
+		return MessageContent.Administrative;
+	}
 
-		List<String> ret = new ArrayList<>();
-
-		for (ItemOperation op : values()) {
-			if (!op.isEvent()) {
-				ret.add(op.getOpName());
-			}
-		}
-
-		return ret;
+	@Override
+	public String messageName() {
+		return "Administrative message";
 	}
 
 }

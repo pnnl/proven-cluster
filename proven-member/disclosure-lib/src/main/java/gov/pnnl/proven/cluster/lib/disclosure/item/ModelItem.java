@@ -230,7 +230,7 @@ public class ModelItem implements MessageItem {
 				.withProperty(OPERATION_PROP, sbf.createBuilder()
 						.withDescription("Model will be asssigned to the selected operation")
 						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withEnum(Validatable.toJsonValues(ItemOperation.getOpNames(true)))
+						.withEnum(Validatable.toJsonValues(ItemOperation.getModelOperationNames()))
 						.withDefault(JsonValue.NULL)
 						.build())
 				
