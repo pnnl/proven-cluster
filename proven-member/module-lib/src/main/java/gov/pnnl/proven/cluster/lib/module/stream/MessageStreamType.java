@@ -72,6 +72,7 @@ public enum MessageStreamType {
 	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
 	Measurement(StreamLabel.MEASUREMENT_STREAM, MessageContentGroup.Measurement),
 	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
+	Service(StreamLabel.SERVICE_STREAM, MessageContentGroup.Service),
 	Reference(StreamLabel.REFERENCE_STREAM, MessageContentGroup.Reference),
 	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
 
@@ -79,6 +80,7 @@ public enum MessageStreamType {
 		private static final String KNOWLEDGE_STREAM = "knowledge";
 		private static final String MEASUREMENT_STREAM = "disclosed";
 		private static final String REQUEST_STREAM = "request";
+		private static final String SERVICE_STREAM = "service";
 		private static final String REFERENCE_STREAM = "disclosed";
 		private static final String RESPONSE_STREAM = "response";
 	}

@@ -68,10 +68,13 @@ public enum MessageContentGroup {
 	Request(
 			GroupLabel.REQUEST_GROUP,
 			MessageContent.Administrative,
-			MessageContent.PipelineService,
-			MessageContent.ModuleService,
 			MessageContent.Query,
 			MessageContent.Replay),
+	
+	Service(
+			GroupLabel.SERVICE_GROUP,
+			MessageContent.Pipeline,
+			MessageContent.Module),
 
 	Reference(
 			GroupLabel.REFERENCE_GROUP, 
@@ -85,6 +88,7 @@ public enum MessageContentGroup {
 		private static final String KNOWLEDGE_GROUP = "knowledge";
 		private static final String MEASUREMENT_GROUP = "measurement";
 		private static final String REQUEST_GROUP = "request";
+		private static final String SERVICE_GROUP = "service";
 		private static final String REFERENCE_GROUP = "reference";
 		private static final String RESPONSE_GROUP = "response";
 	}

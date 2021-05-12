@@ -107,7 +107,7 @@ public enum MessageContent {
 	 * Information regarding the service and action to perform is contained in
 	 * the message.
 	 */
-	PipelineService(MessageContentName.PIPELINE_SERVICE),
+	Pipeline(MessageContentName.PIPELINE_SERVICE),
 
 	/**
 	 * Represents a module processing service request. Contains the service
@@ -115,7 +115,7 @@ public enum MessageContent {
 	 * Information regarding the service and action to perform is contained in
 	 * the message.
 	 */
-	ModuleService(MessageContentName.MODULE_SERVICE),
+	Module(MessageContentName.MODULE_SERVICE),
 
 	/**
 	 * Cluster administrative message content. Contains directives to configure
