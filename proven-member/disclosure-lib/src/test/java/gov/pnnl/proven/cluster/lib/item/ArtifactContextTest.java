@@ -37,61 +37,80 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.item;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 
-import javax.json.JsonValue;
+import javax.json.Json;
+import javax.json.JsonPatch;
+import javax.json.JsonStructure;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
+import org.hamcrest.MatcherAssert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ArtifactContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-public class StructureItem implements MessageItem {
+public class ArtifactContextTest {
 
-	@Override
-	public JsonSchema toSchema() {
+	static Logger log = LoggerFactory.getLogger(ArtifactContext.class);
 
-		JsonSchema ret;
+	ArtifactContext ac;
+	String id = "http://proven.pnnl.gov/test";
+	String version = "1.0";
+	Boolean latest = true;
 
-		//@formatter:off
-		ret = sbf.createBuilder()
-
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
-
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
-
-				.withType(InstanceType.OBJECT)
-
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
-		
-		//@formatter:on
-
-		return ret;
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Structure;
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
 	}
 
-	@Override
-	public String messageName() {
-		return "Structure message";
+	@Before
+	public void setUp() throws Exception {
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build();				
+	}
+
+	@After
+	public void tearDown() throws Exception {
+	}
+
+	@Test
+	public void testSchema_toSchema_passValidate() {
+		MatcherAssert.assertThat("ArtifactContext generates a valid schema",
+				Validatable.hasValidSchema(ArtifactContext.class));
+	}
+
+	@Test
+	public void testCreate_builder_validJson() {
+		String jsonStr = ac.toJson().toString();
+		assertThat("Valid JSON produced for ArtifactContext builder",
+				Validatable.validate(ArtifactContext.class, jsonStr).isEmpty());
+	}
+
+	@Test
+	public void testRoundTrip_builder_acJsonEqual() {
+		JsonStructure acJson = ac.toJson();
+		String jsonStr = acJson.toString();
+		ArtifactContext ac2 = Validatable.toValidatable(ArtifactContext.class, jsonStr);
+		JsonStructure ac2Json = ac2.toJson();
+		JsonPatch jp = Json.createDiff(acJson, ac2Json);
+		MatcherAssert.assertThat("Valid round trip", jp.toJsonArray().size() == 0);
 	}
 
 }

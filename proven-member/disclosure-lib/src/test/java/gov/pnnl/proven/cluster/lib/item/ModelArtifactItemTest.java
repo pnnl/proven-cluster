@@ -37,93 +37,81 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.item;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import javax.json.Json;
+import javax.json.JsonPatch;
+import javax.json.JsonStructure;
+
+import org.hamcrest.MatcherAssert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * 
- * Message groups represent a collection of {@code MessageContent}. A
- * {@code MessageContent} must be a member of a single message group.   
- *  
- * @see MessageContent
- * 
- * @author d3j766
- *
- */
-public enum MessageContentGroup {
+import gov.pnnl.proven.cluster.lib.disclosure.item.ArtifactContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-	Knowledge(
-			GroupLabel.KNOWLEDGE_GROUP,
-			MessageContent.Explicit,
-			MessageContent.Implicit),
+public class ModelArtifactItemTest {
 
-	Measurement(
-			GroupLabel.MEASUREMENT_GROUP, 
-			MessageContent.Measurement),
-		
-	Request(
-			GroupLabel.REQUEST_GROUP,
-			MessageContent.Administrative,
-			MessageContent.PipelineService,
-			MessageContent.ModuleService,
-			MessageContent.Query,
-			MessageContent.Replay),
+	static Logger log = LoggerFactory.getLogger(ModelArtifactItemTest.class);
 
-	Reference(
-			GroupLabel.REFERENCE_GROUP, 
-			MessageContent.Model),
-	
-	Response(
-			GroupLabel.RESPONSE_GROUP, 
-			MessageContent.Response);
+	ArtifactContext ac;
+	String id = "http://proven.pnnl.gov/test";
+	String version = "1.0";
+	Boolean latest = true;
+	ModelArtifactItem mai;
 
-	private class GroupLabel {
-		private static final String KNOWLEDGE_GROUP = "knowledge";
-		private static final String MEASUREMENT_GROUP = "measurement";
-		private static final String REQUEST_GROUP = "request";
-		private static final String REFERENCE_GROUP = "reference";
-		private static final String RESPONSE_GROUP = "response";
+	@Rule
+	public ExpectedException exceptionGrabber = ExpectedException.none();
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
-
-	private String groupLabel;
-	private List<MessageContent> messageContents;
-
-	MessageContentGroup(String groupLabel, MessageContent... contents) {
-		this.groupLabel = groupLabel;
-		messageContents = Arrays.asList(contents);
-	}
-	
-	public String getGroupLabel() {
-		return groupLabel;
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
 	}
 
-	/**
-	 * Provides the {@code MessageContent} supported by the stream.
-	 * 
-	 * @return a list of supported MessageContent
-	 * 
-	 */
-	public List<MessageContent> getMessageContents() {
-		return messageContents;
+	@Before
+	public void setUp() throws Exception {
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build();
+		mai = ModelArtifactItem.newBuilder().withArtifact(ac).withLdContext(false).withLocator(true)
+				.withSyntax(ModelArtifactItem.Syntax.N3).build();
 	}
 
-	public static MessageContentGroup getType(MessageContent mcToCheckFor) {
-
-		MessageContentGroup ret = null;
-		for (MessageContentGroup mst : values()) {
-			for (MessageContent mc : mst.messageContents) {
-				if (mc.equals(mcToCheckFor))
-					ret = mst;
-				break;
-			}
-		}
-		return ret;
+	@After
+	public void tearDown() throws Exception {
 	}
 
+	@Test
+	public void testSchema_toSchema_passValidate() {
+		assertThat("ModelArtifactItem generates a valid schema", Validatable.hasValidSchema(ModelArtifactItem.class));
+	}
+
+	@Test
+	public void testCreate_builder_validJson() {
+		String jsonStr = mai.toJson().toString();
+		assertThat("Valid JSON produced for ModelArtifactItem builder",
+				Validatable.validate(ModelArtifactItem.class, jsonStr).isEmpty());
+	}
+
+	@Test
+	public void testRoundTrip_builder_maiJsonEqual() {
+		JsonStructure maiJson = ac.toJson();
+		String jsonStr = maiJson.toString();
+		ArtifactContext mai2 = Validatable.toValidatable(ArtifactContext.class, jsonStr);
+		JsonStructure mai2Json = mai2.toJson();
+		JsonPatch jp = Json.createDiff(maiJson, mai2Json);
+		MatcherAssert.assertThat("Valid round trip", jp.toJsonArray().size() == 0);
+	}
 }

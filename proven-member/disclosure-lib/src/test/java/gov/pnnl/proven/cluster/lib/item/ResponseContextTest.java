@@ -37,93 +37,84 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.item;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import javax.json.Json;
+import javax.json.JsonPatch;
+import javax.json.JsonStructure;
+import javax.ws.rs.core.Response;
+
+import org.hamcrest.MatcherAssert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * 
- * Message groups represent a collection of {@code MessageContent}. A
- * {@code MessageContent} must be a member of a single message group.   
- *  
- * @see MessageContent
- * 
- * @author d3j766
- *
- */
-public enum MessageContentGroup {
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ItemOperation;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ResponseContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-	Knowledge(
-			GroupLabel.KNOWLEDGE_GROUP,
-			MessageContent.Explicit,
-			MessageContent.Implicit),
+public class ResponseContextTest {
 
-	Measurement(
-			GroupLabel.MEASUREMENT_GROUP, 
-			MessageContent.Measurement),
-		
-	Request(
-			GroupLabel.REQUEST_GROUP,
-			MessageContent.Administrative,
-			MessageContent.PipelineService,
-			MessageContent.ModuleService,
-			MessageContent.Query,
-			MessageContent.Replay),
+	static Logger log = LoggerFactory.getLogger(ResponseContextTest.class);
 
-	Reference(
-			GroupLabel.REFERENCE_GROUP, 
-			MessageContent.Model),
-	
-	Response(
-			GroupLabel.RESPONSE_GROUP, 
-			MessageContent.Response);
+	ResponseContext rc;
+	MessageContext mc;
 
-	private class GroupLabel {
-		private static final String KNOWLEDGE_GROUP = "knowledge";
-		private static final String MEASUREMENT_GROUP = "measurement";
-		private static final String REQUEST_GROUP = "request";
-		private static final String REFERENCE_GROUP = "reference";
-		private static final String RESPONSE_GROUP = "response";
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
-
-	private String groupLabel;
-	private List<MessageContent> messageContents;
-
-	MessageContentGroup(String groupLabel, MessageContent... contents) {
-		this.groupLabel = groupLabel;
-		messageContents = Arrays.asList(contents);
-	}
-	
-	public String getGroupLabel() {
-		return groupLabel;
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
 	}
 
-	/**
-	 * Provides the {@code MessageContent} supported by the stream.
-	 * 
-	 * @return a list of supported MessageContent
-	 * 
-	 */
-	public List<MessageContent> getMessageContents() {
-		return messageContents;
+	@Before
+	public void setUp() throws Exception {
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+
+		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
+				.withItem(ExplicitItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
+				.withTags("TEST TAG1", "TEST TAG2").build();
+
+		rc = ResponseContext.newBuilder().withStatusCode(Response.Status.OK).withStatusMessage("Okay")
+				.withOperation(ItemOperation.Provenance).withOperationStartTime(1620847243000L)
+				.withOperationEndTime(1620847243111L).withOperationContext(mc).build();
 	}
 
-	public static MessageContentGroup getType(MessageContent mcToCheckFor) {
+	@After
+	public void tearDown() throws Exception {
+	}
 
-		MessageContentGroup ret = null;
-		for (MessageContentGroup mst : values()) {
-			for (MessageContent mc : mst.messageContents) {
-				if (mc.equals(mcToCheckFor))
-					ret = mst;
-				break;
-			}
-		}
-		return ret;
+	@Test
+	public void testSchema_toSchema_passValidate() {
+		MatcherAssert.assertThat("ResponeContext generates a valid schema",
+				Validatable.hasValidSchema(ResponseContext.class));
+	}
+
+	@Test
+	public void testCreate_builder_validJson() {
+		String jsonStr = rc.toJson().toString();
+		assertThat("Valid JSON produced for ResponeContext builder",
+				Validatable.validate(ResponseContext.class, jsonStr).isEmpty());
+	}
+
+	@Test
+	public void testRoundTrip_builder_rcObjectsEqual() {
+		JsonStructure json = rc.toJson();
+		String jsonStr = json.toString();
+		ResponseContext rc2 = Validatable.toValidatable(ResponseContext.class, jsonStr);
+		JsonStructure target = rc2.toJson();
+		JsonPatch jp = Json.createDiff(json, target);
+		MatcherAssert.assertThat("Valid round trip", jp.toJsonArray().size() == 0);
 	}
 
 }

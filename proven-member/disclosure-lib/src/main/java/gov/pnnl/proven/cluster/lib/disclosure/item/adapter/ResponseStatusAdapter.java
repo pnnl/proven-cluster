@@ -37,93 +37,20 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
 
-import java.util.Arrays;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.json.bind.adapter.JsonbAdapter;
+import javax.ws.rs.core.Response;
 
-/**
- * 
- * Message groups represent a collection of {@code MessageContent}. A
- * {@code MessageContent} must be a member of a single message group.   
- *  
- * @see MessageContent
- * 
- * @author d3j766
- *
- */
-public enum MessageContentGroup {
+public class ResponseStatusAdapter implements JsonbAdapter<Response.Status, String> {
 
-	Knowledge(
-			GroupLabel.KNOWLEDGE_GROUP,
-			MessageContent.Explicit,
-			MessageContent.Implicit),
-
-	Measurement(
-			GroupLabel.MEASUREMENT_GROUP, 
-			MessageContent.Measurement),
-		
-	Request(
-			GroupLabel.REQUEST_GROUP,
-			MessageContent.Administrative,
-			MessageContent.PipelineService,
-			MessageContent.ModuleService,
-			MessageContent.Query,
-			MessageContent.Replay),
-
-	Reference(
-			GroupLabel.REFERENCE_GROUP, 
-			MessageContent.Model),
-	
-	Response(
-			GroupLabel.RESPONSE_GROUP, 
-			MessageContent.Response);
-
-	private class GroupLabel {
-		private static final String KNOWLEDGE_GROUP = "knowledge";
-		private static final String MEASUREMENT_GROUP = "measurement";
-		private static final String REQUEST_GROUP = "request";
-		private static final String REFERENCE_GROUP = "reference";
-		private static final String RESPONSE_GROUP = "response";
+	@Override
+	public String adaptToJson(Response.Status status) throws Exception {
+		return String.valueOf(status.getStatusCode());
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
-
-	private String groupLabel;
-	private List<MessageContent> messageContents;
-
-	MessageContentGroup(String groupLabel, MessageContent... contents) {
-		this.groupLabel = groupLabel;
-		messageContents = Arrays.asList(contents);
+	@Override
+	public Response.Status adaptFromJson(String status) throws Exception {
+		return Response.Status.fromStatusCode(Integer.valueOf(status));
 	}
-	
-	public String getGroupLabel() {
-		return groupLabel;
-	}
-
-	/**
-	 * Provides the {@code MessageContent} supported by the stream.
-	 * 
-	 * @return a list of supported MessageContent
-	 * 
-	 */
-	public List<MessageContent> getMessageContents() {
-		return messageContents;
-	}
-
-	public static MessageContentGroup getType(MessageContent mcToCheckFor) {
-
-		MessageContentGroup ret = null;
-		for (MessageContentGroup mst : values()) {
-			for (MessageContent mc : mst.messageContents) {
-				if (mc.equals(mcToCheckFor))
-					ret = mst;
-				break;
-			}
-		}
-		return ret;
-	}
-
 }

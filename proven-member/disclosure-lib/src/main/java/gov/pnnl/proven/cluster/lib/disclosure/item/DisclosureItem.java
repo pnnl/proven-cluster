@@ -143,8 +143,8 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 	@JsonbCreator
 	public static DisclosureItem createDisclosureItem(
 			@JsonbProperty(APPLICATION_SENT_TIME_PROP) long applicationSentTime,
-			@JsonbProperty(AUTH_TOKEN_PROP) String authToken, @JsonbProperty(CONTEXT_PROP) JsonObject context,
-			@JsonbProperty(MESSAGE_PROP) JsonObject message,
+			@JsonbProperty(AUTH_TOKEN_PROP) String authToken, @JsonbProperty(CONTEXT_PROP) MessageContext context,
+			@JsonbProperty(MESSAGE_PROP) JsonStructure message,
 			@JsonbProperty(MESSAGE_SCHEMA_PROP) JsonObject messageSchema,
 			@JsonbProperty(IS_TRANSIENT_PROP) boolean isTransient,
 			@JsonbProperty(IS_LINKED_DATA_PROP) boolean isLinkedData) {
@@ -406,7 +406,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 				.withProperty(APPLICATION_SENT_TIME_PROP, sbf.createBuilder()
 					.withTitle("Application message sent time")
 					.withDescription("Sent time defined by message's sender.  "
-					 + "This is a timestamp formatted as an epoch time in milliseconds.")
+					 + "This is an epoch timestamp formatted in milliseconds.")
 					.withType(InstanceType.INTEGER, InstanceType.NULL)
 					.withDefault(JsonValue.NULL)
 					.withMinimum(0)

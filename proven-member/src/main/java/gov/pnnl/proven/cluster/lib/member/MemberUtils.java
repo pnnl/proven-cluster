@@ -109,7 +109,8 @@ public class MemberUtils {
 
 	private static Logger log = LoggerFactory.getLogger(MemberUtils.class);
 
-	public static final String FILE_SEP = System.getProperty("file.separator");
+	public static final String LS = System.lineSeparator();
+	public static final String FS = System.getProperty("file.separator");
 
 	/** 
 	 * Returns the throwable cause if it exists (i.e. not null) or the throwable name itself.
@@ -205,11 +206,11 @@ public class MemberUtils {
 
 	public static String getPath(boolean isRelative, String... pathElements) {
 
-		String ret = (isRelative ? "" : FILE_SEP);
+		String ret = (isRelative ? "" : FS);
 
 		for (String pathElement : pathElements) {
 			if (null != pathElement) {
-				ret = ret + pathElement + FILE_SEP;
+				ret = ret + pathElement + FS;
 			}
 		}
 

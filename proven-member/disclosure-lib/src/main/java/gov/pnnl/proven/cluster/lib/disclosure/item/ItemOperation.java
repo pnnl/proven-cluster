@@ -37,92 +37,152 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Represents the pre-defined item processing operations. Operations may be
+ * assigned model definitions via ModelItem messages and/or may also be included
+ * in SSE event response message subscriptions via an EventResponseItem message.
+ * Operations are assigned a priority value which determines the order in which
+ * they are performed. Priority is given to operations which exchange message
+ * data to the Hybrid Store's streaming environment.
  * 
- * Message groups represent a collection of {@code MessageContent}. A
- * {@code MessageContent} must be a member of a single message group.   
- *  
- * @see MessageContent
+ * @see ModelItem, EventResponseItem
  * 
  * @author d3j766
  *
  */
-public enum MessageContentGroup {
+public enum ItemOperation {
 
-	Knowledge(
-			GroupLabel.KNOWLEDGE_GROUP,
-			MessageContent.Explicit,
-			MessageContent.Implicit),
+	Disclose(OperationName.DISCLOSE, false, false, 0),
+	Contextualize(OperationName.CONTEXTUALIZE, false, false, 10),
+	Filter(OperationName.FILTER, true, true, 20),
+	Distribute(OperationName.DISTRIBUTE, false, false, 30),
+	Transform(OperationName.TRANSFORM, true, true, 40),
+	Validate(OperationName.VALIDATE, true, true, 50),
+	Infer(OperationName.INFER, true, true, 60),
+	Provenance(OperationName.PROVENANCE, true, true, 70),
+	Request(OperationName.REQUEST, false, true, 80),
+	Service(OperationName.SERVICE, false, true, 90);
 
-	Measurement(
-			GroupLabel.MEASUREMENT_GROUP, 
-			MessageContent.Measurement),
-		
-	Request(
-			GroupLabel.REQUEST_GROUP,
-			MessageContent.Administrative,
-			MessageContent.PipelineService,
-			MessageContent.ModuleService,
-			MessageContent.Query,
-			MessageContent.Replay),
-
-	Reference(
-			GroupLabel.REFERENCE_GROUP, 
-			MessageContent.Model),
-	
-	Response(
-			GroupLabel.RESPONSE_GROUP, 
-			MessageContent.Response);
-
-	private class GroupLabel {
-		private static final String KNOWLEDGE_GROUP = "knowledge";
-		private static final String MEASUREMENT_GROUP = "measurement";
-		private static final String REQUEST_GROUP = "request";
-		private static final String REFERENCE_GROUP = "reference";
-		private static final String RESPONSE_GROUP = "response";
+	public class OperationName {
+		public static final String DISCLOSE = "Disclose";
+		public static final String CONTEXTUALIZE = "Contextualize";
+		public static final String FILTER = "Filter";
+		public static final String DISTRIBUTE = "Distribute";
+		public static final String TRANSFORM = "Transform";
+		public static final String VALIDATE = "Validate";
+		public static final String INFER = "Infer";
+		public static final String PROVENANCE = "Provenancex";
+		public static final String REQUEST = "Request";
+		public static final String SERVICE = "Service";
 	}
 
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
+	private static Logger log = LoggerFactory.getLogger(ItemOperation.class);
 
-	private String groupLabel;
-	private List<MessageContent> messageContents;
+	private String opName;
+	private boolean model;
+	private boolean event;
+	private int priority;
 
-	MessageContentGroup(String groupLabel, MessageContent... contents) {
-		this.groupLabel = groupLabel;
-		messageContents = Arrays.asList(contents);
+	ItemOperation(String opName, boolean model, boolean event, int priority) {
+		this.opName = opName;
+		this.model = model;
+		this.event = event;
+		this.priority = priority;
 	}
-	
-	public String getGroupLabel() {
-		return groupLabel;
+
+	public String getOpName() {
+		return opName;
+	}
+
+	public boolean isModel() {
+		return model;
+	}
+
+	public boolean isEvent() {
+		return event;
+	}
+
+	public int getPriority() {
+		return priority;
 	}
 
 	/**
-	 * Provides the {@code MessageContent} supported by the stream.
+	 * Returns ItemOperation associated with the provided operation name.
 	 * 
-	 * @return a list of supported MessageContent
-	 * 
+	 * @param operation
+	 *            name
+	 * @return associated ItemOperation, else null
 	 */
-	public List<MessageContent> getMessageContents() {
-		return messageContents;
-	}
+	public static ItemOperation getItemOperation(String opName) {
 
-	public static MessageContentGroup getType(MessageContent mcToCheckFor) {
+		ItemOperation ret = null;
 
-		MessageContentGroup ret = null;
-		for (MessageContentGroup mst : values()) {
-			for (MessageContent mc : mst.messageContents) {
-				if (mc.equals(mcToCheckFor))
-					ret = mst;
+		for (ItemOperation op : values()) {
+			if (opName.equals(op.getOpName())) {
+				ret = op;
 				break;
 			}
 		}
+		return ret;
+	}
+
+	/**
+	 * Provides a list of all operation names.
+	 */
+	public static List<String> getOperationNames() {
+
+		List<String> ret = new ArrayList<>();
+
+		for (ItemOperation op : values()) {
+				ret.add(op.getOpName());
+		}
+
+		return ret;
+	}
+	
+	/**
+	 * Provides a list of operation names that may have assigned Model
+	 * definitions.
+	 * 
+	 * @see ModelArtifactItem
+	 */
+	public static List<String> getModelOperationNames() {
+
+		List<String> ret = new ArrayList<>();
+
+		for (ItemOperation op : values()) {
+			if (op.isModel()) {
+				ret.add(op.getOpName());
+			}
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Provides a list of operation names that may be included in an SSE event
+	 * response subscription.
+	 * 
+	 * @see EventContext
+	 */
+	public static List<String> getEventOperationNames() {
+
+		List<String> ret = new ArrayList<>();
+
+		for (ItemOperation op : values()) {
+			if (!op.isEvent()) {
+				ret.add(op.getOpName());
+			}
+		}
+
 		return ret;
 	}
 

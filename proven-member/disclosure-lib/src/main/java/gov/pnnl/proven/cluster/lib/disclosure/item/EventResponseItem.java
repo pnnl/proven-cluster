@@ -37,93 +37,61 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.util.Arrays;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
 
-/**
- * 
- * Message groups represent a collection of {@code MessageContent}. A
- * {@code MessageContent} must be a member of a single message group.   
- *  
- * @see MessageContent
- * 
- * @author d3j766
- *
- */
-public enum MessageContentGroup {
+import javax.json.JsonValue;
 
-	Knowledge(
-			GroupLabel.KNOWLEDGE_GROUP,
-			MessageContent.Explicit,
-			MessageContent.Implicit),
+import org.leadpony.justify.api.InstanceType;
+import org.leadpony.justify.api.JsonSchema;
 
-	Measurement(
-			GroupLabel.MEASUREMENT_GROUP, 
-			MessageContent.Measurement),
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+
+public class EventResponseItem implements MessageItem {
+
+	@Override
+	public JsonSchema toSchema() {
+
+		JsonSchema ret;
+
+		//@formatter:off
+		ret = sbf.createBuilder()
+
+				.withId(Validatable.schemaId(this.getClass()))
+				
+				.withSchema(Validatable.schemaDialect())
+				
+				.withTitle("Implicit message schema")
+
+				.withDescription(
+						"Defines the context of a proven disclosure, which identifies its "
+					  + "processing and storage requirements within the platform.")
+
+				.withType(InstanceType.OBJECT)
+
+				.withProperty("test", sbf.createBuilder()
+						.withType(InstanceType.STRING, InstanceType.NULL)
+						.withDefault(JsonValue.NULL).build())
+				.build();
 		
-	Request(
-			GroupLabel.REQUEST_GROUP,
-			MessageContent.Administrative,
-			MessageContent.PipelineService,
-			MessageContent.ModuleService,
-			MessageContent.Query,
-			MessageContent.Replay),
+		//@formatter:on
 
-	Reference(
-			GroupLabel.REFERENCE_GROUP, 
-			MessageContent.Model),
-	
-	Response(
-			GroupLabel.RESPONSE_GROUP, 
-			MessageContent.Response);
-
-	private class GroupLabel {
-		private static final String KNOWLEDGE_GROUP = "knowledge";
-		private static final String MEASUREMENT_GROUP = "measurement";
-		private static final String REQUEST_GROUP = "request";
-		private static final String REFERENCE_GROUP = "reference";
-		private static final String RESPONSE_GROUP = "response";
-	}
-
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
-
-	private String groupLabel;
-	private List<MessageContent> messageContents;
-
-	MessageContentGroup(String groupLabel, MessageContent... contents) {
-		this.groupLabel = groupLabel;
-		messageContents = Arrays.asList(contents);
-	}
-	
-	public String getGroupLabel() {
-		return groupLabel;
-	}
-
-	/**
-	 * Provides the {@code MessageContent} supported by the stream.
-	 * 
-	 * @return a list of supported MessageContent
-	 * 
-	 */
-	public List<MessageContent> getMessageContents() {
-		return messageContents;
-	}
-
-	public static MessageContentGroup getType(MessageContent mcToCheckFor) {
-
-		MessageContentGroup ret = null;
-		for (MessageContentGroup mst : values()) {
-			for (MessageContent mc : mst.messageContents) {
-				if (mc.equals(mcToCheckFor))
-					ret = mst;
-				break;
-			}
-		}
 		return ret;
+	}
+
+	@Override
+	public MessageContent messageContent() {
+		return MessageContent.Administrative;
+	}
+
+	@Override
+	public String messageName() {
+		return "Administrative message";
 	}
 
 }

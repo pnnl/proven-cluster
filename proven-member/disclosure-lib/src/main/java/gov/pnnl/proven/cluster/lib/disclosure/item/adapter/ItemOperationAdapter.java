@@ -37,61 +37,21 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
 
-import java.io.IOException;
+import javax.json.bind.adapter.JsonbAdapter;
 
-import javax.json.JsonValue;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ItemOperation;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
-
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-
-public class StaticItem implements MessageItem {
+public class ItemOperationAdapter implements JsonbAdapter<ItemOperation, String> {
 
 	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		ret = sbf.createBuilder()
-
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Message context schema")
-
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
-
-				.withType(InstanceType.OBJECT)
-
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
-		
-		//@formatter:on
-
-		return ret;
+	public String adaptToJson(ItemOperation op) throws Exception {
+		return op.getOpName();
 	}
 
 	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Static;
+	public ItemOperation adaptFromJson(String op) throws Exception {
+		return ItemOperation.getItemOperation(op);
 	}
-
-	@Override
-	public String messageName() {
-		return "Static message";
-	}
-
 }
