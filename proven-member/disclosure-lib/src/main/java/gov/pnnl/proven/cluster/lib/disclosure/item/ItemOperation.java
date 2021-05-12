@@ -46,9 +46,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents the pre-defined exchange processing operations. Operations may be
+ * Represents the pre-defined item processing operations. Operations may be
  * assigned model definitions via ModelItem messages and/or may also be included
- * in SSE event response messages via a EventResponseItem message.
+ * in SSE event response message subscriptions via an EventResponseItem message.
+ * Operations are assigned a priority value which determines the order in which
+ * they are performed. Priority is given to operations which exchange message
+ * data to the Hybrid Store's streaming environment.
  * 
  * @see ModelItem, EventResponseItem
  * 
@@ -76,7 +79,7 @@ public enum ItemOperation {
 		public static final String TRANSFORM = "Transform";
 		public static final String VALIDATE = "Validate";
 		public static final String INFER = "Infer";
-		public static final String PROVENANCE = "Provenance";
+		public static final String PROVENANCE = "Provenancex";
 		public static final String REQUEST = "Request";
 		public static final String SERVICE = "Service";
 	}
@@ -132,7 +135,21 @@ public enum ItemOperation {
 	}
 
 	/**
-	 * Provides a list of operation names that may be assigned Model
+	 * Provides a list of all operation names.
+	 */
+	public static List<String> getOperationNames() {
+
+		List<String> ret = new ArrayList<>();
+
+		for (ItemOperation op : values()) {
+				ret.add(op.getOpName());
+		}
+
+		return ret;
+	}
+	
+	/**
+	 * Provides a list of operation names that may have assigned Model
 	 * definitions.
 	 * 
 	 * @see ModelArtifactItem
@@ -142,7 +159,7 @@ public enum ItemOperation {
 		List<String> ret = new ArrayList<>();
 
 		for (ItemOperation op : values()) {
-			if (!op.isModel()) {
+			if (op.isModel()) {
 				ret.add(op.getOpName());
 			}
 		}

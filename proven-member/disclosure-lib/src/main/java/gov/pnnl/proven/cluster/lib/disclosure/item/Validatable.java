@@ -64,7 +64,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonStructure;
@@ -98,8 +97,10 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.DisclosureDomainAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ExplicitItemAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ImplicitItemAdapter;
+import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ItemOperationAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageContentAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageItemTypeAdapter;
+import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ResponseStatusAdapter;
 
 /**
  * Represents a JSON-SCHEMA validatable object.
@@ -122,7 +123,7 @@ public interface Validatable {
 	static final JsonSchemaBuilderFactory sbf = service.createSchemaBuilderFactory();
 	static final JsonbConfig config = new JsonbConfig().withFormatting(true).withAdapters(new MessageItemTypeAdapter(),
 			new DisclosureDomainAdapter(), new MessageContentAdapter(), new ExplicitItemAdapter(),
-			new ImplicitItemAdapter());
+			new ImplicitItemAdapter(), new ItemOperationAdapter(), new ResponseStatusAdapter());
 	static final Jsonb jsonb = JsonbBuilder.create(config);
 
 	/**

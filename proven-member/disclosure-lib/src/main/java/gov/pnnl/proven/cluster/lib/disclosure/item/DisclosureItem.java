@@ -406,7 +406,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 				.withProperty(APPLICATION_SENT_TIME_PROP, sbf.createBuilder()
 					.withTitle("Application message sent time")
 					.withDescription("Sent time defined by message's sender.  "
-					 + "This is a timestamp formatted as an epoch time in milliseconds.")
+					 + "This is an epoch timestamp formatted in milliseconds.")
 					.withType(InstanceType.INTEGER, InstanceType.NULL)
 					.withDefault(JsonValue.NULL)
 					.withMinimum(0)
