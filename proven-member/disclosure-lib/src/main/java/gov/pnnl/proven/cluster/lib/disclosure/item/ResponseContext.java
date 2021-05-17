@@ -51,6 +51,7 @@ import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
 /**
  * Immutable class representing the context of a response item item, containing

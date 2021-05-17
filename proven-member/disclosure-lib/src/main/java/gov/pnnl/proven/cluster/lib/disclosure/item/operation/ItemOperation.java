@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,15 +45,17 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
+
 /**
  * Represents the pre-defined item processing operations. Operations may be
  * assigned model definitions via ModelItem messages and/or may also be included
- * in SSE event response message subscriptions via an EventResponseItem message.
+ * in SSE event response message subscriptions via an OperationEvent.
  * Operations are assigned a priority value which determines the order in which
  * they are performed. Priority is given to operations which exchange message
  * data to the Hybrid Store's streaming environment.
  * 
- * @see ModelItem, EventResponseItem
+ * @see ModelItem, OperationEvent
  * 
  * @author d3j766
  *

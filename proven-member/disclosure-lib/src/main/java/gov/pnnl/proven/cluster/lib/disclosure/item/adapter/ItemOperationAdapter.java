@@ -41,7 +41,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
 
 import javax.json.bind.adapter.JsonbAdapter;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.ItemOperation;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
 public class ItemOperationAdapter implements JsonbAdapter<ItemOperation, String> {
 

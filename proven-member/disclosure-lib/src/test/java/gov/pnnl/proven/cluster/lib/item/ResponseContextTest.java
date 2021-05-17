@@ -57,10 +57,10 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.ItemOperation;
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ResponseContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
 public class ResponseContextTest {
 

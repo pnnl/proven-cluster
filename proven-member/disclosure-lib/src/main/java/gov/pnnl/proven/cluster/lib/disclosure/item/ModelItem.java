@@ -52,6 +52,7 @@ import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
 /**
  * Immutable class representing a Model item message. This message defines a
