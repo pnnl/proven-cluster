@@ -41,6 +41,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,30 +49,31 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
 
 /**
- * Represents the pre-defined item processing operations. Operations may be
- * assigned model definitions via ModelItem messages and/or may also be included
- * in SSE event response message subscriptions via an OperationEvent.
- * Operations are assigned a priority value which determines the order in which
- * they are performed. Priority is given to operations which exchange message
- * data to the Hybrid Store's streaming environment.
+ * Represents the pre-defined item processing operations. Operations are
+ * assigned a name and a context type, if any. Operations may be assigned model
+ * definitions via ModelItem messages and/or may also be included in SSE event
+ * response message subscriptions via an OperationEvent. Operations are assigned
+ * a priority value which determines the order in which they are performed.
+ * Priority is given to operations which exchange message data to the Hybrid
+ * Store's streaming environment.
  * 
- * @see ModelItem, OperationEvent
+ * @see OperationContext, ModelItem, OperationEvent
  * 
  * @author d3j766
  *
  */
 public enum ItemOperation {
 
-	Disclose(OperationName.DISCLOSE, false, false, 0),
-	Contextualize(OperationName.CONTEXTUALIZE, false, false, 10),
-	Filter(OperationName.FILTER, true, true, 20),
-	Distribute(OperationName.DISTRIBUTE, false, false, 30),
-	Transform(OperationName.TRANSFORM, true, true, 40),
-	Validate(OperationName.VALIDATE, true, true, 50),
-	Infer(OperationName.INFER, true, true, 60),
-	Provenance(OperationName.PROVENANCE, true, true, 70),
-	Request(OperationName.REQUEST, false, true, 80),
-	Service(OperationName.SERVICE, false, true, 90);
+	Disclose(OperationName.DISCLOSE, DiscloseContext.class, false, false, 0),
+	Contextualize(OperationName.CONTEXTUALIZE, ContextualizeContext.class, false, false, 10),
+	Filter(OperationName.FILTER, FilterContext.class, true, true, 20),
+	Distribute(OperationName.DISTRIBUTE, DistributeContext.class, false, false, 30),
+	Transform(OperationName.TRANSFORM, TransformContext.class, true, true, 40),
+	Validate(OperationName.VALIDATE, ValidateContext.class, true, true, 50),
+	Infer(OperationName.INFER, InferContext.class, true, true, 60),
+	Provenance(OperationName.PROVENANCE, ProvenanceContext.class, true, true, 70),
+	Request(OperationName.REQUEST, RequestContext.class, false, true, 80),
+	Service(OperationName.SERVICE, ServiceContext.class, false, true, 90);
 
 	public class OperationName {
 		public static final String DISCLOSE = "Disclose";
@@ -81,7 +83,7 @@ public enum ItemOperation {
 		public static final String TRANSFORM = "Transform";
 		public static final String VALIDATE = "Validate";
 		public static final String INFER = "Infer";
-		public static final String PROVENANCE = "Provenancex";
+		public static final String PROVENANCE = "Provenance";
 		public static final String REQUEST = "Request";
 		public static final String SERVICE = "Service";
 	}
@@ -89,12 +91,15 @@ public enum ItemOperation {
 	private static Logger log = LoggerFactory.getLogger(ItemOperation.class);
 
 	private String opName;
+	private Class<? extends OperationContext> opContext;
 	private boolean model;
 	private boolean event;
 	private int priority;
 
-	ItemOperation(String opName, boolean model, boolean event, int priority) {
+	ItemOperation(String opName, Class<? extends OperationContext> opContext, boolean model, boolean event,
+			int priority) {
 		this.opName = opName;
+		this.opContext = opContext;
 		this.model = model;
 		this.event = event;
 		this.priority = priority;
@@ -102,6 +107,10 @@ public enum ItemOperation {
 
 	public String getOpName() {
 		return opName;
+	}
+
+	public Class<? extends OperationContext> getOpContext() {
+		return opContext;
 	}
 
 	public boolean isModel() {
@@ -137,32 +146,18 @@ public enum ItemOperation {
 	}
 
 	/**
-	 * Provides a list of all operation names.
-	 */
-	public static List<String> getOperationNames() {
-
-		List<String> ret = new ArrayList<>();
-
-		for (ItemOperation op : values()) {
-				ret.add(op.getOpName());
-		}
-
-		return ret;
-	}
-	
-	/**
-	 * Provides a list of operation names that may have assigned Model
+	 * Provides a list of operations that may have assigned Model
 	 * definitions.
 	 * 
 	 * @see ModelArtifactItem
 	 */
-	public static List<String> getModelOperationNames() {
+	public static List<ItemOperation> getModelOperations() {
 
-		List<String> ret = new ArrayList<>();
+		List<ItemOperation> ret = new ArrayList<>();
 
 		for (ItemOperation op : values()) {
 			if (op.isModel()) {
-				ret.add(op.getOpName());
+				ret.add(op);
 			}
 		}
 
@@ -170,18 +165,18 @@ public enum ItemOperation {
 	}
 
 	/**
-	 * Provides a list of operation names that may be included in an SSE event
+	 * Provides a list of operations that may be included in an SSE event
 	 * response subscription.
 	 * 
 	 * @see EventContext
 	 */
-	public static List<String> getEventOperationNames() {
+	public static List<ItemOperation> getEventOperations() {
 
-		List<String> ret = new ArrayList<>();
+		List<ItemOperation> ret = new ArrayList<>();
 
 		for (ItemOperation op : values()) {
 			if (!op.isEvent()) {
-				ret.add(op.getOpName());
+				ret.add(op);
 			}
 		}
 

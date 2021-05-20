@@ -37,10 +37,13 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.response;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.json.JsonObject;
+import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
 import javax.ws.rs.core.Response;
@@ -51,7 +54,10 @@ import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
 
 /**
  * Immutable class representing the context of a response item item, containing
@@ -67,17 +73,17 @@ public class ResponseContext implements Validatable {
 
 	static final String STATUS_CODE_PROP = "statusCode";
 	static final String STATUS_MESSAGE_PROP = "statusMessage";
-	static final String OPERATION_PROP = "operation";
 	static final String OPERATION_START_TIME_PROP = "operationStartTime";
 	static final String OPERATION_END_TIME_PROP = "opertionEndTime";
+	static final String MESSAGE_CONTEXT_PROP = "messageContext";
 	static final String OPERATION_CONTEXT_PROP = "operationContext";
 
 	private Response.Status statusCode;
 	private String statusMessage;
-	private ItemOperation operation;
 	private long operationStartTime;
 	private long operationEndTime;
-	private MessageContext operationContext;
+	private MessageContext messageContext;
+	private JsonObject operationContext;
 
 	public ResponseContext() {
 	}
@@ -85,21 +91,21 @@ public class ResponseContext implements Validatable {
 	@JsonbCreator
 	public static ResponseContext createResponseContext(@JsonbProperty(STATUS_CODE_PROP) Response.Status statusCode,
 			@JsonbProperty(STATUS_MESSAGE_PROP) String statusMessage,
-			@JsonbProperty(OPERATION_PROP) ItemOperation operation,
 			@JsonbProperty(OPERATION_START_TIME_PROP) long operationStartTime,
 			@JsonbProperty(OPERATION_END_TIME_PROP) long operationEndTime,
-			@JsonbProperty(OPERATION_CONTEXT_PROP) MessageContext operationContext) {
+			@JsonbProperty(MESSAGE_CONTEXT_PROP) MessageContext messageContext,
+			@JsonbProperty(OPERATION_CONTEXT_PROP) JsonObject operationContext) {
 		return ResponseContext.newBuilder().withStatusCode(statusCode).withStatusMessage(statusMessage)
-				.withOperation(operation).withOperationStartTime(operationStartTime)
-				.withOperationEndTime(operationEndTime).withOperationContext(operationContext).build(true);
+				.withOperationStartTime(operationStartTime).withOperationEndTime(operationEndTime)
+				.withMessageContext(messageContext).withOperationContext(operationContext).build(true);
 	}
 
 	private ResponseContext(Builder b) {
 		this.statusCode = b.statusCode;
 		this.statusMessage = b.statusMessage;
-		this.operation = b.operation;
 		this.operationStartTime = b.operationStartTime;
 		this.operationEndTime = b.operationEndTime;
+		this.messageContext = b.messageContext;
 		this.operationContext = b.operationContext;
 	}
 
@@ -113,11 +119,6 @@ public class ResponseContext implements Validatable {
 		return statusMessage;
 	}
 
-	@JsonbProperty(OPERATION_PROP)
-	public ItemOperation getOperation() {
-		return operation;
-	}
-
 	@JsonbProperty(OPERATION_START_TIME_PROP)
 	public long getOperationStartTime() {
 		return operationStartTime;
@@ -128,8 +129,13 @@ public class ResponseContext implements Validatable {
 		return operationEndTime;
 	}
 
+	@JsonbProperty(MESSAGE_CONTEXT_PROP)
+	public MessageContext getMessageContext() {
+		return messageContext;
+	}
+
 	@JsonbProperty(OPERATION_CONTEXT_PROP)
-	public MessageContext getOperationContext() {
+	public  JsonObject getOperationContext() {
 		return operationContext;
 	}
 
@@ -141,10 +147,10 @@ public class ResponseContext implements Validatable {
 
 		private Response.Status statusCode;
 		private String statusMessage;
-		private ItemOperation operation;
 		private long operationStartTime;
 		private long operationEndTime;
-		private MessageContext operationContext;
+		private MessageContext messageContext;
+		private JsonObject operationContext;
 
 		private Builder() {
 		}
@@ -159,11 +165,6 @@ public class ResponseContext implements Validatable {
 			return this;
 		}
 
-		public Builder withOperation(ItemOperation operation) {
-			this.operation = operation;
-			return this;
-		}
-
 		public Builder withOperationStartTime(long operationStartTime) {
 			this.operationStartTime = operationStartTime;
 			return this;
@@ -174,8 +175,18 @@ public class ResponseContext implements Validatable {
 			return this;
 		}
 
-		public Builder withOperationContext(MessageContext operationContext) {
+		public Builder withMessageContext(MessageContext messageContext) {
+			this.messageContext = messageContext;
+			return this;
+		}
+
+		public Builder withOperationContext(JsonObject operationContext) {
 			this.operationContext = operationContext;
+			return this;
+		}
+		
+		public Builder withOperationContext(OperationContext oc) {
+			this.operationContext = (JsonObject) oc.toJson();
 			return this;
 		}
 
@@ -212,6 +223,12 @@ public class ResponseContext implements Validatable {
 
 		JsonSchema ret;
 
+		// Create allowed OperationContext schema definitions
+		List<JsonSchema> allowedOps = new ArrayList<>();
+		for (ItemOperation op : ItemOperation.values()) {
+			allowedOps.add(Validatable.retrieveSchema(op.getOpContext()));
+		}
+
 		//@formatter:off
 
 		ret = sbf.createBuilder()
@@ -239,14 +256,9 @@ public class ResponseContext implements Validatable {
 					sbf.createBuilder()
 					.withDescription("Response description.")
 					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
 					.build())
-			
-			.withProperty(OPERATION_PROP, sbf.createBuilder()
-					.withDescription("Identifies the processing opertion type.")
-					.withType(InstanceType.STRING)
-					.withEnum(Validatable.toJsonValues(ItemOperation.getOperationNames()))
-					.build())
-			
+						
 			.withProperty(OPERATION_START_TIME_PROP, sbf.createBuilder()
 					.withTitle("Operation start time")
 					.withDescription("Time operation was started. This is an epoch timestamp formatted "
@@ -265,9 +277,15 @@ public class ResponseContext implements Validatable {
 					.withMaximum(Long.MAX_VALUE)
 					.build())	
 	
-			.withProperty(OPERATION_CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
+			.withProperty(MESSAGE_CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
 			
-			.withRequired(STATUS_CODE_PROP, OPERATION_PROP, OPERATION_START_TIME_PROP, OPERATION_END_TIME_PROP, OPERATION_CONTEXT_PROP)
+			.withProperty(OPERATION_CONTEXT_PROP, sbf.createBuilder()
+					.withOneOf(allowedOps)
+					.withType(InstanceType.OBJECT)
+					.build())
+			
+			.withRequired(STATUS_CODE_PROP, OPERATION_START_TIME_PROP, OPERATION_END_TIME_PROP, 
+					      MESSAGE_CONTEXT_PROP, OPERATION_CONTEXT_PROP)
 							
 			.build();
 			

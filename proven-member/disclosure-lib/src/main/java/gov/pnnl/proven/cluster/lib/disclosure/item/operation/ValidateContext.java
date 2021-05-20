@@ -37,26 +37,109 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
-/**
- * 
- * ResponseItem represents a response message for processing events within the
- * platform. These messages may be subscribed to as SSE events.
- * 
- * @see ItemOperation, EventResponseItem
- * 
- * @author d3j766
- * 
- *
- */
-public interface ResponseItem extends MessageItem {
+import java.util.List;
 
-	/**
-	 * Returns a ResponseContext for the ResponseItem. This includes baseline
-	 * information for a response. ResponseItem implementations may augment this
-	 * with data specific to their response type.
-	 */
-	ResponseContext getResponseContext();
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
+
+import org.leadpony.justify.api.InstanceType;
+import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonValidatingException;
+import org.leadpony.justify.api.Problem;
+
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+
+public class ValidateContext implements OperationContext {
+
+	static final String OPERATION_PROP = "operation";
+
+	private ItemOperation operation = ItemOperation.Validate;
+
+	public ValidateContext() {
+	}
+
+	@JsonbCreator
+	public static ValidateContext createValidateContext() {
+		return ValidateContext.newBuilder().build(true);
+	}
+
+	private ValidateContext(Builder b) {
+	}
+
+	@JsonbProperty(OPERATION_PROP)
+	@Override
+	public ItemOperation getOperation() {
+		return operation;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	public static final class Builder {
+
+		private Builder() {
+		}
+
+		/**
+		 * Builds new instance. Instance is validated post construction.
+		 * 
+		 * @return new instance
+		 * 
+		 * @throws JsonValidatingException
+		 *             if created instance fails JSON-SCHEMA validation.
+		 * 
+		 */
+		public ValidateContext build() {
+			return build(false);
+		}
+
+		private ValidateContext build(boolean trustedBuilder) {
+
+			ValidateContext ret = new ValidateContext(this);
+
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
+			}
+
+			return ret;
+		}
+	}
+
+	@Override
+	public JsonSchema toSchema() {
+
+		JsonSchema ret;
+
+		//@formatter:off
+		
+		ret = sbf.createBuilder()
+
+			.withId(Validatable.schemaId(this.getClass()))
+			
+			.withSchema(Validatable.schemaDialect())
+			
+			.withTitle("Validate operation context schema")
+
+			.withDescription("Defines the context for a Validate operation.")
+
+			.withType(InstanceType.OBJECT)
+			
+			.withProperty(OPERATION_PROP, operationPropertySchema())
+			
+			// TODO - add additional schema elements for operation
+						
+			.build();
+		
+		//@formatter:on
+
+		return ret;
+	}
 
 }

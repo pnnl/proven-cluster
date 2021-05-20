@@ -37,130 +37,38 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
-import java.util.List;
+import javax.json.Json;
 
-import javax.json.JsonStructure;
-
-import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
-import org.leadpony.justify.api.JsonValidatingException;
-import org.leadpony.justify.api.Problem;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 /**
- * Immutable class representing domain knowledge disclosures.
+ * An operation context includes the operation and if necessary additional
+ * information to support the ItemOperation's execution.
  * 
  * @author d3j766
+ * 
+ * @see ItemOperation
  *
  */
-public class ExplicitItem implements MessageItem {
+public interface OperationContext extends Validatable {
 
-	private JsonStructure message;
+	/**
+	 * Returns the ItemOperation for the defined context.
+	 */
+	ItemOperation getOperation();
 
-	public ExplicitItem() {
+	/**
+	 * Default operation property schema.
+	 * 
+	 * @return JsonSchema for an operation property.
+	 */
+	default JsonSchema operationPropertySchema() {
+		return Validatable.sbf.createBuilder().withDescription("Provided operation")
+				.withConst(Json.createValue(getOperation().getOpName())).build();
 	}
 
-	private ExplicitItem(Builder b) {
-		this.message = b.message;
-	}
-
-	public JsonStructure getMessage() {
-		return message;
-	}
-
-	public static Builder newBuilder() {
-		return new Builder();
-	}
-
-	public static final class Builder {
-
-		private JsonStructure message;
-
-		private Builder() {
-		}
-
-		public Builder withMessage(JsonStructure message) {
-			this.message = message;
-			return this;
-		}
-
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public ExplicitItem build() {
-
-			/**
-			 * Currently nothing to validate, meaning this is a trusted builder.
-			 */
-			return build(true);
-		}
-
-		private ExplicitItem build(boolean trustedBuilder) {
-
-			ExplicitItem ret = new ExplicitItem(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Explicit;
-	}
-
-	@Override
-	public String messageName() {
-		return "Explicit message";
-	}
-
-	@Override
-	public JsonStructure toJson() {
-		return message;
-	}
-
-	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		
-		ret = sbf.createBuilder()
-
-			.withId(Validatable.schemaId(this.getClass()))
-			
-			.withSchema(Validatable.schemaDialect())
-			
-			.withTitle("Explicit item message schema")
-
-			.withDescription("Explicit message item schema.  An explicit message item represents "
-					+ "domain knowledge disclosed to the platform.  As such, it does not have "
-					+ " a schema adherence requirement other than it being valid JSON. "
-					+ " An outer Object or Array is permitted.")
-
-			.withType(InstanceType.OBJECT, InstanceType.ARRAY)
-			
-			.build();
-		
-		//@formatter:on
-
-		return ret;
-	}
 }

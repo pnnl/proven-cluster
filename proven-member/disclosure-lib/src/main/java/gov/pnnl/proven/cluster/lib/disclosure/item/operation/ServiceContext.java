@@ -37,39 +37,42 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
 import java.util.List;
 
-import javax.json.JsonStructure;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.Problem;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-/**
- * Immutable class representing domain knowledge disclosures.
- * 
- * @author d3j766
- *
- */
-public class ExplicitItem implements MessageItem {
+public class ServiceContext implements OperationContext {
 
-	private JsonStructure message;
+	static final String OPERATION_PROP = "operation";
 
-	public ExplicitItem() {
+	private ItemOperation operation = ItemOperation.Service;
+
+	public ServiceContext() {
 	}
 
-	private ExplicitItem(Builder b) {
-		this.message = b.message;
+	@JsonbCreator
+	public static ServiceContext createServiceContext() {
+		return ServiceContext.newBuilder().build(true);
 	}
 
-	public JsonStructure getMessage() {
-		return message;
+	private ServiceContext(Builder b) {
+	}
+
+	@JsonbProperty(OPERATION_PROP)
+	@Override
+	public ItemOperation getOperation() {
+		return operation;
 	}
 
 	public static Builder newBuilder() {
@@ -78,14 +81,7 @@ public class ExplicitItem implements MessageItem {
 
 	public static final class Builder {
 
-		private JsonStructure message;
-
 		private Builder() {
-		}
-
-		public Builder withMessage(JsonStructure message) {
-			this.message = message;
-			return this;
 		}
 
 		/**
@@ -97,17 +93,13 @@ public class ExplicitItem implements MessageItem {
 		 *             if created instance fails JSON-SCHEMA validation.
 		 * 
 		 */
-		public ExplicitItem build() {
-
-			/**
-			 * Currently nothing to validate, meaning this is a trusted builder.
-			 */
-			return build(true);
+		public ServiceContext build() {
+			return build(false);
 		}
 
-		private ExplicitItem build(boolean trustedBuilder) {
+		private ServiceContext build(boolean trustedBuilder) {
 
-			ExplicitItem ret = new ExplicitItem(this);
+			ServiceContext ret = new ServiceContext(this);
 
 			if (!trustedBuilder) {
 				List<Problem> problems = ret.validate();
@@ -118,21 +110,6 @@ public class ExplicitItem implements MessageItem {
 
 			return ret;
 		}
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Explicit;
-	}
-
-	@Override
-	public String messageName() {
-		return "Explicit message";
-	}
-
-	@Override
-	public JsonStructure toJson() {
-		return message;
 	}
 
 	@Override
@@ -148,19 +125,21 @@ public class ExplicitItem implements MessageItem {
 			
 			.withSchema(Validatable.schemaDialect())
 			
-			.withTitle("Explicit item message schema")
+			.withTitle("Service operation context schema")
 
-			.withDescription("Explicit message item schema.  An explicit message item represents "
-					+ "domain knowledge disclosed to the platform.  As such, it does not have "
-					+ " a schema adherence requirement other than it being valid JSON. "
-					+ " An outer Object or Array is permitted.")
+			.withDescription("Defines the context for a Service operation.")
 
-			.withType(InstanceType.OBJECT, InstanceType.ARRAY)
+			.withType(InstanceType.OBJECT)
 			
+			.withProperty(OPERATION_PROP, operationPropertySchema())
+			
+			// TODO - add additional schema elements for operation
+						
 			.build();
 		
 		//@formatter:on
 
 		return ret;
 	}
+
 }

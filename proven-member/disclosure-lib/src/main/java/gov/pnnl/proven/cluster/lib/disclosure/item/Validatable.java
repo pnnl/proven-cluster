@@ -560,13 +560,13 @@ public interface Validatable {
 
 		// Disclosure Item and MessageItems
 		for (Class<Validatable> v : getValidatables()) {
-			if ((v.equals(DisclosureItem.class)) || (MessageItem.class.isAssignableFrom(v))) {
+			//if ((v.equals(DisclosureItem.class)) || (MessageItem.class.isAssignableFrom(v))) {
 				String schemaPath = schemaDir + "/" + schemaResource(v);
 				String schema = prettyPrint(retrieveSchema(v).toString());
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(schemaPath))) {
 					writer.append(schema);
 				}
-			}
+			//}
 		}
 	}
 }

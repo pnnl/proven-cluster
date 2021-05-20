@@ -39,20 +39,24 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonSchemaBuilder;
 import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
 
 /**
  * Immutable class representing a Model item message. This message defines a
@@ -69,34 +73,37 @@ public class ModelItem implements MessageItem {
 	private static final int MIN_ARTIFACTS = 1;
 
 	static final String ARTIFACTS_PROP = "artifacts";
-	static final String OPERATION_PROP = "operation";
-	static final String NAMED_MODEL_PROP = "namedModel";
+	static final String NAMED_QUERY_MODEL_PROP = "namedModel";
 	static final String DEFAULT_QUERY_MODEL_PROP = "defaultQueryModel";
-	static final String CONTEXT_PROP = "context";
+	static final String MESSAGE_CONTEXT_PROP = "messageContext";
+	static final String OPERATION_CONTEXT_PROP = "operationContext";
 
 	private List<ArtifactContext> artifacts;
-	private ItemOperation operation;
-	private String namedModel;
+	private String namedQueryModel;
 	private Boolean defaultQueryModel;
-	private MessageContext context;
+	private MessageContext messageContext;
+	private JsonObject operationContext;
 
 	public ModelItem() {
 	}
 
 	@JsonbCreator
 	public static ModelItem createModelItem(@JsonbProperty(ARTIFACTS_PROP) List<ArtifactContext> artifacts,
-			@JsonbProperty(OPERATION_PROP) ItemOperation operation, @JsonbProperty(NAMED_MODEL_PROP) String namedModel,
-			@JsonbProperty(DEFAULT_QUERY_MODEL_PROP) Boolean defaultQueryModel, @JsonbProperty(CONTEXT_PROP) MessageContext context) {
-		return ModelItem.newBuilder().withArtifacts(artifacts).withOperation(operation).withNamedModel(namedModel)
-				.withDefaultQueryModel(defaultQueryModel).withContext(context).build(true);
+			@JsonbProperty(NAMED_QUERY_MODEL_PROP) String namedModel,
+			@JsonbProperty(DEFAULT_QUERY_MODEL_PROP) Boolean defaultQueryModel,
+			@JsonbProperty(MESSAGE_CONTEXT_PROP) MessageContext messageContext,
+			@JsonbProperty(OPERATION_CONTEXT_PROP) JsonObject operationContext) {
+		return ModelItem.newBuilder().withArtifacts(artifacts).withNamedQueryModel(namedModel)
+				.withDefaultQueryModel(defaultQueryModel).withMessageContext(messageContext)
+				.withOperationContext(operationContext).build(true);
 	}
 
 	private ModelItem(Builder b) {
 		this.artifacts = b.artifacts;
-		this.operation= b.operation;
-		this.namedModel = b.namedModel;
+		this.namedQueryModel = b.namedQueryModel;
 		this.defaultQueryModel = b.defaultQueryModel;
-		this.context = b.context;
+		this.messageContext = b.messageContext;
+		this.operationContext = b.operationContext;
 	}
 
 	@JsonbProperty(ARTIFACTS_PROP)
@@ -104,24 +111,24 @@ public class ModelItem implements MessageItem {
 		return artifacts;
 	}
 
-	@JsonbProperty(OPERATION_PROP)
-	public ItemOperation getOperation() {
-		return operation;
-	}
-
-	@JsonbProperty(NAMED_MODEL_PROP)
-	public String getNamedModel() {
-		return namedModel;
+	@JsonbProperty(NAMED_QUERY_MODEL_PROP)
+	public String getNamedQueryModel() {
+		return namedQueryModel;
 	}
 
 	@JsonbProperty(DEFAULT_QUERY_MODEL_PROP)
 	public Boolean isDefaultQueryModel() {
 		return defaultQueryModel;
 	}
-	
-	@JsonbProperty(CONTEXT_PROP)
-	public MessageContext getContext() {
-		return context;
+
+	@JsonbProperty(MESSAGE_CONTEXT_PROP)
+	public MessageContext getMessageContext() {
+		return messageContext;
+	}
+
+	@JsonbProperty(OPERATION_CONTEXT_PROP)
+	public JsonObject getOperationContext() {
+		return operationContext;
 	}
 
 	public static Builder newBuilder() {
@@ -131,10 +138,10 @@ public class ModelItem implements MessageItem {
 	public static final class Builder {
 
 		private List<ArtifactContext> artifacts;
-		private ItemOperation operation;
-		private String namedModel;
+		private String namedQueryModel;
 		private Boolean defaultQueryModel;
-		private MessageContext context;
+		private MessageContext messageContext;
+		private JsonObject operationContext;
 
 		private Builder() {
 		}
@@ -144,13 +151,8 @@ public class ModelItem implements MessageItem {
 			return this;
 		}
 
-		public Builder withOperation(ItemOperation operation) {
-			this.operation = operation;
-			return this;
-		}
-
-		public Builder withNamedModel(String namedModel) {
-			this.namedModel = namedModel;
+		public Builder withNamedQueryModel(String namedModel) {
+			this.namedQueryModel = namedModel;
 			return this;
 		}
 
@@ -158,9 +160,19 @@ public class ModelItem implements MessageItem {
 			this.defaultQueryModel = defaultQueryModel;
 			return this;
 		}
+
+		public Builder withMessageContext(MessageContext messageContext) {
+			this.messageContext = messageContext;
+			return this;
+		}
+
+		public Builder withOperationContext(JsonObject operationContext) {
+			this.operationContext = operationContext;
+			return this;
+		}		
 		
-		public Builder withContext(MessageContext context) {
-			this.context = context;
+		public Builder withOperationContext(OperationContext operationContext) {
+			this.operationContext = (JsonObject) operationContext.toJson();
 			return this;
 		}
 
@@ -206,6 +218,12 @@ public class ModelItem implements MessageItem {
 
 		JsonSchema ret;
 
+		// Create allowed OperationContext schema definitions
+		List<JsonSchema> allowedOps = new ArrayList<>();
+		for (ItemOperation op : ItemOperation.getModelOperations()) {
+			allowedOps.add(Validatable.retrieveSchema(op.getOpContext()));
+		}
+		
 		//@formatter:off
 		ret = sbf.createBuilder()
 
@@ -215,9 +233,10 @@ public class ModelItem implements MessageItem {
 				
 				.withTitle("Model item message schema")
 
-				.withDescription("This message defines a model, or graph, containing one or "
+				.withDescription("This message defines a model (i.e., graph) containing one or "
 						+ "more model artifacts used to support exchange operation processing "
-						+ "and/or query requests.")
+						+ "and/or query requests.  The provided model artifacts are combined into a single "
+						+ "graph")
 
 				.withType(InstanceType.OBJECT)
 
@@ -227,19 +246,11 @@ public class ModelItem implements MessageItem {
 						.withItems(Validatable.retrieveSchema(ArtifactContext.class))
 						.withMinItems(MIN_ARTIFACTS)
 						.build())
-				
-				.withProperty(OPERATION_PROP, sbf.createBuilder()
-						.withDescription("Model will be asssigned to the selected operation")
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withEnum(Validatable.toJsonValues(ItemOperation.getModelOperationNames()))
-						.withDefault(JsonValue.NULL)
-						.build())
-				
-				.withProperty(NAMED_MODEL_PROP, sbf.createBuilder()
+								
+				.withProperty(NAMED_QUERY_MODEL_PROP, sbf.createBuilder()
 						.withDescription("Model will be used by query requests that identify this model "
 								+ "by the provided name.")
 						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL)
 						.build())
 				
 				.withProperty(DEFAULT_QUERY_MODEL_PROP, sbf.createBuilder()
@@ -249,17 +260,28 @@ public class ModelItem implements MessageItem {
 						.withDefault(JsonValue.FALSE)
 						.build())
 								
-				.withProperty(CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
+				.withProperty(MESSAGE_CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
 				
-				.withDescription("Model must apply to an exchange operation and/or a query request.")
+				.withProperty(OPERATION_CONTEXT_PROP, sbf.createBuilder()
+						.withOneOf(allowedOps)
+						.withType(InstanceType.OBJECT, InstanceType.NULL)
+						.build())
+				
 				.withNot(sbf.createBuilder()
-					.withProperty(OPERATION_PROP, sbf.createBuilder() 
+					.withDescription("Model must apply to an exchange operation and/or a query default or named model.")
+					.withProperty(OPERATION_CONTEXT_PROP, sbf.createBuilder() 
 						.withConst(JsonValue.NULL)
 						.build())
-					.withProperty(CONTEXT_PROP, sbf.createBuilder()
+					.withProperty(NAMED_QUERY_MODEL_PROP, sbf.createBuilder()
 						.withConst(JsonValue.NULL)
 						.build())
-				.build())
+					.withProperty(DEFAULT_QUERY_MODEL_PROP, sbf.createBuilder()
+						.withConst(JsonValue.FALSE)
+						.build())
+					.build())
+
+				.withRequired(ARTIFACTS_PROP, NAMED_QUERY_MODEL_PROP, DEFAULT_QUERY_MODEL_PROP, 
+						      MESSAGE_CONTEXT_PROP, OPERATION_CONTEXT_PROP)	
 						
 			.build();
 		
@@ -267,5 +289,4 @@ public class ModelItem implements MessageItem {
 
 		return ret;
 	}
-
 }

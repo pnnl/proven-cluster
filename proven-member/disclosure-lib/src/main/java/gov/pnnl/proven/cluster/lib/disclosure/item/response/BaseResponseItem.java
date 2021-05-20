@@ -37,11 +37,12 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.response;
 
 import java.util.List;
 
-import javax.json.JsonStructure;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
@@ -50,26 +51,41 @@ import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 /**
- * Immutable class representing domain knowledge disclosures.
+ * Immutable class representing an operation's response. This response item
+ * provides baseline information and can be extended if the operation require
+ * it.
  * 
  * @author d3j766
  *
+ * @see ResponseContext, ItemOperation, ResponseItem
+ *
  */
-public class ExplicitItem implements MessageItem {
+public class BaseResponseItem implements ResponseItem {
 
-	private JsonStructure message;
+	static final String RESPONSE_CONTEXT_PROP = "response";
 
-	public ExplicitItem() {
+	private ResponseContext responseContext;
+
+	public BaseResponseItem() {
 	}
 
-	private ExplicitItem(Builder b) {
-		this.message = b.message;
+	@JsonbCreator
+	public static BaseResponseItem createBaseResponseItem(
+			@JsonbProperty(RESPONSE_CONTEXT_PROP) ResponseContext responseContext) {
+		return BaseResponseItem.newBuilder().withResponseContext(responseContext).build(true);
 	}
 
-	public JsonStructure getMessage() {
-		return message;
+	private BaseResponseItem(Builder b) {
+		this.responseContext = b.responseContext;
+	}
+
+	@JsonbProperty(RESPONSE_CONTEXT_PROP)
+	@Override
+	public ResponseContext getResponseContext() {
+		return responseContext;
 	}
 
 	public static Builder newBuilder() {
@@ -78,13 +94,13 @@ public class ExplicitItem implements MessageItem {
 
 	public static final class Builder {
 
-		private JsonStructure message;
+		private ResponseContext responseContext;
 
 		private Builder() {
 		}
 
-		public Builder withMessage(JsonStructure message) {
-			this.message = message;
+		public Builder withResponseContext(ResponseContext responseContext) {
+			this.responseContext = responseContext;
 			return this;
 		}
 
@@ -97,17 +113,13 @@ public class ExplicitItem implements MessageItem {
 		 *             if created instance fails JSON-SCHEMA validation.
 		 * 
 		 */
-		public ExplicitItem build() {
-
-			/**
-			 * Currently nothing to validate, meaning this is a trusted builder.
-			 */
-			return build(true);
+		public BaseResponseItem build() {
+			return build(false);
 		}
 
-		private ExplicitItem build(boolean trustedBuilder) {
+		private BaseResponseItem build(boolean trustedBuilder) {
 
-			ExplicitItem ret = new ExplicitItem(this);
+			BaseResponseItem ret = new BaseResponseItem(this);
 
 			if (!trustedBuilder) {
 				List<Problem> problems = ret.validate();
@@ -122,41 +134,36 @@ public class ExplicitItem implements MessageItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.Explicit;
+		return MessageContent.Response;
 	}
 
 	@Override
 	public String messageName() {
-		return "Explicit message";
+		return "Base Response message";
 	}
 
-	@Override
-	public JsonStructure toJson() {
-		return message;
-	}
-
-	@Override
 	public JsonSchema toSchema() {
 
 		JsonSchema ret;
 
 		//@formatter:off
-		
 		ret = sbf.createBuilder()
 
-			.withId(Validatable.schemaId(this.getClass()))
-			
-			.withSchema(Validatable.schemaDialect())
-			
-			.withTitle("Explicit item message schema")
+				.withId(Validatable.schemaId(this.getClass()))
+				
+				.withSchema(Validatable.schemaDialect())
+				
+				.withTitle("Base response item message schema")
 
-			.withDescription("Explicit message item schema.  An explicit message item represents "
-					+ "domain knowledge disclosed to the platform.  As such, it does not have "
-					+ " a schema adherence requirement other than it being valid JSON. "
-					+ " An outer Object or Array is permitted.")
+				.withDescription("This message provides baseline operation response information.  "
+						+ "This can be extended if an operation's response requires it.")
 
-			.withType(InstanceType.OBJECT, InstanceType.ARRAY)
-			
+				.withType(InstanceType.OBJECT)
+
+				.withProperty(RESPONSE_CONTEXT_PROP, Validatable.retrieveSchema(ResponseContext.class)) 
+				
+				.withRequired(RESPONSE_CONTEXT_PROP)	
+						
 			.build();
 		
 		//@formatter:on
