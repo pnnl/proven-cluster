@@ -37,21 +37,137 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
+package gov.pnnl.proven.cluster.lib.disclosure.item.response;
 
-import javax.json.bind.adapter.JsonbAdapter;
+import java.util.List;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
 
-public class ItemOperationAdapter implements JsonbAdapter<ItemOperation, String> {
+import org.leadpony.justify.api.InstanceType;
+import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonValidatingException;
+import org.leadpony.justify.api.Problem;
 
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+
+/**
+ * Immutable class representing an operation's response. This response item
+ * provides baseline information and can be extended if the operation require
+ * it.
+ * 
+ * @author d3j766
+ *
+ * @see ResponseContext, ItemOperation, ResponseItem
+ *
+ */
+public class BaseResponseItem implements ResponseItem {
+
+	static final String RESPONSE_CONTEXT_PROP = "response";
+
+	private ResponseContext responseContext;
+
+	public BaseResponseItem() {
+	}
+
+	@JsonbCreator
+	public static BaseResponseItem createBaseResponseItem(
+			@JsonbProperty(RESPONSE_CONTEXT_PROP) ResponseContext responseContext) {
+		return BaseResponseItem.newBuilder().withResponseContext(responseContext).build(true);
+	}
+
+	private BaseResponseItem(Builder b) {
+		this.responseContext = b.responseContext;
+	}
+
+	@JsonbProperty(RESPONSE_CONTEXT_PROP)
 	@Override
-	public String adaptToJson(ItemOperation op) throws Exception {
-		return op.getOpName();
+	public ResponseContext getResponseContext() {
+		return responseContext;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	public static final class Builder {
+
+		private ResponseContext responseContext;
+
+		private Builder() {
+		}
+
+		public Builder withResponseContext(ResponseContext responseContext) {
+			this.responseContext = responseContext;
+			return this;
+		}
+
+		/**
+		 * Builds new instance. Instance is validated post construction.
+		 * 
+		 * @return new instance
+		 * 
+		 * @throws JsonValidatingException
+		 *             if created instance fails JSON-SCHEMA validation.
+		 * 
+		 */
+		public BaseResponseItem build() {
+			return build(false);
+		}
+
+		private BaseResponseItem build(boolean trustedBuilder) {
+
+			BaseResponseItem ret = new BaseResponseItem(this);
+
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
+			}
+
+			return ret;
+		}
 	}
 
 	@Override
-	public ItemOperation adaptFromJson(String op) throws Exception {
-		return ItemOperation.getItemOperation(op);
+	public MessageContent messageContent() {
+		return MessageContent.Response;
+	}
+
+	@Override
+	public String messageName() {
+		return "Base Response message";
+	}
+
+	public JsonSchema toSchema() {
+
+		JsonSchema ret;
+
+		//@formatter:off
+		ret = sbf.createBuilder()
+
+				.withId(Validatable.schemaId(this.getClass()))
+				
+				.withSchema(Validatable.schemaDialect())
+				
+				.withTitle("Base response item message schema")
+
+				.withDescription("This message provides baseline operation response information.  "
+						+ "This can be extended if an operation's response requires it.")
+
+				.withType(InstanceType.OBJECT)
+
+				.withProperty(RESPONSE_CONTEXT_PROP, Validatable.retrieveSchema(ResponseContext.class)) 
+				
+				.withRequired(RESPONSE_CONTEXT_PROP)	
+						
+			.build();
+		
+		//@formatter:on
+
+		return ret;
 	}
 }

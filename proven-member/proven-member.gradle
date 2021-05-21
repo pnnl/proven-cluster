@@ -51,9 +51,10 @@ task copyDistributionResources(type: Copy) {
 		from configurations.pipelineDeps
 	}
 	
-	into('schema') {
-		from configurations.schemaDeps
-	}
+// TODO Uncomment when messages are completed
+//	into('schema') {
+//		from configurations.schemaDeps
+//	}
 
 }
 

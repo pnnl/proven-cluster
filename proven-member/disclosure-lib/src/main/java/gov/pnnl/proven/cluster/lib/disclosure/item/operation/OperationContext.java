@@ -37,21 +37,38 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
+package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
-import javax.json.bind.adapter.JsonbAdapter;
+import javax.json.Json;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+import org.leadpony.justify.api.JsonSchema;
 
-public class ItemOperationAdapter implements JsonbAdapter<ItemOperation, String> {
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-	@Override
-	public String adaptToJson(ItemOperation op) throws Exception {
-		return op.getOpName();
+/**
+ * An operation context includes the operation and if necessary additional
+ * information to support the ItemOperation's execution.
+ * 
+ * @author d3j766
+ * 
+ * @see ItemOperation
+ *
+ */
+public interface OperationContext extends Validatable {
+
+	/**
+	 * Returns the ItemOperation for the defined context.
+	 */
+	ItemOperation getOperation();
+
+	/**
+	 * Default operation property schema.
+	 * 
+	 * @return JsonSchema for an operation property.
+	 */
+	default JsonSchema operationPropertySchema() {
+		return Validatable.sbf.createBuilder().withDescription("Provided operation")
+				.withConst(Json.createValue(getOperation().getOpName())).build();
 	}
 
-	@Override
-	public ItemOperation adaptFromJson(String op) throws Exception {
-		return ItemOperation.getItemOperation(op);
-	}
 }

@@ -37,21 +37,109 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
+package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
-import javax.json.bind.adapter.JsonbAdapter;
+import java.util.List;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
 
-public class ItemOperationAdapter implements JsonbAdapter<ItemOperation, String> {
+import org.leadpony.justify.api.InstanceType;
+import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonValidatingException;
+import org.leadpony.justify.api.Problem;
 
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+
+public class ServiceContext implements OperationContext {
+
+	static final String OPERATION_PROP = "operation";
+
+	private ItemOperation operation = ItemOperation.Service;
+
+	public ServiceContext() {
+	}
+
+	@JsonbCreator
+	public static ServiceContext createServiceContext() {
+		return ServiceContext.newBuilder().build(true);
+	}
+
+	private ServiceContext(Builder b) {
+	}
+
+	@JsonbProperty(OPERATION_PROP)
 	@Override
-	public String adaptToJson(ItemOperation op) throws Exception {
-		return op.getOpName();
+	public ItemOperation getOperation() {
+		return operation;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	public static final class Builder {
+
+		private Builder() {
+		}
+
+		/**
+		 * Builds new instance. Instance is validated post construction.
+		 * 
+		 * @return new instance
+		 * 
+		 * @throws JsonValidatingException
+		 *             if created instance fails JSON-SCHEMA validation.
+		 * 
+		 */
+		public ServiceContext build() {
+			return build(false);
+		}
+
+		private ServiceContext build(boolean trustedBuilder) {
+
+			ServiceContext ret = new ServiceContext(this);
+
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
+			}
+
+			return ret;
+		}
 	}
 
 	@Override
-	public ItemOperation adaptFromJson(String op) throws Exception {
-		return ItemOperation.getItemOperation(op);
+	public JsonSchema toSchema() {
+
+		JsonSchema ret;
+
+		//@formatter:off
+		
+		ret = sbf.createBuilder()
+
+			.withId(Validatable.schemaId(this.getClass()))
+			
+			.withSchema(Validatable.schemaDialect())
+			
+			.withTitle("Service operation context schema")
+
+			.withDescription("Defines the context for a Service operation.")
+
+			.withType(InstanceType.OBJECT)
+			
+			.withProperty(OPERATION_PROP, operationPropertySchema())
+			
+			// TODO - add additional schema elements for operation
+						
+			.build();
+		
+		//@formatter:on
+
+		return ret;
 	}
+
 }

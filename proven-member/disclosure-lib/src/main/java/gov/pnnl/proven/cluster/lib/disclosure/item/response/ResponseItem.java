@@ -37,21 +37,28 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.adapter;
+package gov.pnnl.proven.cluster.lib.disclosure.item.response;
 
-import javax.json.bind.adapter.JsonbAdapter;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+/**
+ * 
+ * ResponseItem represents a response message for processing events within the
+ * platform. These messages may be subscribed to as SSE events.
+ * 
+ * @see ItemOperation, EventResponseItem
+ * 
+ * @author d3j766
+ * 
+ *
+ */
+public interface ResponseItem extends MessageItem {
 
-public class ItemOperationAdapter implements JsonbAdapter<ItemOperation, String> {
+	/**
+	 * Returns a ResponseContext for the ResponseItem. This includes baseline
+	 * information for a response. ResponseItem implementations may augment this
+	 * with data specific to their response type.
+	 */
+	ResponseContext getResponseContext();
 
-	@Override
-	public String adaptToJson(ItemOperation op) throws Exception {
-		return op.getOpName();
-	}
-
-	@Override
-	public ItemOperation adaptFromJson(String op) throws Exception {
-		return ItemOperation.getItemOperation(op);
-	}
 }

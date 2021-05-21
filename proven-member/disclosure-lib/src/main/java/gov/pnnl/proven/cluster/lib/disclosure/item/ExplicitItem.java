@@ -144,20 +144,20 @@ public class ExplicitItem implements MessageItem {
 		
 		ret = sbf.createBuilder()
 
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Explicit item message schema")
+			.withId(Validatable.schemaId(this.getClass()))
+			
+			.withSchema(Validatable.schemaDialect())
+			
+			.withTitle("Explicit item message schema")
 
-				.withDescription("Explicit message item schema.  An explicit message item represents "
-						+ "domain knowledge disclosed to the platform.  As such, it does not have "
-						+ " a schema adherence requirement other than it being valid JSON. "
-						+ " An outer Object or Array is permitted.")
+			.withDescription("Explicit message item schema.  An explicit message item represents "
+					+ "domain knowledge disclosed to the platform.  As such, it does not have "
+					+ " a schema adherence requirement other than it being valid JSON. "
+					+ " An outer Object or Array is permitted.")
 
-				.withType(InstanceType.OBJECT, InstanceType.ARRAY)
-				
-				.build();
+			.withType(InstanceType.OBJECT, InstanceType.ARRAY)
+			
+			.build();
 		
 		//@formatter:on
 

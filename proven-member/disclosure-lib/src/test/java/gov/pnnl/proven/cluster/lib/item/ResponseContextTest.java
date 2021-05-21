@@ -57,10 +57,10 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.ItemOperation;
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
-import gov.pnnl.proven.cluster.lib.disclosure.item.ResponseContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.DiscloseContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseContext;
 
 public class ResponseContextTest {
 
@@ -68,6 +68,7 @@ public class ResponseContextTest {
 
 	ResponseContext rc;
 	MessageContext mc;
+	DiscloseContext dc;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -81,13 +82,15 @@ public class ResponseContextTest {
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
 
+		dc = DiscloseContext.newBuilder().build();
+
 		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
 				.withItem(ExplicitItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
 				.withTags("TEST TAG1", "TEST TAG2").build();
 
 		rc = ResponseContext.newBuilder().withStatusCode(Response.Status.OK).withStatusMessage("Okay")
-				.withOperation(ItemOperation.Provenance).withOperationStartTime(1620847243000L)
-				.withOperationEndTime(1620847243111L).withOperationContext(mc).build();
+				.withOperationStartTime(1620847243000L).withOperationEndTime(1620847243111L).withMessageContext(mc)
+				.withOperationContext(dc).build();
 	}
 
 	@After
