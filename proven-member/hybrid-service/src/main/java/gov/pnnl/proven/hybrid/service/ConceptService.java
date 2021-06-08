@@ -1480,12 +1480,17 @@ public class ConceptService {
 			// Add OUTPUT tag
 			builder.tag("hasSimulationMessageType", "INPUT");
 			builder.tag("hasMeasurementDifference", "FORWARD");
-
+			
+            String tmpObject = "";
 			while (fdit.hasNext()) {
 				String fdkey = fdit.next();
 
 				if (fdobject.get(fdkey) instanceof String) {
-					builder.addField(fdkey, (String) fdobject.get(fdkey));
+					if (fdkey.equalsIgnoreCase("object")) {
+					    builder.tag(fdkey, (String) fdobject.get(fdkey));						
+					} else {
+					    builder.addField(fdkey, (String) fdobject.get(fdkey));
+					}
 //
 // Changed March 30, 2021 to change any numeric field into a float or double
 // 
