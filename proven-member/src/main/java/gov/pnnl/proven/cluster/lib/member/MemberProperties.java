@@ -107,16 +107,21 @@ public class MemberProperties {
 	/**
 	 * module-lib exchange properties
 	 */
-	private static final String EXCHANGE_QUEUE_NAME="proven.lib.module.exchange.queue.exchange.name";
-	private static final String DISCLOSURE_QUEUE_NAME="proven.lib.module.exchange.queue.disclosure.name";
-	private static final String EXCHANGE_QUEUE_MAX_SIZE="proven.lib.module.exchange.queue.exchange.max_size";
-	private static final String DISCLOSURE_QUEUE_MAX_SIZE="proven.lib.module.exchange.queue.disclosure.max_size";
-	private static final String EXCHANGE_BUFFER_CAPACITY="proven.lib.module.exchange.buffer.capacity";
-	private static final String SERVICE_BUFFER_CAPACITY="proven.lib.module.exchange.buffer.service.capacity";
-	
+	private static final String EXCHANGE_QUEUE_NAME = "proven.lib.module.exchange.queue.exchange.name";
+	private static final String DISCLOSURE_QUEUE_NAME = "proven.lib.module.exchange.queue.disclosure.name";
+	private static final String EXCHANGE_QUEUE_MAX_SIZE = "proven.lib.module.exchange.queue.exchange.max_size";
+	private static final String DISCLOSURE_QUEUE_MAX_SIZE = "proven.lib.module.exchange.queue.disclosure.max_size";
+	private static final String EXCHANGE_BUFFER_CAPACITY = "proven.lib.module.exchange.buffer.capacity";
+	private static final String SERVICE_BUFFER_CAPACITY = "proven.lib.module.exchange.buffer.service.capacity";
+
+	/**
+	 * module-lib stream properties
+	 */
+	private static final String GRAPH_ENGINE = "proven.lib.module.stream.graph.engine";
+
 	/**
 	 * module-lib properties
-	 */	
+	 */
 	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max_retries";
 	private static final String MEMBER_MODULE_REGISTRY_NAME = "proven.lib.module.registry.module.member.name";
 	private static final String CLUSTER_COMPONENT_REGISTRY_NAME = "proven.lib.module.registry.component.cluster.name";
@@ -249,19 +254,19 @@ public class MemberProperties {
 	public String getExchangeQueueName() {
 		return getPropertyValue(EXCHANGE_QUEUE_NAME, String.class);
 	}
-	
+
 	public String getDisclosureQueueName() {
 		return getPropertyValue(DISCLOSURE_QUEUE_NAME, String.class);
 	}
-	
+
 	public Integer getExchangeQueueMaxSize() {
 		return getPropertyValue(EXCHANGE_QUEUE_MAX_SIZE, Integer.class);
 	}
-	
+
 	public Integer getDisclosureQueueMaxSize() {
 		return getPropertyValue(DISCLOSURE_QUEUE_MAX_SIZE, Integer.class);
 	}
-	
+
 	public Integer getExchangeBufferCapacity() {
 		return getPropertyValue(EXCHANGE_BUFFER_CAPACITY, Integer.class);
 	}
@@ -269,28 +274,35 @@ public class MemberProperties {
 	public Integer getServiceBufferCapacity() {
 		return getPropertyValue(SERVICE_BUFFER_CAPACITY, Integer.class);
 	}
-	
+
 	//////////////////////////////////////////////////////
 	// MODULE-LIB EXCHANGE PROPERTY METHODS
 	public Integer getManagedComponentMaxRetries() {
 		return getPropertyValue(MANAGED_COMPONENT_MAX_RETRIES, Integer.class);
 	}
-			
+
 	public String getMemberModuleRegistryName() {
 		return getPropertyValue(MEMBER_MODULE_REGISTRY_NAME, String.class);
 	}
-	
+
 	public String getClusterComponentRegistryName() {
 		return getPropertyValue(CLUSTER_COMPONENT_REGISTRY_NAME, String.class);
 	}
-	
+
 	public Integer getTaskScheduleMaxSkippedEntryReports() {
 		return getPropertyValue(TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS, Integer.class);
 	}
-	
+
 	public String getProvenDisclosureMapName() {
 		return getPropertyValue(PROVEN_DISCLOSURE_MAP_NAME, String.class);
 	}
+
+	//////////////////////////////////////////////////////
+	// MODULE-LIB STREAM PROPERTY METHODS
+	public GraphEngine getGraphEngine() {
+		String ge = getPropertyValue(GRAPH_ENGINE, String.class);
+		return GraphEngine.valueOf(ge);
+	}	
 
 	//////////////////////////////////////////////////////
 	// HYBRID MODULE PROPERTY METHODS
@@ -301,28 +313,27 @@ public class MemberProperties {
 	public String getHybridTsServiceUrl() {
 		return getPropertyValue(HYBRID_TS_SERVICE_URL, String.class);
 	}
-	
+
 	public Boolean getHybridTsUseIdb() {
 		return getPropertyValue(HYBRID_TS_USE_IDB, Boolean.class);
 	}
-	
+
 	public String getHybridTsIdbDb() {
 		return getPropertyValue(HYBRID_TS_IDB_DB, String.class);
-	}	
+	}
 
 	public String getHybridTsIdbRp() {
 		return getPropertyValue(HYBRID_TS_IDB_RP, String.class);
-	}		
+	}
 
 	public String getHybridTsIdbUsername() {
 		return getPropertyValue(HYBRID_TS_IDB_USERNAME, String.class);
-	}	
-	
+	}
+
 	public String getHybridTsIdbPassword() {
 		return getPropertyValue(HYBRID_TS_IDB_PASSWORD, String.class);
-	}	
-		
-		
+	}
+
 	/**
 	 * Returns the property value for the provided type.
 	 * 
@@ -342,9 +353,7 @@ public class MemberProperties {
 
 			if (propertyType.equals(String.class)) {
 				ret = (T) value;
-			}
-
-			else if (propertyType.equals(Integer.class)) {
+			} else if (propertyType.equals(Integer.class)) {
 				ret = ((T) Integer.valueOf(value));
 			} else {
 				throw new MemberConfigurationException("Unsupported property type");

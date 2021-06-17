@@ -76,6 +76,7 @@ import javax.json.bind.JsonbConfig;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParsingException;
+import javax.ws.rs.Consumes;
 
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonSchemaBuilderFactory;
@@ -101,6 +102,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ItemOperationAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageContentAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.MessageItemTypeAdapter;
 import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ResponseStatusAdapter;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventData;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventSubscription;
 
 /**
  * Represents a JSON-SCHEMA validatable object.
@@ -111,6 +114,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.adapter.ResponseStatusAdapter
 public interface Validatable {
 
 	static final Logger log = LoggerFactory.getLogger(Validatable.class);
+
+	static final String UUID_PATTERN = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$";
 
 	static final String JSON_SCHEMA_SUFFIX = ".schema.json";
 	static final String SCHEMA_RESOURCE_DIR = "/schema";
@@ -233,6 +238,9 @@ public interface Validatable {
 		if (null == ret) {
 			try {
 				ret = clazz.newInstance().toSchema();
+				if (null == ret) {
+					throw new NullPointerException("OUCH..." + clazz.getSimpleName());
+				}
 				catalog.put(id, ret);
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new RuntimeException("Could not instantiate a new Validatable for schema generation", e);
@@ -251,10 +259,10 @@ public interface Validatable {
 	 * MessageItem extends Validatable and it has implementations representing
 	 * the payload messages available to external clients
 	 * 
-	 * @param messageItemsOnly
-	 *            if true, only return the MessageItem implementations
+	 * @param rootClass
+	 *            All subtypes of this Validatable class will be returned
 	 * 
-	 * @return list of Validatable implementations.
+	 * @return list of Validatable implementations for provided root class.
 	 * 
 	 * @throws ClassNotFoundException
 	 * @throws URISyntaxException
@@ -262,28 +270,24 @@ public interface Validatable {
 	 *             if JAR is the package protocol. This is intended to be called
 	 *             at build time.
 	 */
-	@SuppressWarnings("unchecked")
-	static <T extends Validatable> List<Class<T>> getValidatables(boolean messageItemsOnly) {
-
-		ArrayList<Class<T>> names = new ArrayList<>();
-		@SuppressWarnings("rawtypes")
-		Class rootClass = Validatable.class;
-		if (messageItemsOnly)
-			rootClass = MessageItem.class;
+	static <T extends Validatable> List<Class<? extends T>> getValidatables(Class<T> rootClass) {
+		ArrayList<Class<? extends T>> names = new ArrayList<>();
+		@SuppressWarnings("unchecked")
+		Class<T> topClass = (Class<T>) Validatable.class;
 		Reflections reflections = new Reflections("gov.pnnl.proven.cluster.lib.disclosure.item", new SubTypesScanner());
-
-		Set<Class<? extends Validatable>> classSet = reflections.getSubTypesOf(rootClass);
-		for (Class<? extends Validatable> vClass : classSet) {
-
+		Set<Class<? extends T>> classSet = reflections.getSubTypesOf(topClass);
+		for (Class<? extends T> vClass : classSet) {
 			if (Modifier.isAbstract(vClass.getModifiers()) || vClass.isInterface())
 				continue;
-			names.add((Class<T>) vClass);
+			if (rootClass.isAssignableFrom(vClass))
+				names.add(vClass);
 		}
 		return names;
 	}
 
-	static <T extends Validatable> List<Class<T>> getValidatables() {
-		return getValidatables(false);
+	@SuppressWarnings("unchecked")
+	static <T extends Validatable> List<Class<? extends T>> getValidatables() {
+		return getValidatables((Class<T>) Validatable.class);
 	}
 
 	/**
@@ -546,8 +550,8 @@ public interface Validatable {
 	JsonSchema toSchema();
 
 	/**
-	 * Creates schemas for DisclosureItem and all MessageItem implementations.
-	 * Schemas are stored in provided path provided in args.
+	 * Creates schemas for DisclosureItem, MessageItem, and SSE message
+	 * implementations. Schemas are stored in provided path argument.
 	 * 
 	 * @param args
 	 *            0 - target directory path to store generated schemas.
@@ -559,8 +563,9 @@ public interface Validatable {
 		String schemaDir = args[0];
 
 		// Disclosure Item and MessageItems
-		for (Class<Validatable> v : getValidatables()) {
-			if ((v.equals(DisclosureItem.class)) || (MessageItem.class.isAssignableFrom(v))) {
+		for (Class<? extends Validatable> v : getValidatables()) {
+			if ((v.equals(DisclosureItem.class)) || (MessageItem.class.isAssignableFrom(v))
+					|| (EventData.class.isAssignableFrom(v)) || (EventSubscription.class.isAssignableFrom(v))) {
 				String schemaPath = schemaDir + "/" + schemaResource(v);
 				String schema = prettyPrint(retrieveSchema(v).toString());
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(schemaPath))) {

@@ -39,6 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream;
 
+import static gov.pnnl.proven.cluster.lib.module.stream.DistributionType.GRAPH;
+import static gov.pnnl.proven.cluster.lib.module.stream.DistributionType.ITEM;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,29 +55,30 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
 
 /**
- * Message streams store {@code ProvenMessage} instances, that have been
- * disclosed to the platform. These stream types represent the built-in streams
- * provided by Proven. Every disclosure domain will have its own set of message
- * streams as defined here, this includes the Proven disclosure domain as well.
+ * Message streams store {@code DistributedMessage} instances, that represent
+ * the data items disclosed to the platform. These stream types represent the
+ * built-in streams provided by Proven. Every disclosure domain will have its
+ * own set of message streams as defined here, this includes the Proven
+ * disclosure domain as well.
  * 
  * Each stream type supports one or more {@code MessageContent} types as defined
- * in their {@code MessageContentGroup}. Attempts to add message content for a group
- * not supported by the stream will not be allowed.
+ * in their {@code MessageContentGroup}. Attempts to add message content for a
+ * group not supported by the stream will not be allowed.
  * 
- * @see ProvenMessage, MessageContent, MessageContentGroup, DisclosureDomain,
- *      {@link DomainProvider#getProvenDisclosureDomain()}
+ * @see DistributedMessage, MessageContent, MessageContentGroup,
+ *      DisclosureDomain, {@link DomainProvider#getProvenDisclosureDomain()}
  * 
  * @author d3j766
  *
  */
 public enum MessageStreamType {
 
-	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
-	Measurement(StreamLabel.MEASUREMENT_STREAM, MessageContentGroup.Measurement),
-	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
-	Service(StreamLabel.SERVICE_STREAM, MessageContentGroup.Service),
-	Reference(StreamLabel.REFERENCE_STREAM, MessageContentGroup.Reference),
-	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
+	KNOWLEDGE(StreamLabel.KNOWLEDGE_STREAM, GRAPH, MessageContentGroup.Knowledge),
+	MEASUREMENT(StreamLabel.MEASUREMENT_STREAM, GRAPH, MessageContentGroup.Measurement),
+	REQUEST(StreamLabel.REQUEST_STREAM, GRAPH, MessageContentGroup.Request),
+	SERVICE(StreamLabel.SERVICE_STREAM, GRAPH, MessageContentGroup.Service),
+	REFERENCE(StreamLabel.REFERENCE_STREAM, ITEM, MessageContentGroup.Reference),
+	RESPONSE(StreamLabel.RESPONSE_STREAM, GRAPH, MessageContentGroup.Response);
 
 	private class StreamLabel {
 		private static final String KNOWLEDGE_STREAM = "knowledge";
@@ -88,11 +92,22 @@ public enum MessageStreamType {
 	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
 
 	private String streamLabel;
+	private DistributionType distributionType;
 	private List<MessageContentGroup> messageGroups;
 
-	MessageStreamType(String streamLabel, MessageContentGroup... groups) {
+	MessageStreamType(String streamLabel, DistributionType distributionType, MessageContentGroup... groups) {
 		this.streamLabel = streamLabel;
+		this.distributionType = distributionType;
 		messageGroups = Arrays.asList(groups);
+	}
+
+	/**
+	 * Provides the message distribution type for the stream.
+	 * 
+	 * @return the distribution type.
+	 */
+	public DistributionType getDistributionType() {
+		return distributionType;
 	}
 
 	/**

@@ -44,14 +44,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
  * Message items represent the message payload for a DisclosureItem. Convenience
- * methods also included to provide the message item names and their
- * types.
+ * methods also included to provide the message item names and their types.
  * 
  * @see DisclosureItem, MessageContent
  * 
@@ -62,8 +59,8 @@ public interface MessageItem extends Validatable {
 
 	static Map<String, Class<? extends MessageItem>> messagesByName = MessageInitializer.messagesByName();
 	static Map<Class<? extends MessageItem>, String> messagesByType = MessageInitializer.messagesByType();
-	static Map<Class<? extends MessageItem>, MessageContent> messageContentByType = MessageInitializer.messageContentByType();
-	
+	static Map<Class<? extends MessageItem>, MessageContent> messageContentByType = MessageInitializer
+			.messageContentByType();
 
 	static List<String> messageNames() {
 		return new ArrayList<String>(messagesByName.keySet());
@@ -71,7 +68,7 @@ public interface MessageItem extends Validatable {
 
 	static List<Class<? extends MessageItem>> messageTypes() {
 		return new ArrayList<Class<? extends MessageItem>>(messagesByType.keySet());
-	}	
+	}
 
 	static Class<? extends MessageItem> messageType(String name) {
 		return messagesByName.get(name);
@@ -80,11 +77,11 @@ public interface MessageItem extends Validatable {
 	static String messageName(Class<? extends MessageItem> type) {
 		return messagesByType.get(type);
 	}
-	
+
 	static MessageContent messageContent(Class<? extends MessageItem> type) {
 		return messageContentByType.get(type);
 	}
-	
+
 	String messageName();
 
 	MessageContent messageContent();
@@ -97,8 +94,8 @@ class MessageInitializer {
 		Map<String, Class<? extends MessageItem>> ret = null;
 		try {
 			ret = new HashMap<String, Class<? extends MessageItem>>();
-			List<Class<MessageItem>> cList = Validatable.getValidatables(true);
-			for (Class<MessageItem> c : cList) {
+			List<Class<? extends MessageItem>> cList = Validatable.getValidatables(MessageItem.class);
+			for (Class<? extends MessageItem> c : cList) {
 				ret.put(c.newInstance().messageName(), c);
 			}
 		} catch (InstantiationException | IllegalAccessException e) {
@@ -112,8 +109,8 @@ class MessageInitializer {
 		Map<Class<? extends MessageItem>, String> ret = null;
 		try {
 			ret = new HashMap<Class<? extends MessageItem>, String>();
-			List<Class<MessageItem>> cList = Validatable.getValidatables(true);
-			for (Class<MessageItem> c : cList) {
+			List<Class<? extends MessageItem>> cList = Validatable.getValidatables(MessageItem.class);
+			for (Class<? extends MessageItem> c : cList) {
 				ret.put(c, c.newInstance().messageName());
 			}
 		} catch (InstantiationException | IllegalAccessException e) {
@@ -121,14 +118,14 @@ class MessageInitializer {
 		}
 		return ret;
 	}
-	
+
 	static Map<Class<? extends MessageItem>, MessageContent> messageContentByType() {
 
 		Map<Class<? extends MessageItem>, MessageContent> ret = null;
 		try {
 			ret = new HashMap<Class<? extends MessageItem>, MessageContent>();
-			List<Class<MessageItem>> cList = Validatable.getValidatables(true);
-			for (Class<MessageItem> c : cList) {
+			List<Class<? extends MessageItem>> cList = Validatable.getValidatables(MessageItem.class);
+			for (Class<? extends MessageItem> c : cList) {
 				ret.put(c, c.newInstance().messageContent());
 			}
 		} catch (InstantiationException | IllegalAccessException e) {
@@ -136,5 +133,5 @@ class MessageInitializer {
 		}
 		return ret;
 	}
-		
+
 }

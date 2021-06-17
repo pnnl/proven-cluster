@@ -117,7 +117,7 @@ public class PipelineResource {
 
 			// Runtime message stream access
 			MessageStreamProxy mspRunTime = sm.getMessageStreamProxy(DomainProvider.getProvenDisclosureDomain(),
-					MessageStreamType.Knowledge);
+					MessageStreamType.KNOWLEDGE);
 
 			tp.submit(mspRunTime);
 			response = Response.ok().build();

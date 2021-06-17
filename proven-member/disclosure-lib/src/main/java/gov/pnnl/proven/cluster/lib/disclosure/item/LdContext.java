@@ -39,20 +39,91 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
+import java.util.List;
 
 import javax.json.JsonValue;
+import javax.json.bind.annotation.JsonbCreator;
+import javax.json.bind.annotation.JsonbProperty;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonValidatingException;
+import org.leadpony.justify.api.Problem;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+/**
+ * Immutable class representing a JSON-LD @context.
+ * 
+ * @author d3j766
+ *
+ */
+public class LdContext implements Validatable {
 
-public class EventResponseItem implements MessageItem {
+	public static final String CONTEXT_PROP = "@context";
+
+	private JsonValue context;
+
+	public LdContext() {
+	}
+
+	@JsonbCreator
+	public static LdContext createLdContext(@JsonbProperty(CONTEXT_PROP) JsonValue context) {
+		return LdContext.newBuilder().withContext(context).build(true);
+	}
+
+	private LdContext(Builder b) {
+		this.context = b.context;
+	}
+
+	@JsonbProperty(CONTEXT_PROP)
+	public JsonValue getContext() {
+		return context;
+	}
+
+	public static Builder newBuilder() {
+		return new Builder();
+	}
+
+	public static final class Builder {
+
+		private JsonValue context;
+
+		private Builder() {
+		}
+
+		public Builder withContext(JsonValue context) {
+			this.context = context;
+			return this;
+		}
+
+		/**
+		 * Builds new instance. Instance is validated post construction.
+		 * 
+		 * @return new instance
+		 * 
+		 * @throws JsonValidatingException
+		 *             if created instance fails JSON-SCHEMA validation.
+		 * 
+		 */
+		public LdContext build() {
+			return build(false);
+		}
+
+		private LdContext build(boolean trustedBuilder) {
+
+			LdContext ret = new LdContext(this);
+
+			if (!trustedBuilder) {
+				List<Problem> problems = ret.validate();
+				if (!problems.isEmpty()) {
+					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
+				}
+			}
+
+			return ret;
+		}
+	}
 
 	@Override
 	public JsonSchema toSchema() {
@@ -60,38 +131,31 @@ public class EventResponseItem implements MessageItem {
 		JsonSchema ret;
 
 		//@formatter:off
+
 		ret = sbf.createBuilder()
 
 				.withId(Validatable.schemaId(this.getClass()))
-				
+					
 				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Implicit message schema")
+					
+				.withTitle("JSON-LD Context schema")
 
-				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
+				.withDescription("Defines a JSON-LD context for a messsage item.")
 
 				.withType(InstanceType.OBJECT)
 
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
-				.build();
+				.withProperty(CONTEXT_PROP, sbf.createBuilder()
+					.withDescription("Context definition.")
+					.withType(InstanceType.OBJECT, InstanceType.STRING)
+					.build())
 		
-		//@formatter:on
+				.withRequired(CONTEXT_PROP)
+				
+				.build();
+			
+			//@formatter:on
 
 		return ret;
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Administrative;
-	}
-
-	@Override
-	public String messageName() {
-		return "Administrative message";
 	}
 
 }

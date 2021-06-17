@@ -75,7 +75,7 @@ public class TestPipeline implements Serializable {
 
 	// Compile time message stream access
 	@Inject
-	@StreamConfig(domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN, streamType = MessageStreamType.Knowledge)
+	@StreamConfig(domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN, streamType = MessageStreamType.KNOWLEDGE)
 	MessageStreamProxy mspCompileTime;
 
 	@PostConstruct

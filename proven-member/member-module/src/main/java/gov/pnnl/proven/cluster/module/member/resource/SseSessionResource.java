@@ -105,7 +105,7 @@ import javax.ws.rs.sse.SseEventSink;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.module.member.sse.SseEvent;
+import gov.pnnl.proven.cluster.module.member.sse.EventStream;
 import gov.pnnl.proven.cluster.module.member.sse.SseSession;
 import gov.pnnl.proven.cluster.module.member.sse.SseSessionManager;
 
@@ -179,7 +179,7 @@ public class SseSessionResource {
 		// requester
 		Optional<String> requesterOpt = Optional.ofNullable(requester);
 
-		SseSession session = new SseSession(SseEvent.Response, UUID.randomUUID(), sse, eventSink, domainOpt,
+		SseSession session = new SseSession(EventStream.OPERATION_RESPONSE, UUID.randomUUID(), sse, eventSink, domainOpt,
 				contentsOpt, requesterOpt);
 
 		sessions.register(session);

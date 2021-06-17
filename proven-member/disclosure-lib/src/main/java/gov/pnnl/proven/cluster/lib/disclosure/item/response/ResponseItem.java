@@ -39,21 +39,32 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item.response;
 
+import java.util.List;
+
+import javax.json.Json;
+
+import org.leadpony.justify.api.JsonSchema;
+
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 /**
- * 
- * ResponseItem represents a response message for processing events within the
- * platform. These messages may be subscribed to as SSE events.
- * 
- * @see ItemOperation, EventResponseItem
+ * Represents a response message from a processing operation within the
+ * platform.
  * 
  * @author d3j766
  * 
- *
+ * @see ItemOperation, EventData
+ * 
  */
 public interface ResponseItem extends MessageItem {
 
+	public static final String RESPONSE_CONTEXT_PROP = "responseContext";
+
+	static List<Class<? extends ResponseItem>> responseItems() {
+		return Validatable.getValidatables(ResponseItem.class);
+	}
+	
 	/**
 	 * Returns a ResponseContext for the ResponseItem. This includes baseline
 	 * information for a response. ResponseItem implementations may augment this

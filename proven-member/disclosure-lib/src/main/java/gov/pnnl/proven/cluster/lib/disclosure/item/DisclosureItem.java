@@ -85,16 +85,16 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 	static Logger log = LoggerFactory.getLogger(DisclosureItem.class);
 
 	// Jsonb property names
-	private static final String MESSAGE_ID_PROP = "messageId";
-	private static final String SYSTEM_SENT_TIME_PROP = "systemSentTime";
-	private static final String SOURCE_MESSAGE_ID_PROP = "sourceMessageId";
-	private static final String AUTH_TOKEN_PROP = "authToken";
-	private static final String CONTEXT_PROP = "context";
-	private static final String MESSAGE_PROP = "message";
-	private static final String MESSAGE_SCHEMA_PROP = "messageSchema";
-	private static final String IS_TRANSIENT_PROP = "isTransient";
-	private static final String IS_LINKED_DATA_PROP = "isLinkedData";
-	private static final String APPLICATION_SENT_TIME_PROP = "applicationSentTime";
+	public static final String MESSAGE_ID_PROP = "messageId";
+	public static final String SYSTEM_SENT_TIME_PROP = "systemSentTime";
+	public static final String SOURCE_MESSAGE_ID_PROP = "sourceMessageId";
+	public static final String AUTH_TOKEN_PROP = "authToken";
+	public static final String CONTEXT_PROP = "context";
+	public static final String MESSAGE_PROP = "message";
+	public static final String MESSAGE_SCHEMA_PROP = "messageSchema";
+	public static final String IS_TRANSIENT_PROP = "isTransient";
+	public static final String IS_LINKED_DATA_PROP = "isLinkedData";
+	public static final String APPLICATION_SENT_TIME_PROP = "applicationSentTime";
 
 	private UUID messageId;
 	private UUID sourceMessageId;

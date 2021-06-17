@@ -58,9 +58,10 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
+import javassist.compiler.AccessorMaker;
 
 /**
- * Immutable class representing the context of a response item item, containing
+ * Immutable class representing the context of a response item, containing
  * baseline information describing the result of a processing operation within
  * the platform.
  * 
@@ -71,12 +72,12 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
  */
 public class ResponseContext implements Validatable {
 
-	static final String STATUS_CODE_PROP = "statusCode";
-	static final String STATUS_MESSAGE_PROP = "statusMessage";
-	static final String OPERATION_START_TIME_PROP = "operationStartTime";
-	static final String OPERATION_END_TIME_PROP = "opertionEndTime";
-	static final String MESSAGE_CONTEXT_PROP = "messageContext";
-	static final String OPERATION_CONTEXT_PROP = "operationContext";
+	public static final String STATUS_CODE_PROP = "statusCode";
+	public static final String STATUS_MESSAGE_PROP = "statusMessage";
+	public static final String OPERATION_START_TIME_PROP = "operationStartTime";
+	public static final String OPERATION_END_TIME_PROP = "opertionEndTime";
+	public static final String MESSAGE_CONTEXT_PROP = "messageContext";
+	public static final String OPERATION_CONTEXT_PROP = "operationContext";
 
 	private Response.Status statusCode;
 	private String statusMessage;

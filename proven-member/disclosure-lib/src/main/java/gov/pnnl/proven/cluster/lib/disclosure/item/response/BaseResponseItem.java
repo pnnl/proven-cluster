@@ -55,8 +55,9 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 /**
  * Immutable class representing an operation's response. This response item
- * provides baseline information and can be extended if the operation require
- * it.
+ * provides baseline information to accommodate a standard response.
+ * 
+ * and can be extended if the operation require it.
  * 
  * @author d3j766
  *
@@ -65,7 +66,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
  */
 public class BaseResponseItem implements ResponseItem {
 
-	static final String RESPONSE_CONTEXT_PROP = "response";
+	public static final String BASE_RESPONSE_MESSAGE_NAME = "base-response-message";
 
 	private ResponseContext responseContext;
 
@@ -139,7 +140,7 @@ public class BaseResponseItem implements ResponseItem {
 
 	@Override
 	public String messageName() {
-		return "Base Response message";
+		return BASE_RESPONSE_MESSAGE_NAME;
 	}
 
 	public JsonSchema toSchema() {
@@ -159,7 +160,7 @@ public class BaseResponseItem implements ResponseItem {
 						+ "This can be extended if an operation's response requires it.")
 
 				.withType(InstanceType.OBJECT)
-
+				
 				.withProperty(RESPONSE_CONTEXT_PROP, Validatable.retrieveSchema(ResponseContext.class)) 
 				
 				.withRequired(RESPONSE_CONTEXT_PROP)	

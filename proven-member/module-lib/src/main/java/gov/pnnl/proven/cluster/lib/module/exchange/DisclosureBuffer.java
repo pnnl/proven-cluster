@@ -142,7 +142,7 @@ public class DisclosureBuffer extends ExchangeBuffer {
 
 				log.debug("Item processor for NEW");
 
-				MessageStreamType mst = MessageStreamType.Knowledge;
+				MessageStreamType mst = MessageStreamType.KNOWLEDGE;
 
 				items.forEach((item) -> {
 					try {

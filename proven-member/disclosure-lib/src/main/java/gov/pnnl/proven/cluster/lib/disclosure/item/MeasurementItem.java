@@ -78,6 +78,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  */
 public class MeasurementItem implements MessageItem {
 
+	public static final String MEASUREMENT_MESSAGE_NAME = "measurement-message";
+	
 	static final int MIN_VALUES = 1;
 
 	// Jsonb property names
@@ -209,7 +211,7 @@ public class MeasurementItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return "Measurement message";
+		return MEASUREMENT_MESSAGE_NAME;
 	}
 
 	private JsonArray getHeaderArray() {

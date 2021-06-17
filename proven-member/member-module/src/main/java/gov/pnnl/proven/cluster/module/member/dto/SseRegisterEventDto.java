@@ -76,7 +76,7 @@ public class SseRegisterEventDto implements SseEventData, Serializable {
 
 	public SseRegisterEventDto(SseSession session) {
 		this.sessionId = session.getSessionId().toString();
-		this.registeredEvent = session.getEvent().getEvent();
+		this.registeredEvent = session.getEvent().getLabel();
 		this.registeredDomain = session.getDomain().getDomain();
 		this.registeredMessageContents = new ArrayList<>();
 		for (MessageContent mc : session.getContents()) {

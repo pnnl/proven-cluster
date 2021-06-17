@@ -54,6 +54,18 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 public class AdministrativeItem implements MessageItem {
 
+	public static final String ADMINISTRATIVE_MESSAGE_NAME = "administrative-message";
+	
+	@Override
+	public MessageContent messageContent() {
+		return MessageContent.Administrative;
+	}
+
+	@Override
+	public String messageName() {
+		return ADMINISTRATIVE_MESSAGE_NAME;
+	}
+	
 	@Override
 	public JsonSchema toSchema() {
 
@@ -66,32 +78,18 @@ public class AdministrativeItem implements MessageItem {
 				
 				.withSchema(Validatable.schemaDialect())
 				
-				.withTitle("Implicit message schema")
+				.withTitle("Administrative message schema")
 
 				.withDescription(
-						"Defines the context of a proven disclosure, which identifies its "
-					  + "processing and storage requirements within the platform.")
+						"Represents an administrative request for the platform.")
 
 				.withType(InstanceType.OBJECT)
 
-				.withProperty("test", sbf.createBuilder()
-						.withType(InstanceType.STRING, InstanceType.NULL)
-						.withDefault(JsonValue.NULL).build())
 				.build();
 		
 		//@formatter:on
 
 		return ret;
-	}
-
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.Administrative;
-	}
-
-	@Override
-	public String messageName() {
-		return "Administrative message";
 	}
 
 }

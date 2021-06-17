@@ -1,8 +1,12 @@
 ##
 #  These represent the set of configurable properties for a Proven cluster member.  This can be
-#  used as a template to provide property settings at startup.   
+#  used as a template to provide property settings at startup.  All properties have been assigned to
+#  their default values.  If property is not provided, Proven will assign it the value shown here.
+#  The following property is the only required property:  
 #
-#  proven.member.install.root property value must be provided at startup.  
+#      proven.member.install.root
+#
+#  It's recommended to copy this file and save as a reference, and replace this with your edited version.  
 ##
 
 ##
@@ -33,6 +37,9 @@ proven.lib.module.exchange.queue.disclosure.max_size=10000
 proven.lib.module.exchange.queue.exchange.max_size=1000
 proven.lib.module.exchange.buffer.capacity=1000
 proven.lib.module.exchange.buffer.service.capacity=100
+
+# stream
+proven.lib.moule.stream.graph.engine=JENA
 
 # registry
 proven.lib.module.registry.component.cluster.name=gov.pnnl.proven.registry.component.cluster

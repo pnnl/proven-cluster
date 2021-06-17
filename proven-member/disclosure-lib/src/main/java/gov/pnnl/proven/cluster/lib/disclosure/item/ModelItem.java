@@ -70,6 +70,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
  */
 public class ModelItem implements MessageItem {
 
+	public static final String MODEL_MESSAGE_NAME = "model-message";
+	
 	private static final int MIN_ARTIFACTS = 1;
 
 	static final String ARTIFACTS_PROP = "artifacts";
@@ -211,7 +213,7 @@ public class ModelItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return "Model message";
+		return MODEL_MESSAGE_NAME;
 	}
 
 	public JsonSchema toSchema() {

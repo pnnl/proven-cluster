@@ -72,7 +72,7 @@ public class TestSSEResponse {
 	
 	private final static String SCHEMA_TEST_FILE = "schema-test.json";
 
-	@StreamConfig(domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN, streamType = MessageStreamType.Response)
+	@StreamConfig(domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN, streamType = MessageStreamType.RESPONSE)
 	@Inject
 	MessageStreamProxy msp;
 
