@@ -1375,6 +1375,12 @@ public class ConceptService {
 
 			
 			if (iObject.get(iokey) instanceof String) {
+				
+				if (iokey.equalsIgnoreCase("object")) {
+				    ret.tag(iokey, (String) iObject.get(iokey));						
+				} else {
+				    ret.addField(iokey, (String) iObject.get(iokey));
+				}
 				ret.addField(iokey, (String) iObject.get(iokey));
 			} else if (iObject.get(iokey) instanceof Integer) {
 				ret.addField(iokey, Float.valueOf( iObject.get(iokey).toString()));
@@ -1481,10 +1487,6 @@ public class ConceptService {
 			builder.tag("hasSimulationMessageType", "INPUT");
 			builder.tag("hasMeasurementDifference", "FORWARD");
 			
-<<<<<<< HEAD
-=======
-            String tmpObject = "";
->>>>>>> a39af499ad32de31a3c5b85523d4f370659199a8
 			while (fdit.hasNext()) {
 				String fdkey = fdit.next();
 
@@ -1584,6 +1586,12 @@ public class ConceptService {
 				String rdkey = rdit.next();
 				// if (rdobject.get(rdkey) instanceof String) {
 				if (rdobject.get(rdkey) instanceof String) {
+					
+					if (rdkey.equalsIgnoreCase("object")) {
+					    builder.tag(rdkey, (String) rdobject.get(rdkey));						
+					} else {
+					    builder.addField(rdkey, (String) rdobject.get(rdkey));
+					}
 					builder.addField(rdkey, (String) rdobject.get(rdkey));
 				} else if (rdobject.get(rdkey) instanceof Integer) {
 					builder.addField(rdkey, Float.valueOf(rdobject.get(rdkey).toString()));
