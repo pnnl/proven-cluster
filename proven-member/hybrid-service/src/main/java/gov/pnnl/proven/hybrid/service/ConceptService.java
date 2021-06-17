@@ -1392,7 +1392,7 @@ public class ConceptService {
 				ret.addField(iokey, Double.valueOf(iObject.get(iokey).toString()));
 			} else 	if  (iObject.get(iokey) instanceof JSONObject) {
 				JSONObject i2Object = (JSONObject) iObject.get(iokey);
-				ret = processNestedObject (i2Object, iokey, ret); 
+				ret = processNestedObject (i2Object, iokey, ret);  
 			}			 
 						 
 			 
