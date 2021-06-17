@@ -66,6 +66,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  */
 public class ModelArtifactItem implements MessageItem {
 
+	public static final String MODEL_ARTIFACT_MESSAGE_NAME = "model-artifact-message";
+	
 	public enum Syntax {
 
 		JSONLD("JSON-LD"),
@@ -232,7 +234,7 @@ public class ModelArtifactItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return "Model Artifact message";
+		return MODEL_ARTIFACT_MESSAGE_NAME;
 	}
 
 	@Override

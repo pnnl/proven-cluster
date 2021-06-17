@@ -37,12 +37,13 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item;
+package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.json.Json;
-import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
 
@@ -52,55 +53,68 @@ import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
 
 /**
- * Immutable class representing the context of an artifact item. The context
- * helps to identify an artifact in terms of its identifier and version for use
- * in model messages.
+ * Immutable class representing an outbound SSE message representing operation
+ * results.
  * 
  * @author d3j766
- * 
- * @see ModelArtifactItem, ModelItem
+ *
+ * @see EventData, EventSubscriptionItem, OperationSubscription, ItemOperation
  *
  */
-public class ArtifactContext implements Validatable {
+public class OperationEvent implements EventData {
 
-	public static final String ID_PROP = "id";
-	public static final String VERSION_PROP = "item";
-	public static final String LATEST_PROP = "latest";
+	public static final String OPERATION_EVENT_NAME = "operation-event";
 
-	private String id;
-	private String version;
-	private Boolean latest;
+	static final String SESSION_ID_PROP = "sessionId";
+	static final String EVENT_NAME_PROP = "eventName";
+	static final String SUBSCRIPTION_PROP = "subscription";
+	static final String RESPONSE_ITEM_PROP = "response";
 
-	public ArtifactContext() {
+	private UUID sessionId;
+	private OperationSubscription subscription;
+	private ResponseItem response;
+
+	public OperationEvent() {
 	}
 
 	@JsonbCreator
-	public static ArtifactContext createArtifactContext(@JsonbProperty(ID_PROP) String id,
-			@JsonbProperty(VERSION_PROP) String version, @JsonbProperty(LATEST_PROP) Boolean latest) {
-		return ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build(true);
+	public static OperationEvent createOperationEvent(@JsonbProperty(SESSION_ID_PROP) UUID sessionId,
+			@JsonbProperty(SUBSCRIPTION_PROP) OperationSubscription subscription,
+			@JsonbProperty(RESPONSE_ITEM_PROP) ResponseItem response) {
+		return OperationEvent.newBuilder().withSessionId(sessionId).withSubscription(subscription)
+				.withResponse(response).build(true);
 	}
 
-	private ArtifactContext(Builder b) {
-		this.id = b.id;
-		this.version = b.version;
-		this.latest = b.latest;
+	private OperationEvent(Builder b) {
+		this.sessionId = b.sessionId;
+		this.subscription = b.subscription;
+		this.response = b.response;
 	}
 
-	@JsonbProperty(ID_PROP)
-	public String getId() {
-		return id;
+	@JsonbProperty(SESSION_ID_PROP)
+	@Override
+	public UUID getSessionId() {
+		return sessionId;
 	}
 
-	@JsonbProperty(VERSION_PROP)
-	public String getVersion() {
-		return version;
+	@JsonbProperty(EVENT_NAME_PROP)
+	@Override
+	public String getEventName() {
+		return OPERATION_EVENT_NAME;
 	}
 
-	@JsonbProperty(LATEST_PROP)
-	public Boolean isLatest() {
-		return latest;
+	@JsonbProperty(SUBSCRIPTION_PROP)
+	public OperationSubscription getSubscription() {
+		return subscription;
+	}
+
+	@JsonbProperty(RESPONSE_ITEM_PROP)
+	public ResponseItem getResponse() {
+		return response;
 	}
 
 	public static Builder newBuilder() {
@@ -109,25 +123,25 @@ public class ArtifactContext implements Validatable {
 
 	public static final class Builder {
 
-		private String id;
-		private String version;
-		private Boolean latest;
+		private UUID sessionId;
+		private OperationSubscription subscription;
+		private ResponseItem response;
 
 		private Builder() {
 		}
 
-		public Builder withId(String id) {
-			this.id = id;
+		public Builder withSessionId(UUID sessionId) {
+			this.sessionId = sessionId;
 			return this;
 		}
 
-		public Builder withVersion(String version) {
-			this.version = version;
+		public Builder withSubscription(OperationSubscription subscription) {
+			this.subscription = subscription;
 			return this;
 		}
 
-		public Builder withLatest(Boolean latest) {
-			this.latest = latest;
+		public Builder withResponse(ResponseItem response) {
+			this.response = response;
 			return this;
 		}
 
@@ -140,13 +154,13 @@ public class ArtifactContext implements Validatable {
 		 *             if created instance fails JSON-SCHEMA validation.
 		 * 
 		 */
-		public ArtifactContext build() {
+		public OperationEvent build() {
 			return build(false);
 		}
 
-		private ArtifactContext build(boolean trustedBuilder) {
+		private OperationEvent build(boolean trustedBuilder) {
 
-			ArtifactContext ret = new ArtifactContext(this);
+			OperationEvent ret = new OperationEvent(this);
 
 			if (!trustedBuilder) {
 				List<Problem> problems = ret.validate();
@@ -159,48 +173,54 @@ public class ArtifactContext implements Validatable {
 		}
 	}
 
-	@Override
 	public JsonSchema toSchema() {
 
 		JsonSchema ret;
 
+		// Create ResponseItem schema definition listing
+		List<Class<? extends ResponseItem>> responseItems = ResponseItem.responseItems();
+		List<JsonSchema> responseSchemas = new ArrayList<>();
+		for (Class<? extends ResponseItem> resp : responseItems) {
+			responseSchemas.add(Validatable.retrieveSchema(resp));
+		}
+
 		//@formatter:off
 		ret = sbf.createBuilder()
 
-				.withId(Validatable.schemaId(this.getClass()))
-				
-				.withSchema(Validatable.schemaDialect())
-				
-				.withTitle("Artifact context")
-				
-				.withDescription("The context helps to identify an artifact in terms of its "
-						+ "identifier and version for use in model item messages.")
+			.withId(Validatable.schemaId(this.getClass()))
+			
+			.withSchema(Validatable.schemaDialect())
+			
+			.withTitle("Outbound SSE message for an operation result")
 
+			.withDescription("This SSE message provides event, subscription, and the response information "
+					       + "for an operation result.") 
+
+			.withType(InstanceType.OBJECT)
+
+			.withProperty(SESSION_ID_PROP, sbf.createBuilder()
+				.withDescription("SSE session identifier")
+				.withType(InstanceType.STRING)
+				.withPattern(UUID_PATTERN)
+				.build())
+							
+			.withProperty(EVENT_NAME_PROP, sbf.createBuilder()
+				.withDescription("This message name.")
+				.withType(InstanceType.STRING)
+				.withConst(Json.createValue(getEventName()))
+				.build())
+			
+			.withProperty(SUBSCRIPTION_PROP, Validatable.retrieveSchema(OperationSubscription.class))
+
+			.withProperty(RESPONSE_ITEM_PROP, sbf.createBuilder()
+				.withOneOf(responseSchemas)
 				.withType(InstanceType.OBJECT)
-				
-				.withProperty(ID_PROP, sbf.createBuilder()
-					.withDescription("Artifact identifier, represented as an URI.  If the URI is designated as a locator"
-							+ "(see 'locator' property) then contents will be retrieved from this location")
-					.withType(InstanceType.STRING)
-					.withPattern("^(https?|ftp|file):\\/\\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]$")
-					.build())
+				.build())
 
-				.withProperty(VERSION_PROP, sbf.createBuilder()
-					.withDescription("Artifact's version.")
-					.withType(InstanceType.STRING, InstanceType.NULL)
-					.withDefault(JsonValue.NULL)
-					.build())
-				
-				.withProperty(LATEST_PROP, sbf.createBuilder()
-					.withDescription("If true, indicates this artifact is the latest version.")
-					.withType(InstanceType.BOOLEAN)
-					.withDefault(JsonValue.TRUE)
-					.build())
-								
-				.withRequired(ID_PROP)
-				
-				.build();
-		
+			.withRequired(SESSION_ID_PROP, EVENT_NAME_PROP, SUBSCRIPTION_PROP, RESPONSE_ITEM_PROP)
+			
+			.build();
+						
 		//@formatter:on
 
 		return ret;

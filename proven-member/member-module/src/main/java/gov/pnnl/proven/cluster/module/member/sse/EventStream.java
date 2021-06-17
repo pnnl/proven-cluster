@@ -37,143 +37,127 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.member.dto;
+package gov.pnnl.proven.cluster.module.member.sse;
 
-import java.io.Serializable;
+import static gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventType.OPERATION;
+import static gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType.RESPONSE;
+import static gov.pnnl.proven.cluster.module.member.sse.EventStream.EventLabel.OPERATION_RESPONSE_LABEL;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.hazelcast.core.HazelcastJsonValue;
-
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
-import gov.pnnl.proven.cluster.module.member.sse.SseEventData;
-import gov.pnnl.proven.cluster.module.member.sse.SseSession;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventType;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 
 /**
- * Represents SSE information for the addition of a {@code ResponseMessage} to a
- * domain stream. By default, the information is sent as
- * {@code MediaType#APPLICATION_JSON}. The {@code #message} field represents
- * the data element of the SSE message, and is in the form of escaped JSON.
- * 
+ * Associates the different EventType's with their message stream. Each event
+ * type is associated with a single stream type as defined by
+ * {@code MessageStreamType}. The event data for the event type is based on
+ * entries from its associated stream.
+ *
  * @author d3j766
+ * 
+ * @see EventType, MessageStreamType
  *
  */
-@XmlRootElement(name = "response-event")
-public class SseResponseEventDto implements SseEventData, Serializable {
+public enum EventStream {
 
-	static Logger logger = LoggerFactory.getLogger(SseResponseEventDto.class);
+	OPERATION_RESPONSE(OPERATION, RESPONSE, OPERATION_RESPONSE_LABEL);
 
-	private static final long serialVersionUID = 1L;
-
-	String sessionId;
-
-	String domain;
-
-	String messageContent;
-
-	String requestor;
-
-	String disclosureId;
-
-	int status;
-
-	String reason;
-
-	String key;
-
-	String message;
-
-	public SseResponseEventDto() {
+	public class EventLabel {
+		public static final String OPERATION_RESPONSE_LABEL = "operation-response-event";
 	}
 
-	public SseResponseEventDto(SseSession session, ResponseMessage message) {
-		this.sessionId = session.getSessionId().toString();
-		this.domain = message.getDisclosureItem().getContext().getDomain().getDomain();
-		this.messageContent = message.getMessageContent().getName();
-		Optional<String> requestorIdOpt = Optional.ofNullable(message.getDisclosureItem().getContext().getRequestor());
-		this.requestor = (requestorIdOpt.isPresent()) ? requestorIdOpt.get() : "NONE";       
-		//Optional<String> disclosureIdOpt = message.getDisclosureItem().getDisclosureId();
-		//this.disclosureId = (disclosureIdOpt.isPresent()) ? disclosureIdOpt.get() : "NONE";
-		this.status = message.getStatus().getStatusCode();
-		this.reason = message.getStatus().getReasonPhrase();
-		this.key = message.getMessageKey();
-		this.message = message.getResponseMessage().toString();
+	private EventType eventType;
+	private String label;
+	private MessageStreamType streamType;
+
+	EventStream(EventType eventType, MessageStreamType streamType, String label) {
+		this.eventType = eventType;
+		this.label = label;
+		this.streamType = streamType;
 	}
 
-	public String getSessionId() {
-		return sessionId;
+	/**
+	 * Provides the SSE's type.
+	 * 
+	 * @return the type of SSE.
+	 */
+	public EventType getEventType() {
+		return eventType;
 	}
 
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
+	/**
+	 * Provides the SSE's associated stream type.
+	 * 
+	 * @return name for the SSE event type
+	 */
+	public MessageStreamType getStreamType() {
+		return streamType;
 	}
 
-	public String getDomain() {
-		return domain;
+	/**
+	 * Provides the name of for the SSE event type.
+	 * 
+	 * @return name for the SSE event type
+	 */
+	public String getLabel() {
+		return label;
 	}
 
-	public void setDomain(String domain) {
-		this.domain = domain;
+	/**
+	 * Provides a list of all SSE event types.
+	 */
+	public static List<String> getLabels() {
+
+		List<String> ret = new ArrayList<>();
+		for (EventStream event : values()) {
+			ret.add(event.getLabel());
+		}
+		return ret;
 	}
 
-	public String getMessageContent() {
-		return messageContent;
+	/**
+	 * Retrieves the stream for a given event type. There is at most one stream
+	 * for a given event type.
+	 * 
+	 * @param eventType
+	 *            the provided event type.
+	 * @return optionally return the event type.
+	 */
+	public static Optional<MessageStreamType> getStreamForEvent(EventType eventType) {
+
+		Optional<MessageStreamType> ret = Optional.empty();
+
+		for (EventStream es : EventStream.values()) {
+			if (es.getEventType() == eventType) {
+				ret = Optional.of(es.getStreamType());
+				break;
+			}
+		}
+		return ret;
 	}
 
-	public void setMessageContent(String messageContent) {
-		this.messageContent = messageContent;
-	}
+	/**
+	 * Retrieves the event types for a given stream. There can be 0 or more
+	 * events associated with a stream.
+	 * 
+	 * @param streamType
+	 *            the provided stream type.
+	 * @return returns the list of event types. Empty list is returned if there
+	 *         are no event types associated with the provided stream.
+	 */
+	public static List<EventType> getEventsForStream(MessageStreamType streamType) {
 
-	public String getRequester() {
-		return requestor;
-	}
+		List<EventType> ret = new ArrayList<>();
 
-	public void setRequester(String requester) {
-		this.requestor = requester;
-	}
-
-	public String getDisclosureId() {
-		return disclosureId;
-	}
-
-	public void setDisclosureId(String disclosureId) {
-		this.disclosureId = disclosureId;
-	}
-
-	public int getStatus() {
-		return status;
-	}
-
-	public void setStatus(int status) {
-		this.status = status;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
+		for (EventStream es : EventStream.values()) {
+			if (es.getStreamType() == streamType) {
+				ret.add(es.getEventType());
+			}
+		}
+		return ret;
 	}
 
 }

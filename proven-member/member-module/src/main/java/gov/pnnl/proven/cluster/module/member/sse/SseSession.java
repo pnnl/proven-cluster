@@ -73,7 +73,7 @@ public class SseSession {
 
 	static Logger logger = LoggerFactory.getLogger(SseSession.class);
 
-	private SseEvent event;
+	private EventStream event;
 	private UUID sessionId;
 	private Sse sse;
 	private SseEventSink eventSink;
@@ -81,7 +81,7 @@ public class SseSession {
 	private List<MessageContent> contents;
 	private String requestor;
 
-	public SseSession(SseEvent event, UUID sessionId, Sse sse, SseEventSink eventSink, Optional<String> domainOpt,
+	public SseSession(EventStream event, UUID sessionId, Sse sse, SseEventSink eventSink, Optional<String> domainOpt,
 			Optional<List<String>> contentsOpt, Optional<String> requesterOpt) {
 
 		this.event = event;
@@ -136,7 +136,7 @@ public class SseSession {
 
 	}
 
-	public boolean hasEvent(SseEvent eventToCheck) {
+	public boolean hasEvent(EventStream eventToCheck) {
 		return event.equals(eventToCheck);
 	}
 
@@ -196,11 +196,11 @@ public class SseSession {
 		return true;
 	}
 
-	public SseEvent getEvent() {
+	public EventStream getEvent() {
 		return event;
 	}
 
-	public void setEvent(SseEvent event) {
+	public void setEvent(EventStream event) {
 		this.event = event;
 	}
 

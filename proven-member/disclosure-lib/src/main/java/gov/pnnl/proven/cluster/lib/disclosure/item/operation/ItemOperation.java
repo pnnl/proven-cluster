@@ -41,7 +41,6 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,14 +49,14 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
 
 /**
  * Represents the pre-defined item processing operations. Operations are
- * assigned a name and a context type, if any. Operations may be assigned model
+ * assigned a name and a context type. Operations may be assigned model
  * definitions via ModelItem messages and/or may also be included in SSE event
- * response message subscriptions via an OperationEvent. Operations are assigned
- * a priority value which determines the order in which they are performed.
- * Priority is given to operations which exchange message data to the Hybrid
- * Store's streaming environment.
+ * response message subscriptions via an EventSubscription. Operations are
+ * assigned a priority value which determines the order in which they are
+ * performed. Priority is given to operations supporting the exchange of data to
+ * the Hybrid Store's streaming environment.
  * 
- * @see OperationContext, ModelItem, OperationEvent
+ * @see OperationContext, ModelItem, EventSubscription
  * 
  * @author d3j766
  *
@@ -146,8 +145,7 @@ public enum ItemOperation {
 	}
 
 	/**
-	 * Provides a list of operations that may have assigned Model
-	 * definitions.
+	 * Provides a list of operations that may have assigned Model definitions.
 	 * 
 	 * @see ModelArtifactItem
 	 */
@@ -168,7 +166,7 @@ public enum ItemOperation {
 	 * Provides a list of operations that may be included in an SSE event
 	 * response subscription.
 	 * 
-	 * @see EventContext
+	 * @see ItemOperation
 	 */
 	public static List<ItemOperation> getEventOperations() {
 

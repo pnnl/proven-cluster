@@ -12,6 +12,7 @@ import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty;
 import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceOperationResultEntry;
+import gov.pnnl.proven.cluster.lib.module.stream.ContextualizedItem;
 
 /**
  * 
@@ -38,6 +39,7 @@ public class ModuleIDSFactory implements DataSerializableFactory {
 	public static final int MAINTENANCE_RESULT_ENTRY_TYPE = 6;
 	public static final int STATUS_OPERATION_EVENT_TYPE = 7;
 	public static final int RESPONSE_ITEM_TYPE = 8;
+	public static final int CONTEXTUALIZED_ITEM_TYPE = 9;
 	
 	
 	@Override
@@ -61,7 +63,9 @@ public class ModuleIDSFactory implements DataSerializableFactory {
 		case (STATUS_OPERATION_EVENT_TYPE):
 			return new StatusOperationEvent();
 		case (RESPONSE_ITEM_TYPE):
-			return new ResponseItem();		
+			return new ResponseItem();
+		case (CONTEXTUALIZED_ITEM_TYPE):
+			return new ContextualizedItem();
 		default:
 			return null;
 		}

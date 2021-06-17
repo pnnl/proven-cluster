@@ -375,7 +375,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 			//@formatter:off
 			OutboundSseEvent sseEvent = sseBuilder
-					.name(session.getEvent().getEvent())
+					.name(session.getEvent().getLabel())
 					.id(String.valueOf(eventId.getAndIncrement()))
 					.mediaType(MediaType.APPLICATION_JSON_TYPE )
 					.data(data.getClass(), data)
@@ -406,7 +406,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 		switch (mst) {
 
-		case Response:
+		case RESPONSE:
 
 			ResponseMessage rm = (ResponseMessage) message;
 			eventData = new SseResponseEventDto(session, rm);

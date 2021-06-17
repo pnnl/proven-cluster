@@ -57,6 +57,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  */
 public class ImplicitItem implements MessageItem {
 
+	public static final String IMPLICIT_MESSAGE_NAME = "implicit-message";
+	
 	private JsonStructure message;
 
 	public ImplicitItem() {
@@ -125,7 +127,7 @@ public class ImplicitItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return "Implicit message";
+		return IMPLICIT_MESSAGE_NAME;
 	}
 
 	@Override

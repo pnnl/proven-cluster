@@ -82,12 +82,12 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  */
 public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
-	static final String CONTENT_PROP = "content";
-	static final String ITEM_PROP = "item";
-	static final String DOMAIN_PROP = "domain";
-	static final String REQUESTOR_PROP = "requestor";
-	static final String NAME_PROP = "name";
-	static final String TAGS_PROP = "tags";
+	public static final String CONTENT_PROP = "content";
+	public static final String ITEM_PROP = "item";
+	public static final String DOMAIN_PROP = "domain";
+	public static final String REQUESTOR_PROP = "requestor";
+	public static final String NAME_PROP = "name";
+	public static final String TAGS_PROP = "tags";
 
 	private MessageContent content;
 	private Class<? extends MessageItem> item;

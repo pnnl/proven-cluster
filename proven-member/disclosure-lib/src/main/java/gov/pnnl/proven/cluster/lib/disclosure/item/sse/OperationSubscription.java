@@ -37,143 +37,52 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.member.dto;
+package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 
-import java.io.Serializable;
-import java.util.Optional;
+import org.leadpony.justify.api.InstanceType;
+import org.leadpony.justify.api.JsonSchema;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class OperationSubscription implements EventSubscription {
 
-import com.hazelcast.core.HazelcastJsonValue;
+	@Override
+	public JsonSchema toSchema() {
 
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
-import gov.pnnl.proven.cluster.module.member.sse.SseEventData;
-import gov.pnnl.proven.cluster.module.member.sse.SseSession;
+		JsonSchema ret;
 
-/**
- * Represents SSE information for the addition of a {@code ResponseMessage} to a
- * domain stream. By default, the information is sent as
- * {@code MediaType#APPLICATION_JSON}. The {@code #message} field represents
- * the data element of the SSE message, and is in the form of escaped JSON.
- * 
- * @author d3j766
- *
- */
-@XmlRootElement(name = "response-event")
-public class SseResponseEventDto implements SseEventData, Serializable {
+		//@formatter:off
+		ret = sbf.createBuilder()
 
-	static Logger logger = LoggerFactory.getLogger(SseResponseEventDto.class);
+			.withId(Validatable.schemaId(this.getClass()))
+			
+			.withSchema(Validatable.schemaDialect())
+			
+			.withTitle("Operation subscription.")
 
-	private static final long serialVersionUID = 1L;
+			.withDescription("Defines a subscription to opertion results.") 
 
-	String sessionId;
+			.withType(InstanceType.OBJECT)
 
-	String domain;
+			.build();
+						
+		//@formatter:on
 
-	String messageContent;
-
-	String requestor;
-
-	String disclosureId;
-
-	int status;
-
-	String reason;
-
-	String key;
-
-	String message;
-
-	public SseResponseEventDto() {
+		return ret;
 	}
 
-	public SseResponseEventDto(SseSession session, ResponseMessage message) {
-		this.sessionId = session.getSessionId().toString();
-		this.domain = message.getDisclosureItem().getContext().getDomain().getDomain();
-		this.messageContent = message.getMessageContent().getName();
-		Optional<String> requestorIdOpt = Optional.ofNullable(message.getDisclosureItem().getContext().getRequestor());
-		this.requestor = (requestorIdOpt.isPresent()) ? requestorIdOpt.get() : "NONE";       
-		//Optional<String> disclosureIdOpt = message.getDisclosureItem().getDisclosureId();
-		//this.disclosureId = (disclosureIdOpt.isPresent()) ? disclosureIdOpt.get() : "NONE";
-		this.status = message.getStatus().getStatusCode();
-		this.reason = message.getStatus().getReasonPhrase();
-		this.key = message.getMessageKey();
-		this.message = message.getResponseMessage().toString();
+	@Override
+	public EventType getEventType() {
+		// TODO Auto-generated method stub
+		return EventType.OPERATION;
 	}
 
-	public String getSessionId() {
-		return sessionId;
-	}
-
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
-	}
-
-	public String getDomain() {
-		return domain;
-	}
-
-	public void setDomain(String domain) {
-		this.domain = domain;
-	}
-
-	public String getMessageContent() {
-		return messageContent;
-	}
-
-	public void setMessageContent(String messageContent) {
-		this.messageContent = messageContent;
-	}
-
-	public String getRequester() {
-		return requestor;
-	}
-
-	public void setRequester(String requester) {
-		this.requestor = requester;
-	}
-
-	public String getDisclosureId() {
-		return disclosureId;
-	}
-
-	public void setDisclosureId(String disclosureId) {
-		this.disclosureId = disclosureId;
-	}
-
-	public int getStatus() {
-		return status;
-	}
-
-	public void setStatus(int status) {
-		this.status = status;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
+	@Override
+	public DisclosureDomain getDomain() {
+		// TODO Auto-generated method stub
+		return DomainProvider.getProvenDisclosureDomain();
 	}
 
 }
