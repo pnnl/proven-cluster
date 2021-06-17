@@ -1481,6 +1481,10 @@ public class ConceptService {
 			builder.tag("hasSimulationMessageType", "INPUT");
 			builder.tag("hasMeasurementDifference", "FORWARD");
 			
+<<<<<<< HEAD
+=======
+            String tmpObject = "";
+>>>>>>> a39af499ad32de31a3c5b85523d4f370659199a8
 			while (fdit.hasNext()) {
 				String fdkey = fdit.next();
 
