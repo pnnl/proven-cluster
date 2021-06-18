@@ -44,6 +44,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.json.Json;
+
+import org.leadpony.justify.api.JsonSchema;
+
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
@@ -57,6 +61,11 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
  */
 public interface MessageItem extends Validatable {
 
+	/**
+	 * @see #messageNamePropertySchema()
+	 */
+	static final String MESSAGE_NAME_PROP = "messageName";
+	
 	static Map<String, Class<? extends MessageItem>> messagesByName = MessageInitializer.messagesByName();
 	static Map<Class<? extends MessageItem>, String> messagesByType = MessageInitializer.messagesByType();
 	static Map<Class<? extends MessageItem>, MessageContent> messageContentByType = MessageInitializer
@@ -82,8 +91,32 @@ public interface MessageItem extends Validatable {
 		return messageContentByType.get(type);
 	}
 
+	/**
+	 * Default message name property schema.
+	 * 
+	 * NOTE: Should be in each implementation's JSON-SCHEMA
+	 * 
+	 * @return JsonSchema for a message name property.
+	 */
+	default JsonSchema messageNamePropertySchema() {
+		return Validatable.sbf.createBuilder().withDescription("Name of the message item.")
+				.withConst(Json.createValue(messageName())).build();
+	}
+
+	/**
+	 * Returns the message item's name.  This is the name used 
+	 * 
+	 * @return name of the message item
+	 */
 	String messageName();
 
+	/**
+	 * Identifies message content type for a message item.
+	 * 
+	 * @return the associated message content
+	 * 
+	 * @see MessageContent
+	 */
 	MessageContent messageContent();
 }
 

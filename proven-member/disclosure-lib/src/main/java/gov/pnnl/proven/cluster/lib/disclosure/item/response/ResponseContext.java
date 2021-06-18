@@ -58,7 +58,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
-import javassist.compiler.AccessorMaker;
 
 /**
  * Immutable class representing the context of a response item, containing
@@ -136,7 +135,7 @@ public class ResponseContext implements Validatable {
 	}
 
 	@JsonbProperty(OPERATION_CONTEXT_PROP)
-	public  JsonObject getOperationContext() {
+	public JsonObject getOperationContext() {
 		return operationContext;
 	}
 
@@ -185,7 +184,7 @@ public class ResponseContext implements Validatable {
 			this.operationContext = operationContext;
 			return this;
 		}
-		
+
 		public Builder withOperationContext(OperationContext oc) {
 			this.operationContext = (JsonObject) oc.toJson();
 			return this;

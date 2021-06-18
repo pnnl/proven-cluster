@@ -161,6 +161,8 @@ public class BaseResponseItem implements ResponseItem {
 
 				.withType(InstanceType.OBJECT)
 				
+				.withProperty(MESSAGE_NAME_PROP, messageNamePropertySchema())
+				
 				.withProperty(RESPONSE_CONTEXT_PROP, Validatable.retrieveSchema(ResponseContext.class)) 
 				
 				.withRequired(RESPONSE_CONTEXT_PROP)	

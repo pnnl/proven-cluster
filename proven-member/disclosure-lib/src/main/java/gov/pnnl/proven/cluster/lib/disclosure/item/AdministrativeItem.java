@@ -84,6 +84,8 @@ public class AdministrativeItem implements MessageItem {
 						"Represents an administrative request for the platform.")
 
 				.withType(InstanceType.OBJECT)
+				
+				.withProperty(MESSAGE_NAME_PROP, messageNamePropertySchema())
 
 				.build();
 		
