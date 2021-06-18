@@ -67,7 +67,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
 public class ModelArtifactItem implements MessageItem {
 
 	public static final String MODEL_ARTIFACT_MESSAGE_NAME = "model-artifact-message";
-	
+
 	public enum Syntax {
 
 		JSONLD("JSON-LD"),
@@ -106,12 +106,16 @@ public class ModelArtifactItem implements MessageItem {
 	static final String ARTIFACT_PROP = "artifact";
 	static final String LOCATOR_PROP = "locator";
 	static final String LD_CONTEXT_PROP = "ldContext";
+	static final String NAMED_QUERY_MODEL_PROP = "namedModel";
+	static final String DEFAULT_QUERY_MODEL_PROP = "defaultQueryModel";
 	static final String CONTENT_PROP = "content";
 	static final String SYNTAX_PROP = "syntax";
 
 	private ArtifactContext artifact;
 	private Boolean locator;
 	private Boolean ldContext;
+	private String namedQueryModel;
+	private Boolean defaultQueryModel;
 	private String content;
 	private Syntax syntax;
 
@@ -121,15 +125,20 @@ public class ModelArtifactItem implements MessageItem {
 	@JsonbCreator
 	public static ModelArtifactItem createMessageContext(@JsonbProperty(ARTIFACT_PROP) ArtifactContext artifact,
 			@JsonbProperty(LOCATOR_PROP) Boolean locator, @JsonbProperty(LD_CONTEXT_PROP) Boolean ldContext,
+			@JsonbProperty(NAMED_QUERY_MODEL_PROP) String namedModel,
+			@JsonbProperty(DEFAULT_QUERY_MODEL_PROP) Boolean defaultQueryModel,
 			@JsonbProperty(CONTENT_PROP) String content, @JsonbProperty(SYNTAX_PROP) Syntax syntax) {
 		return ModelArtifactItem.newBuilder().withArtifact(artifact).withLocator(locator).withLdContext(ldContext)
-				.withContent(content).withSyntax(syntax).build(true);
+				.withNamedQueryModel(namedModel).withDefaultQueryModel(defaultQueryModel).withContent(content)
+				.withSyntax(syntax).build(true);
 	}
 
 	private ModelArtifactItem(Builder b) {
 		this.artifact = b.artifact;
 		this.locator = b.locator;
 		this.ldContext = b.ldContext;
+		this.namedQueryModel = b.namedQueryModel;
+		this.defaultQueryModel = b.defaultQueryModel;
 		this.content = b.content;
 		this.syntax = b.syntax;
 	}
@@ -147,6 +156,16 @@ public class ModelArtifactItem implements MessageItem {
 	@JsonbProperty(LD_CONTEXT_PROP)
 	public Boolean isLdContext() {
 		return ldContext;
+	}
+
+	@JsonbProperty(NAMED_QUERY_MODEL_PROP)
+	public String getNamedQueryModel() {
+		return namedQueryModel;
+	}
+
+	@JsonbProperty(DEFAULT_QUERY_MODEL_PROP)
+	public Boolean isDefaultQueryModel() {
+		return defaultQueryModel;
 	}
 
 	@JsonbProperty(CONTENT_PROP)
@@ -168,6 +187,8 @@ public class ModelArtifactItem implements MessageItem {
 		private ArtifactContext artifact;
 		private Boolean locator;
 		private Boolean ldContext;
+		private String namedQueryModel;
+		private Boolean defaultQueryModel;
 		private String content;
 		private Syntax syntax;
 
@@ -186,6 +207,16 @@ public class ModelArtifactItem implements MessageItem {
 
 		public Builder withLdContext(Boolean ldContext) {
 			this.ldContext = ldContext;
+			return this;
+		}
+
+		public Builder withNamedQueryModel(String namedModel) {
+			this.namedQueryModel = namedModel;
+			return this;
+		}
+
+		public Builder withDefaultQueryModel(Boolean defaultQueryModel) {
+			this.defaultQueryModel = defaultQueryModel;
 			return this;
 		}
 
@@ -269,6 +300,20 @@ public class ModelArtifactItem implements MessageItem {
 				.withDescription("If true, indicates the artifact is a JSON-LD @context object.")
 				.withType(InstanceType.BOOLEAN)
 				.build())
+			
+			.withProperty(NAMED_QUERY_MODEL_PROP, sbf.createBuilder()
+					.withDescription("Model will be used by query requests that identify this model "
+							+ "by the provided name.")
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.build())
+			
+			.withProperty(DEFAULT_QUERY_MODEL_PROP, sbf.createBuilder()
+					.withDescription("If true, indicates this Model will be asssigned to the default "
+							+ "domain query model.")
+					.withType(InstanceType.BOOLEAN)
+					.withDefault(JsonValue.FALSE)
+					.build())
 			
 			.withProperty(CONTENT_PROP, sbf.createBuilder()
 				.withDescription("BASE64 encoding of the artifact's content; required if locator property is false.")
