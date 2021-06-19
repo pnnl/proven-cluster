@@ -159,6 +159,8 @@ public class ExplicitItem implements MessageItem {
 
 			.withType(InstanceType.OBJECT, InstanceType.ARRAY)
 			
+			.withProperty(MESSAGE_NAME_PROP, messageNamePropertySchema())
+			
 			.build();
 		
 		//@formatter:on

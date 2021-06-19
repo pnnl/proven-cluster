@@ -149,13 +149,14 @@ public class ImplicitItem implements MessageItem {
 				
 				.withTitle("Implicit item message schema")
 
-				.withDescription("Implicit message item schema.  An implicit message item represents "
-						+ "domain knowledge created from other domain knowledge.  Similar to explicit " 
-						+ "item message, it does not have a schema adherence requirement "
+				.withDescription("An implicit message as opposed to an explicit message represents data "
+						+ "created or inferred from other explicit domain knowledge disclosures.  Similar to explicit " 
+						+ "item messages, it does not have a schema adherence requirement "
 						+ "other than it being valid JSON. An outer Object or Array is permitted.")
 
 				.withType(InstanceType.OBJECT, InstanceType.ARRAY)
-				.withDescription("Implicit domain knowledge, .")
+				
+				.withProperty(MESSAGE_NAME_PROP, messageNamePropertySchema())
 				
 				.build();
 		

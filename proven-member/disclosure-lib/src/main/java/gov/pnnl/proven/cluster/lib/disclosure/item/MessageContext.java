@@ -287,7 +287,8 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 				.withType(InstanceType.OBJECT)
 
 				.withProperty(ITEM_PROP, sbf.createBuilder()
-					.withDescription("Identifies the type message item contained in a disclosure item.")
+					.withDescription("Identifies the type of message item contained in a disclosure item.  "
+							+ "The provided selections are the message names for each item type.")
 					.withType(InstanceType.STRING, InstanceType.NULL)
 					.withEnum(items)
 					.withDefault(defaultItem)

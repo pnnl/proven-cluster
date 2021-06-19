@@ -66,9 +66,9 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
  * @see ModelArtifactItem, ArtifacContext
  *
  */
-public class ModelItem implements MessageItem {
+public class MessageModelItem implements MessageItem {
 
-	public static final String MODEL_MESSAGE_NAME = "model-message";
+	public static final String MESSAGE_MODEL_MESSAGE_NAME = "message-model-message";
 
 	private static final int MIN_ARTIFACTS = 1;
 
@@ -80,18 +80,18 @@ public class ModelItem implements MessageItem {
 	private MessageContext messageContext;
 	private JsonObject operationContext;
 
-	public ModelItem() {
+	public MessageModelItem() {
 	}
 
 	@JsonbCreator
-	public static ModelItem createModelItem(@JsonbProperty(ARTIFACTS_PROP) List<ArtifactContext> artifacts,
+	public static MessageModelItem createModelItem(@JsonbProperty(ARTIFACTS_PROP) List<ArtifactContext> artifacts,
 			@JsonbProperty(MESSAGE_CONTEXT_PROP) MessageContext messageContext,
 			@JsonbProperty(OPERATION_CONTEXT_PROP) JsonObject operationContext) {
-		return ModelItem.newBuilder().withArtifacts(artifacts).withMessageContext(messageContext)
+		return MessageModelItem.newBuilder().withArtifacts(artifacts).withMessageContext(messageContext)
 				.withOperationContext(operationContext).build(true);
 	}
 
-	private ModelItem(Builder b) {
+	private MessageModelItem(Builder b) {
 		this.artifacts = b.artifacts;
 		this.messageContext = b.messageContext;
 		this.operationContext = b.operationContext;
@@ -155,13 +155,13 @@ public class ModelItem implements MessageItem {
 		 *             if created instance fails JSON-SCHEMA validation.
 		 * 
 		 */
-		public ModelItem build() {
+		public MessageModelItem build() {
 			return build(false);
 		}
 
-		private ModelItem build(boolean trustedBuilder) {
+		private MessageModelItem build(boolean trustedBuilder) {
 
-			ModelItem ret = new ModelItem(this);
+			MessageModelItem ret = new MessageModelItem(this);
 
 			if (!trustedBuilder) {
 				List<Problem> problems = ret.validate();
@@ -181,7 +181,7 @@ public class ModelItem implements MessageItem {
 
 	@Override
 	public String messageName() {
-		return MODEL_MESSAGE_NAME;
+		return MESSAGE_MODEL_MESSAGE_NAME;
 	}
 
 	public JsonSchema toSchema() {
@@ -209,6 +209,8 @@ public class ModelItem implements MessageItem {
 						+ "graph")
 
 				.withType(InstanceType.OBJECT)
+				
+				.withProperty(MESSAGE_NAME_PROP, messageNamePropertySchema())
 
 				.withProperty(ARTIFACTS_PROP, sbf.createBuilder()
 						.withDescription("Array of artifiacts for which the model will be composed of.")

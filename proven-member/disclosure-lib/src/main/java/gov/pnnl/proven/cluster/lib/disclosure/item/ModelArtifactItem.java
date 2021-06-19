@@ -62,7 +62,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  * 
  * @author d3j766
  *
- * @see ModelItem
+ * @see MessageModelItem
  */
 public class ModelArtifactItem implements MessageItem {
 
@@ -287,6 +287,8 @@ public class ModelArtifactItem implements MessageItem {
 					    + "requests within a Proven platform.")
 
 			.withType(InstanceType.OBJECT)
+			
+			.withProperty(MESSAGE_NAME_PROP, messageNamePropertySchema())
 		
 			.withProperty(ARTIFACT_PROP, Validatable.retrieveSchema(ArtifactContext.class))
 

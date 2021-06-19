@@ -423,7 +423,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 				
 				.withProperty(MESSAGE_PROP, sbf.createBuilder()
 					.withTitle("Message payload")
-					.withDescription("Contains a message item of type selected in the 'context' property.")
+					.withDescription("Contains the message item of type selected in the 'context' property.")
 					.withType(InstanceType.OBJECT, InstanceType.ARRAY)
 					.withComment("Json will be validated for the item type selected.")
 					.build())

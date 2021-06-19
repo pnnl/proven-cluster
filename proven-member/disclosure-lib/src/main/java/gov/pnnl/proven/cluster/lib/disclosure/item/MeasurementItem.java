@@ -244,6 +244,8 @@ public class MeasurementItem implements MessageItem {
 						+ "A metric must adhere to this header's definition.")
 
 			.withType(InstanceType.OBJECT)
+			
+			.withProperty(MESSAGE_NAME_PROP, messageNamePropertySchema())
 
 			.withProperty(MEASUREMENT_PROP,
 				sbf.createBuilder()

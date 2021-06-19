@@ -57,12 +57,19 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 public interface OperationContext extends Validatable {
 
 	/**
+	 * @see #operationPropertySchema()
+	 */
+	static final String OPERATION_PROP = "operation";
+	
+	/**
 	 * Returns the ItemOperation for the defined context.
 	 */
 	ItemOperation getOperation();
 
 	/**
 	 * Default operation property schema.
+	 * 
+	 * NOTE: Should be in each implementation's JSON-SCHEMA
 	 * 
 	 * @return JsonSchema for an operation property.
 	 */
