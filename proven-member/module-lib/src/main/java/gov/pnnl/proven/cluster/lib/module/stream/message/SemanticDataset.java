@@ -37,121 +37,16 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
-
-import javax.json.JsonObject;
-
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+package gov.pnnl.proven.cluster.lib.module.stream.message;
 
 /**
- * A wrapper for an Apache Jena Model.
+ * Represents a semantic dataset.
  * 
  * @author d3j766
  *
  */
-public class JenaModel implements DistributedModel {
+public interface SemanticDataset {
 
-	@Override
-	public JsonObject disclosureJsonLD() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public JsonObject messageJsonLD() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Class<? extends MessageItem> messageType() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public DisclosureItem disclosureItem() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public MessageItem messageItem() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	
-//	DisclosureModel disclosureModel();
-//
-//	JsonObject disclosureJson;
-//	JsonObject messageJson;
-//	Class<? extends MessageItem> messageType;
-//
-//	public DistributedMessage(Graph graph) throws Exception {
-//	  
-//	  // Get JSON-LD from graph ByteArrayOutputStream stream = new
-//	  ByteArrayOutputStream(); RDFDataMgr.write(stream, graph, RDFFormat.JSONLD);
-//	  String jsonStr = new String(stream.toByteArray());
-//	  
-//	  // Get JSON and the message type disclosureJson = Json.createReader(new
-//	  StringReader(jsonStr)).readObject(); messageJson =
-//	  disclosureJson.getJsonObject(MESSAGE_PROP); messageType = new
-//	  MessageItemTypeAdapter().adaptFromJson(
-//	  disclosureJson.getJsonObject(DisclosureItem.CONTEXT_PROP).getString(MessageContext.ITEM_PROP));
-//	  }
-//
-//	public JsonObject getDisclosureJson() {
-//		return disclosureJson;
-//	}
-//
-//	public JsonObject getMessageJson() {
-//		return messageJson;
-//	}
-//
-//	public Class<? extends MessageItem> getMessageType() {
-//		return messageType;
-//	}
-//
-//	public DisclosureItem getDisclosureItem() {
-//		return Validatable.toValidatable(DisclosureItem.class, disclosureJson.toString(), true);
-//	}
-//
-//	public MessageItem getMessageItem() {
-//		return Validatable.toValidatable(messageType, messageJson.toString(), true);
-//
-//	}
-//
-//
-//	@Override
-//	public JsonObject disclosureJsonLD() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public JsonObject messageJsonLD() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public Class<? extends MessageItem> messageType() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public DisclosureItem disclosureItem() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public MessageItem messageItem() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
+	// TODO Graph methods
 
 }

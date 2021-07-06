@@ -37,17 +37,34 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.module.stream.message;
 
+import java.net.URI;
+
+import javax.enterprise.context.ApplicationScoped;
+
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 
 /**
- * Represents a graph model that can be distributed to a stream.
- * 
- * TODO Add required graph methods.
+ * Responsible for creation and distribution of semantic content to stream
+ * environment.
  * 
  * @author d3j766
  *
  */
-public interface DistributedModel extends DistributedMessage {
-	
+@ApplicationScoped
+public class DistributionFactory {
+
+	public ContextualizedMessage contextualizeItem(DisclosureItem disclosureItem) {
+		return null;
+	}
+
+	public SemanticGraph createGraph(String ld) {
+		return null;
+	}
+
+	public SemanticDataset createDataset(URI name, SemanticGraph... graph) {
+		return null;
+	}
+
 }

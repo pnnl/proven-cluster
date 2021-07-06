@@ -37,26 +37,19 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.member;
 
 /**
- * Identifies the message type within a stream.
+ * Identifies the semantic engine used to represent streaming content.
  * 
  * @author d3j766
- * 
- * @see DistribuedMessage
  *
  */
-public enum DistributionType {
+public enum SemanticEngine {
 
 	/**
-	 * Message distribution type is a Graph object value.
+	 * Apache Jena
 	 */
-	GRAPH,
-
-	/**
-	 * Message distribution type is a DisclosureItem's JSON-LD value.
-	 */
-	ITEM
+	JENA
 
 }

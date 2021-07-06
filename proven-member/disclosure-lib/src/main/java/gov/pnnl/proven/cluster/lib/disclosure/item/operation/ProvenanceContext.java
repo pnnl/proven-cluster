@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class ProvenanceContext implements OperationContext {
 
-	private ItemOperation operation = ItemOperation.Provenance;
+	private ItemOperation operation = ItemOperation.PROVENANCE;
 
 	public ProvenanceContext() {
 	}

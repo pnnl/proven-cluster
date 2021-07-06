@@ -37,102 +37,59 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
+package gov.pnnl.proven.cluster.lib.module.stream.message;
 
-import java.util.Arrays;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.json.JsonObject;
+
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
 /**
- * 
- * Message groups represent a collection of {@code MessageContent}. A
- * {@code MessageContent} must be a member of a single message group.   
- *  
- * @see MessageContent
+ * These messages represent disclosed items that have been distributed to the
+ * stream environment via an exchange {@link ItemOperation#DISTRIBUTE}
+ * operation.
  * 
  * @author d3j766
- *
+ * 
  */
-public enum MessageContentGroup {
+public interface DistributedMessage {
 
-	KNOWLEDGE(
-			GroupLabel.KNOWLEDGE_GROUP,
-			MessageContent.EXPLICIT,
-			MessageContent.IMPLICIT),
+	/**
+	 * Provides the JSON-LD representing the original disclosure item.
+	 */
+	JsonObject disclosureJsonLD();
 
-	MEASUREMENT(
-			GroupLabel.MEASUREMENT_GROUP, 
-			MessageContent.MEASUREMENT),
-		
-	REQUEST(
-			GroupLabel.REQUEST_GROUP,
-			MessageContent.ADMINISTRATIVE,
-			MessageContent.QUERY,
-			MessageContent.REPLAY),
-	
-	SERVICE(
-			GroupLabel.SERVICE_GROUP,
-			MessageContent.PIPELINE,
-			MessageContent.MODULE),
-
-	REFERENCE(
-			GroupLabel.REFERENCE_GROUP, 
-			MessageContent.REFERENCE),
-
-	MODEL(
-			GroupLabel.MODEL_GROUP, 
-			MessageContent.MODEL),
-	
-	RESPONSE(
-			GroupLabel.RESPONSE_GROUP, 
-			MessageContent.RESPONSE);
-
-	private class GroupLabel {
-		private static final String KNOWLEDGE_GROUP = "knowledge";
-		private static final String MEASUREMENT_GROUP = "measurement";
-		private static final String REQUEST_GROUP = "request";
-		private static final String SERVICE_GROUP = "service";
-		private static final String REFERENCE_GROUP = "reference";
-		private static final String MODEL_GROUP = "model";
-		private static final String RESPONSE_GROUP = "response";
-	}
-
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
-
-	private String groupLabel;
-	private List<MessageContent> messageContents;
-
-	MessageContentGroup(String groupLabel, MessageContent... contents) {
-		this.groupLabel = groupLabel;
-		messageContents = Arrays.asList(contents);
-	}
-	
-	public String getGroupLabel() {
-		return groupLabel;
+	/**
+	 * Provides the JSON-LD for the originally disclosed MessageItem contained
+	 * in the disclosure item.
+	 */
+	default JsonObject messageJsonLD() {
+		return disclosureJsonLD().getJsonObject(DisclosureItem.MESSAGE_PROP);
 	}
 
 	/**
-	 * Provides the {@code MessageContent} supported by the stream.
-	 * 
-	 * @return a list of supported MessageContent
-	 * 
+	 * Provides the type of MessageItem.
 	 */
-	public List<MessageContent> getMessageContents() {
-		return messageContents;
+	default Class<? extends MessageItem> messageType() {
+		return MessageItem.messageType(messageJsonLD().getString(MessageContext.ITEM_PROP));
 	}
 
-	public static MessageContentGroup getType(MessageContent mcToCheckFor) {
+	/**
+	 * Provides the original DisclosureItem object. This includes the contained
+	 * MessageItem.
+	 */
+	default DisclosureItem disclosureItem() {
+		return Validatable.toValidatable(DisclosureItem.class, disclosureJsonLD().toString(), true);
+	}
 
-		MessageContentGroup ret = null;
-		for (MessageContentGroup mst : values()) {
-			for (MessageContent mc : mst.messageContents) {
-				if (mc.equals(mcToCheckFor))
-					ret = mst;
-				break;
-			}
-		}
-		return ret;
+	/**
+	 * Provides the original MessageItem object.
+	 */
+	default MessageItem messageItem() {
+		return Validatable.toValidatable(messageType(), messageJsonLD().toString(), true);
 	}
 
 }

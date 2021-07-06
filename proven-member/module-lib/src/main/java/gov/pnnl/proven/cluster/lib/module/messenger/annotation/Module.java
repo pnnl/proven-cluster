@@ -59,7 +59,7 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 /**
  * Identifies a Proven module.
  * 
- * Also used to qualify event messages intended for a module implementations.
+ * Also used to qualify event messages intended for module implementations.
  * 
  * @see ProvenModule
  * 

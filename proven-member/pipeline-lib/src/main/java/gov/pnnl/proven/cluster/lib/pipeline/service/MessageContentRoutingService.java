@@ -489,7 +489,7 @@ public class MessageContentRoutingService {
 		System.out.println("!!!!!!!!ADD!!!!!!!!!!!!!!!!!");
 		try {
 
-			MessageContentGroup mcg = MessageContentGroup.Knowledge;
+			MessageContentGroup mcg = MessageContentGroup.KNOWLEDGE;
 			System.out.println("!!!!!!!!ADD!!!!!!!!!!!!!!!!!     "
 					+ detectObjectType(sourceMessage.getDisclosureItem().getMessage()));
 			if (detectObjectType(sourceMessage.getDisclosureItem().getMessage()).equalsIgnoreCase("I")) {

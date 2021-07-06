@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class DiscloseContext implements OperationContext {
 
-	private ItemOperation operation = ItemOperation.Disclose;
+	private ItemOperation operation = ItemOperation.DISCLOSE;
 
 	public DiscloseContext() {
 	}

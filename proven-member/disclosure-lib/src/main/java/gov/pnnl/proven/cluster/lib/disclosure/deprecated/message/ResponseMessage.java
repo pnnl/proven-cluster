@@ -128,7 +128,7 @@ public class ResponseMessage extends ProvenMessage {
 
 	@Override
 	public MessageContent getMessageContent() {
-		return MessageContent.Response;
+		return MessageContent.RESPONSE;
 	}
 
 	@Override

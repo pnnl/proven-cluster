@@ -97,7 +97,7 @@ public class SseSession {
 		}
 		// contents
 		this.contents = new ArrayList<MessageContent>();
-		this.contents.add(Any);
+		this.contents.add(ANY);
 		if (contentsOpt.isPresent()) {
 			List<String> source = contentsOpt.get();
 			if (source.size() > 0) {
@@ -107,7 +107,7 @@ public class SseSession {
 				for (String mcStr : source) {
 					MessageContent mc = MessageContent.getMessageContent(mcStr);
 					if ((null != mc) && (valid.contains(mc))) {
-						if (mc.equals(Any)) {
+						if (mc.equals(ANY)) {
 							dest.clear();
 							dest.add(mc);
 							break;
@@ -148,7 +148,7 @@ public class SseSession {
 
 		boolean ret = true;
 
-		if (!contents.contains(Any)) {
+		if (!contents.contains(ANY)) {
 			if (!contents.contains(mcToCheck)) {
 				ret = false;
 			}

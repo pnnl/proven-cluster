@@ -37,53 +37,26 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.module.stream.message;
 
-import javax.json.JsonObject;
+import java.net.URI;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 
 /**
- * Represents a DisclosureItem that has been distributed to the stream
- * environment via the exchange's {@link ItemOperation#Distribute} operation.
- * 
- * These messages were originally in JSON-LD format before distribution and are
- * stored in the stream environment as either a graph object or in the original
- * JSON-LD as a HazelcastJsonValue
+ * These are semantic models that have been created from disclosed
+ * {@link MessageContent#REFERENCE} items and distributed to the stream
+ * environment, making them available to support exchange operation and query
+ * processing.
  * 
  * @author d3j766
- * 
- * @see DisclosureItem, DistributionType, HazelcastJsonValue
- * 
+ *
  */
-public interface DistributedMessage {
+public interface DistributedModel {
 
 	/**
-	 * Provides the JSON-LD representing the original disclosure item. This
-	 * includes JSON-LD for the the MessageItem.
+	 * Resource name identifier for the semantic model.
 	 */
-	JsonObject disclosureJsonLD();
+	URI modelName();
 
-	/**
-	 * Provides the JSON-LD for the originally disclosed MessageItem.
-	 */
-	JsonObject messageJsonLD();
-
-	/**
-	 * Provides the type of MessageItem contained by this distributed message.
-	 */
-	Class<? extends MessageItem> messageType();
-
-	/**
-	 * Provides the original DisclosureItem. This includes the contained
-	 * MessageItem.
-	 */
-	DisclosureItem disclosureItem();
-
-	/**
-	 * Provides the original MessageItem.
-	 */
-	MessageItem messageItem();
 }

@@ -124,7 +124,7 @@ public class ExplicitItem implements MessageItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.Explicit;
+		return MessageContent.EXPLICIT;
 	}
 
 	@Override

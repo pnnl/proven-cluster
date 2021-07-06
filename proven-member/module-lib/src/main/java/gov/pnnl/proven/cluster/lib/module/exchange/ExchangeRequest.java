@@ -39,7 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.Explicit;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.EXPLICIT;
 import static gov.pnnl.proven.cluster.lib.module.exchange.OperationState.New;
 
 import java.io.IOException;
@@ -79,7 +79,6 @@ public class ExchangeRequest implements IdentifiedDataSerializable {
 	/**
 	 * Current operation and state
 	 */
-	Operation op;
 	OperationState opState;
 
 	/**
@@ -91,7 +90,7 @@ public class ExchangeRequest implements IdentifiedDataSerializable {
 	/**
 	 * Ordered Set of Operations to be applied to Disclosable
 	 */
-	private SortedSet<OperationContext> operations = new TreeSet<>();
+	private SortedSet<Operation> operations = new TreeSet<>();
 
 	
 	
@@ -99,7 +98,7 @@ public class ExchangeRequest implements IdentifiedDataSerializable {
 		// TODO Remove - here to avoid build problems
 	}
 	
-	public ExchangeRequest(Disclosable disclosable, SortedSet<OperationContext> operations) {
+	public ExchangeRequest(Disclosable disclosable, SortedSet<Operation> operations) {
 		// TODO
 	}
 	
@@ -125,7 +124,7 @@ public class ExchangeRequest implements IdentifiedDataSerializable {
 	 * TODO Remove
 	 */
 	MessageContent getMessageContent() {
-		return Explicit;
+		return EXPLICIT;
 	}
 
 	@Override

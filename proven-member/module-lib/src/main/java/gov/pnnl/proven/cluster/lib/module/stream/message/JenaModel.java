@@ -37,68 +37,35 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.exchange;
+package gov.pnnl.proven.cluster.lib.module.stream.message;
 
-import static gov.pnnl.proven.cluster.lib.module.exchange.OperationState.New;
+import java.io.ByteArrayOutputStream;
 
-import java.io.IOException;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFFormat;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
+import gov.pnnl.proven.cluster.lib.member.SemanticEngine;
 
-public class OperationContext implements IdentifiedDataSerializable, Comparator<OperationContext> {
+/**
+ * A wrapper for Apache Jena.
+ * 
+ * A semantic engine implementation for the platform.
+ * 
+ * @author d3j766
+ * 
+ * @see SemanticEngine
+ *
+ */
+public class JenaModel implements SemanticGraph, SemanticDataset {
 
-	private Operation op;
-	private OperationState state;
-	private boolean hasModel;
-	private Long OperationStartTime;
-	private Long OperationFinishTime;
-	private Map<OperationState, SimpleEntry<Long, Long>> stateStartFinishTime = new HashMap<>();
-	private int retries;
-	private boolean isFinished;
-
-	public OperationContext() {
-	}
-
-	public OperationContext(Operation op, boolean hasModel) {
-		this.op = op;
-		this.state = New;
-		this.hasModel = hasModel;
-		this.retries = 0;
-		this.isFinished = false;
-	}
+	private Graph graph;
 
 	@Override
-	public int compare(OperationContext o1, OperationContext o2) {
-		// TODO
-		return 0;
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public int getFactoryId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
+	public String jsonLD() {
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		RDFDataMgr.write(stream, graph, RDFFormat.JSONLD);
+		return new String(stream.toByteArray());
 	}
 
 }

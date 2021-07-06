@@ -42,15 +42,11 @@ package gov.pnnl.proven.cluster.lib.disclosure;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
-import javax.json.Json;
-import javax.json.JsonValue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.andrewoma.dexx.collection.HashSet;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 
 /**
  * Represents the different message content types in support of message
@@ -60,7 +56,7 @@ import com.github.andrewoma.dexx.collection.HashSet;
  * 
  * @author d3j766
  * 
- * @see DisclosureItem, ProvenMessage
+ * @see DisclosureItem
  *
  */
 
@@ -71,35 +67,48 @@ public enum MessageContent {
 	 * data that can be represented in the semantic and memory grid facets of
 	 * the hybrid store.
 	 */
-	Explicit(MessageContentName.EXPLICIT),
+	EXPLICIT(MessageContentName.EXPLICIT_NAME),
 
 	/**
 	 * Implicit content is content that is created from existing explicit
 	 * content. This content is considered as transient, in that it can be
 	 * regenerated on demand.
 	 */
-	Implicit(MessageContentName.IMPLICIT),
+	IMPLICIT(MessageContentName.IMPLICIT_NAME),
 
 	/**
-	 * Model content represents a semantic data model supporting domain based
-	 * operations and queries within the Proven platform. Essentially, model
-	 * content is a knowledge graph that may be referenced for said queries and
-	 * operations. This may include instance data and/or structure data
-	 * depending on the model's purpose.
+	 * Reference content represents the disclosed semantic reference
+	 * information; this may include static instance data, ontology (i.e.
+	 * structure data), JSON-LD context data, profiles, and other semantic
+	 * information that can be realized as graph information. The model content
+	 * is derived from the reference data.
+	 * 
+	 * @see #Model
 	 */
-	Model(MessageContentName.MODEL),
+	REFERENCE(MessageContentName.REFERENCE_NAME),
+
+	/**
+	 * Model content is the reference content but in a graph format.
+	 * Essentially, model content are knowledge graphs that may be used in
+	 * support of exchange operations, queries, and other requests that work
+	 * with graphs.
+	 * 
+	 * @see #Reference
+	 * 
+	 */
+	MODEL(MessageContentName.MODEL_NAME),
 
 	/**
 	 * Query message content. Represents requests to query the Hybrid Store.
 	 */
-	Query(MessageContentName.QUERY),
+	QUERY(MessageContentName.QUERY_NAME),
 
 	/**
 	 * Replay message content. Represents a request to replay a specified set of
 	 * messages starting at either disclosure (i.e. exchange) or distribution
 	 * (i.e. stream).
 	 */
-	Replay(MessageContentName.REPLAY),
+	REPLAY(MessageContentName.REPLAY_NAME),
 
 	/**
 	 * Represents a pipeline processing service request. Contains the service
@@ -107,7 +116,7 @@ public enum MessageContent {
 	 * Information regarding the service and action to perform is contained in
 	 * the message.
 	 */
-	Pipeline(MessageContentName.PIPELINE_SERVICE),
+	PIPELINE(MessageContentName.PIPELINE_SERVICE_NAME),
 
 	/**
 	 * Represents a module processing service request. Contains the service
@@ -115,48 +124,49 @@ public enum MessageContent {
 	 * Information regarding the service and action to perform is contained in
 	 * the message.
 	 */
-	Module(MessageContentName.MODULE_SERVICE),
+	MODULE(MessageContentName.MODULE_SERVICE_NAME),
 
 	/**
 	 * Cluster administrative message content. Contains directives to configure
 	 * and manage cluster members.
 	 */
-	Administrative(MessageContentName.ADMINISTRATIVE),
+	ADMINISTRATIVE(MessageContentName.ADMINISTRATIVE_NAME),
 
 	/**
 	 * Represents Proven measurement data (i.e. metrics) that will be processed
 	 * and stored into a time-series store registered with the Proven data
 	 * platform.
 	 */
-	Measurement(MessageContentName.MEASUREMENT),
+	MEASUREMENT(MessageContentName.MEASUREMENT_NAME),
 
 	/**
 	 * Represents response message data for an internal processing component.
 	 * Not schema validated.
 	 */
-	Response(MessageContentName.RESPONSE),
+	RESPONSE(MessageContentName.RESPONSE_NAME),
 
 	/**
 	 * Represents any of the JSON Schema related message content types. It
 	 * itself is not a schema based content type. This is a convenience type,
 	 * use {@link #getSchemaValues()} to return all schema based types.
 	 */
-	Any(MessageContentName.ANY);
+	ANY(MessageContentName.ANY_NAME);
 
 	public class MessageContentName {
-		public static final String EXPLICIT = "explicit";
-		public static final String IMPLICIT = "implicit";
-		public static final String MODEL = "messageModel";
-		public static final String QUERY = "query";
-		public static final String REPLAY = "replay";
-		public static final String CONTINUOUS_QUERY = "continuous";
-		public static final String PIPELINE_SERVICE = "pipeline";
-		public static final String MODULE_SERVICE = "module";
-		public static final String ADMINISTRATIVE = "administrative";
-		public static final String MEASUREMENT = "measurement";
-		public static final String RESPONSE = "response";
-		public static final String SERVICE_REGISTRATION = "serviceRegistration";
-		public static final String ANY = "any";
+		public static final String EXPLICIT_NAME = "explicit";
+		public static final String IMPLICIT_NAME = "implicit";
+		public static final String REFERENCE_NAME = "reference";
+		public static final String MODEL_NAME = "model";
+		public static final String QUERY_NAME = "query";
+		public static final String REPLAY_NAME = "replay";
+		public static final String CONTINUOUS_QUERY_NAME = "continuous";
+		public static final String PIPELINE_SERVICE_NAME = "pipeline";
+		public static final String MODULE_SERVICE_NAME = "module";
+		public static final String ADMINISTRATIVE_NAME = "administrative";
+		public static final String MEASUREMENT_NAME = "measurement";
+		public static final String RESPONSE_NAME = "response";
+		public static final String SERVICE_REGISTRATION_NAME = "serviceRegistration";
+		public static final String ANY_NAME = "any";
 	}
 
 	private static Logger log = LoggerFactory.getLogger(MessageContent.class);
@@ -205,13 +215,13 @@ public enum MessageContent {
 	 * Provides a list of message content names.
 	 * 
 	 * @param excludeAny
-	 *            {@link #Any} will be excluded from the returned list if true.
+	 *            {@link #ANY} will be excluded from the returned list if true.
 	 */
 	public static List<String> getNames(boolean excludeAny) {
 
 		List<String> ret = new ArrayList<>();
 		for (MessageContent mc : values()) {
-			if (!(mc.equals(MessageContent.Any) && (excludeAny))) {
+			if (!(mc.equals(MessageContent.ANY) && (excludeAny))) {
 				ret.add(mc.getName());
 			}
 		}

@@ -122,7 +122,7 @@ public class ImplicitItem implements MessageItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.Implicit;
+		return MessageContent.IMPLICIT;
 	}
 
 	@Override

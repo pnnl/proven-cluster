@@ -91,9 +91,9 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 		super(di);
 		MessageContent disclosedContent = di.getContext().getContent();
 		MessageContentGroup disclosedContentGroup = MessageContentGroup.getType(di.getContext().getContent());
-		isRequest = MessageContentGroup.Request == disclosedContentGroup;
-		isKnowledge = MessageContentGroup.Knowledge == disclosedContentGroup;
-		isMeasurements = MessageContent.Measurement == disclosedContent;
+		isRequest = MessageContentGroup.REQUEST == disclosedContentGroup;
+		isKnowledge = MessageContentGroup.KNOWLEDGE == disclosedContentGroup;
+		isMeasurements = MessageContent.MEASUREMENT == disclosedContent;
 	}
 	
 	public boolean isRequest() {

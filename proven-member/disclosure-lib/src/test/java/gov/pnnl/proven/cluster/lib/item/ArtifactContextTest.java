@@ -71,6 +71,7 @@ public class ArtifactContextTest {
 	String id = "http://proven.pnnl.gov/test";
 	String version = "1.0";
 	Boolean latest = true;
+	String domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -83,7 +84,7 @@ public class ArtifactContextTest {
 	@Before
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
-		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build();				
+		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).withDomain(domain).build();
 	}
 
 	@After

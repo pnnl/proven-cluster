@@ -51,7 +51,9 @@ import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.Problem;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext.Builder;
 
 /**
  * Immutable class representing the context of an artifact item. The context
@@ -68,24 +70,29 @@ public class ArtifactContext implements Validatable {
 	public static final String ID_PROP = "id";
 	public static final String VERSION_PROP = "item";
 	public static final String LATEST_PROP = "latest";
+	public static final String DOMAIN_PROP = "domain";
 
 	private String id;
 	private String version;
 	private Boolean latest;
+	private DisclosureDomain domain;
 
 	public ArtifactContext() {
 	}
 
 	@JsonbCreator
 	public static ArtifactContext createArtifactContext(@JsonbProperty(ID_PROP) String id,
-			@JsonbProperty(VERSION_PROP) String version, @JsonbProperty(LATEST_PROP) Boolean latest) {
-		return ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build(true);
+			@JsonbProperty(VERSION_PROP) String version, @JsonbProperty(LATEST_PROP) Boolean latest,
+			@JsonbProperty(DOMAIN_PROP) String domain) {
+		return ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).withDomain(domain)
+				.build(true);
 	}
 
 	private ArtifactContext(Builder b) {
 		this.id = b.id;
 		this.version = b.version;
 		this.latest = b.latest;
+		this.domain = b.domain;
 	}
 
 	@JsonbProperty(ID_PROP)
@@ -103,6 +110,11 @@ public class ArtifactContext implements Validatable {
 		return latest;
 	}
 
+	@JsonbProperty(DOMAIN_PROP)
+	public DisclosureDomain getDomain() {
+		return domain;
+	}
+	
 	public static Builder newBuilder() {
 		return new Builder();
 	}
@@ -112,6 +124,7 @@ public class ArtifactContext implements Validatable {
 		private String id;
 		private String version;
 		private Boolean latest;
+		private DisclosureDomain domain;
 
 		private Builder() {
 		}
@@ -128,6 +141,11 @@ public class ArtifactContext implements Validatable {
 
 		public Builder withLatest(Boolean latest) {
 			this.latest = latest;
+			return this;
+		}
+		
+		public Builder withDomain(String domain) {
+			this.domain = new DisclosureDomain(domain);
 			return this;
 		}
 
@@ -182,7 +200,7 @@ public class ArtifactContext implements Validatable {
 					.withDescription("Artifact identifier, represented as an URI.  If the URI is designated as a locator"
 							+ "(see 'locator' property) then contents will be retrieved from this location")
 					.withType(InstanceType.STRING)
-					.withPattern("^(https?|ftp|file):\\/\\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]$")
+					.withPattern(Validatable.URI_PATTERN)
 					.build())
 
 				.withProperty(VERSION_PROP, sbf.createBuilder()
@@ -196,8 +214,15 @@ public class ArtifactContext implements Validatable {
 					.withType(InstanceType.BOOLEAN)
 					.withDefault(JsonValue.TRUE)
 					.build())
+				
+				.withProperty(DOMAIN_PROP,
+						sbf.createBuilder()
+						.withDescription("Identifies the domain value.")
+						.withType(InstanceType.STRING)
+						.withPattern(Validatable.DOMAIN_PATTERN)
+						.build())
 								
-				.withRequired(ID_PROP)
+				.withRequired(ID_PROP, DOMAIN_PROP)
 				
 				.build();
 		

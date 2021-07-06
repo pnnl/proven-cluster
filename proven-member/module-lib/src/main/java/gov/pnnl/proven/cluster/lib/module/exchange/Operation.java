@@ -39,45 +39,68 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static gov.pnnl.proven.cluster.lib.module.exchange.OperationState.New;
 
-/**
- * Identifies supported operations for an ExchangeBuffer.
- * 
- * @see ExchangeBuffer
- * 
- * @author d3j766
- *
- */
-public enum Operation {
+import java.io.IOException;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
-	Filter(-10),
-	Disclosure(0),
-	Transform(10),
-	Others(20);
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-	static Logger log = LoggerFactory.getLogger(Operation.class);
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
-	private int priority;
+public class Operation implements IdentifiedDataSerializable, Comparator<Operation> {
 
-	Operation(int priority) {
-		this.priority = priority;
+	private ItemOperation op;
+	private OperationState state;
+	private boolean hasModel;
+	private Long OperationStartTime;
+	private Long OperationFinishTime;
+	private Map<OperationState, SimpleEntry<Long, Long>> stateStartFinishTime = new HashMap<>();
+	private int retries;
+	private boolean isFinished;
+
+	public Operation() {
 	}
 
-	public int getPriority() {
-		return priority;
+	public Operation(ItemOperation op, boolean hasModel) {
+		this.op = op;
+		this.state = New;
+		this.hasModel = hasModel;
+		this.retries = 0;
+		this.isFinished = false;
 	}
 
-	public static String[] getOperationNames() {
+	@Override
+	public int compare(Operation o1, Operation o2) {
+		// TODO
+		return 0;
+	}
 
-		Operation[] operations = Operation.values();
-		String[] ret = new String[operations.length];
-		int i = 0;
-		for (Operation op : operations) {
-			ret[i] = op.toString();
-		}
-		return ret;
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public int getFactoryId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getId() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

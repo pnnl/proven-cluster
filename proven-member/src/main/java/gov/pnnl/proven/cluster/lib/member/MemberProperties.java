@@ -117,7 +117,7 @@ public class MemberProperties {
 	/**
 	 * module-lib stream properties
 	 */
-	private static final String GRAPH_ENGINE = "proven.lib.module.stream.graph.engine";
+	private static final String SEMANTIC_ENGINE = "proven.lib.module.stream.semantic.engine";
 
 	/**
 	 * module-lib properties
@@ -299,9 +299,9 @@ public class MemberProperties {
 
 	//////////////////////////////////////////////////////
 	// MODULE-LIB STREAM PROPERTY METHODS
-	public GraphEngine getGraphEngine() {
-		String ge = getPropertyValue(GRAPH_ENGINE, String.class);
-		return GraphEngine.valueOf(ge);
+	public SemanticEngine getSemanticEngine() {
+		String ge = getPropertyValue(SEMANTIC_ENGINE, String.class);
+		return SemanticEngine.valueOf(ge);
 	}	
 
 	//////////////////////////////////////////////////////
@@ -345,6 +345,7 @@ public class MemberProperties {
 	 *             if property type not supported.
 	 * @return the property value. null if the key does not exist.
 	 */
+	@SuppressWarnings("unchecked")
 	private <T> T getPropertyValue(String key, Class<T> propertyType) throws MemberConfigurationException {
 
 		T ret = null;
@@ -374,6 +375,7 @@ public class MemberProperties {
 	 *             if property type not supported.
 	 * @return the property value. null if the key does not exist.
 	 */
+	@SuppressWarnings("unchecked")
 	private <T> List<T> getPropertyValues(String key, Class<T> propertyType) {
 
 		List<T> ret = null;

@@ -178,7 +178,7 @@ public class ProvenMessageOriginal implements IdentifiedDataSerializable, Serial
 
 	/**
 	 * Identifies query objects. Only applicable for
-	 * {@link MessageContent#Query}
+	 * {@link MessageContent#QUERY}
 	 */
 	private ProvenQueryTimeSeries tsQuery;
 
@@ -374,7 +374,7 @@ public class ProvenMessageOriginal implements IdentifiedDataSerializable, Serial
 
 		private UUID messageId = UUID.randomUUID();
 		private String message;
-		private MessageContent messageContent = MessageContent.Explicit;
+		private MessageContent messageContent = MessageContent.EXPLICIT;
 		private String name;
 		private String domain;
 		private boolean isTransient = false;
@@ -514,7 +514,7 @@ public class ProvenMessageOriginal implements IdentifiedDataSerializable, Serial
 		 * 
 		 * @param messageContent
 		 *            the message's content type. Default is
-		 *            {@link MessageContent#Explicit}
+		 *            {@link MessageContent#EXPLICIT}
 		 * 
 		 * @return the {@code ProvenMessageBuilder}
 		 * 

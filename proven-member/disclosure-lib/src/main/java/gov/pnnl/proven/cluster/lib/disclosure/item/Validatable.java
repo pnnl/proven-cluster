@@ -116,7 +116,9 @@ public interface Validatable {
 	static final Logger log = LoggerFactory.getLogger(Validatable.class);
 
 	static final String UUID_PATTERN = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$";
-
+	static final String DOMAIN_PATTERN = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
+	static final String URI_PATTERN = "^(https?|ftp|file):\\/\\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]$";
+	
 	static final String JSON_SCHEMA_SUFFIX = ".schema.json";
 	static final String SCHEMA_RESOURCE_DIR = "/schema";
 	static final String DRAFT_07_DIALECT = "http://json-schema.org/draft-07/schema#";

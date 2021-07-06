@@ -109,7 +109,7 @@ public class T3Pipeline extends PipelineService implements Serializable {
 
 					Map.Entry<String, ResponseMessage> ret = null;
 					ProvenMessage sourceMessage = km.getValue();
-					if (sourceMessage.getMessageContent() != MessageContent.Measurement) {
+					if (sourceMessage.getMessageContent() != MessageContent.MEASUREMENT) {
 						ResponseMessage response = t3s.add(sourceMessage);
 						ret = new AbstractMap.SimpleEntry<String, ResponseMessage>(response.getMessageKey(), response);
 					}
@@ -164,7 +164,7 @@ public class T3Pipeline extends PipelineService implements Serializable {
 
 					Map.Entry<String, ResponseMessage> ret = null;
 					ProvenMessage sourceMessage = km.getValue();
-					if (sourceMessage.getMessageContent() != MessageContent.Measurement) {
+					if (sourceMessage.getMessageContent() != MessageContent.MEASUREMENT) {
 						ResponseMessage response = t3s.add(sourceMessage);
 						ret = new AbstractMap.SimpleEntry<String, ResponseMessage>(response.getMessageKey(), response);
 					}

@@ -206,7 +206,7 @@ public class MeasurementItem implements MessageItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.Measurement;
+		return MessageContent.MEASUREMENT;
 	}
 
 	@Override
