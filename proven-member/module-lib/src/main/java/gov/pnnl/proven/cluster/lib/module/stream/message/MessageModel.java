@@ -37,19 +37,74 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.member;
+package gov.pnnl.proven.cluster.lib.module.stream.message;
+
+import java.io.Serializable;
+import java.net.URI;
+import java.util.Set;
+
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
 
 /**
- * Identifies the graph engine used to represent streaming content.
+ * Represents a named composition of semantic graphs that can be included in
+ * exchange operation processing of disclosed items.
  * 
  * @author d3j766
  *
  */
-public enum GraphEngine {
+public class MessageModel implements DistributedModel, Serializable {
+
+	private static final long serialVersionUID = 1098699408171596662L;
+
+	private URI modelName;
+	private Set<URI> artifactModels;
+	private MessageContext mc;
+	private String operation;
+	private OperationContext oc;
+	private SemanticGraph graph;
 
 	/**
-	 * Apache Jena
+	 * TODO Use hashing to support message model lookups.
+	 * 
+	 * This represents the hash value of the MessageContext. This will be
+	 * compared to a disclosed item's MessageContext hash value, and if equal,
+	 * another equality comparison will be made for the MessageContext's to
+	 * verify the match. A match determines if the message model will be
+	 * provided for operation processing.
 	 */
-	JENA
+	private Long messageContextHashValue;
+
+	public MessageModel() {
+	}
+
+	@Override
+	public URI modelName() {
+		return modelName;
+	}
+
+	public Set<URI> getArtifactModels() {
+		return artifactModels;
+	}
+
+	public MessageContext getMc() {
+		return mc;
+	}
+
+	public String getOperation() {
+		return operation;
+	}
+
+	public OperationContext getOc() {
+		return oc;
+	}
+
+	public SemanticGraph getGraph() {
+		return graph;
+	}
+
+	public Long getMessageContextHashValue() {
+		return messageContextHashValue;
+	}
 
 }

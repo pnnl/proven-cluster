@@ -58,7 +58,7 @@ public class AdministrativeItem implements MessageItem {
 	
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.Administrative;
+		return MessageContent.ADMINISTRATIVE;
 	}
 
 	@Override

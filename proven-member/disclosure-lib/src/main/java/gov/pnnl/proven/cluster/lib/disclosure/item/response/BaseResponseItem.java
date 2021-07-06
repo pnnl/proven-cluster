@@ -135,7 +135,7 @@ public class BaseResponseItem implements ResponseItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.Response;
+		return MessageContent.RESPONSE;
 	}
 
 	@Override

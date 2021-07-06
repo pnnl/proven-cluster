@@ -58,12 +58,12 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
 
 /**
  * Immutable class representing a Model item message. This message defines a
- * model, or graph, containing one or more model artifacts used to support
- * exchange operation processing and/or query requests.
+ * semantic model based on one or more model artifacts used to support exchange
+ * operation processing.
  * 
  * @author d3j766
  *
- * @see ModelArtifactItem, ArtifacContext
+ * @see ModelArtifactItem, ItemOperation
  *
  */
 public class MessageModelItem implements MessageItem {
@@ -78,7 +78,7 @@ public class MessageModelItem implements MessageItem {
 
 	private List<ArtifactContext> artifacts;
 	private MessageContext messageContext;
-	private JsonObject operationContext;
+	private OperationContext operationContext;
 
 	public MessageModelItem() {
 	}
@@ -108,7 +108,7 @@ public class MessageModelItem implements MessageItem {
 	}
 
 	@JsonbProperty(OPERATION_CONTEXT_PROP)
-	public JsonObject getOperationContext() {
+	public OperationContext getOperationContext() {
 		return operationContext;
 	}
 
@@ -121,7 +121,7 @@ public class MessageModelItem implements MessageItem {
 		private List<ArtifactContext> artifacts;
 
 		private MessageContext messageContext;
-		private JsonObject operationContext;
+		private OperationContext operationContext;
 
 		private Builder() {
 		}
@@ -136,13 +136,16 @@ public class MessageModelItem implements MessageItem {
 			return this;
 		}
 
-		public Builder withOperationContext(JsonObject operationContext) {
-			this.operationContext = operationContext;
+		public Builder withOperationContext(JsonObject json) {
+			ItemOperation op = ItemOperation.valueOf(json.getString(OperationContext.OPERATION_PROP));
+			Class<? extends OperationContext> clazz = op.getOpContext();
+			OperationContext oc = Validatable.toValidatable(clazz, json.toString(), true);
+			this.operationContext = oc;
 			return this;
 		}
 
 		public Builder withOperationContext(OperationContext operationContext) {
-			this.operationContext = (JsonObject) operationContext.toJson();
+			this.operationContext = operationContext;
 			return this;
 		}
 
@@ -176,7 +179,7 @@ public class MessageModelItem implements MessageItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.Model;
+		return MessageContent.MODEL;
 	}
 
 	@Override
@@ -223,7 +226,7 @@ public class MessageModelItem implements MessageItem {
 				
 				.withProperty(OPERATION_CONTEXT_PROP, sbf.createBuilder()
 						.withOneOf(allowedOps)
-						.withType(InstanceType.OBJECT, InstanceType.NULL)
+						.withType(InstanceType.OBJECT)
 						.build())
 				
 				.withRequired(ARTIFACTS_PROP, MESSAGE_CONTEXT_PROP, OPERATION_CONTEXT_PROP)	

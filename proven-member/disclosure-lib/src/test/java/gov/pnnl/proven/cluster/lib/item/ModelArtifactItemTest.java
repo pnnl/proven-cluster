@@ -56,6 +56,7 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ArtifactContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
@@ -68,6 +69,8 @@ public class ModelArtifactItemTest {
 	String id = "http://proven.pnnl.gov/test";
 	String version = "1.0";
 	Boolean latest = true;
+	String domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN;
+	String[] queryModels = {"DEFAULTX"};
 	ModelArtifactItem mai;
 
 	@Rule
@@ -84,9 +87,9 @@ public class ModelArtifactItemTest {
 	@Before
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
-		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build();
+		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).withDomain(domain).build();
 		mai = ModelArtifactItem.newBuilder().withArtifact(ac).withLdContext(false).withLocator(true)
-				.withSyntax(ModelArtifactItem.Syntax.N3).build();
+				.withSyntax(ModelArtifactItem.Syntax.N3).withNamedQueryModels(queryModels).build();
 	}
 
 	@After

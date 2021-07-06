@@ -37,9 +37,11 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.module.stream.message;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -47,25 +49,35 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonStructure;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.riot.RDFParser;
+import org.apache.jena.sparql.graph.GraphFactory;
+
 import com.hazelcast.core.HazelcastJsonValue;
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.LdContext;
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
-import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
-public class ContextualizedItem implements DistributedMessage, IdentifiedDataSerializable {
+/**
+ * Represents a DisclosureItem that he been converted into JSON-LD by the
+ * addition of {@link LdContext}s, preparing it for distribution to the stream
+ * environment.
+ * 
+ * @author d3j766
+ *
+ */
+public class ContextualizedMessage implements DistributedMessage, Serializable {
+
+	private static final long serialVersionUID = -6054963477983252751L;
 
 	public static final String ARRAY_MESSAGE_PROP = "arrayMessage";
 
 	private HazelcastJsonValue linkedData;
-	
-	public ContextualizedItem() {
+
+	public ContextualizedMessage() {
 	}
 
 	/**
@@ -80,7 +92,7 @@ public class ContextualizedItem implements DistributedMessage, IdentifiedDataSer
 	 * @param messageLdContext
 	 *            JSON-LD context for the message item
 	 */
-	public ContextualizedItem(DisclosureItem di, LdContext disclosureLdContext, LdContext messageLdContext) {
+	public ContextualizedMessage(DisclosureItem di, LdContext disclosureLdContext, LdContext messageLdContext) {
 
 		JsonObject diJson = (JsonObject) di.toJson();
 		JsonStructure miJson = di.getMessage();
@@ -119,46 +131,6 @@ public class ContextualizedItem implements DistributedMessage, IdentifiedDataSer
 	@Override
 	public JsonObject disclosureJsonLD() {
 		return (JsonObject) Validatable.toJsonFromString(linkedData.toString());
-	}
-
-	@Override
-	public JsonObject messageJsonLD() {
-		return disclosureJsonLD().getJsonObject(DisclosureItem.MESSAGE_PROP);
-	}
-
-	@Override
-	public Class<? extends MessageItem> messageType() {
-		return MessageItem.messageType(messageJsonLD().getString(MessageContext.ITEM_PROP));
-	}
-
-	@Override
-	public DisclosureItem disclosureItem() {
-		return Validatable.toValidatable(DisclosureItem.class, linkedData.toString(), true);
-	}
-
-	@Override
-	public MessageItem messageItem() {
-		return Validatable.toValidatable(messageType(), messageJsonLD().toString(), true);
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeObject(linkedData);
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		linkedData = in.readObject();
-	}
-
-	@Override
-	public int getFactoryId() {
-		return ModuleIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getId() {
-		return ModuleIDSFactory.CONTEXTUALIZED_ITEM_TYPE;
 	}
 
 }

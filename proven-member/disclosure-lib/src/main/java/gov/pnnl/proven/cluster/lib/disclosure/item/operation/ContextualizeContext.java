@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class ContextualizeContext implements OperationContext {
 
-	private ItemOperation operation = ItemOperation.Contextualize;
+	private ItemOperation operation = ItemOperation.CONTEXTUALIZE;
 
 	public ContextualizeContext() {
 	}

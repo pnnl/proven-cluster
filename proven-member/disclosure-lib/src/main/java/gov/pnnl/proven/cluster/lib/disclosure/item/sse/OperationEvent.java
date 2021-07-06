@@ -57,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
 
 /**
- * Immutable class representing an outbound SSE message representing operation
+ * Immutable class representing an outbound SSE message for operation
  * results.
  * 
  * @author d3j766

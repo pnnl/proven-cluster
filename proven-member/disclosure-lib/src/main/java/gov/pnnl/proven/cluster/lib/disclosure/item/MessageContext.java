@@ -299,7 +299,7 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 					.withDescription("Identifies the disclosure's domain value.")
 					.withType(InstanceType.STRING, InstanceType.NULL)
 					.withDefault(defaultDomain)
-					.withPattern("((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}")
+					.withPattern(Validatable.DOMAIN_PATTERN)
 					.build())
 
 				.withProperty(REQUESTOR_PROP, sbf.createBuilder()

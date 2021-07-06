@@ -125,10 +125,10 @@ public class MqProducer {
 		
 		
 		Topic topic = null;
-		if (provenMessage.getMessageContent().equals(MessageContent.Explicit)) {
+		if (provenMessage.getMessageContent().equals(MessageContent.EXPLICIT)) {
 			topic = session.createTopic(MessageTopic.Disclosure.getTopicName());
 		}
-		else if (provenMessage.getMessageContent().equals(MessageContent.Query)) {
+		else if (provenMessage.getMessageContent().equals(MessageContent.QUERY)) {
 			topic = session.createTopic(MessageTopic.Query.getTopicName());
 		}
 		

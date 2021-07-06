@@ -39,9 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream;
 
-import static gov.pnnl.proven.cluster.lib.module.stream.DistributionType.GRAPH;
-import static gov.pnnl.proven.cluster.lib.module.stream.DistributionType.ITEM;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -73,41 +70,32 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
  */
 public enum MessageStreamType {
 
-	KNOWLEDGE(StreamLabel.KNOWLEDGE_STREAM, GRAPH, MessageContentGroup.Knowledge),
-	MEASUREMENT(StreamLabel.MEASUREMENT_STREAM, GRAPH, MessageContentGroup.Measurement),
-	REQUEST(StreamLabel.REQUEST_STREAM, GRAPH, MessageContentGroup.Request),
-	SERVICE(StreamLabel.SERVICE_STREAM, GRAPH, MessageContentGroup.Service),
-	REFERENCE(StreamLabel.REFERENCE_STREAM, ITEM, MessageContentGroup.Reference),
-	RESPONSE(StreamLabel.RESPONSE_STREAM, GRAPH, MessageContentGroup.Response);
+	KNOWLEDGE(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.KNOWLEDGE),
+	MEASUREMENT(StreamLabel.MEASUREMENT_STREAM, MessageContentGroup.MEASUREMENT),
+	REQUEST(StreamLabel.REQUEST_STREAM, MessageContentGroup.REQUEST),
+	SERVICE(StreamLabel.SERVICE_STREAM, MessageContentGroup.SERVICE),
+	REFERENCE(StreamLabel.REFERENCE_STREAM, MessageContentGroup.REFERENCE),
+	MODEL(StreamLabel.MODEL_STREAM, MessageContentGroup.MODEL),
+	RESPONSE(StreamLabel.RESPONSE_STREAM, MessageContentGroup.RESPONSE);
 
 	private class StreamLabel {
 		private static final String KNOWLEDGE_STREAM = "knowledge";
 		private static final String MEASUREMENT_STREAM = "disclosed";
 		private static final String REQUEST_STREAM = "request";
 		private static final String SERVICE_STREAM = "service";
-		private static final String REFERENCE_STREAM = "disclosed";
+		private static final String REFERENCE_STREAM = "reference";
+		private static final String MODEL_STREAM = "model";
 		private static final String RESPONSE_STREAM = "response";
 	}
 
 	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
 
 	private String streamLabel;
-	private DistributionType distributionType;
 	private List<MessageContentGroup> messageGroups;
 
-	MessageStreamType(String streamLabel, DistributionType distributionType, MessageContentGroup... groups) {
+	MessageStreamType(String streamLabel, MessageContentGroup... groups) {
 		this.streamLabel = streamLabel;
-		this.distributionType = distributionType;
 		messageGroups = Arrays.asList(groups);
-	}
-
-	/**
-	 * Provides the message distribution type for the stream.
-	 * 
-	 * @return the distribution type.
-	 */
-	public DistributionType getDistributionType() {
-		return distributionType;
 	}
 
 	/**

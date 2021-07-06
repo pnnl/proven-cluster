@@ -37,10 +37,18 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream;
+package gov.pnnl.proven.cluster.lib.module.stream.message;
 
-public class DistributedModelFactory {
-	
-	
+/**
+ * Represents a semantic graph.
+ * 
+ * @author d3j766
+ *
+ */
+public interface SemanticGraph {
+
+	// TODO Graph methods
+
+	public String jsonLD();
 
 }

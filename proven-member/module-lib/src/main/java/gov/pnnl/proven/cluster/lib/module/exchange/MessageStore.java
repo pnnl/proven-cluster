@@ -37,102 +37,14 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure;
-
-import java.util.Arrays;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package gov.pnnl.proven.cluster.lib.module.exchange;
 
 /**
- * 
- * Message groups represent a collection of {@code MessageContent}. A
- * {@code MessageContent} must be a member of a single message group.   
- *  
- * @see MessageContent
+ * Responsible for managing the life-cycle of non-reference messages.
  * 
  * @author d3j766
  *
  */
-public enum MessageContentGroup {
-
-	KNOWLEDGE(
-			GroupLabel.KNOWLEDGE_GROUP,
-			MessageContent.EXPLICIT,
-			MessageContent.IMPLICIT),
-
-	MEASUREMENT(
-			GroupLabel.MEASUREMENT_GROUP, 
-			MessageContent.MEASUREMENT),
-		
-	REQUEST(
-			GroupLabel.REQUEST_GROUP,
-			MessageContent.ADMINISTRATIVE,
-			MessageContent.QUERY,
-			MessageContent.REPLAY),
-	
-	SERVICE(
-			GroupLabel.SERVICE_GROUP,
-			MessageContent.PIPELINE,
-			MessageContent.MODULE),
-
-	REFERENCE(
-			GroupLabel.REFERENCE_GROUP, 
-			MessageContent.REFERENCE),
-
-	MODEL(
-			GroupLabel.MODEL_GROUP, 
-			MessageContent.MODEL),
-	
-	RESPONSE(
-			GroupLabel.RESPONSE_GROUP, 
-			MessageContent.RESPONSE);
-
-	private class GroupLabel {
-		private static final String KNOWLEDGE_GROUP = "knowledge";
-		private static final String MEASUREMENT_GROUP = "measurement";
-		private static final String REQUEST_GROUP = "request";
-		private static final String SERVICE_GROUP = "service";
-		private static final String REFERENCE_GROUP = "reference";
-		private static final String MODEL_GROUP = "model";
-		private static final String RESPONSE_GROUP = "response";
-	}
-
-	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
-
-	private String groupLabel;
-	private List<MessageContent> messageContents;
-
-	MessageContentGroup(String groupLabel, MessageContent... contents) {
-		this.groupLabel = groupLabel;
-		messageContents = Arrays.asList(contents);
-	}
-	
-	public String getGroupLabel() {
-		return groupLabel;
-	}
-
-	/**
-	 * Provides the {@code MessageContent} supported by the stream.
-	 * 
-	 * @return a list of supported MessageContent
-	 * 
-	 */
-	public List<MessageContent> getMessageContents() {
-		return messageContents;
-	}
-
-	public static MessageContentGroup getType(MessageContent mcToCheckFor) {
-
-		MessageContentGroup ret = null;
-		for (MessageContentGroup mst : values()) {
-			for (MessageContent mc : mst.messageContents) {
-				if (mc.equals(mcToCheckFor))
-					ret = mst;
-				break;
-			}
-		}
-		return ret;
-	}
+public class MessageStore extends ExchangeComponent {
 
 }

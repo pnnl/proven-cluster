@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class FilterContext implements OperationContext {
 
-	private ItemOperation operation = ItemOperation.Filter;
+	private ItemOperation operation = ItemOperation.FILTER;
 
 	public FilterContext() {
 	}

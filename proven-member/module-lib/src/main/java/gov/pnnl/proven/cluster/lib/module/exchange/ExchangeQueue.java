@@ -58,11 +58,11 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
  */
 public enum ExchangeQueue {
 
-	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.Knowledge),
+	Knowledge(StreamLabel.KNOWLEDGE_STREAM, MessageContentGroup.KNOWLEDGE),
 
-	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.Request),
+	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.REQUEST),
 
-	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.Response);
+	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.RESPONSE);
 
 	private class StreamLabel {
 		private static final String DISCLOSURE_STREAM = "disclosed";

@@ -63,28 +63,28 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
  */
 public enum ItemOperation {
 
-	Disclose(OperationName.DISCLOSE, DiscloseContext.class, false, false, 0),
-	Contextualize(OperationName.CONTEXTUALIZE, ContextualizeContext.class, false, false, 10),
-	Filter(OperationName.FILTER, FilterContext.class, true, true, 20),
-	Distribute(OperationName.DISTRIBUTE, DistributeContext.class, false, false, 30),
-	Transform(OperationName.TRANSFORM, TransformContext.class, true, true, 40),
-	Validate(OperationName.VALIDATE, ValidateContext.class, true, true, 50),
-	Infer(OperationName.INFER, InferContext.class, true, true, 60),
-	Provenance(OperationName.PROVENANCE, ProvenanceContext.class, true, true, 70),
-	Request(OperationName.REQUEST, RequestContext.class, false, true, 80),
-	Service(OperationName.SERVICE, ServiceContext.class, false, true, 90);
+	DISCLOSE(OperationName.DISCLOSE_NAME, DiscloseContext.class, false, false, 0),
+	CONTEXTUALIZE(OperationName.CONTEXTUALIZE_NAME, ContextualizeContext.class, false, false, 10),
+	FILTER(OperationName.FILTER_NAME, FilterContext.class, true, true, 20),
+	DISTRIBUTE(OperationName.DISTRIBUTE_NAME, DistributeContext.class, false, false, 30),
+	TRANSFORM(OperationName.TRANSFORM_NAME, TransformContext.class, true, true, 40),
+	VALIDATE(OperationName.VALIDATE_NAME, ValidateContext.class, true, true, 50),
+	INFER(OperationName.INFER_NAME, InferContext.class, true, true, 60),
+	PROVENANCE(OperationName.PROVENANCE_NAME, ProvenanceContext.class, true, true, 70),
+	REQUEST(OperationName.REQUEST_NAME, RequestContext.class, false, true, 80),
+	SERVICE(OperationName.SERVICE_NAME, ServiceContext.class, false, true, 90);
 
 	public class OperationName {
-		public static final String DISCLOSE = "Disclose";
-		public static final String CONTEXTUALIZE = "Contextualize";
-		public static final String FILTER = "Filter";
-		public static final String DISTRIBUTE = "Distribute";
-		public static final String TRANSFORM = "Transform";
-		public static final String VALIDATE = "Validate";
-		public static final String INFER = "Infer";
-		public static final String PROVENANCE = "Provenance";
-		public static final String REQUEST = "Request";
-		public static final String SERVICE = "Service";
+		public static final String DISCLOSE_NAME = "Disclose";
+		public static final String CONTEXTUALIZE_NAME = "Contextualize";
+		public static final String FILTER_NAME = "Filter";
+		public static final String DISTRIBUTE_NAME = "Distribute";
+		public static final String TRANSFORM_NAME = "Transform";
+		public static final String VALIDATE_NAME = "Validate";
+		public static final String INFER_NAME = "Infer";
+		public static final String PROVENANCE_NAME = "Provenance";
+		public static final String REQUEST_NAME = "Request";
+		public static final String SERVICE_NAME = "Service";
 	}
 
 	private static Logger log = LoggerFactory.getLogger(ItemOperation.class);

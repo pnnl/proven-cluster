@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class ServiceContext implements OperationContext {
 
-	private ItemOperation operation = ItemOperation.Service;
+	private ItemOperation operation = ItemOperation.SERVICE;
 
 	public ServiceContext() {
 	}
