@@ -68,23 +68,20 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext.Builder;
 public class ArtifactContext implements Validatable {
 
 	public static final String ID_PROP = "id";
-	public static final String VERSION_PROP = "item";
+	public static final String VERSION_PROP = "version";
 	public static final String LATEST_PROP = "latest";
-	public static final String DOMAIN_PROP = "domain";
 
 	private String id;
 	private String version;
 	private Boolean latest;
-	private DisclosureDomain domain;
 
 	public ArtifactContext() {
 	}
 
 	@JsonbCreator
 	public static ArtifactContext createArtifactContext(@JsonbProperty(ID_PROP) String id,
-			@JsonbProperty(VERSION_PROP) String version, @JsonbProperty(LATEST_PROP) Boolean latest,
-			@JsonbProperty(DOMAIN_PROP) String domain) {
-		return ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).withDomain(domain)
+			@JsonbProperty(VERSION_PROP) String version, @JsonbProperty(LATEST_PROP) Boolean latest) {
+		return ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest)
 				.build(true);
 	}
 
@@ -92,7 +89,6 @@ public class ArtifactContext implements Validatable {
 		this.id = b.id;
 		this.version = b.version;
 		this.latest = b.latest;
-		this.domain = b.domain;
 	}
 
 	@JsonbProperty(ID_PROP)
@@ -109,11 +105,6 @@ public class ArtifactContext implements Validatable {
 	public Boolean isLatest() {
 		return latest;
 	}
-
-	@JsonbProperty(DOMAIN_PROP)
-	public DisclosureDomain getDomain() {
-		return domain;
-	}
 	
 	public static Builder newBuilder() {
 		return new Builder();
@@ -124,7 +115,6 @@ public class ArtifactContext implements Validatable {
 		private String id;
 		private String version;
 		private Boolean latest;
-		private DisclosureDomain domain;
 
 		private Builder() {
 		}
@@ -144,11 +134,6 @@ public class ArtifactContext implements Validatable {
 			return this;
 		}
 		
-		public Builder withDomain(String domain) {
-			this.domain = new DisclosureDomain(domain);
-			return this;
-		}
-
 		/**
 		 * Builds new instance. Instance is validated post construction.
 		 * 
@@ -214,15 +199,8 @@ public class ArtifactContext implements Validatable {
 					.withType(InstanceType.BOOLEAN)
 					.withDefault(JsonValue.TRUE)
 					.build())
-				
-				.withProperty(DOMAIN_PROP,
-						sbf.createBuilder()
-						.withDescription("Identifies the domain value.")
-						.withType(InstanceType.STRING)
-						.withPattern(Validatable.DOMAIN_PATTERN)
-						.build())
-								
-				.withRequired(ID_PROP, DOMAIN_PROP)
+												
+				.withRequired(ID_PROP)
 				
 				.build();
 		

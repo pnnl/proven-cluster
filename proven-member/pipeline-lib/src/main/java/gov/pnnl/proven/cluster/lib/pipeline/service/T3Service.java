@@ -118,12 +118,12 @@ public class T3Service {
 		try {
 
 			// Construct initial data model
-			String message = MessageUtils.prependContext(sourceMessage.getDisclosureItem().getContext().getDomain(),
+			String message = MessageUtils.prependContext(sourceMessage.getDisclosureItem().getDomain(),
 					sourceMessage.getDisclosureItem().getMessage().toString());
 			Model dataModel = MessageUtils.createMessageDataModel(sourceMessage, message);
 
 			// SHACL rule processing to produce final message data model
-			dataModel = MessageUtils.addShaclRuleResults(sourceMessage.getDisclosureItem().getContext().getDomain(),
+			dataModel = MessageUtils.addShaclRuleResults(sourceMessage.getDisclosureItem().getDomain(),
 					dataModel);
 
 			// Load message into T3 store and return response
@@ -176,7 +176,7 @@ public class T3Service {
 				}
 			}).start();
 			ValueFactoryImpl vf = ValueFactoryImpl.getInstance();
-			URI context = vf.createURI("http://" + sourceMessage.getDisclosureItem().getContext().getDomain());
+			URI context = vf.createURI("http://" + sourceMessage.getDisclosureItem().getDomain());
 			RemoteRepository.AddOp operation = new RemoteRepository.AddOp(pis, addFormat);
 			operation.setContext(context);
 			long t3Count = repo.add(operation);

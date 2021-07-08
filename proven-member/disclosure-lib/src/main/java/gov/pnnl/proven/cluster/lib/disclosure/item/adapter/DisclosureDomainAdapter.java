@@ -47,7 +47,7 @@ public class DisclosureDomainAdapter implements JsonbAdapter<DisclosureDomain, S
 
 	@Override
 	public String adaptToJson(DisclosureDomain domain) throws Exception {
-		return domain.getDomain();
+		return domain.toString();
 	}
 
 	@Override

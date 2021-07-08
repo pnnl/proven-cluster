@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
 
@@ -179,7 +180,7 @@ public class MessageModelItem implements MessageItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.MODEL;
+		return MessageContent.REFERENCE;
 	}
 
 	@Override
@@ -223,7 +224,7 @@ public class MessageModelItem implements MessageItem {
 						.build())
 								
 				.withProperty(MESSAGE_CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
-				
+								
 				.withProperty(OPERATION_CONTEXT_PROP, sbf.createBuilder()
 						.withOneOf(allowedOps)
 						.withType(InstanceType.OBJECT)

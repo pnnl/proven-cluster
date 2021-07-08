@@ -89,9 +89,8 @@ public class DisclosureItemTest {
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
 
-		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
-				.withItem(ExplicitItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
-				.withTags("TEST TAG1", "TEST TAG2").build();
+		mc = MessageContext.newBuilder().withItem(ExplicitItem.class).withName("TEST NAME")
+				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
 
 		di = DisclosureItem.newBuilder().withSourceMessageId(UUID.randomUUID())
 				.withApplicationSentTime(new Date().getTime())
@@ -109,8 +108,7 @@ public class DisclosureItemTest {
 
 	@Test
 	public void testSchema_toSchema_passValidate() {
-		assertThat("DisclosureItem generates a valid schema",
-				Validatable.hasValidSchema(DisclosureItem.class));
+		assertThat("DisclosureItem generates a valid schema", Validatable.hasValidSchema(DisclosureItem.class));
 	}
 
 	@Test
@@ -136,9 +134,8 @@ public class DisclosureItemTest {
 		 * 
 		 * Exception should be thrown because message item is Administrative.
 		 */
-		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
-				.withItem(AdministrativeItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
-				.withTags("TEST TAG1", "TEST TAG2").build();
+		mc = MessageContext.newBuilder().withItem(AdministrativeItem.class).withName("TEST NAME")
+				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
 
 		exceptionGrabber.expect(ValidatableBuildException.class);
 		di = DisclosureItem.newBuilder().withSourceMessageId(UUID.randomUUID())
@@ -154,7 +151,5 @@ public class DisclosureItemTest {
 		DisclosureItem di2 = DisclosureItem.createFromDisclosureItem(di, ei);
 		assertThat("New identifier assigned", di2.getMessage() != di.getMessageSchema());
 	}
-	
-	
 
 }

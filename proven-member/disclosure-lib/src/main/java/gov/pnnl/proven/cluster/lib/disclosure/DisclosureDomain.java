@@ -62,9 +62,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.InvalidDisclosureDomainE
  * @see DomainValidator
  * 
  */
-public class DisclosureDomain implements IdentifiedDataSerializable, Serializable {
-
-	private static final long serialVersionUID = 1L;
+public class DisclosureDomain implements IdentifiedDataSerializable {
 
 	static Logger log = LoggerFactory.getLogger(DisclosureDomain.class);
 
@@ -94,13 +92,9 @@ public class DisclosureDomain implements IdentifiedDataSerializable, Serializabl
 		return DomainValidator.getInstance().isValid(domain);
 	}
 
-	public String getDomain() {
-		return domain;
-	}
-
 	@Override
 	public String toString() {
-		return getDomain();
+		return domain;
 	}
 
 	public String getReverseDomain() {

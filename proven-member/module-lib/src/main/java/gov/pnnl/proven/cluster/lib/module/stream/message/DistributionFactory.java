@@ -42,8 +42,18 @@ package gov.pnnl.proven.cluster.lib.module.stream.message;
 import java.net.URI;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonStructure;
+
+import com.hazelcast.core.HazelcastJsonValue;
 
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.LdContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 
 /**
  * Responsible for creation and distribution of semantic content to stream
@@ -53,10 +63,53 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
  *
  */
 @ApplicationScoped
+@Eager
 public class DistributionFactory {
 
-	public ContextualizedMessage contextualizeItem(DisclosureItem disclosureItem) {
-		return null;
+	/**
+	 * Creates a new ContextualizedMessage by adding JSON-LD context information
+	 * to the provided DisclosreItem.
+	 * 
+	 * @param di
+	 *            the disclosure item
+	 */
+	public ContextualizedMessage contextualizeItem(DisclosureItem di) {
+
+		ContextualizedMessage ret = new ContextualizedMessage();
+
+		final String ARRAY_MESSAGE_PROP = "arrayMessage";
+		LdContext diLdContext = getDisclosureItemLdContext(di);
+		LdContext miLdContext = getMessageItemLdContext(di);
+		JsonObject diJson = (JsonObject) di.toJson();
+		JsonStructure miJson = di.getMessage();
+		JsonObject dld = (JsonObject) diLdContext.toJson();
+		JsonObject mld = (JsonObject) miLdContext.toJson();
+
+		JsonObjectBuilder dJob = Json.createObjectBuilder();
+		dJob.add(LdContext.LD_CONTEXT_PROP, dld.get(LdContext.LD_CONTEXT_PROP));
+		for (String dKey : diJson.keySet()) {
+			if ((dKey.equals(DisclosureItem.MESSAGE_PROP)) && (!di.getIsLinkedData())) {
+				JsonObjectBuilder mJob = Json.createObjectBuilder();
+				mJob.add(LdContext.LD_CONTEXT_PROP, mld.get(LdContext.LD_CONTEXT_PROP));
+				if (miJson instanceof JsonArray) {
+					mJob.add(ARRAY_MESSAGE_PROP, miJson);
+				}
+				// An object - copy fields
+				else {
+					for (String mKey : ((JsonObject) miJson).keySet()) {
+						mJob.add(mKey, diJson.get(mKey));
+					}
+				}
+				dJob.add(DisclosureItem.MESSAGE_PROP, mJob.build());
+			} else {
+				dJob.add(dKey, diJson.get(dKey));
+			}
+		}
+
+		// Initialize linked data from contextualized JsonObject
+		ret.setLinkedData(new HazelcastJsonValue(dJob.build().toString()));
+
+		return ret;
 	}
 
 	public SemanticGraph createGraph(String ld) {
@@ -64,6 +117,14 @@ public class DistributionFactory {
 	}
 
 	public SemanticDataset createDataset(URI name, SemanticGraph... graph) {
+		return null;
+	}
+
+	public LdContext getDisclosureItemLdContext(DisclosureItem di) {
+		return null;
+	}
+
+	public LdContext getMessageItemLdContext(DisclosureItem di) {
 		return null;
 	}
 

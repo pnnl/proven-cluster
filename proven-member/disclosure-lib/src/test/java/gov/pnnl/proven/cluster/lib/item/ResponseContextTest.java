@@ -84,9 +84,8 @@ public class ResponseContextTest {
 
 		dc = DiscloseContext.newBuilder().build();
 
-		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
-				.withItem(ExplicitItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
-				.withTags("TEST TAG1", "TEST TAG2").build();
+		mc = MessageContext.newBuilder().withItem(ExplicitItem.class).withName("TEST NAME")
+				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
 
 		rc = ResponseContext.newBuilder().withStatusCode(Response.Status.OK).withStatusMessage("Okay")
 				.withOperationStartTime(1620847243000L).withOperationEndTime(1620847243111L).withMessageContext(mc)

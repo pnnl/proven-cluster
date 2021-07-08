@@ -96,7 +96,7 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 
 		String ret = "";
 		ret += this.messageId + MESSAGE_KEY_DELIMETER;
-		ret += this.disclosureItem.getContext().getDomain().getDomain() + MESSAGE_KEY_DELIMETER;
+		ret += this.disclosureItem.getDomain().toString() + MESSAGE_KEY_DELIMETER;
 		ret += this.created;
 
 		return ret;

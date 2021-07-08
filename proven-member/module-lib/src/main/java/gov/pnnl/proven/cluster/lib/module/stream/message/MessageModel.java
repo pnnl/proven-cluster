@@ -59,9 +59,9 @@ public class MessageModel implements DistributedModel, Serializable {
 
 	private URI modelName;
 	private Set<URI> artifactModels;
-	private MessageContext mc;
+	private MessageContext messageContext;
 	private String operation;
-	private OperationContext oc;
+	private OperationContext operationContext;
 	private SemanticGraph graph;
 
 	/**
@@ -87,16 +87,16 @@ public class MessageModel implements DistributedModel, Serializable {
 		return artifactModels;
 	}
 
-	public MessageContext getMc() {
-		return mc;
+	public MessageContext getMessageContext() {
+		return messageContext;
 	}
 
 	public String getOperation() {
 		return operation;
 	}
 
-	public OperationContext getOc() {
-		return oc;
+	public OperationContext getOperationContext() {
+		return operationContext;
 	}
 
 	public SemanticGraph getGraph() {

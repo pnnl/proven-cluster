@@ -261,7 +261,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			sessions.add(session);
 			sessionRegistry.put(se, sessions);
 		}
-		logger.debug("After adding session - Domain stream " + "[" + dd.getDomain() + "::" + mst.toString()
+		logger.debug("After adding session - Domain stream " + "[" + dd.toString() + "::" + mst.toString()
 				+ "] COUNT :: " + sessionRegistry.get(se).size());
 	}
 
@@ -430,7 +430,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			try {
 				MessageContent mc = message.getMessageContent();
 				MessageStreamType mst = MessageStreamType.getType(mc);
-				DisclosureDomain dd = message.getDisclosureItem().getContext().getDomain();
+				DisclosureDomain dd = message.getDisclosureItem().getDomain();
 				SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 				Set<SseSession> sessions = sessionRegistry.get(se);
 				boolean hasSessions = ((null != sessions) && (!sessions.isEmpty()));

@@ -43,8 +43,6 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.Set;
 
-import javax.json.JsonObject;
-
 /**
  * Semantic representation for a ModelArtifactItem.
  * 
