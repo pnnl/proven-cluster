@@ -64,7 +64,7 @@ public class MessageStreamDto implements Serializable {
 	}
 
 	public MessageStreamDto(MessageStream ms) {
-		this.disclosureDomain = ms.getDd().getDomain();
+		this.disclosureDomain = ms.getDd().toString();
 		this.streamType = ms.getMst().toString();
 		this.streamName = ms.getStreamName();
 	}

@@ -129,7 +129,7 @@ public class SseSession {
 		}
 
 		logger.debug("Created new SSE Session:");
-		logger.debug("\tDomain: " + this.domain.getDomain());
+		logger.debug("\tDomain: " + this.domain.toString());
 		logger.debug("\tMessageContent: " + this.contents.toString());
 		logger.debug("\tRequester: " + ((null == this.requestor) ? ("Any") : (this.requestor)));
 		logger.debug("");

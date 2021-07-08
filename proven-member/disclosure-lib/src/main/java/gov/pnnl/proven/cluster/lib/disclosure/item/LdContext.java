@@ -41,6 +41,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import java.util.List;
 
+import javax.json.Json;
 import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
@@ -50,6 +51,7 @@ import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.Problem;
 
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
 /**
@@ -58,27 +60,37 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  * @author d3j766
  *
  */
-public class LdContext implements Validatable {
+public class LdContext implements MessageItem {
 
-	public static final String CONTEXT_PROP = "@context";
+	public static final String LD_CONTEXT_MESSAGE_NAME = "ld-context-message";
 
-	private JsonValue context;
+	public static final String LD_CONTEXT_PROP = "@context";
+	public static final String MESSAGE_CONTEXT_PROP = "messageContext";
+
+	private JsonValue ldContext;
+	private MessageContext messageContext;
 
 	public LdContext() {
 	}
 
 	@JsonbCreator
-	public static LdContext createLdContext(@JsonbProperty(CONTEXT_PROP) JsonValue context) {
-		return LdContext.newBuilder().withContext(context).build(true);
+	public static LdContext createLdContext(@JsonbProperty(LD_CONTEXT_PROP) JsonValue ldContext,
+			@JsonbProperty(MESSAGE_CONTEXT_PROP) MessageContext messageContext) {
+		return LdContext.newBuilder().withLdContext(ldContext).withMessageContext(messageContext).build(true);
 	}
 
 	private LdContext(Builder b) {
-		this.context = b.context;
+		this.ldContext = b.ldContext;
 	}
 
-	@JsonbProperty(CONTEXT_PROP)
-	public JsonValue getContext() {
-		return context;
+	@JsonbProperty(LD_CONTEXT_PROP)
+	public JsonValue getldContext() {
+		return ldContext;
+	}
+
+	@JsonbProperty(MESSAGE_CONTEXT_PROP)
+	public MessageContext getMessageContext() {
+		return messageContext;
 	}
 
 	public static Builder newBuilder() {
@@ -87,13 +99,19 @@ public class LdContext implements Validatable {
 
 	public static final class Builder {
 
-		private JsonValue context;
+		private JsonValue ldContext;
+		private MessageContext messageContext;
 
 		private Builder() {
 		}
 
-		public Builder withContext(JsonValue context) {
-			this.context = context;
+		public Builder withLdContext(JsonValue ldContext) {
+			this.ldContext = ldContext;
+			return this;
+		}
+
+		public Builder withMessageContext(MessageContext messageContext) {
+			this.messageContext = messageContext;
 			return this;
 		}
 
@@ -126,6 +144,17 @@ public class LdContext implements Validatable {
 	}
 
 	@Override
+	public String messageName() {
+		// TODO Auto-generated method stub
+		return LD_CONTEXT_MESSAGE_NAME;
+	}
+
+	@Override
+	public MessageContent messageContent() {
+		return MessageContent.REFERENCE;
+	}
+
+	@Override
 	public JsonSchema toSchema() {
 
 		JsonSchema ret;
@@ -138,24 +167,60 @@ public class LdContext implements Validatable {
 					
 				.withSchema(Validatable.schemaDialect())
 					
-				.withTitle("JSON-LD Context schema")
+				.withTitle("JSON-LD Context disclosure schema")
 
-				.withDescription("Defines a JSON-LD context for a messsage item.")
+				.withDescription("Defines a JSON-LD context for a messsage item type.")
 
 				.withType(InstanceType.OBJECT)
 
-				.withProperty(CONTEXT_PROP, sbf.createBuilder()
-					.withDescription("Context definition.")
-					.withType(InstanceType.OBJECT, InstanceType.STRING)
+				.withProperty(LD_CONTEXT_PROP, sbf.createBuilder()
+					.withDescription("The LD Context definition.")
+					.withType(InstanceType.OBJECT, InstanceType.ARRAY, InstanceType.STRING)
 					.build())
+				
+				.withProperty(MESSAGE_CONTEXT_PROP, Validatable.retrieveSchema(MessageContext.class))
 		
-				.withRequired(CONTEXT_PROP)
+				.withIf(sbf.createBuilder()
+					.withDescription("If the message item type selected is anything other then explicit or implicit, "
+							+ "meaning the item type's LD Context is managed by Proven, only the message item type "
+							+ "is used to determine the LD Context to contextualize a disclosure message and other properties "
+							+ "in the message context are ignored/set to null.  For explicit and/or implicit message "
+							+ "item types, they may be configured using the remaining properties to, if necessary, support "
+							+ "multiple LD Contexts per message type.")
+					.withProperty(MESSAGE_CONTEXT_PROP, sbf.createBuilder()
+						.withProperty(MessageContext.ITEM_PROP, sbf.createBuilder()
+							.withNot(sbf.createBuilder()
+								.withAnyOf(
+									sbf.createBuilder()	
+									.withConst(Json.createValue(MessageItem.messageName(ExplicitItem.class)))
+									.build(),				
+									sbf.createBuilder()	
+									.withConst(Json.createValue(MessageItem.messageName(ImplicitItem.class)))
+									.build())
+								.build())
+						.build())
+					.build())
+				.build())
+				.withThen(sbf.createBuilder()
+					.withProperty(MESSAGE_CONTEXT_PROP, sbf.createBuilder()
+						.withProperty(MessageContext.REQUESTOR_PROP, sbf.createBuilder()
+							.withConst(JsonValue.NULL)
+							.build())
+						.withProperty(MessageContext.NAME_PROP, sbf.createBuilder()
+							.withConst(JsonValue.NULL)
+							.build())
+						.withProperty(MessageContext.TAGS_PROP, sbf.createBuilder()
+							.withConst(JsonValue.NULL)
+							.build())
+						.build())
+					.build())
+				
+				.withRequired(LD_CONTEXT_PROP, MESSAGE_CONTEXT_PROP)
 				
 				.build();
 			
-			//@formatter:on
+		//@formatter:on
 
 		return ret;
 	}
-
 }

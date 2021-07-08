@@ -74,7 +74,7 @@ public interface DistributedMessage {
 	 * Provides the type of MessageItem.
 	 */
 	default Class<? extends MessageItem> messageType() {
-		return MessageItem.messageType(messageJsonLD().getString(MessageContext.ITEM_PROP));
+		return MessageItem.messageType(disclosureJsonLD().getString(MessageContext.ITEM_PROP));
 	}
 
 	/**

@@ -69,6 +69,7 @@ public class ModelArtifactItem implements MessageItem {
 	public static final String MODEL_ARTIFACT_MESSAGE_NAME = "model-artifact-message";
 	public static final int MINIMUM_MODEL_NAMES = 1;
 	public static final String DEFAULT_MODEL_NAME = "DEFAULT";
+	public static final String CONTENT_ENCODING = "base64";
 
 	public enum Syntax {
 
@@ -107,7 +108,6 @@ public class ModelArtifactItem implements MessageItem {
 
 	static final String ARTIFACT_PROP = "artifact";
 	static final String LOCATOR_PROP = "locator";
-	static final String LD_CONTEXT_PROP = "ldContext";
 	static final String NAMED_QUERY_MODELS_PROP = "namedModels";
 	static final String DEFAULT_QUERY_MODEL_PROP = "defaultQueryModel";
 	static final String CONTENT_PROP = "content";
@@ -115,7 +115,6 @@ public class ModelArtifactItem implements MessageItem {
 
 	private ArtifactContext artifact;
 	private Boolean locator;
-	private Boolean ldContext;
 	private String[] namedQueryModels;
 	private Boolean defaultQueryModel;
 	private String content;
@@ -126,11 +125,10 @@ public class ModelArtifactItem implements MessageItem {
 
 	@JsonbCreator
 	public static ModelArtifactItem createMessageContext(@JsonbProperty(ARTIFACT_PROP) ArtifactContext artifact,
-			@JsonbProperty(LOCATOR_PROP) Boolean locator, @JsonbProperty(LD_CONTEXT_PROP) Boolean ldContext,
-			@JsonbProperty(NAMED_QUERY_MODELS_PROP) String[] namedModels,
+			@JsonbProperty(LOCATOR_PROP) Boolean locator, @JsonbProperty(NAMED_QUERY_MODELS_PROP) String[] namedModels,
 			@JsonbProperty(DEFAULT_QUERY_MODEL_PROP) Boolean defaultQueryModel,
 			@JsonbProperty(CONTENT_PROP) String content, @JsonbProperty(SYNTAX_PROP) Syntax syntax) {
-		return ModelArtifactItem.newBuilder().withArtifact(artifact).withLocator(locator).withLdContext(ldContext)
+		return ModelArtifactItem.newBuilder().withArtifact(artifact).withLocator(locator)
 				.withNamedQueryModels(namedModels).withDefaultQueryModel(defaultQueryModel).withContent(content)
 				.withSyntax(syntax).build(true);
 	}
@@ -138,7 +136,6 @@ public class ModelArtifactItem implements MessageItem {
 	private ModelArtifactItem(Builder b) {
 		this.artifact = b.artifact;
 		this.locator = b.locator;
-		this.ldContext = b.ldContext;
 		this.namedQueryModels = b.namedQueryModels;
 		this.defaultQueryModel = b.defaultQueryModel;
 		this.content = b.content;
@@ -153,11 +150,6 @@ public class ModelArtifactItem implements MessageItem {
 	@JsonbProperty(LOCATOR_PROP)
 	public Boolean isLocator() {
 		return locator;
-	}
-
-	@JsonbProperty(LD_CONTEXT_PROP)
-	public Boolean isLdContext() {
-		return ldContext;
 	}
 
 	@JsonbProperty(NAMED_QUERY_MODELS_PROP)
@@ -188,7 +180,6 @@ public class ModelArtifactItem implements MessageItem {
 
 		private ArtifactContext artifact;
 		private Boolean locator;
-		private Boolean ldContext;
 		private String[] namedQueryModels;
 		private Boolean defaultQueryModel;
 		private String content;
@@ -204,11 +195,6 @@ public class ModelArtifactItem implements MessageItem {
 
 		public Builder withLocator(Boolean locator) {
 			this.locator = locator;
-			return this;
-		}
-
-		public Builder withLdContext(Boolean ldContext) {
-			this.ldContext = ldContext;
 			return this;
 		}
 
@@ -262,7 +248,7 @@ public class ModelArtifactItem implements MessageItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.MODEL;
+		return MessageContent.REFERENCE;
 	}
 
 	@Override
@@ -299,11 +285,6 @@ public class ModelArtifactItem implements MessageItem {
 						+ "retrieve artifact's contents.")
 				.withType(InstanceType.BOOLEAN)
 				.build())
-						
-			.withProperty(LD_CONTEXT_PROP, sbf.createBuilder()
-				.withDescription("If true, indicates the artifact is a JSON-LD @context object.")
-				.withType(InstanceType.BOOLEAN)
-				.build())
 			
 			.withProperty(NAMED_QUERY_MODELS_PROP, sbf.createBuilder()
 					.withDescription("Identifies the query models this artifaact will be part of."
@@ -315,17 +296,12 @@ public class ModelArtifactItem implements MessageItem {
 							.withType(InstanceType.STRING)
 							.withMinItems(MINIMUM_MODEL_NAMES)
 							.withPattern("([/a-zA-Z0-9_-]+)+$")
-							
-							
 							.withDescription("Cannot include the deafult query model name in array of named models. "
 									+ "Set property " + DEFAULT_QUERY_MODEL_PROP + " to true to indicate the artifact "
 									+ "should be included in the default query model")
 							.withNot(sbf.createBuilder()
 									.withPattern("^\\/*" + DEFAULT_MODEL_NAME + "\\/*$")
-									.build())
-							
-							
-							
+									.build())	
 							.build())
 					.build())
 			
@@ -340,7 +316,7 @@ public class ModelArtifactItem implements MessageItem {
 				.withDescription("BASE64 encoding of the artifact's content; required if locator property is false.")
 				.withType(InstanceType.STRING, InstanceType.NULL)
 				.withDefault(JsonValue.NULL)
-				.withContentEncoding("base64")
+				.withContentEncoding(CONTENT_ENCODING)
 				.build())
 			
 			.withProperty(SYNTAX_PROP, sbf.createBuilder()
@@ -353,20 +329,6 @@ public class ModelArtifactItem implements MessageItem {
 			
 			.withAllOf(
 				sbf.createBuilder()
-				.withDescription("If JSON-LD context then syntax must be JSON-LD")
-				.withIf(sbf.createBuilder()
-					.withProperty(LD_CONTEXT_PROP, sbf.createBuilder()
-						.withConst(JsonValue.TRUE)
-						.build())
-					.build())
-				.withThen(sbf.createBuilder()
-					.withProperty(SYNTAX_PROP, sbf.createBuilder()
-						.withConst(Json.createValue(Syntax.JSONLD.getSyntaxName()))
-						.build())
-					.build())
-				.build(),								
-
-				sbf.createBuilder()
 				.withDescription("If artifact's identifier is not designated as a locator then " 
 						+ "artifact content must be provided in message.")
 				.withIf(sbf.createBuilder()
@@ -377,22 +339,9 @@ public class ModelArtifactItem implements MessageItem {
 				.withThen(sbf.createBuilder()
 					.withRequired(CONTENT_PROP)				
 					.build())
-				.build()
-				
-//				sbf.createBuilder()
-//				.withDescription("Cannot include the deafult query model name in array of named models. "
-//						+ "Set property " + DEFAULT_QUERY_MODEL_PROP + " to true to indicate the artifact "
-//						+ "should be included in the default query model")
-//				.withNot(sbf.createBuilder()
-//						.withProperty(NAMED_QUERY_MODELS_PROP, sbf.createBuilder()
-//								.withPattern("^\\/*" + DEFAULT_MODEL_NAME + "\\/*$")
-//								.build())
-//						.build())
-//				.build()
-				
-					)								
+				.build())							
 			
-			.withRequired(ARTIFACT_PROP, LOCATOR_PROP, LD_CONTEXT_PROP)
+			.withRequired(ARTIFACT_PROP, LOCATOR_PROP)
 			
 			.build();
 		

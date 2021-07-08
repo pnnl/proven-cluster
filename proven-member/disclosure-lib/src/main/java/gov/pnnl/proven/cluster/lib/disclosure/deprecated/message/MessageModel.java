@@ -206,7 +206,7 @@ public class MessageModel {
 	 */
 	private void loadRawModelFiles(DisclosureDomain domain) {
 
-		String resourcePath = getModelResourcePath(MODEL_REGISTRY_FILE + "-" + domain.getDomain());
+		String resourcePath = getModelResourcePath(MODEL_REGISTRY_FILE + "-" + domain.toString());
 
 		try (InputStream resourceIn = this.getClass().getClassLoader().getResourceAsStream(resourcePath)) {
 

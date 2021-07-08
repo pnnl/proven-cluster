@@ -40,7 +40,7 @@
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
 /**
- * Responsible for managing the life-cycle of non-reference messages.
+ * Responsible for managing the life-cycle of stream messages.  
  * 
  * @author d3j766
  *

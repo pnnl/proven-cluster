@@ -100,11 +100,11 @@ public class ContextualizedMessage implements DistributedMessage, Serializable {
 		JsonObject mld = (JsonObject) messageLdContext.toJson();
 
 		JsonObjectBuilder dJob = Json.createObjectBuilder();
-		dJob.add(LdContext.CONTEXT_PROP, dld.get(LdContext.CONTEXT_PROP));
+		dJob.add(LdContext.LD_CONTEXT_PROP, dld.get(LdContext.LD_CONTEXT_PROP));
 		for (String dKey : diJson.keySet()) {
 			if ((dKey.equals(DisclosureItem.MESSAGE_PROP)) && (!di.getIsLinkedData())) {
 				JsonObjectBuilder mJob = Json.createObjectBuilder();
-				mJob.add(LdContext.CONTEXT_PROP, mld.get(LdContext.CONTEXT_PROP));
+				mJob.add(LdContext.LD_CONTEXT_PROP, mld.get(LdContext.LD_CONTEXT_PROP));
 				if (miJson instanceof JsonArray) {
 					mJob.add(ARRAY_MESSAGE_PROP, miJson);
 				}
@@ -126,6 +126,10 @@ public class ContextualizedMessage implements DistributedMessage, Serializable {
 
 	public HazelcastJsonValue getLinkedData() {
 		return linkedData;
+	}
+	
+	public void setLinkedData(HazelcastJsonValue linkedData) {
+		this.linkedData = linkedData;
 	}
 
 	@Override

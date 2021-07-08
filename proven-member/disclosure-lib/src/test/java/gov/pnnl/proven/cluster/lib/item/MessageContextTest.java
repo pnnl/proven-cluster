@@ -75,9 +75,8 @@ public class MessageContextTest {
 	@Before
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
-		mc = MessageContext.newBuilder().withDomain(DomainProvider.PROVEN_DISCLOSURE_DOMAIN)
-				.withItem(ExplicitItem.class).withName("TEST NAME").withRequestor("TEST REQUESTOR")
-				.withTags("TEST TAG1", "TEST TAG2").build();
+		mc = MessageContext.newBuilder().withItem(ExplicitItem.class).withName("TEST NAME")
+				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
 	}
 
 	@After

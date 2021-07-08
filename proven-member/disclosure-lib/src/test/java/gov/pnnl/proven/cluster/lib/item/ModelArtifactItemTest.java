@@ -87,8 +87,8 @@ public class ModelArtifactItemTest {
 	@Before
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
-		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).withDomain(domain).build();
-		mai = ModelArtifactItem.newBuilder().withArtifact(ac).withLdContext(false).withLocator(true)
+		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build();
+		mai = ModelArtifactItem.newBuilder().withArtifact(ac).withLocator(true)
 				.withSyntax(ModelArtifactItem.Syntax.N3).withNamedQueryModels(queryModels).build();
 	}
 
