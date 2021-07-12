@@ -138,10 +138,7 @@ public class MessageModelItem implements MessageItem {
 		}
 
 		public Builder withOperationContext(JsonObject json) {
-			ItemOperation op = ItemOperation.valueOf(json.getString(OperationContext.OPERATION_PROP));
-			Class<? extends OperationContext> clazz = op.getOpContext();
-			OperationContext oc = Validatable.toValidatable(clazz, json.toString(), true);
-			this.operationContext = oc;
+			this.operationContext = OperationContext.fromJson(json);
 			return this;
 		}
 

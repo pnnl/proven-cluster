@@ -442,7 +442,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 						// Check if event data should be sent to session
 						boolean hasDomain = session.hasDomain(dd);
 						boolean hasContent = session.hasContent(mc);
-						boolean hasRequester = session.hasRequestor(Optional.ofNullable(message.getDisclosureItem().getContext().getRequestor()));
+						boolean hasRequester = session.hasRequestor(Optional.ofNullable(message.getDisclosureItem().getContext().getRequestor().orElse(null)));
 						boolean sendEvent = ((hasDomain) && (hasContent) && (hasRequester));
 
 						if (sendEvent) {

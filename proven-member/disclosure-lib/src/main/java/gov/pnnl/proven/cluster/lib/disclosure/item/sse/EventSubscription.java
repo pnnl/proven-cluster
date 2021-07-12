@@ -43,20 +43,23 @@ import java.util.List;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
-import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
 /**
- * Represents an SSE subscription message.
+ * Represents an SSE subscription. This is used to subscribe to SSE containing
+ * operation results.
  * 
  * @author d3j766
+ * 
+ * @see ItemOperation
  *
  */
 public interface EventSubscription extends Validatable {
 
-	static List<Class<? extends EventSubscription>> subscriptions() {
+	static List<Class<? extends EventSubscription>> subscriptionTypes() {
 		return Validatable.getValidatables(EventSubscription.class);
 	}
-	
+
 	/**
 	 * Represents the type of event being subscribe to.
 	 */

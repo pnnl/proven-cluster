@@ -145,6 +145,21 @@ public enum ItemOperation {
 	}
 
 	/**
+	 * Provides list of all operation names.
+	 */
+	public static List<String> getOperationNames() {
+
+		List<String> ret = new ArrayList<>();
+
+		for (ItemOperation op : values()) {
+			ret.add(op.getOpName());
+		}
+
+		return ret;
+	}
+	
+		
+	/**
 	 * Provides a list of operations that may have assigned Model definitions.
 	 * 
 	 * @see ModelArtifactItem

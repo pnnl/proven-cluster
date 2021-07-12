@@ -50,6 +50,7 @@ import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.ww;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.json.Json;
@@ -148,7 +149,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 
 	@JsonbCreator
 	public static DisclosureItem createDisclosureItem(@JsonbProperty(DOMAIN_PROP) String domain,
-			@JsonbProperty(APPLICATION_SENT_TIME_PROP) long applicationSentTime,
+			@JsonbProperty(APPLICATION_SENT_TIME_PROP) Long applicationSentTime,
 			@JsonbProperty(AUTH_TOKEN_PROP) String authToken, @JsonbProperty(CONTEXT_PROP) MessageContext context,
 			@JsonbProperty(MESSAGE_PROP) JsonStructure message,
 			@JsonbProperty(MESSAGE_SCHEMA_PROP) JsonObject messageSchema,
@@ -186,7 +187,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 	public DisclosureDomain getDomain() {
 		return domain;
 	}
-	
+
 	@JsonbProperty(SOURCE_MESSAGE_ID_PROP)
 	public UUID getSourceMessageId() {
 		return sourceMessageId;
@@ -198,13 +199,13 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 	}
 
 	@JsonbProperty(APPLICATION_SENT_TIME_PROP)
-	public Long getApplicationSentTime() {
-		return applicationSentTime;
+	public Optional<Long> getApplicationSentTime() {
+		return Optional.ofNullable(applicationSentTime);
 	}
 
 	@JsonbProperty(AUTH_TOKEN_PROP)
-	public String getAuthToken() {
-		return authToken;
+	public Optional<String> getAuthToken() {
+		return Optional.ofNullable(authToken);
 	}
 
 	@JsonbProperty(CONTEXT_PROP)
@@ -218,8 +219,8 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 	}
 
 	@JsonbProperty(value = MESSAGE_SCHEMA_PROP)
-	public JsonObject getMessageSchema() {
-		return messageSchema;
+	public Optional<JsonObject> getMessageSchema() {
+		return Optional.ofNullable(messageSchema);
 	}
 
 	@JsonbProperty(IS_TRANSIENT_PROP)
@@ -256,7 +257,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 			this.sourceMessageId = sourceMessageId;
 			return this;
 		}
-		
+
 		public Builder withDomain(DisclosureDomain domain) {
 			this.domain = domain;
 			return this;
@@ -315,8 +316,12 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 		}
 
 		public Builder withDisclosureItem(DisclosureItem di) {
-			return withSourceMessageId(di.getSourceMessageId()).withApplicationSentTime(di.getApplicationSentTime())
-					.withAuthToken(di.getAuthToken()).withContext(di.getContext()).withIsTransient(di.getIsTransient())
+			String token = null;
+			if (di.getAuthToken().isPresent()) {
+				token = di.getAuthToken().get();
+			}
+			return withSourceMessageId(di.getMessageId()).withDomain(di.getDomain()).withAuthToken(token)
+					.withContext(di.getContext()).withIsTransient(di.getIsTransient())
 					.withIsLinkedData(di.getIsLinkedData());
 		}
 
@@ -367,11 +372,11 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 		writeNullable(getSourceMessageId().toString(), out, ww((v, o) -> out.writeUTF(v)));
 		getDomain().writeData(out);
 		out.writeLong(getSystemSentTime());
-		writeNullable(getApplicationSentTime(), out, ww((v, o) -> out.writeLong(v)));
-		writeNullable(getAuthToken(), out, ww((v, o) -> out.writeUTF(v)));
+		writeNullable(applicationSentTime, out, ww((v, o) -> out.writeLong(v)));
+		writeNullable(authToken, out, ww((v, o) -> out.writeUTF(v)));
 		this.context.writeData(out);
 		out.writeByteArray(jsonValueOut(getMessage()));
-		writeNullable(getMessageSchema(), out, ww((v, o) -> out.writeByteArray(jsonValueOut(getMessageSchema()))));
+		writeNullable(messageSchema, out, ww((v, o) -> out.writeByteArray(jsonValueOut(messageSchema))));
 		out.writeBoolean(isTransient);
 		out.writeBoolean(isLinkedData);
 	}
@@ -411,7 +416,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 
 		JsonSchema ret;
 		final JsonString defaultDomain = Json.createValue(DomainProvider.getProvenDisclosureDomain().toString());
-		
+
 		//@formatter:off
 		
 		ret = sbf.createBuilder()
@@ -432,21 +437,21 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 				.withProperty(DOMAIN_PROP,
 					sbf.createBuilder()
 					.withDescription("Identifies the disclosure's domain value.")
-					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withType(InstanceType.STRING)
 					.withDefault(defaultDomain)
 					.withPattern(Validatable.DOMAIN_PATTERN)
 					.build())
-				
+
 				.withProperty(APPLICATION_SENT_TIME_PROP, sbf.createBuilder()
-					.withTitle("Application message sent time")
-					.withDescription("Sent time defined by message's sender.  "
-					 + "This is an epoch timestamp formatted in milliseconds.")
-					.withType(InstanceType.INTEGER, InstanceType.NULL)
-					.withDefault(JsonValue.NULL)
-					.withMinimum(0)
-					.withMaximum(Long.MAX_VALUE)
-					.build())					
-				
+						.withTitle("Application message sent time")
+						.withDescription("Sent time defined by message's sender.  "
+						 + "This is an epoch timestamp formatted in milliseconds.")
+						.withType(InstanceType.INTEGER, InstanceType.NULL)
+						.withDefault(JsonValue.NULL)
+						.withMinimum(0)
+						.withMaximum(Long.MAX_VALUE)
+						.build())					
+												
 				.withProperty(AUTH_TOKEN_PROP, sbf.createBuilder()							
 					.withType(InstanceType.STRING, InstanceType.NULL)
 					.withDefault(JsonValue.NULL)

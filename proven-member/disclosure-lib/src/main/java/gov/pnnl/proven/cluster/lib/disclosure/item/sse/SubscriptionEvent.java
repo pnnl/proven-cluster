@@ -163,7 +163,7 @@ public class SubscriptionEvent implements EventData {
 		JsonSchema ret;
 		
 		// Create EventuSbscription schema definition listing
-		List<Class<? extends EventSubscription>> subscriptions = EventSubscription.subscriptions();
+		List<Class<? extends EventSubscription>> subscriptions = EventSubscription.subscriptionTypes();
 		List<JsonSchema> subscriptionSchemas = new ArrayList<>();
 		for (Class<? extends EventSubscription> subscription : subscriptions) {
 			subscriptionSchemas.add(Validatable.retrieveSchema(subscription));
