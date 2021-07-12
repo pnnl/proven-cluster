@@ -40,6 +40,7 @@
 package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
 
 import javax.json.Json;
+import javax.json.JsonObject;
 
 import org.leadpony.justify.api.JsonSchema;
 
@@ -60,11 +61,29 @@ public interface OperationContext extends Validatable {
 	 * @see #operationPropertySchema()
 	 */
 	static final String OPERATION_PROP = "operation";
-	
+
 	/**
 	 * Returns the ItemOperation for the defined context.
 	 */
 	ItemOperation getOperation();
+
+	/**
+	 * Creates an OperationContext from its JSON representation.
+	 * 
+	 * @param json
+	 *            JSON for an OperationCOntext
+	 * @return an OperationContex
+	 * @throw NullPointerException if JSON does not have a mapping for an
+	 *        ItemOperation
+	 * @throw ValidatableBuildException if JSON does not represent an
+	 *        OperationContext
+	 */
+	static OperationContext fromJson(JsonObject json) {
+		ItemOperation op = ItemOperation.getItemOperation(json.getString(OperationContext.OPERATION_PROP));
+		Class<? extends OperationContext> clazz = op.getOpContext();
+		OperationContext oc = Validatable.toValidatable(clazz, json.toString(), true);
+		return oc;
+	}
 
 	/**
 	 * Default operation property schema.

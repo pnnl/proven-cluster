@@ -40,6 +40,7 @@
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.json.Json;
 import javax.json.JsonValue;
@@ -97,8 +98,8 @@ public class ArtifactContext implements Validatable {
 	}
 
 	@JsonbProperty(VERSION_PROP)
-	public String getVersion() {
-		return version;
+	public Optional<String> getVersion() {
+		return Optional.ofNullable(version);
 	}
 
 	@JsonbProperty(LATEST_PROP)

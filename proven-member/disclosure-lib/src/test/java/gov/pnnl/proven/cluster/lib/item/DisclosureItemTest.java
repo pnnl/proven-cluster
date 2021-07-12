@@ -93,7 +93,8 @@ public class DisclosureItemTest {
 				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();
 
 		di = DisclosureItem.newBuilder().withSourceMessageId(UUID.randomUUID())
-				.withApplicationSentTime(new Date().getTime())
+				//.withApplicationSentTime(new Date().getTime())
+				//.withApplicationSentTime(null)
 				.withAuthToken(
 						"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ")
 				.withContext(mc).withMessage(JsonValue.EMPTY_JSON_OBJECT).withMessageSchema(JsonValue.EMPTY_JSON_OBJECT)
@@ -149,7 +150,7 @@ public class DisclosureItemTest {
 	@Test
 	public void createFromDisclosureItem_construct_createdWithNewIdentifier() {
 		DisclosureItem di2 = DisclosureItem.createFromDisclosureItem(di, ei);
-		assertThat("New identifier assigned", di2.getMessage() != di.getMessageSchema());
+		assertThat("New identifier assigned", di2.getMessageId() != di.getMessageId());
 	}
 
 }

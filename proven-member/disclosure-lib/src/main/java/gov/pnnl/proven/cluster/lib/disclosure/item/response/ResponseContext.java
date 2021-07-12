@@ -41,6 +41,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.response;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.json.JsonObject;
 import javax.json.JsonValue;
@@ -80,10 +81,10 @@ public class ResponseContext implements Validatable {
 
 	private Response.Status statusCode;
 	private String statusMessage;
-	private long operationStartTime;
-	private long operationEndTime;
+	private Long operationStartTime;
+	private Long operationEndTime;
 	private MessageContext messageContext;
-	private JsonObject operationContext;
+	private OperationContext operationContext;
 
 	public ResponseContext() {
 	}
@@ -91,8 +92,8 @@ public class ResponseContext implements Validatable {
 	@JsonbCreator
 	public static ResponseContext createResponseContext(@JsonbProperty(STATUS_CODE_PROP) Response.Status statusCode,
 			@JsonbProperty(STATUS_MESSAGE_PROP) String statusMessage,
-			@JsonbProperty(OPERATION_START_TIME_PROP) long operationStartTime,
-			@JsonbProperty(OPERATION_END_TIME_PROP) long operationEndTime,
+			@JsonbProperty(OPERATION_START_TIME_PROP) Long operationStartTime,
+			@JsonbProperty(OPERATION_END_TIME_PROP) Long operationEndTime,
 			@JsonbProperty(MESSAGE_CONTEXT_PROP) MessageContext messageContext,
 			@JsonbProperty(OPERATION_CONTEXT_PROP) JsonObject operationContext) {
 		return ResponseContext.newBuilder().withStatusCode(statusCode).withStatusMessage(statusMessage)
@@ -115,17 +116,17 @@ public class ResponseContext implements Validatable {
 	}
 
 	@JsonbProperty(STATUS_MESSAGE_PROP)
-	public String getStatusMessage() {
-		return statusMessage;
+	public Optional<String> getStatusMessage() {
+		return Optional.ofNullable(statusMessage);
 	}
 
 	@JsonbProperty(OPERATION_START_TIME_PROP)
-	public long getOperationStartTime() {
+	public Long getOperationStartTime() {
 		return operationStartTime;
 	}
 
 	@JsonbProperty(OPERATION_END_TIME_PROP)
-	public long getOperationEndTime() {
+	public Long getOperationEndTime() {
 		return operationEndTime;
 	}
 
@@ -135,7 +136,7 @@ public class ResponseContext implements Validatable {
 	}
 
 	@JsonbProperty(OPERATION_CONTEXT_PROP)
-	public JsonObject getOperationContext() {
+	public OperationContext getOperationContext() {
 		return operationContext;
 	}
 
@@ -150,7 +151,7 @@ public class ResponseContext implements Validatable {
 		private long operationStartTime;
 		private long operationEndTime;
 		private MessageContext messageContext;
-		private JsonObject operationContext;
+		private OperationContext operationContext;
 
 		private Builder() {
 		}
@@ -180,13 +181,13 @@ public class ResponseContext implements Validatable {
 			return this;
 		}
 
-		public Builder withOperationContext(JsonObject operationContext) {
-			this.operationContext = operationContext;
+		public Builder withOperationContext(JsonObject json) {
+			this.operationContext = OperationContext.fromJson(json);
 			return this;
 		}
 
 		public Builder withOperationContext(OperationContext oc) {
-			this.operationContext = (JsonObject) oc.toJson();
+			this.operationContext = oc;
 			return this;
 		}
 

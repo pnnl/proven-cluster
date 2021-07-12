@@ -41,6 +41,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.item;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.json.Json;
 import javax.json.JsonValue;
@@ -67,7 +68,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
 public class ModelArtifactItem implements MessageItem {
 
 	public static final String MODEL_ARTIFACT_MESSAGE_NAME = "model-artifact-message";
-	public static final int MINIMUM_MODEL_NAMES = 1;
 	public static final String DEFAULT_MODEL_NAME = "DEFAULT";
 	public static final String CONTENT_ENCODING = "base64";
 
@@ -163,8 +163,8 @@ public class ModelArtifactItem implements MessageItem {
 	}
 
 	@JsonbProperty(CONTENT_PROP)
-	public String getContent() {
-		return content;
+	public Optional<String> getContent() {
+		return Optional.ofNullable(content);
 	}
 
 	@JsonbProperty(SYNTAX_PROP)
@@ -290,11 +290,10 @@ public class ModelArtifactItem implements MessageItem {
 					.withDescription("Identifies the query models this artifaact will be part of."
 							+ "Names may be represented as a file path, in this way, "
 							+ "query models can be organized similar to a file system.")
-					.withType(InstanceType.ARRAY, InstanceType.NULL)
-					.withDefault(JsonValue.NULL)
+					.withType(InstanceType.ARRAY)
+					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
 					.withItems(sbf.createBuilder()
 							.withType(InstanceType.STRING)
-							.withMinItems(MINIMUM_MODEL_NAMES)
 							.withPattern("([/a-zA-Z0-9_-]+)+$")
 							.withDescription("Cannot include the deafult query model name in array of named models. "
 									+ "Set property " + DEFAULT_QUERY_MODEL_PROP + " to true to indicate the artifact "
@@ -321,7 +320,7 @@ public class ModelArtifactItem implements MessageItem {
 			
 			.withProperty(SYNTAX_PROP, sbf.createBuilder()
 				.withDescription("Identifies graph syntax.")
-				.withType(InstanceType.STRING, InstanceType.NULL)
+				.withType(InstanceType.STRING)
 				.withDefault(Json.createValue(Syntax.getDefaultSyntax().getSyntaxName()))
 				.withEnum(Validatable.toJsonValues(Syntax.getSyntaxNames()))
 				.withDefault(Json.createValue(Syntax.JSONLD.getSyntaxName()))

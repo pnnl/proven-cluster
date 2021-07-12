@@ -47,6 +47,7 @@ import static gov.pnnl.proven.cluster.lib.disclosure.item.Validatable.ww;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.json.Json;
@@ -82,6 +83,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  */
 public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
+	public static final int MAX_TAGS = 10;
+	
 	public static final String CONTENT_PROP = "content";
 	public static final String ITEM_PROP = "item";
 	public static final String REQUESTOR_PROP = "requestor";
@@ -124,13 +127,13 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 	}
 
 	@JsonbProperty(value = REQUESTOR_PROP)
-	public String getRequestor() {
-		return requestor;
+	public Optional<String> getRequestor() {
+		return Optional.ofNullable(requestor);
 	}
 
 	@JsonbProperty(NAME_PROP)
-	public String getName() {
-		return name;
+	public Optional<String> getName() {
+		return Optional.ofNullable(name);
 	}
 
 	@JsonbProperty(TAGS_PROP)
@@ -209,8 +212,8 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeUTF(getContent().toString());
 		out.writeObject(item);
-		writeNullable(getRequestor(), out, ww((v, o) -> out.writeUTF(v)));
-		writeNullable(getName(), out, ww((v, o) -> out.writeUTF(v)));
+		writeNullable(requestor, out, ww((v, o) -> out.writeUTF(v)));
+		writeNullable(name, out, ww((v, o) -> out.writeUTF(v)));
 		writeNullable(getTags(), out, ww((v, o) -> out.writeUTFArray(v)));
 	}
 
@@ -266,7 +269,7 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 				.withProperty(ITEM_PROP, sbf.createBuilder()
 					.withDescription("Identifies the type of message item contained in a disclosure item.  "
 							+ "The provided selections are the message names for each item type.")
-					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withType(InstanceType.STRING)
 					.withEnum(items)
 					.withDefault(defaultItem)
 					.build())
@@ -282,11 +285,11 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 					.build())
 
 				.withProperty(TAGS_PROP, sbf.createBuilder()
-					.withType(InstanceType.ARRAY, InstanceType.NULL)
+					.withType(InstanceType.ARRAY)
 					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
 					.withItems(sbf.createBuilder()
 						.withType(InstanceType.STRING)
-						.withMaxItems(maxTags)
+						.withMaxItems(MAX_TAGS)
 						.build())
 					.build())
 		
