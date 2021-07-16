@@ -62,6 +62,7 @@ import gov.pnnl.proven.cluster.module.member.sse.SseSession;
  * @author d3j766
  *
  */
+@Deprecated
 @XmlRootElement(name = "response-event")
 public class SseResponseEventDto implements SseEventData, Serializable {
 

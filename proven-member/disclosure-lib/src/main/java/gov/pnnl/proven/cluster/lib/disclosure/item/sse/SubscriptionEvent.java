@@ -39,14 +39,16 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
+import javax.ws.rs.core.Response;
 
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
@@ -55,14 +57,14 @@ import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
-import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseContext.Builder;
 
 /**
- * Immutable class representing an SSE subscription.
+ * Immutable class representing an SSE subscription event data.
  * 
  * @author d3j766
  *
- * @see EventData, EventSubscriptionItem
+ * @see EventData
  *
  */
 public class SubscriptionEvent implements EventData {
@@ -71,24 +73,31 @@ public class SubscriptionEvent implements EventData {
 
 	static final String SESSION_ID_PROP = "sessionId";
 	static final String EVENT_NAME_PROP = "eventName";
-	static final String SUBSCRIPTION_PROP = "subscription";
+	static final String POSTED_SUBSCRIPTION_PROP = "subscription";
+	public static final String STATUS_CODE_PROP = "statusCode";
+	public static final String STATUS_MESSAGE_PROP = "statusMessage";
 
 	private UUID sessionId;
-	private EventSubscription subscription;
+	private JsonObject postedSubscription;
+	private Response.Status statusCode;
+	private String statusMessage;
 
 	public SubscriptionEvent() {
 	}
 
 	@JsonbCreator
-	public static SubscriptionEvent createOperationEvent(@JsonbProperty(SESSION_ID_PROP) UUID sessionId,
-			@JsonbProperty(SUBSCRIPTION_PROP) EventSubscription subscription) {
-		return SubscriptionEvent.newBuilder().withSessionId(sessionId)
-				.withSubscription(subscription).build(true);
+	public static SubscriptionEvent createOperationEvent(@JsonbProperty(STATUS_CODE_PROP) Response.Status statusCode,
+			@JsonbProperty(STATUS_MESSAGE_PROP) String statusMessage, @JsonbProperty(SESSION_ID_PROP) UUID sessionId,
+			@JsonbProperty(POSTED_SUBSCRIPTION_PROP) JsonObject postedSubscription) {
+		return SubscriptionEvent.newBuilder().withStatusCode(statusCode).withStatusMessage(statusMessage)
+				.withSessionId(sessionId).withPostedSubscription(postedSubscription).build(true);
 	}
 
 	private SubscriptionEvent(Builder b) {
 		this.sessionId = b.sessionId;
-		this.subscription = b.subscription;
+		this.postedSubscription = b.postedSubscription;
+		this.statusCode = b.statusCode;
+		this.statusMessage = b.statusMessage;
 	}
 
 	@JsonbProperty(SESSION_ID_PROP)
@@ -103,9 +112,19 @@ public class SubscriptionEvent implements EventData {
 		return SUBSCRIPTION_EVENT_NAME;
 	}
 
-	@JsonbProperty(SUBSCRIPTION_PROP)
-	public EventSubscription getSubscription() {
-		return subscription;
+	@JsonbProperty(POSTED_SUBSCRIPTION_PROP)
+	public JsonObject getPostedSubscription() {
+		return postedSubscription;
+	}
+
+	@JsonbProperty(STATUS_CODE_PROP)
+	public Response.Status getStatusCode() {
+		return statusCode;
+	}
+
+	@JsonbProperty(STATUS_MESSAGE_PROP)
+	public Optional<String> getStatusMessage() {
+		return Optional.ofNullable(statusMessage);
 	}
 
 	public static Builder newBuilder() {
@@ -115,7 +134,9 @@ public class SubscriptionEvent implements EventData {
 	public static final class Builder {
 
 		private UUID sessionId;
-		private EventSubscription subscription;
+		private JsonObject postedSubscription;
+		private Response.Status statusCode;
+		private String statusMessage;
 
 		private Builder() {
 		}
@@ -125,8 +146,18 @@ public class SubscriptionEvent implements EventData {
 			return this;
 		}
 
-		public Builder withSubscription(EventSubscription subscription) {
-			this.subscription = subscription;
+		public Builder withPostedSubscription(JsonObject postedSubscription) {
+			this.postedSubscription = postedSubscription;
+			return this;
+		}
+
+		public Builder withStatusCode(Response.Status statusCode) {
+			this.statusCode = statusCode;
+			return this;
+		}
+
+		public Builder withStatusMessage(String statusMessage) {
+			this.statusMessage = statusMessage;
 			return this;
 		}
 
@@ -161,15 +192,9 @@ public class SubscriptionEvent implements EventData {
 	public JsonSchema toSchema() {
 
 		JsonSchema ret;
-		
-		// Create EventuSbscription schema definition listing
-		List<Class<? extends EventSubscription>> subscriptions = EventSubscription.subscriptionTypes();
-		List<JsonSchema> subscriptionSchemas = new ArrayList<>();
-		for (Class<? extends EventSubscription> subscription : subscriptions) {
-			subscriptionSchemas.add(Validatable.retrieveSchema(subscription));
-		}
-		
+
 		//@formatter:off
+		
 		ret = sbf.createBuilder()
 
 			.withId(Validatable.schemaId(this.getClass()))
@@ -178,29 +203,42 @@ public class SubscriptionEvent implements EventData {
 			
 			.withTitle("SSE subscription.")
 
-			.withDescription("This SSE message provides the subscription information, including the session identifier "
-						   + "reference for the HTTP connection.") 
+			.withDescription("This SSE message provides the status of a subscription request.") 
 
 			.withType(InstanceType.OBJECT)
 
 			.withProperty(SESSION_ID_PROP, sbf.createBuilder()
-				.withDescription("SSE session identifier")
-				.withType(InstanceType.STRING)
+				.withDescription("SSE session identifier.  Will be null if subscription was not created.")
+				.withType(InstanceType.STRING, InstanceType.NULL)
 				.withPattern(UUID_PATTERN)
 				.build())
 							
 			.withProperty(EVENT_NAME_PROP, sbf.createBuilder()
-				.withDescription("This message name.")
+				.withDescription("The SSE message name.")
 				.withType(InstanceType.STRING)
 				.withConst(Json.createValue(getEventName()))
 				.build())
 			
-			.withProperty(SUBSCRIPTION_PROP, sbf.createBuilder()
-					.withOneOf(subscriptionSchemas)
+			.withProperty(POSTED_SUBSCRIPTION_PROP, sbf.createBuilder()
+					.withDescription("The original posted subscription request.")
 					.withType(InstanceType.OBJECT)
 					.build())
-						
-			.withRequired(SESSION_ID_PROP, EVENT_NAME_PROP, SUBSCRIPTION_PROP)
+			
+			.withProperty(STATUS_CODE_PROP,
+					sbf.createBuilder()
+					.withDescription("Uses common HTTP status codes to represent status of the request.")
+					.withType(InstanceType.STRING)
+					.withPattern(RESPONSE_STATUS_CODE_PATTERN)
+					.build())
+			
+			.withProperty(STATUS_MESSAGE_PROP,
+					sbf.createBuilder()
+					.withDescription("Additional information describing request status.")
+					.withType(InstanceType.STRING, InstanceType.NULL)
+					.withDefault(JsonValue.NULL)
+					.build())
+					
+			.withRequired(EVENT_NAME_PROP, POSTED_SUBSCRIPTION_PROP, STATUS_CODE_PROP)
 			
 			.build();
 						

@@ -77,7 +77,6 @@ import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext.Builder;
 
 /**
  * Immutable class representing data disclosed to a Proven platform.
@@ -216,6 +215,11 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 	@JsonbProperty(MESSAGE_PROP)
 	public JsonStructure getMessage() {
 		return message;
+	}
+
+	@JsonbTransient
+	public MessageItem getMessageItem() {
+		return Validatable.toValidatable(getContext().getItem(), getMessage().toString(), true);
 	}
 
 	@JsonbProperty(value = MESSAGE_SCHEMA_PROP)
