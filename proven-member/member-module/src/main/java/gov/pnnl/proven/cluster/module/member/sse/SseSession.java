@@ -39,19 +39,21 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.module.member.sse;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.*;
+import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ANY;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 import javax.ws.rs.sse.Sse;
 import javax.ws.rs.sse.SseEventSink;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventSubscription;
 
 /**
  * Represents an SSE session. SSE Sessions are created by the resource class
@@ -75,96 +77,51 @@ public class SseSession {
 
 	private EventStream event;
 	private UUID sessionId;
+	private EventSubscription eventSubscription;
 	private Sse sse;
 	private SseEventSink eventSink;
-	private DisclosureDomain domain;
-	private List<MessageContent> contents;
-	private String requestor;
 
-	public SseSession(EventStream event, UUID sessionId, Sse sse, SseEventSink eventSink, Optional<String> domainOpt,
-			Optional<List<String>> contentsOpt, Optional<String> requesterOpt) {
+	public SseSession(UUID sessionId, EventSubscription eventSubscription, Sse sse, SseEventSink eventSink) {
 
-		this.event = event;
+		this.event = EventStream.getForEvent(eventSubscription.getEventType());
+		this.eventSubscription = eventSubscription;
 		this.sessionId = sessionId;
 		this.sse = sse;
 		this.eventSink = eventSink;
 
-		// domain
-		this.domain = DomainProvider.getProvenDisclosureDomain();
-		if ((domainOpt.isPresent()) && (DisclosureDomain.isValidDomain(domainOpt.get()))) {
-			this.domain = new DisclosureDomain(domainOpt.get());
-
-		}
-		// contents
-		this.contents = new ArrayList<MessageContent>();
-		this.contents.add(ANY);
-		if (contentsOpt.isPresent()) {
-			List<String> source = contentsOpt.get();
-			if (source.size() > 0) {
-				// Get valid content types for the event's stream type
-				List<MessageContent> valid = this.event.getStreamType().getMessageContents();
-				ArrayList<MessageContent> dest = new ArrayList<>();
-				for (String mcStr : source) {
-					MessageContent mc = MessageContent.getMessageContent(mcStr);
-					if ((null != mc) && (valid.contains(mc))) {
-						if (mc.equals(ANY)) {
-							dest.clear();
-							dest.add(mc);
-							break;
-						} else {
-							dest.add(mc);
-						}
-					}
-				}
-				if (!dest.isEmpty()) {
-					this.contents = dest;
-				}
-			}
-		}
-
-		// requester
-		this.requestor = null;
-		if ((requesterOpt.isPresent()) && (!requesterOpt.get().isEmpty())) {
-			this.requestor = requesterOpt.get();
-		}
-
-		logger.debug("Created new SSE Session:");
-		logger.debug("\tDomain: " + this.domain.toString());
-		logger.debug("\tMessageContent: " + this.contents.toString());
-		logger.debug("\tRequester: " + ((null == this.requestor) ? ("Any") : (this.requestor)));
+		logger.debug("Created new SSE Session for event type: " + eventSubscription.getEventType());
 		logger.debug("");
-
 	}
 
 	public boolean hasEvent(EventStream eventToCheck) {
 		return event.equals(eventToCheck);
 	}
 
-	public boolean hasDomain(DisclosureDomain domainToCheck) {
-		return domain.equals(domainToCheck);
-	}
+//	public boolean hasDomain(DisclosureDomain domainToCheck) {
+//		return domain.equals(domainToCheck);
+//	}
 
-	public boolean hasContent(MessageContent mcToCheck) {
+//	public boolean hasContent(MessageContent mcToCheck) {
+//
+//		boolean ret = true;
+//
+//		if (!contents.contains(ANY)) {
+//			if (!contents.contains(mcToCheck)) {
+//				ret = false;
+//			}
+//		}
+//
+//		return ret;
+//	}
 
-		boolean ret = true;
-
-		if (!contents.contains(ANY)) {
-			if (!contents.contains(mcToCheck)) {
-				ret = false;
-			}
-		}
-
-		return ret;
-	}
-
-	public boolean hasRequestor(Optional<String> requesterToCheck) {
-
-		boolean ret = true;
-		if ((requesterToCheck.isPresent()) && (!requesterToCheck.get().isEmpty())) {
-			ret = requestor.equals(requesterToCheck.get());
-		}
-		return ret;
-	}
+//	public boolean hasRequestor(Optional<String> requesterToCheck) {
+//
+//		boolean ret = true;
+//		if ((requesterToCheck.isPresent()) && (!requesterToCheck.get().isEmpty())) {
+//			ret = requestor.equals(requesterToCheck.get());
+//		}
+//		return ret;
+//	}
 
 	@Override
 	public int hashCode() {
@@ -211,6 +168,14 @@ public class SseSession {
 	public void setSessionId(UUID sessionId) {
 		this.sessionId = sessionId;
 	}
+	
+	public EventSubscription getEventSubscription() {
+		return eventSubscription;
+	}
+
+	public void setEventSubscription(EventSubscription eventSubscription) {
+		this.eventSubscription = eventSubscription;
+	}
 
 	public Sse getSse() {
 		return sse;
@@ -228,28 +193,28 @@ public class SseSession {
 		this.eventSink = eventSink;
 	}
 
-	public DisclosureDomain getDomain() {
-		return domain;
-	}
-
-	public void setDomain(DisclosureDomain domain) {
-		this.domain = domain;
-	}
-
-	public List<MessageContent> getContents() {
-		return contents;
-	}
-
-	public void setContents(List<MessageContent> contents) {
-		this.contents = contents;
-	}
-
-	public String getRequestor() {
-		return requestor;
-	}
-
-	public void setRequester(String requester) {
-		this.requestor = requester;
-	}
+//	public DisclosureDomain getDomain() {
+//		return domain;
+//	}
+//
+//	public void setDomain(DisclosureDomain domain) {
+//		this.domain = domain;
+//	}
+//
+//	public List<MessageContent> getContents() {
+//		return contents;
+//	}
+//
+//	public void setContents(List<MessageContent> contents) {
+//		this.contents = contents;
+//	}
+//
+//	public String getRequestor() {
+//		return requestor;
+//	}
+//
+//	public void setRequester(String requester) {
+//		this.requestor = requester;
+//	}
 
 }

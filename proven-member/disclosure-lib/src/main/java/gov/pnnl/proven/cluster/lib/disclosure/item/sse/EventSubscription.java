@@ -42,6 +42,7 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 import java.util.List;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
@@ -69,5 +70,14 @@ public interface EventSubscription extends Validatable {
 	 * Represents the domain for event data being subscribed to.
 	 */
 	DisclosureDomain getDomain();
+
+	/**
+	 * Determines if a disclosed message is included in the subscription.
+	 * 
+	 * @param disclosureItem
+	 *            the disclosed message
+	 * @return true if it is included in the subscription, false otherwise.
+	 */
+	boolean subscribed(DisclosureItem disclosureItem);
 
 }

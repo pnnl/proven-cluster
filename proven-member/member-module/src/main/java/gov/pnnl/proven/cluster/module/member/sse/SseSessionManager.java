@@ -55,9 +55,14 @@ import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.json.JsonObject;
+import javax.json.stream.JsonParsingException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.OutboundSseEvent.Builder;
+import javax.ws.rs.sse.Sse;
+import javax.ws.rs.sse.SseEventSink;
 
 import org.slf4j.Logger;
 
@@ -67,15 +72,20 @@ import com.hazelcast.map.listener.EntryAddedListener;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventData;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventSubscription;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.OperationEvent;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.OperationSubscription;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.SubscriptionEvent;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
-import gov.pnnl.proven.cluster.module.member.dto.SseRegisterEventDto;
-import gov.pnnl.proven.cluster.module.member.dto.SseResponseEventDto;
+import gov.pnnl.proven.cluster.lib.module.stream.message.DistributedMessage;
 
 /**
  * Manages SSE sessions created by the resource class
@@ -95,7 +105,7 @@ import gov.pnnl.proven.cluster.module.member.dto.SseResponseEventDto;
  *
  */
 @ApplicationScoped
-public class SseSessionManager implements EntryAddedListener<String, ProvenMessage> {
+public class SseSessionManager implements EntryAddedListener<UUID, DistributedMessage> {
 
 	public static final String SSE_EXECUTOR_SERVICE = "concurrent/SSE";
 	public static final int SSE_RECONNECT_DELAY = 4000;
@@ -172,8 +182,8 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			cleanSessions();
 		}
 
-		// Get register event data to push to client
-		SseRegisterEventDto sre = new SseRegisterEventDto(session);
+		// Get subscription event for push
+		// SubscriptionEvent.newBuilder().
 
 		// Determine if it is the first session
 		boolean isFirstSession = isFirstSessionForDomainStream(session);
@@ -181,20 +191,9 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 		// Add session to registry
 		addSession(session);
 
-		// Send register event
-		String comment = "SSE session registration";
-		CompletableFuture.runAsync(() -> {
-			try {
-				sendEventData(session, sre, comment);
-			} catch (Throwable t) {
-				t.printStackTrace();
-				throw t;
-			}
-		}, mes).exceptionally(this::entryException);
-
 		// Add listener, if it's first session for the domain stream
 		if (isFirstSession) {
-			addListener(session.getDomain(), session.getEvent().getStreamType());
+			addListener(session.getEventSubscription().getDomain(), session.getEvent().getStreamType());
 		}
 
 		registrationCount++;
@@ -214,7 +213,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			if (isLastSession) {
 
 				// Turn off the entry listener for domain stream
-				removeListener(session.getDomain(), session.getEvent().getStreamType());
+				removeListener(session.getEventSubscription().getDomain(), session.getEvent().getStreamType());
 			}
 
 			// Update registry and close session
@@ -227,6 +226,190 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 			logger.debug("Session deregistration for session ID :: " + sessionId + " , NOT FOUND");
 		}
 
+	}
+
+	/**
+	 * Creates event data for provided session and disclosure item.
+	 * 
+	 * @param session
+	 *            subscribed session, used to create event data
+	 * @param disclosureItem
+	 *            distributed message, used to create event data
+	 * @return event data created from provided session and disclosure item
+	 * @throws IllegalArgumentException
+	 *             if provided session and/or disclosure item do not match the
+	 *             event type provided by the session.
+	 * @throws JsonParsingException
+	 *             if created JSON event data could not be validated against
+	 *             associated JSON-SCHEMA
+	 * @throws UnsupportedOperationException
+	 *             if session's event type is not recognized
+	 */
+	public EventData createEventData(SseSession session, DisclosureItem disclosureItem) {
+
+		EventData ret;
+		MessageItem mi = disclosureItem.getMessageItem();
+		EventSubscription es = session.getEventSubscription();
+
+		switch (session.getEvent().getEventType()) {
+
+		case OPERATION:
+
+			boolean isOperationSubscription = OperationSubscription.class.isAssignableFrom(es.getClass());
+			boolean isResponseItem = ResponseItem.class.isAssignableFrom(mi.getClass());
+			if ((isOperationSubscription) && (isResponseItem)) {
+				ret = OperationEvent.newBuilder().withSessionId(session.getSessionId())
+						.withSubscription((OperationSubscription) session.getEventSubscription())
+						.withResponse((ResponseItem) disclosureItem.getMessageItem()).build();
+			} else {
+				throw new IllegalArgumentException("Unable to create event data for an OPERATION event.  "
+						+ ((isOperationSubscription) ? "" : "Invalid session provided ")
+						+ ((isResponseItem) ? "" : "Invalid DisclosureItem provided"));
+			}
+			break;
+
+		default:
+			throw new UnsupportedOperationException("Unkown or missing event type for SSE event data creation");
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Creates subscription event data.
+	 * 
+	 * @param postedSubscription
+	 *            original posted subscription request
+	 * @param statusCode
+	 *            a response status code used to indicate subscription request
+	 *            status.
+	 * @param statusMessage
+	 *            additional information describing status. This may be null.
+	 *
+	 * @param sessionId
+	 *            the session identifier. This may be null indicating an
+	 *            unsuccessful subscription request.
+	 *            
+	 * @return new subscription event data
+	 * 
+	 * @throws JsonParsingException
+	 *             if created JSON event data could not be validated against
+	 *             associated JSON-SCHEMA
+	 */
+	public EventData createSubscriptionEventData(JsonObject postedSubscription, Response.Status statusCode,
+			UUID sessionId, String statusMessage) {
+		return SubscriptionEvent.newBuilder().withSessionId(sessionId).withPostedSubscription((postedSubscription))
+				.withStatusCode(statusCode).withStatusMessage(statusMessage).build();
+	}
+
+	/**
+	 * Sends an SSE message for connections with an associated session.
+	 * 
+	 * @param session
+	 *            the session representing a client connection
+	 * @param data
+	 *            data to send
+	 * @param comment
+	 *            comment string associated with event
+	 */
+	public void sendEventData(SseSession session, EventData data, String comment) {
+		sendEventData(session.getSse(), session.getEventSink(), data, comment, session.getSessionId());
+	}
+
+	/**
+	 * Sends an SSE message.
+	 * 
+	 * @param sse
+	 *            Sse associated with connection
+	 * @param eventSink
+	 *            SseEventSink associated with connection
+	 * @param data
+	 *            data to send
+	 * @param comment
+	 *            comment string associated with event
+	 * @param sessionId
+	 *            session identifier. This may be null if session was not
+	 *            created due to an unsuccessful subscription request.
+	 */
+	public void sendEventData(Sse sse, SseEventSink eventSink, EventData data, String comment, UUID sessionId) {
+
+		try {
+
+			Builder sseBuilder = sse.newEventBuilder();
+
+			//@formatter:off
+			OutboundSseEvent sseEvent = sseBuilder
+					.name(data.getEventName())
+					.id(String.valueOf(eventId.getAndIncrement()))
+					.mediaType(MediaType.APPLICATION_JSON_TYPE )
+					.data(data.getClass(), data)
+					.reconnectDelay(SSE_RECONNECT_DELAY)
+					.comment(comment)
+					.build();
+			//@formatter:on
+
+			eventSink.send(sseEvent);
+
+		} catch (IllegalStateException e) {
+			// Connection has been closed - remove session from registry if
+			// there is one
+			if (null != sessionId) {
+				logger.debug("Stale session encountered - Session ID :: " + sessionId.toString()
+						+ ".  Session will be deregistered");
+				deregister(sessionId);
+			}
+		}
+
+	}
+
+	@Override
+	public void entryAdded(EntryEvent<UUID, DistributedMessage> event) {
+
+		DisclosureItem di = event.getValue().disclosureItem();
+
+		CompletableFuture.runAsync(() -> {
+
+			try {
+				MessageContent mc = di.getContext().getContent();
+				MessageStreamType mst = MessageStreamType.getType(mc);
+				DisclosureDomain dd = di.getDomain();
+				SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
+				Set<SseSession> sessions = sessionRegistry.get(se);
+				boolean hasSessions = ((null != sessions) && (!sessions.isEmpty()));
+				if (hasSessions) {
+					for (SseSession session : sessions) {
+						if (session.getEventSubscription().subscribed(di)) {
+							EventData eventData = createEventData(session, di);
+							String comment = "sse event: " + eventData.getEventName();
+							sendEventData(session, eventData, comment);
+						}
+					}
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				throw ex;
+			}
+
+		}, mes).exceptionally(this::entryException);
+	}
+
+	/**
+	 * Callback for entry message processing, if completed exceptionally.
+	 * 
+	 * TODO - how to recover from exception? Include message in the exception
+	 * that is re-thrown and save for retry?
+	 * 
+	 * @param readerException
+	 *            the exception thrown from the entry processor.
+	 */
+	protected Void entryException(Throwable readerException) {
+
+		Void ret = null;
+
+		// Simple log message for now...
+		logger.error("Sending SSE event data for a Proven message has failed.");
+
+		return ret;
 	}
 
 	private SseSession retrieveSession(UUID sessionId) {
@@ -246,7 +429,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 	private void addSession(SseSession session) {
 
-		DisclosureDomain dd = session.getDomain();
+		DisclosureDomain dd = session.getEventSubscription().getDomain();
 		MessageStreamType mst = session.getEvent().getStreamType();
 		UUID sessionId = session.getSessionId();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
@@ -286,13 +469,13 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 
 		if (null != session) {
 
-			SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = new SimpleEntry<>(session.getDomain(),
-					session.getEvent().getStreamType());
+			SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = new SimpleEntry<>(
+					session.getEventSubscription().getDomain(), session.getEvent().getStreamType());
 			sessionRegistry.get(domainStream).remove(session);
 			sessionsById.remove(session.getSessionId());
 
-			logger.debug("After removing sesson - Domain stream " + "[" + session.getDomain() + "::"
-					+ session.getEvent().getStreamType().toString() + "] COUNT :: "
+			logger.debug("After removing sesson - Domain stream " + "[" + session.getEventSubscription().getDomain()
+					+ "::" + session.getEvent().getStreamType().toString() + "] COUNT :: "
 					+ sessionRegistry.get(domainStream).size());
 		}
 	}
@@ -345,7 +528,7 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 	private boolean isFirstSessionForDomainStream(SseSession session) {
 
 		boolean ret = false;
-		DisclosureDomain dd = session.getDomain();
+		DisclosureDomain dd = session.getEventSubscription().getDomain();
 		MessageStreamType mst = session.getEvent().getStreamType();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 		if ((!sessionRegistry.containsKey(se)) || (sessionRegistry.get(se).isEmpty())) {
@@ -357,128 +540,13 @@ public class SseSessionManager implements EntryAddedListener<String, ProvenMessa
 	private boolean isLastSessionForDomainStream(SseSession session) {
 
 		boolean ret = false;
-		DisclosureDomain dd = session.getDomain();
+		DisclosureDomain dd = session.getEventSubscription().getDomain();
 		MessageStreamType mst = session.getEvent().getStreamType();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 		if ((sessionRegistry.containsKey(se)) && (sessionRegistry.get(se).size() == 1)
 				&& (sessionRegistry.get(se).contains(session))) {
 			ret = true;
 		}
-		return ret;
-	}
-
-	private void sendEventData(SseSession session, SseEventData data, String comment) {
-
-		try {
-
-			Builder sseBuilder = session.getSse().newEventBuilder();
-
-			//@formatter:off
-			OutboundSseEvent sseEvent = sseBuilder
-					.name(session.getEvent().getLabel())
-					.id(String.valueOf(eventId.getAndIncrement()))
-					.mediaType(MediaType.APPLICATION_JSON_TYPE )
-					.data(data.getClass(), data)
-					.reconnectDelay(SSE_RECONNECT_DELAY)
-					.comment(comment)
-					.build();
-			//@formatter:on
-
-			session.getEventSink().send(sseEvent);
-
-		} catch (IllegalStateException e) {
-			// Connection has been closed - remove session from registry
-			logger.debug("Stale session encountered - Session ID :: " + session.getSessionId());
-			deregister(session.getSessionId());
-		} catch (Throwable t) {
-			logger.error("SSE send event data failure");
-			t.printStackTrace();
-		}
-
-	}
-
-	private SseEventData extractEventData(SseSession session, ProvenMessage message) {
-
-		SseEventData eventData = null;
-
-		MessageContent mc = message.getMessageContent();
-		MessageStreamType mst = MessageStreamType.getType(mc);
-
-		switch (mst) {
-
-		case RESPONSE:
-
-			ResponseMessage rm = (ResponseMessage) message;
-			eventData = new SseResponseEventDto(session, rm);
-			break;
-
-		default:
-			logger.error("Unsupported stream type for SSE event data processing encountered.");
-			break;
-		}
-
-		return eventData;
-	}
-
-	@Override
-	public void entryAdded(EntryEvent<String, ProvenMessage> event) {
-
-		// Send events for added message
-		ProvenMessage message = event.getValue();
-		CompletableFuture.runAsync(() -> {
-
-			try {
-				MessageContent mc = message.getMessageContent();
-				MessageStreamType mst = MessageStreamType.getType(mc);
-				DisclosureDomain dd = message.getDisclosureItem().getDomain();
-				SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-				Set<SseSession> sessions = sessionRegistry.get(se);
-				boolean hasSessions = ((null != sessions) && (!sessions.isEmpty()));
-
-				if (hasSessions) {
-
-					for (SseSession session : sessions) {
-
-						// Check if event data should be sent to session
-						boolean hasDomain = session.hasDomain(dd);
-						boolean hasContent = session.hasContent(mc);
-						boolean hasRequester = session.hasRequestor(Optional.ofNullable(message.getDisclosureItem().getContext().getRequestor().orElse(null)));
-						boolean sendEvent = ((hasDomain) && (hasContent) && (hasRequester));
-
-						if (sendEvent) {
-							SseEventData eventData = extractEventData(session, message);
-							if (null != eventData) {
-								String comment = "sse event data for a " + message.getClass().getSimpleName();
-								sendEventData(session, eventData, comment);
-							}
-						}
-					}
-				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				throw ex;
-			}
-
-		}, mes).exceptionally(this::entryException);
-
-	}
-
-	/**
-	 * Callback for entry message processing, if completed exceptionally.
-	 * 
-	 * TODO - how to recover from exception? Include message in the exception
-	 * that is re-thrown and save for retry?
-	 * 
-	 * @param readerException
-	 *            the exception thrown from the entry processor.
-	 */
-	protected Void entryException(Throwable readerException) {
-
-		Void ret = null;
-
-		// Simple log message for now...
-		logger.error("Sending SSE event data for a Proven message has failed.");
-
 		return ret;
 	}
 

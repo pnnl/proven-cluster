@@ -54,6 +54,7 @@ import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
@@ -226,6 +227,12 @@ public class OperationSubscription implements EventSubscription {
 	@Override
 	public DisclosureDomain getDomain() {
 		return domain;
+	}
+
+	@Override
+	public boolean subscribed(DisclosureItem disclosureItem) {
+		boolean ret = false;
+		return false;
 	}
 
 	@Override

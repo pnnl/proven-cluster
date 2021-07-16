@@ -90,7 +90,6 @@ public class MemberResourceConsts {
 	public static final String RR_MESSAGE_STREAM = "/messageStreams";
 	
 	// R_ -> Resources
-	public static final String R_RESPONSE_EVENTS = "/responseEvents";
-	
+	public static final String R_SUBSCRIPTION = "/subscription";
 	
 }

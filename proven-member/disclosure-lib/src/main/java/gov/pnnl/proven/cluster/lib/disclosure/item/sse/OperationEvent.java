@@ -168,7 +168,6 @@ public class OperationEvent implements EventData {
 					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
 				}
 			}
-
 			return ret;
 		}
 	}

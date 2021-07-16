@@ -81,45 +81,49 @@
 package gov.pnnl.proven.cluster.module.member.resource;
 
 import static gov.pnnl.proven.cluster.module.member.resource.MemberResourceConsts.RR_SSE;
-import static gov.pnnl.proven.cluster.module.member.resource.MemberResourceConsts.R_RESPONSE_EVENTS;
+import static gov.pnnl.proven.cluster.module.member.resource.MemberResourceConsts.R_SUBSCRIPTION;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
+import javax.json.JsonObject;
+import javax.json.stream.JsonParsingException;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.Sse;
+import javax.ws.rs.sse.SseBroadcaster;
 import javax.ws.rs.sse.SseEventSink;
 
 import org.slf4j.Logger;
 
-import gov.pnnl.proven.cluster.module.member.sse.EventStream;
+import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
+import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventData;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventSubscription;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventType;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.OperationSubscription;
 import gov.pnnl.proven.cluster.module.member.sse.SseSession;
 import gov.pnnl.proven.cluster.module.member.sse.SseSessionManager;
 
 /**
  * 
- * A resource class used for the registration and deregistration of
- * {@code SseSession}s. Each registered session represents a connection to a
- * client where SSE data will be pushed based on the session's configuration.
- * 
- * TODO - create a SseSession configuration class to support POSTing
- * configuration.
+ * A resource class supporting creation of SSE Session subscriptions. Each
+ * subscribed session represents a connection to a client where SSE data will be
+ * pushed based on the session's configuration determined by an
+ * EventSubscription.
  * 
  * @author d3j766
  *
+ * @see SssSession, EventSubscription
+ * 
  */
 @Path(RR_SSE)
 public class SseSessionResource {
@@ -128,75 +132,78 @@ public class SseSessionResource {
 	Logger logger;
 
 	@Inject
-	SseSessionManager sessions;
+	SseSessionManager sm;
 
 	/**
-	 * Registers an SSE session with the client requester. Response event data
-	 * is pushed to client as it is created/added on server side. Response event
-	 * data is based on {@code ResponseMessage}s. The event data sent to the
-	 * client is filtered using query parameters provided in the service call.
+	 * SSE Subscription. Connects an SSE session with the client requestor.
+	 * Event messages selected for push to client are determined by the posted
+	 * EventSubscription.
 	 * 
-	 * TODO - this is initial implementation. Are there other query parameters
-	 * to add?
+	 * @param sse
+	 *            server-side entry point for creating {@link OutboundSseEvent}
+	 *            and {@link SseBroadcaster}. Provided by the application
+	 *            container.
 	 * 
 	 * @param eventSink
 	 *            represents HTTP client connection where event data will be
 	 *            pushed. Provided by the application container.
-	 * @param domain
-	 *            (optional) identifies disclosure domain that the response
-	 *            event is based on. Only events matching this value will be
-	 *            sent. If not provided, the Proven domain is used.
-	 * @param content
-	 *            (optional) identifies the type of message content that the
-	 *            response event is based on. The types are listed at
-	 *            {@code MessageContent#getNames()}. Only events matching these
-	 *            value will be sent. If not provided all contentTypes are
-	 *            included.
-	 * @param requestor
-	 *            (optional) identifies user provided requestor name, that
-	 *            the response event is based on. This is provided at
-	 *            disclosure time by the requestor. Only events matching
-	 *            this value will be pushed.
+	 * 
+	 * @param postedSubscription
+	 *            defines the subscription being requested by the client.
+	 * 
 	 */
-	@GET
-	@Path(R_RESPONSE_EVENTS)
+	@POST
+	@Path(R_SUBSCRIPTION + "/{eventType}")
 	@Produces(MediaType.SERVER_SENT_EVENTS)
 	public void getResponseEvents(@Context Sse sse, @Context SseEventSink eventSink,
-			@QueryParam("domain") String domain, @QueryParam("content") String content,
-			@QueryParam("requester") String requester) {
-
-		// domain
-		Optional<String> domainOpt = Optional.ofNullable(domain);
-
-		// content list
-		List<String> contentList = null;
-		if (null != content) {
-			contentList = Stream.of(content.split(",")).map(String::trim).map(String::toLowerCase)
-					.collect(Collectors.toList());
+			@PathParam("eventType") EventType et, JsonObject postedSubscription) {
+		
+		boolean closeConnection = false;
+		try {
+			EventSubscription es = getEventSubscription(postedSubscription, et);
+			SseSession session = new SseSession(UUID.randomUUID(), es, sse, eventSink);
+			sm.register(session);
+			String statusMessage = "Successful subscription creation";
+			EventData data = sm.createSubscriptionEventData((JsonObject) es.toJson(), Response.Status.OK,
+					session.getSessionId(), statusMessage);
+			sm.sendEventData(session, data, null);
+		} catch (ValidatableBuildException ex) {
+			if (!eventSink.isClosed()) {
+				String statusMessage = "Unsuccessful subscription creation.  Invalid posted Event Subscription";
+				EventData data = sm.createSubscriptionEventData(postedSubscription, Response.Status.BAD_REQUEST, null,
+						statusMessage);
+				sm.sendEventData(sse, eventSink, data, null, null);
+			}
+			closeConnection = true;
+		} catch (Exception e) {
+			if (!eventSink.isClosed()) {
+				String statusMessage = "Unsuccessful subscription creation.  Internal error.";
+				EventData data = sm.createSubscriptionEventData(postedSubscription,
+						Response.Status.INTERNAL_SERVER_ERROR, null, statusMessage);
+				sm.sendEventData(sse, eventSink, data, null, null);
+			}
+			closeConnection = true;
+		} finally {
+			if (closeConnection) {
+				eventSink.close();
+			}
 		}
-		Optional<List<String>> contentsOpt = Optional.ofNullable(contentList);
-
-		// requester
-		Optional<String> requesterOpt = Optional.ofNullable(requester);
-
-		SseSession session = new SseSession(EventStream.OPERATION_RESPONSE, UUID.randomUUID(), sse, eventSink, domainOpt,
-				contentsOpt, requesterOpt);
-
-		sessions.register(session);
 	}
 
 	/**
-	 * Allows for explicit removal of an SSE session. This will close the
-	 * connection and remove from {@code SseSessionManager}'s registry.
+	 * Unsubscribe SSE. Allows for explicit removal of an SSE session per a
+	 * client request. This will close the client connection and remove the SSE
+	 * session from {@code SseSessionManager}'s registry.
 	 * 
-	 * TODO - improve response to account for errors in deregister.
+	 * TODO - improve response to account for errors in unsubscribing.
 	 * 
 	 * @param sessionId
-	 *            the session id, the value is provided in the first even push
-	 *            after registration.
+	 *            identifies the session to unsubscribe. This value is pushed to
+	 *            the client at time of subscription creation.
+	 * 
 	 * @return a response indicating success of session removal.
 	 */
-	@Path("/session/{sesionId}")
+	@Path(R_SUBSCRIPTION + "/{sesionId}")
 	@DELETE
 	public Response deregister(@PathParam("sesionId") String sessionId) {
 
@@ -205,12 +212,28 @@ public class SseSessionResource {
 
 		try {
 			id = UUID.fromString(sessionId);
-			sessions.deregister(id);
+			sm.deregister(id);
 		} catch (IllegalArgumentException e) {
 			ret = Response.status(Status.BAD_REQUEST.getStatusCode(), "Invalid UUID value provided.").build();
 		}
 
 		return ret;
+	}
+
+	private EventSubscription getEventSubscription(JsonObject subscription, EventType et) {
+
+		EventSubscription es;
+
+		switch (et) {
+		case OPERATION:
+			es = Validatable.toValidatable(OperationSubscription.class, subscription.toString());
+			break;
+
+		default:
+			throw new IllegalArgumentException("Unkown or missing event type");
+		}
+
+		return es;
 	}
 
 }

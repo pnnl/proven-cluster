@@ -47,6 +47,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.naming.ConfigurationException;
+
 import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventType;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 
@@ -119,44 +121,50 @@ public enum EventStream {
 	}
 
 	/**
-	 * Retrieves the stream for a given event type. There is at most one stream
-	 * for a given event type.
+	 * Retrieves the EventStream for a given event type. There is a single
+	 * EventStream for an event type.
 	 * 
 	 * @param eventType
 	 *            the provided event type.
-	 * @return optionally return the event type.
+	 * @return the associated EventStream.
 	 */
-	public static Optional<MessageStreamType> getStreamForEvent(EventType eventType) {
+	public static EventStream getForEvent(EventType eventType) {
 
-		Optional<MessageStreamType> ret = Optional.empty();
+		EventStream ret = null;
 
 		for (EventStream es : EventStream.values()) {
 			if (es.getEventType() == eventType) {
-				ret = Optional.of(es.getStreamType());
+				ret = es;
 				break;
 			}
 		}
+		
+		// Ensure EventStream is configured correctly
+		if (null ==  ret) {
+			throw new IllegalArgumentException("Event type missing in EventStream");
+		}
+		
 		return ret;
 	}
 
 	/**
-	 * Retrieves the event types for a given stream. There can be 0 or more
+	 * Retrieves the EventStream(s) for a given stream. There can be 0 or more
 	 * events associated with a stream.
 	 * 
 	 * @param streamType
 	 *            the provided stream type.
-	 * @return returns the list of event types. Empty list is returned if there
-	 *         are no event types associated with the provided stream.
+	 *            
+	 * @return list of EventStream
 	 */
-	public static List<EventType> getEventsForStream(MessageStreamType streamType) {
+	public static List<EventStream> getEventsForStream(MessageStreamType streamType) {
 
-		List<EventType> ret = new ArrayList<>();
+		List<EventStream> ret = new ArrayList<>();
 
 		for (EventStream es : EventStream.values()) {
 			if (es.getStreamType() == streamType) {
-				ret.add(es.getEventType());
+				ret.add(es);
 			}
-		}
+		}		
 		return ret;
 	}
 

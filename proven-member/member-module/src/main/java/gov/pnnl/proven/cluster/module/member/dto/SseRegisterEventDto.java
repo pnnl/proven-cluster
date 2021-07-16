@@ -56,6 +56,7 @@ import gov.pnnl.proven.cluster.module.member.sse.SseSession;
  * @author d3j766
  *
  */
+@Deprecated
 @XmlRootElement(name = "register-event")
 public class SseRegisterEventDto implements SseEventData, Serializable {
 
@@ -77,12 +78,12 @@ public class SseRegisterEventDto implements SseEventData, Serializable {
 	public SseRegisterEventDto(SseSession session) {
 		this.sessionId = session.getSessionId().toString();
 		this.registeredEvent = session.getEvent().getLabel();
-		this.registeredDomain = session.getDomain().toString();
+		this.registeredDomain = session.getEventSubscription().getDomain().toString();
 		this.registeredMessageContents = new ArrayList<>();
-		for (MessageContent mc : session.getContents()) {
-			this.registeredMessageContents.add(mc.getName());
-		}
-		this.registeredRequester = session.getRequestor();
+//		for (MessageContent mc : session.getContents()) {
+//			this.registeredMessageContents.add(mc.getName());
+//		}
+//		this.registeredRequester = session.getRequestor();
 	}
 
 	public String getSessionId() {
