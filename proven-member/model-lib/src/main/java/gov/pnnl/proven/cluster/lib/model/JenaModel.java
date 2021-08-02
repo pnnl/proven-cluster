@@ -37,7 +37,7 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream.message;
+package gov.pnnl.proven.cluster.lib.model;
 
 import java.io.ByteArrayOutputStream;
 
@@ -45,22 +45,25 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 
-import gov.pnnl.proven.cluster.lib.member.SemanticEngine;
-
 /**
  * A wrapper for Apache Jena.
  * 
- * A semantic engine implementation for the platform.
+ * A semantic engine implementation for Proven semantic models.
  * 
  * @author d3j766
  * 
- * @see SemanticEngine
+ * @see SemanticEngine, SemanticModel
  *
  */
-public class JenaModel implements SemanticGraph, SemanticDataset {
+public class JenaModel implements SemanticModel {
 
 	private Graph graph;
 
+	/**
+	 * Generates the JSON-LD for a semantic model
+	 * 
+	 * @return the JSON-LD string
+	 */
 	@Override
 	public String jsonLD() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();

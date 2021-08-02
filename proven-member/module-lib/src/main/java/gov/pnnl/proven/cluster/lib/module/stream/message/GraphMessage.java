@@ -46,6 +46,8 @@ import java.net.URI;
 import javax.json.Json;
 import javax.json.JsonObject;
 
+import gov.pnnl.proven.cluster.lib.model.SemanticModel;
+
 /**
  * Graph distribution of a DisclosureItem.
  * 
@@ -56,7 +58,7 @@ public class GraphMessage implements DistributedMessage, Serializable {
 
 	private static final long serialVersionUID = 8327354960266388886L;
 
-	SemanticGraph graph;
+	SemanticModel graph;
 
 	public GraphMessage() {
 	}

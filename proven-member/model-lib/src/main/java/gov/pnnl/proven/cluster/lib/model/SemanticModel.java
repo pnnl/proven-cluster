@@ -37,19 +37,26 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.member;
+package gov.pnnl.proven.cluster.lib.model;
 
 /**
- * Identifies the semantic engine used to represent streaming content.
+ * Represents a semantic model. In this case, a semantic model is meant to be
+ * understood as a named set/composition of one or more semantic graphs.
  * 
  * @author d3j766
+ * 
+ * @see ModelFactory, SemanticEngine
  *
  */
-public enum SemanticEngine {
+public interface SemanticModel {
+
+	// TODO Graph methods
 
 	/**
-	 * Apache Jena
+	 * Generates the JSON-LD string for the model.
+	 * 
+	 * @return the JSON-LD string
 	 */
-	JENA
+	public String jsonLD();
 
 }

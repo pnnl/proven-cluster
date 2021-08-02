@@ -40,7 +40,7 @@
 package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 
 /**
- * Represents the SSE type's that can be subscribed to.
+ * Represents the SSE type's that can be subscribed to.  
  * 
  * @author d3j766
  * 
@@ -50,10 +50,19 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 public enum EventType {
 
 	/**
-	 * This event type represents an operation's response. The event data is
-	 * encapsulated in an EventDataItem message.
+	 * Operation's response.
 	 * 
-	 * @see ItemOperation, EventDataItem
+	 * @see ItemOperation
 	 */
-	OPERATION;
+	OPERATION, 
+	
+	/**
+	 * Request results
+	 */
+	REQUEST,
+	
+	/**
+	 * Service results
+	 */
+	SERVICE;
 }

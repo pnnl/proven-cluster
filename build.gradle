@@ -150,7 +150,7 @@ subprojects {
 // Project Dependencies
 //
 project('proven-member') {
-	// 	No dependencies
+	// No dependencies
 }
 
 project('proven-member:disclosure-lib') {
@@ -161,9 +161,15 @@ project('proven-member:stream-lib') {
 	// No dependencies
 }
 
-project('proven-member:module-lib') {
+project('proven-member:model-lib') {
 	dependencies {
 		api project(':proven-member:disclosure-lib')
+	}
+}
+
+project('proven-member:module-lib') {
+	dependencies {
+		api project(':proven-member:model-lib')
 		api project(':proven-member:stream-lib')
 		api project(':proven-member:pipeline-lib')
 	}

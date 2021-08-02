@@ -37,16 +37,87 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream.message;
+package gov.pnnl.proven.cluster.lib.module.exchange;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
 
 /**
- * Represents a semantic dataset.
+ * Represents the pre-defined exchange processing operations.
  * 
  * @author d3j766
- *
  */
-public interface SemanticDataset {
+public enum ExchangeOperation {
 
-	// TODO Graph methods
+	DISCLOSE(ExchangeOperationName.DISCLOSE_NAME, 0),
+	CONTEXTUALIZE(ExchangeOperationName.CONTEXTUALIZE_NAME, 10),
+	DISTRIBUTE(ExchangeOperationName.DISTRIBUTE_NAME, 30),	
+	REQUEST(ExchangeOperationName.REQUEST_NAME, 80),
+	SERVICE(ExchangeOperationName.SERVICE_NAME, 90);
 
+	public class ExchangeOperationName {
+		public static final String DISCLOSE_NAME = "Disclose";
+		public static final String CONTEXTUALIZE_NAME = "Contextualize";
+		public static final String DISTRIBUTE_NAME = "Distribute";
+		public static final String REQUEST_NAME = "Request";
+		public static final String SERVICE_NAME = "Service";
+	}
+
+	private static Logger log = LoggerFactory.getLogger(ExchangeOperation.class);
+
+	private String opName;
+	private int priority;
+
+	ExchangeOperation(String opName, int priority) {
+		this.opName = opName;
+		this.priority = priority;
+	}
+
+	public String getOpName() {
+		return opName;
+	}
+
+	public int getPriority() {
+		return priority;
+	}
+
+	/**
+	 * Returns operation associated with the provided operation name.
+	 * 
+	 * @param operation
+	 *            name
+	 * @return associated ItemOperation, else null
+	 */
+	public static ExchangeOperation getExchangeOperation(String opName) {
+
+		ExchangeOperation ret = null;
+
+		for (ExchangeOperation op : values()) {
+			if (opName.equals(op.getOpName())) {
+				ret = op;
+				break;
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * Provides list of all operation names.
+	 */
+	public static List<String> getOperationNames() {
+
+		List<String> ret = new ArrayList<>();
+
+		for (ExchangeOperation op : values()) {
+			ret.add(op.getOpName());
+		}
+
+		return ret;
+	}
+	
 }

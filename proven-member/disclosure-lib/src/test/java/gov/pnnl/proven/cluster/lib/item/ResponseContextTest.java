@@ -55,11 +55,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
-import gov.pnnl.proven.cluster.lib.disclosure.item.operation.DiscloseContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.FilterContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseContext;
 
 public class ResponseContextTest {
@@ -68,7 +67,7 @@ public class ResponseContextTest {
 
 	ResponseContext rc;
 	MessageContext mc;
-	DiscloseContext dc;
+	FilterContext dc;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -82,7 +81,7 @@ public class ResponseContextTest {
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
 
-		dc = DiscloseContext.newBuilder().build();
+		dc = FilterContext.newBuilder().build();
 
 		mc = MessageContext.newBuilder().withItem(ExplicitItem.class).withName("TEST NAME")
 				.withRequestor("TEST REQUESTOR").withTags("TEST TAG1", "TEST TAG2").build();

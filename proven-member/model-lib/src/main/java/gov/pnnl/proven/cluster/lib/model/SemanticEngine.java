@@ -37,107 +37,20 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
+package gov.pnnl.proven.cluster.lib.model;
 
-import java.util.List;
+/**
+ * Identifies semantic engines that provide an implementation for semantic
+ * models.
+ * 
+ * @author d3j766
+ *
+ */
+public enum SemanticEngine {
 
-import javax.json.bind.annotation.JsonbCreator;
-import javax.json.bind.annotation.JsonbProperty;
-
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
-import org.leadpony.justify.api.JsonValidatingException;
-import org.leadpony.justify.api.Problem;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
-import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
-
-public class DiscloseContext implements OperationContext {
-
-	private ItemOperation operation = ItemOperation.DISCLOSE;
-
-	public DiscloseContext() {
-	}
-
-	@JsonbCreator
-	public static DiscloseContext createDiscloseContext() {
-		return DiscloseContext.newBuilder().build(true);
-	}
-
-	private DiscloseContext(Builder b) {
-	}
-
-	@JsonbProperty(OPERATION_PROP)
-	@Override
-	public ItemOperation getOperation() {
-		return operation;
-	}
-
-	public static Builder newBuilder() {
-		return new Builder();
-	}
-
-	public static final class Builder {
-
-		private Builder() {
-		}
-
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public DiscloseContext build() {
-			return build(false);
-		}
-
-		private DiscloseContext build(boolean trustedBuilder) {
-
-			DiscloseContext ret = new DiscloseContext(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
-	}
-
-	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		
-		ret = sbf.createBuilder()
-
-			.withId(Validatable.schemaId(this.getClass()))
-			
-			.withSchema(Validatable.schemaDialect())
-			
-			.withTitle("Disclose operation context schema")
-
-			.withDescription("Defines the context for a Disclose operation.")
-
-			.withType(InstanceType.OBJECT)
-			
-			.withProperty(OPERATION_PROP, operationPropertySchema())
-			
-			// TODO - add additional schema elements for operation
-						
-			.build();
-		
-		//@formatter:on
-
-		return ret;
-	}
+	/**
+	 * Apache Jena
+	 */
+	JENA
 
 }

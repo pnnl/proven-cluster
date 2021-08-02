@@ -47,8 +47,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
 /**
- * Represents an SSE subscription. This is used to subscribe to SSE containing
- * operation results.
+ * Represents an SSE subscription.
  * 
  * @author d3j766
  * 

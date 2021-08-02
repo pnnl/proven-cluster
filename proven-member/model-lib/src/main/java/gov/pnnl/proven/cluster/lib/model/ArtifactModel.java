@@ -37,18 +37,47 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream.message;
+package gov.pnnl.proven.cluster.lib.model;
+
+import java.io.Serializable;
+import java.net.URI;
+import java.util.Set;
 
 /**
- * Represents a semantic graph.
+ * Represents a single semantic graph based on a disclosed ModelArtifactItem.
  * 
  * @author d3j766
+ * 
+ * @see ModelArtifactItem
  *
  */
-public interface SemanticGraph {
+public class ArtifactModel implements ReferenceModel, Serializable {
 
-	// TODO Graph methods
+	private static final long serialVersionUID = -9204800154975622925L;
 
-	public String jsonLD();
+	private URI modelName;
+	private Set<URI> namedModels;
+	private Set<URI> messageModels;
+	private SemanticModel graph;
+
+	public ArtifactModel() {
+	}
+
+	@Override
+	public URI modelName() {
+		return modelName;
+	}
+
+	public Set<URI> getNamedModels() {
+		return namedModels;
+	}
+
+	public Set<URI> getMessageModels() {
+		return messageModels;
+	}
+
+	public SemanticModel getGraph() {
+		return graph;
+	}
 
 }

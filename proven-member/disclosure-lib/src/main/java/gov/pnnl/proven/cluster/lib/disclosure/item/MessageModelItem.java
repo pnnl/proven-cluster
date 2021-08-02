@@ -191,7 +191,7 @@ public class MessageModelItem implements MessageItem {
 
 		// Create allowed OperationContext schema definitions
 		List<JsonSchema> allowedOps = new ArrayList<>();
-		for (ItemOperation op : ItemOperation.getModelOperations()) {
+		for (ItemOperation op : ItemOperation.values()) {
 			allowedOps.add(Validatable.retrieveSchema(op.getOpContext()));
 		}
 
