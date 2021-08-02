@@ -52,7 +52,7 @@ import com.hazelcast.core.HazelcastJsonValue;
 
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.LdContext;
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
+import gov.pnnl.proven.cluster.lib.model.SemanticModel;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 
 /**
@@ -110,14 +110,6 @@ public class DistributionFactory {
 		ret.setLinkedData(new HazelcastJsonValue(dJob.build().toString()));
 
 		return ret;
-	}
-
-	public SemanticGraph createGraph(String ld) {
-		return null;
-	}
-
-	public SemanticDataset createDataset(URI name, SemanticGraph... graph) {
-		return null;
 	}
 
 	public LdContext getDisclosureItemLdContext(DisclosureItem di) {

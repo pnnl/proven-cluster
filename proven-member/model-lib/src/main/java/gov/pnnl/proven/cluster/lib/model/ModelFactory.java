@@ -37,45 +37,101 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream.message;
+package gov.pnnl.proven.cluster.lib.model;
 
-import java.io.Serializable;
-import java.net.URI;
-import java.util.Set;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonStructure;
+
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.LdContext;
 
 /**
- * Semantic representation for a ModelArtifactItem.
+ * Factory class for creation of semantic and reference models. The factory determines
+ * the underlying semantic engine for creation of the semantic models.
  * 
  * @author d3j766
+ * 
+ * @see SemanticEngine
  *
  */
-public class ArtifactModel implements DistributedModel, Serializable {
+public class ModelFactory {
 
-	private static final long serialVersionUID = -9204800154975622925L;
-
-	private URI modelName;
-	private Set<URI> namedModels;
-	private Set<URI> messageModels;
-	private SemanticGraph graph;
-
-	public ArtifactModel() {
+	/**
+	 * Provides disclosure context for the provided DisclosureItem. If one
+	 * cannot be found, a default LdContext is returned.
+	 * 
+	 * @param di
+	 *            the disclosure item
+	 * 
+	 * @return the matching disclosure LdContext
+	 */
+	public LdContext createDisclosureContext(DisclosureItem di) {
+		// TODO
+		return null;
 	}
 
-	@Override
-	public URI modelName() {
-		return modelName;
+	/**
+	 * Provides message context for the provided DisclosureItem. If one cannot
+	 * be found, a default LdContext is returned.
+	 * 
+	 * @param di
+	 *            the disclosure item
+	 * 
+	 * @return the matching message LdContext
+	 */
+	public LdContext createMessageContext(DisclosureItem di) {
+		// TODO
+		return null;
 	}
 
-	public Set<URI> getNamedModels() {
-		return namedModels;
-	}
+	/**
+	 * Creates a contextualized JSON-LD message item by adding context
+	 * information to the provided DisclosreItem.
+	 * 
+	 * Note: This assumes there are default LdContext objects for both
+	 * disclosure and message contexts. If a context has not been provided via
+	 * disclosure, the default will be provided.
+	 * 
+	 * @param di
+	 *            the disclosure item
+	 * 
+	 * @return the json object containing the JSON-LD
+	 */
+	public JsonObject createContextualizeItem(DisclosureItem di) {
 
-	public Set<URI> getMessageModels() {
-		return messageModels;
-	}
+		final String ARRAY_MESSAGE_PROP = "arrayMessage";
+		LdContext diLdContext = createDisclosureContext(di);
+		LdContext miLdContext = createMessageContext(di);
+		JsonObject diJson = (JsonObject) di.toJson();
+		JsonStructure miJson = di.getMessage();
+		JsonObject dld = (JsonObject) diLdContext.toJson();
+		JsonObject mld = (JsonObject) miLdContext.toJson();
 
-	public SemanticGraph getGraph() {
-		return graph;
+		JsonObjectBuilder dJob = Json.createObjectBuilder();
+		dJob.add(LdContext.LD_CONTEXT_PROP, dld.get(LdContext.LD_CONTEXT_PROP));
+		for (String dKey : diJson.keySet()) {
+			if ((dKey.equals(DisclosureItem.MESSAGE_PROP)) && (!di.getIsLinkedData())) {
+				JsonObjectBuilder mJob = Json.createObjectBuilder();
+				mJob.add(LdContext.LD_CONTEXT_PROP, mld.get(LdContext.LD_CONTEXT_PROP));
+				if (miJson instanceof JsonArray) {
+					mJob.add(ARRAY_MESSAGE_PROP, miJson);
+				}
+				// An object - copy fields
+				else {
+					for (String mKey : ((JsonObject) miJson).keySet()) {
+						mJob.add(mKey, diJson.get(mKey));
+					}
+				}
+				dJob.add(DisclosureItem.MESSAGE_PROP, mJob.build());
+			} else {
+				dJob.add(dKey, diJson.get(dKey));
+			}
+		}
+
+		return dJob.build();
 	}
 
 }

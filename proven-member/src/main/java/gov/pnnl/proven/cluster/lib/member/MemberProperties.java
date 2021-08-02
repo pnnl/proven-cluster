@@ -299,10 +299,10 @@ public class MemberProperties {
 
 	//////////////////////////////////////////////////////
 	// MODULE-LIB STREAM PROPERTY METHODS
-	public SemanticEngine getSemanticEngine() {
-		String ge = getPropertyValue(SEMANTIC_ENGINE, String.class);
-		return SemanticEngine.valueOf(ge);
-	}	
+//	public SemanticEngine getSemanticEngine() {
+//		String ge = getPropertyValue(SEMANTIC_ENGINE, String.class);
+//		return SemanticEngine.valueOf(ge);
+//	}	
 
 	//////////////////////////////////////////////////////
 	// HYBRID MODULE PROPERTY METHODS

@@ -37,107 +37,17 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
+package gov.pnnl.proven.cluster.lib.model;
 
-import java.util.List;
-
-import javax.json.bind.annotation.JsonbCreator;
-import javax.json.bind.annotation.JsonbProperty;
-
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
-import org.leadpony.justify.api.JsonValidatingException;
-import org.leadpony.justify.api.Problem;
-
-import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
-import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
-
-public class DistributeContext implements OperationContext {
-
-	private ItemOperation operation = ItemOperation.DISTRIBUTE;
-
-	public DistributeContext() {
-	}
-
-	@JsonbCreator
-	public static DistributeContext createDistributeContext() {
-		return DistributeContext.newBuilder().build(true);
-	}
-
-	private DistributeContext(Builder b) {
-	}
-
-	@JsonbProperty(OPERATION_PROP)
-	@Override
-	public ItemOperation getOperation() {
-		return operation;
-	}
-
-	public static Builder newBuilder() {
-		return new Builder();
-	}
-
-	public static final class Builder {
-
-		private Builder() {
-		}
-
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public DistributeContext build() {
-			return build(false);
-		}
-
-		private DistributeContext build(boolean trustedBuilder) {
-
-			DistributeContext ret = new DistributeContext(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
-	}
-
-	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		
-		ret = sbf.createBuilder()
-
-			.withId(Validatable.schemaId(this.getClass()))
-			
-			.withSchema(Validatable.schemaDialect())
-			
-			.withTitle("Distribute operation context schema")
-
-			.withDescription("Defines the context for a Distribute operation.")
-
-			.withType(InstanceType.OBJECT)
-			
-			.withProperty(OPERATION_PROP, operationPropertySchema())
-			
-			// TODO - add additional schema elements for operation
-						
-			.build();
-		
-		//@formatter:on
-
-		return ret;
-	}
+/**
+ * MessageStore implementation local persistence of disclosure items and
+ * reference models.
+ * 
+ * @author d3j766
+ *
+ * @see MessageStore
+ *
+ */
+public class MessageModelStore implements MessageStore {
 
 }

@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class InferContext implements OperationContext {
 
-	private ItemOperation operation = ItemOperation.INFER;
+	private ItemOperation operation = ItemOperation.INFERENCE;
 
 	public InferContext() {
 	}

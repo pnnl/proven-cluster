@@ -37,107 +37,41 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
+package gov.pnnl.proven.cluster.lib.model;
 
-import java.util.List;
+import java.io.Serializable;
+import java.net.URI;
+import java.util.Set;
 
-import javax.json.bind.annotation.JsonbCreator;
-import javax.json.bind.annotation.JsonbProperty;
+/**
+ * Represents a named composition of semantic graphs that can be included in
+ * query processing.
+ * 
+ * @author d3j766
+ *
+ */
+public class NamedModel implements ReferenceModel, Serializable {
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
-import org.leadpony.justify.api.JsonValidatingException;
-import org.leadpony.justify.api.Problem;
+	private static final long serialVersionUID = -8229980864925851511L;
 
-import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
-import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+	private URI modelName;
+	private Set<URI> artifactModels;
+	private SemanticModel graph;
 
-public class RequestContext implements OperationContext {
-
-	private ItemOperation operation = ItemOperation.REQUEST;
-
-	public RequestContext() {
-	}
-
-	@JsonbCreator
-	public static RequestContext createRequestContext() {
-		return RequestContext.newBuilder().build(true);
-	}
-
-	private RequestContext(Builder b) {
-	}
-
-	@JsonbProperty(OPERATION_PROP)
-	@Override
-	public ItemOperation getOperation() {
-		return operation;
-	}
-
-	public static Builder newBuilder() {
-		return new Builder();
-	}
-
-	public static final class Builder {
-
-		private Builder() {
-		}
-
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public RequestContext build() {
-			return build(false);
-		}
-
-		private RequestContext build(boolean trustedBuilder) {
-
-			RequestContext ret = new RequestContext(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
+	public NamedModel() {
 	}
 
 	@Override
-	public JsonSchema toSchema() {
+	public URI modelName() {
+		return modelName;
+	}
 
-		JsonSchema ret;
+	public Set<URI> getArtifactModels() {
+		return artifactModels;
+	}
 
-		//@formatter:off
-		
-		ret = sbf.createBuilder()
-
-			.withId(Validatable.schemaId(this.getClass()))
-			
-			.withSchema(Validatable.schemaDialect())
-			
-			.withTitle("Request operation context schema")
-
-			.withDescription("Defines the context for a Request operation.")
-
-			.withType(InstanceType.OBJECT)
-			
-			.withProperty(OPERATION_PROP, operationPropertySchema())
-			
-			// TODO - add additional schema elements for operation
-						
-			.build();
-		
-		//@formatter:on
-
-		return ret;
+	public SemanticModel getGraph() {
+		return graph;
 	}
 
 }

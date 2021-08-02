@@ -37,93 +37,67 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
-
-import java.util.ArrayList;
-import java.util.List;
+package gov.pnnl.proven.cluster.lib.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 
 /**
- * Represents the pre-defined item processing operations. Operations are
- * assigned a name and an operation context type. The context provides
- * additional operation specific data, if any, supporting an operations's
- * execution.  
+ * Represents the pre-defined message model processing operations, based on
+ * their ItemOperation counterparts.
  * 
- * @see OperationContext
+ * @see ItemOperation
  * 
  * @author d3j766
  *
  */
-public enum ItemOperation {
-
-	FILTER(ItemOperationName.FILTER_NAME, FilterContext.class),
-	TRANSFORM(ItemOperationName.TRANSFORM_NAME, TransformContext.class),
-	VALIDATE(ItemOperationName.VALIDATE_NAME, ValidateContext.class),
-	INFERENCE(ItemOperationName.INFERENCE_NAME, InferContext.class),
-	PROVENANCE(ItemOperationName.PROVENANCE_NAME, ProvenanceContext.class);
-
-	public class ItemOperationName {
-		public static final String FILTER_NAME = "Filter";
-		public static final String TRANSFORM_NAME = "Transform";
-		public static final String VALIDATE_NAME = "Validate";
-		public static final String INFERENCE_NAME = "Inference";
-		public static final String PROVENANCE_NAME = "Provenance";
-	}
-
-	private static Logger log = LoggerFactory.getLogger(ItemOperation.class);
-
-	private String opName;
-	private Class<? extends OperationContext> opContext;
-
-	ItemOperation(String opName, Class<? extends OperationContext> opContext) {
-		this.opName = opName;
-		this.opContext = opContext;
-	}
-
-	public String getOpName() {
-		return opName;
-	}
-
-	public Class<? extends OperationContext> getOpContext() {
-		return opContext;
-	}
+public enum ModelOperation {
 
 	/**
-	 * Returns operation associated with the provided operation name.
-	 * 
-	 * @param operation
-	 *            name
-	 * @return associated ItemOperation, else null
+	 * Used to filter/remove disclosed messages from being distributed to the
+	 * stream environment.
 	 */
-	public static ItemOperation getItemOperation(String opName) {
-
-		ItemOperation ret = null;
-
-		for (ItemOperation op : values()) {
-			if (opName.equals(op.getOpName())) {
-				ret = op;
-				break;
-			}
-		}
-		return ret;
-	}
+	FILTER(ItemOperation.FILTER, MessageModel::filter),
 
 	/**
-	 * Provides list of all operation names.
+	 * Transforms a disclosed message into another disclosed message type.
 	 */
-	public static List<String> getOperationNames() {
+	TRANSFORM(ItemOperation.TRANSFORM, MessageModel::transform),
 
-		List<String> ret = new ArrayList<>();
+	/**
+	 * Validates that a disclosed message contains in part or whole a specified
+	 * graph pattern.
+	 */
+	VALIDATE(ItemOperation.VALIDATE, MessageModel::validate),
 
-		for (ItemOperation op : values()) {
-			ret.add(op.getOpName());
-		}
+	/**
+	 * Rule based implicit knowledge extraction from disclosure data.
+	 */
+	INFERENCE(ItemOperation.INFERENCE, MessageModel::inference),
 
-		return ret;
+	/**
+	 * Generates provenance data for disclosure data.
+	 */
+	PROVENANCE(ItemOperation.PROVENANCE, MessageModel::provenance);
+
+	private static Logger log = LoggerFactory.getLogger(ModelOperation.class);
+
+	private ItemOperation itemOperation;
+	private OperationProcessor modelProcessor;
+
+	ModelOperation(ItemOperation itemOperation, ModelProcessor modelProcessor) {
+		this.itemOperation = itemOperation;
+		this.modelProcessor = modelProcessor;
+	}
+
+	public ItemOperation getItemOperation() {
+		return itemOperation;
+	}
+
+	public OperationProcessor getModelProcessor() {
+		return modelProcessor;
 	}
 
 }

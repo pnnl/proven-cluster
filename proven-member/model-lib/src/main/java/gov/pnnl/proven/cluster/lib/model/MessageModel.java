@@ -37,107 +37,102 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.disclosure.item.operation;
+package gov.pnnl.proven.cluster.lib.model;
 
-import java.util.List;
+import java.io.Serializable;
+import java.net.URI;
+import java.util.Set;
 
-import javax.json.bind.annotation.JsonbCreator;
-import javax.json.bind.annotation.JsonbProperty;
+import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
 
-import org.leadpony.justify.api.InstanceType;
-import org.leadpony.justify.api.JsonSchema;
-import org.leadpony.justify.api.JsonValidatingException;
-import org.leadpony.justify.api.Problem;
+/**
+ * A composition of semantic graphs that can be included in model operation
+ * processing of disclosure messages.
+ * 
+ * @author d3j766
+ *
+ * @see ModelOperation
+ * 
+ */
+public class MessageModel implements ReferenceModel, Serializable {
 
-import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
-import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
+	private static final long serialVersionUID = 1098699408171596662L;
 
-public class ServiceContext implements OperationContext {
+	private URI modelName;
+	private Set<URI> artifactModels;
+	private MessageContext messageContext;
+	private ModelOperation operation;
+	private OperationContext operationContext;
+	private SemanticModel graph;
 
-	private ItemOperation operation = ItemOperation.SERVICE;
+	/**
+	 * TODO Use hashing to support message model lookups.
+	 * 
+	 * This represents the hash value of the MessageContext. This will be
+	 * compared to a disclosed item's MessageContext hash value, and if equal,
+	 * another equality comparison will be made for the MessageContext's to
+	 * verify the match (i.e. avoid false positives). A match means the message
+	 * model can be used for operation processing of the matched message.
+	 */
+	private Long messageContextHashValue;
 
-	public ServiceContext() {
+	public MessageModel() {
 	}
 
-	@JsonbCreator
-	public static ServiceContext createServiceContext() {
-		return ServiceContext.newBuilder().build(true);
+	ResponseItem filter(DisclosureItem disclosureItem) {
+		// TODO
+		return null;
 	}
 
-	private ServiceContext(Builder b) {
+	ResponseItem transform(DisclosureItem disclosureItem) {
+		// TODO
+		return null;
 	}
 
-	@JsonbProperty(OPERATION_PROP)
+	ResponseItem validate(DisclosureItem disclosureItem) {
+		// TODO
+		return null;
+	}
+
+	ResponseItem inference(DisclosureItem disclosureItem) {
+		// TODO
+		return null;
+	}
+
+	ResponseItem provenance(DisclosureItem disclosureItem) {
+		return null;
+	}
+
 	@Override
-	public ItemOperation getOperation() {
+	public URI modelName() {
+		return modelName;
+	}
+
+	public Set<URI> getArtifactModels() {
+		return artifactModels;
+	}
+
+	public MessageContext getMessageContext() {
+		return messageContext;
+	}
+
+	public ModelOperation getOperation() {
 		return operation;
 	}
 
-	public static Builder newBuilder() {
-		return new Builder();
+	public OperationContext getOperationContext() {
+		return operationContext;
 	}
 
-	public static final class Builder {
-
-		private Builder() {
-		}
-
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public ServiceContext build() {
-			return build(false);
-		}
-
-		private ServiceContext build(boolean trustedBuilder) {
-
-			ServiceContext ret = new ServiceContext(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
+	public SemanticModel getGraph() {
+		return graph;
 	}
 
-	@Override
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		//@formatter:off
-		
-		ret = sbf.createBuilder()
-
-			.withId(Validatable.schemaId(this.getClass()))
-			
-			.withSchema(Validatable.schemaDialect())
-			
-			.withTitle("Service operation context schema")
-
-			.withDescription("Defines the context for a Service operation.")
-
-			.withType(InstanceType.OBJECT)
-			
-			.withProperty(OPERATION_PROP, operationPropertySchema())
-			
-			// TODO - add additional schema elements for operation
-						
-			.build();
-		
-		//@formatter:on
-
-		return ret;
+	public Long getMessageContextHashValue() {
+		return messageContextHashValue;
 	}
 
 }

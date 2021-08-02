@@ -37,26 +37,14 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.module.stream.message;
-
-import java.net.URI;
-
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+package gov.pnnl.proven.cluster.lib.model;
 
 /**
- * These are semantic models that have been created from disclosed
- * {@link MessageContent#REFERENCE} items and distributed to the stream
- * environment, making them available to support exchange operation and query
- * processing.
+ * Marker interface designating types that provide an operation processor for
+ * disclosure data.
  * 
  * @author d3j766
  *
  */
-public interface DistributedModel {
-
-	/**
-	 * Resource name identifier for the semantic model.
-	 */
-	URI modelName();
-
+public interface OperationProcessor {
 }
