@@ -39,23 +39,54 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.component.extension;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
+import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.util.AnnotationLiteral;
+import javax.enterprise.inject.spi.ProcessBean;
 
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 
 public class EagerCDIExtension implements Extension {
 
-	public void afterDeploymentValidation(@Observes AfterDeploymentValidation event, BeanManager beanManager) {
-		beanManager.getBeans(Object.class, new AnnotationLiteral<Eager>() {
-		}).parallelStream().filter(bean -> bean.getBeanClass().isAnnotationPresent(ApplicationScoped.class))
-				.forEach(bean -> {
-					beanManager.getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean))
-							.toString();
-				});
+	private List<Bean<?>> eagerBeansList = new ArrayList<Bean<?>>();
+
+	public <T> void collect(@Observes ProcessBean<T> event) {
+		if (event.getAnnotated().isAnnotationPresent(Eager.class)
+				&& event.getAnnotated().isAnnotationPresent(ApplicationScoped.class)) {
+			eagerBeansList.add(event.getBean());
+		}
 	}
+
+	public void load(@Observes AfterDeploymentValidation event, BeanManager beanManager) {
+		for (Bean<?> bean : eagerBeansList) {
+			// note: toString() is important to instantiate the bean
+			beanManager.getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean)).toString();
+		}
+	}
+
 }
+
+// formatter:off
+// ORIGINAL CODE - JAVA 8
+// FAILED ON STARTUP
+//		public void afterDeploymentValidation(@Observes AfterDeploymentValidation event, BeanManager beanManager) {
+//		
+//		String a = "test";
+//		a = a.trim();
+//		
+//		beanManager.getBeans(Object.class, new AnnotationLiteral<Eager>() {
+//		}).parallelStream().filter(bean -> bean.getBeanClass().isAnnotationPresent(ApplicationScoped.class))
+//				.forEach(bean -> {
+//					beanManager.getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean))
+//							.toString();
+//				});
+//		
+//	}
+// ORIGINAL CODE - JAVA 8
+// formatter:on
