@@ -59,28 +59,28 @@ public enum ModelOperation {
 	 * Used to filter/remove disclosed messages from being distributed to the
 	 * stream environment.
 	 */
-	FILTER(ItemOperation.FILTER, MessageModel::filter),
+	FILTER(ItemOperation.FILTER, MessageModel::itemOperation),
 
 	/**
 	 * Transforms a disclosed message into another disclosed message type.
 	 */
-	TRANSFORM(ItemOperation.TRANSFORM, MessageModel::transform),
+	TRANSFORM(ItemOperation.TRANSFORM, MessageModel::itemOperation),
 
 	/**
 	 * Validates that a disclosed message contains in part or whole a specified
 	 * graph pattern.
 	 */
-	VALIDATE(ItemOperation.VALIDATE, MessageModel::validate),
+	VALIDATE(ItemOperation.VALIDATE, MessageModel::itemOperation),
 
 	/**
 	 * Rule based implicit knowledge extraction from disclosure data.
 	 */
-	INFERENCE(ItemOperation.INFERENCE, MessageModel::inference),
+	INFERENCE(ItemOperation.INFERENCE, MessageModel::itemOperation),
 
 	/**
 	 * Generates provenance data for disclosure data.
 	 */
-	PROVENANCE(ItemOperation.PROVENANCE, MessageModel::provenance);
+	PROVENANCE(ItemOperation.PROVENANCE, MessageModel::itemOperation);
 
 	private static Logger log = LoggerFactory.getLogger(ModelOperation.class);
 
