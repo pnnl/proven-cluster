@@ -43,6 +43,8 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.Set;
 
+import org.apache.jena.query.Query;
+
 /**
  * Represents a single semantic graph based on a disclosed ModelArtifactItem.
  * 

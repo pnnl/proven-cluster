@@ -39,9 +39,11 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.model;
 
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
+
 /**
  * Represents a semantic model. In this case, a semantic model is meant to be
- * understood as a named set/composition of one or more semantic graphs.
+ * understood as a set/composition of one or more named semantic graphs.
  * 
  * @author d3j766
  * 
@@ -50,13 +52,66 @@ package gov.pnnl.proven.cluster.lib.model;
  */
 public interface SemanticModel {
 
-	// TODO Graph methods
-
 	/**
 	 * Generates the JSON-LD string for the model.
 	 * 
 	 * @return the JSON-LD string
 	 */
-	public String jsonLD();
+	String jsonLD();
+
+	/**
+	 * 
+	 * Performs a sparql query using provided dataset.
+	 * 
+	 * Note: Query types may include SELECT, ASK, CONSTRUCT, DESCRIBE, and UPDATE.
+	 * SparqlRequest is contained by the SparqlDataset, providing the the query
+	 * string, type, and named models. That is, SparqlRequest contains the query
+	 * information parsed from the disclosed query request.
+	 * 
+	 * @param dataset contains query and data for query execution.
+	 * 
+	 * @return a SparqlResult
+	 */
+	SparqlResult sparqlQuery(SparqlDataset dataset);
+
+	/**
+	 * Performs operation as defined by the operation model on the provided message
+	 * model.
+	 * 
+	 * @param messageModel   data that the operation will be performed on.
+	 * @param operationModel model used to perform the operation.
+	 * @return a ResponseItem
+	 */
+	ResponseItem modelOperation(SemanticModel messageModel, MessageModel operationModel);
+
+	/**
+	 * Adds provided model to the semantic model.
+	 * 
+	 * @param model the model to add
+	 */
+	void add(SemanticModel model);
+
+	/**
+	 * Replaces matching, by name, graphs.
+	 * 
+	 * @param model the replacement model
+	 */
+	void replace(SemanticModel model);
+
+	/**
+	 * Performs a union with provided model.
+	 * 
+	 * @param model the model to union with
+	 * @return a new SemanticModel representing the union
+	 */
+	SemanticModel union(SemanticModel model);
+
+	/**
+	 * Performs an intersection with provided model.
+	 * 
+	 * @param model the model to intersect with
+	 * @return a new SemanticModel representing the intersection
+	 */
+	SemanticModel intersect(SemanticModel model);
 
 }

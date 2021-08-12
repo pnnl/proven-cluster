@@ -42,8 +42,12 @@ package gov.pnnl.proven.cluster.lib.model;
 import java.io.ByteArrayOutputStream;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.sparql.core.DatasetGraph;
+
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
 
 /**
  * A wrapper for Apache Jena.
@@ -57,8 +61,8 @@ import org.apache.jena.riot.RDFFormat;
  */
 public class JenaModel implements SemanticModel {
 
-	private Graph graph;
-
+	private Dataset ds;
+	
 	/**
 	 * Generates the JSON-LD for a semantic model
 	 * 
@@ -66,9 +70,48 @@ public class JenaModel implements SemanticModel {
 	 */
 	@Override
 	public String jsonLD() {
+		DatasetGraph graph = ds.asDatasetGraph();
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		RDFDataMgr.write(stream, graph, RDFFormat.JSONLD);
 		return new String(stream.toByteArray());
 	}
+
+	@Override
+	public SparqlResult sparqlQuery(SparqlDataset dataset) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResponseItem modelOperation(SemanticModel messageModel, MessageModel operationModel) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void add(SemanticModel model) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void replace(SemanticModel model) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public SemanticModel union(SemanticModel model) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SemanticModel intersect(SemanticModel model) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
 
 }

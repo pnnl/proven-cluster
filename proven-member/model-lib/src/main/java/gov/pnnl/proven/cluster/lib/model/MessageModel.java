@@ -82,27 +82,7 @@ public class MessageModel implements ReferenceModel, Serializable {
 	public MessageModel() {
 	}
 
-	ResponseItem filter(DisclosureItem disclosureItem) {
-		// TODO
-		return null;
-	}
-
-	ResponseItem transform(DisclosureItem disclosureItem) {
-		// TODO
-		return null;
-	}
-
-	ResponseItem validate(DisclosureItem disclosureItem) {
-		// TODO
-		return null;
-	}
-
-	ResponseItem inference(DisclosureItem disclosureItem) {
-		// TODO
-		return null;
-	}
-
-	ResponseItem provenance(DisclosureItem disclosureItem) {
+	ResponseItem itemOperation(DisclosureItem disclosureItem) {
 		return null;
 	}
 
