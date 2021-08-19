@@ -84,7 +84,7 @@ public class ArtifactContextTest {
 	@Before
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
-		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build();
+		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).build();
 	}
 
 	@After

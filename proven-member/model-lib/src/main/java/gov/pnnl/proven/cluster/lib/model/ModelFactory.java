@@ -45,12 +45,18 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonStructure;
 
+import gov.pnnl.proven.cluster.lib.disclosure.item.ArtifactModelItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.LdContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageModelItem;
 
 /**
- * Factory class for creation of semantic and reference models. The factory determines
- * the underlying semantic engine for creation of the semantic models.
+ * Factory class for creation of semantic and reference models. The factory
+ * determines the underlying semantic engine for model creation.
+ * 
+ * Note: Assumption is the MessageModelStore will be called upon to store the
+ * new models and relationships between them will be kept current as they are
+ * added to the store.
  * 
  * @author d3j766
  * 
@@ -60,11 +66,77 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.LdContext;
 public class ModelFactory {
 
 	/**
-	 * Provides disclosure context for the provided DisclosureItem. If one
-	 * cannot be found, a default LdContext is returned.
+	 * Identifies semantic engines that provide an implementation for semantic
+	 * models.
 	 * 
-	 * @param di
-	 *            the disclosure item
+	 * Note: This should be used to determine the underlying engine (i.e.,
+	 * implementation) for creation methods in this factory. This doesn't have to an
+	 * enumeration.
+	 * 
+	 * @author d3j766
+	 *
+	 */
+	public enum SemanticEngine {
+
+		/**
+		 * Apache Jena
+		 */
+		JENA
+	}
+
+	/**
+	 * Creates an artifact model.
+	 * 
+	 * @param artifact item
+	 * 
+	 * @return the new artifact model
+	 */
+	ArtifactModel createArtifactModel(ArtifactModelItem item) {
+		// TODO
+		return null;
+	}
+
+	/**
+	 * Creates a named model.
+	 * 
+	 * @param one or more artifact items
+	 * 
+	 * @return the new named model
+	 */
+	NamedModel createNamedModel(ArtifactModelItem... items) {
+		// TODO
+		return null;
+	}
+
+	/**
+	 * Creates a message model.
+	 * 
+	 * @param a message model item
+	 * 
+	 * @return the new message model
+	 */
+	MessageModel createMessageModel(MessageModelItem item) {
+		// TODO
+		return null;
+	}
+
+	/**
+	 * Creates a semantic model.
+	 * 
+	 * @param a disclosure item
+	 * 
+	 * @return the new semantic model
+	 */
+	SemanticModel createSemanticModel(DisclosureItem item) {
+		// TODO
+		return null;
+	}
+
+	/**
+	 * Provides disclosure context for the provided DisclosureItem. If one cannot be
+	 * found, a default LdContext is returned.
+	 * 
+	 * @param di the disclosure item
 	 * 
 	 * @return the matching disclosure LdContext
 	 */
@@ -74,11 +146,10 @@ public class ModelFactory {
 	}
 
 	/**
-	 * Provides message context for the provided DisclosureItem. If one cannot
-	 * be found, a default LdContext is returned.
+	 * Provides message context for the provided DisclosureItem. If one cannot be
+	 * found, a default LdContext is returned.
 	 * 
-	 * @param di
-	 *            the disclosure item
+	 * @param di the disclosure item
 	 * 
 	 * @return the matching message LdContext
 	 */
@@ -88,15 +159,14 @@ public class ModelFactory {
 	}
 
 	/**
-	 * Creates a contextualized JSON-LD message item by adding context
-	 * information to the provided DisclosreItem.
+	 * Creates a contextualized JSON-LD message item by adding context information
+	 * to the provided DisclosreItem.
 	 * 
-	 * Note: This assumes there are default LdContext objects for both
-	 * disclosure and message contexts. If a context has not been provided via
-	 * disclosure, the default will be provided.
+	 * Note: This assumes there are default LdContext objects for both disclosure
+	 * and message contexts. If a context has not been provided via disclosure, the
+	 * default will be provided.
 	 * 
-	 * @param di
-	 *            the disclosure item
+	 * @param di the disclosure item
 	 * 
 	 * @return the json object containing the JSON-LD
 	 */

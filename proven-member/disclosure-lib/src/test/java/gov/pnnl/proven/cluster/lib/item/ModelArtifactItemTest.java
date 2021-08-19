@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ArtifactContext;
-import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ArtifactModelItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 
 public class ModelArtifactItemTest {
@@ -71,7 +71,7 @@ public class ModelArtifactItemTest {
 	Boolean latest = true;
 	String domain = DomainProvider.PROVEN_DISCLOSURE_DOMAIN;
 	String[] queryModels = {"DEFAULTX"};
-	ModelArtifactItem mai;
+	ArtifactModelItem mai;
 
 	@Rule
 	public ExpectedException exceptionGrabber = ExpectedException.none();
@@ -87,9 +87,9 @@ public class ModelArtifactItemTest {
 	@Before
 	public void setUp() throws Exception {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
-		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest).build();
-		mai = ModelArtifactItem.newBuilder().withArtifact(ac).withLocator(true)
-				.withSyntax(ModelArtifactItem.Syntax.N3).withNamedQueryModels(queryModels).build();
+		ac = ArtifactContext.newBuilder().withId(id).withVersion(version).build();
+		mai = ArtifactModelItem.newBuilder().withArtifact(ac).withLocator(true)
+				.withSyntax(ArtifactModelItem.Syntax.N3).withNamedQueryModels(queryModels).build();
 	}
 
 	@After
@@ -98,14 +98,14 @@ public class ModelArtifactItemTest {
 
 	@Test
 	public void testSchema_toSchema_passValidate() {
-		assertThat("ModelArtifactItem generates a valid schema", Validatable.hasValidSchema(ModelArtifactItem.class));
+		assertThat("ModelArtifactItem generates a valid schema", Validatable.hasValidSchema(ArtifactModelItem.class));
 	}
 
 	@Test
 	public void testCreate_builder_validJson() {
 		String jsonStr = mai.toJson().toString();
 		assertThat("Valid JSON produced for ModelArtifactItem builder",
-				Validatable.validate(ModelArtifactItem.class, jsonStr).isEmpty());
+				Validatable.validate(ArtifactModelItem.class, jsonStr).isEmpty());
 	}
 
 	@Test

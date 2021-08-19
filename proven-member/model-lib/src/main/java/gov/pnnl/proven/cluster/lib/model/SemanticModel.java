@@ -39,6 +39,9 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.model;
 
+import java.net.URI;
+import java.util.List;
+
 import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
 
 /**
@@ -58,6 +61,13 @@ public interface SemanticModel {
 	 * @return the JSON-LD string
 	 */
 	String jsonLD();
+
+	/**
+	 * Returns the list of names of the graphs contained in the semantic model.
+	 * 
+	 * @return list of graph names.
+	 */
+	List<URI> getGraphNames();
 
 	/**
 	 * 
@@ -90,6 +100,13 @@ public interface SemanticModel {
 	 * @param model the model to add
 	 */
 	void add(SemanticModel model);
+
+	/**
+	 * Adds multiple models to the semantic model.
+	 * 
+	 * @param model the model to add
+	 */
+	void add(SemanticModel... models);
 
 	/**
 	 * Replaces matching, by name, graphs.

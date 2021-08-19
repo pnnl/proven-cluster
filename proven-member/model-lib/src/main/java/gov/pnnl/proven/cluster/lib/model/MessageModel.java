@@ -66,7 +66,7 @@ public class MessageModel implements ReferenceModel, Serializable {
 	private MessageContext messageContext;
 	private ModelOperation operation;
 	private OperationContext operationContext;
-	private SemanticModel graph;
+	private SemanticModel model;
 
 	/**
 	 * TODO Use hashing to support message model lookups.
@@ -107,8 +107,8 @@ public class MessageModel implements ReferenceModel, Serializable {
 		return operationContext;
 	}
 
-	public SemanticModel getGraph() {
-		return graph;
+	public SemanticModel getModel() {
+		return model;
 	}
 
 	public Long getMessageContextHashValue() {

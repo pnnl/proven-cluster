@@ -57,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 
 /**
- * Immutable class representing a Model Artifact item message. This message
+ * Immutable class representing a Artifact model item message. This message
  * defines a single semantic model that may be used to define query and/or
  * message models.
  * 
@@ -65,7 +65,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildExceptio
  *
  * @see MessageModelItem
  */
-public class ModelArtifactItem implements MessageItem {
+public class ArtifactModelItem implements MessageItem {
 
 	public static final String MODEL_ARTIFACT_MESSAGE_NAME = "model-artifact-message";
 	public static final String DEFAULT_MODEL_NAME = "DEFAULT";
@@ -120,20 +120,20 @@ public class ModelArtifactItem implements MessageItem {
 	private String content;
 	private Syntax syntax;
 
-	public ModelArtifactItem() {
+	public ArtifactModelItem() {
 	}
 
 	@JsonbCreator
-	public static ModelArtifactItem createMessageContext(@JsonbProperty(ARTIFACT_PROP) ArtifactContext artifact,
+	public static ArtifactModelItem createMessageContext(@JsonbProperty(ARTIFACT_PROP) ArtifactContext artifact,
 			@JsonbProperty(LOCATOR_PROP) Boolean locator, @JsonbProperty(NAMED_QUERY_MODELS_PROP) String[] namedModels,
 			@JsonbProperty(DEFAULT_QUERY_MODEL_PROP) Boolean defaultQueryModel,
 			@JsonbProperty(CONTENT_PROP) String content, @JsonbProperty(SYNTAX_PROP) Syntax syntax) {
-		return ModelArtifactItem.newBuilder().withArtifact(artifact).withLocator(locator)
+		return ArtifactModelItem.newBuilder().withArtifact(artifact).withLocator(locator)
 				.withNamedQueryModels(namedModels).withDefaultQueryModel(defaultQueryModel).withContent(content)
 				.withSyntax(syntax).build(true);
 	}
 
-	private ModelArtifactItem(Builder b) {
+	private ArtifactModelItem(Builder b) {
 		this.artifact = b.artifact;
 		this.locator = b.locator;
 		this.namedQueryModels = b.namedQueryModels;
@@ -227,13 +227,13 @@ public class ModelArtifactItem implements MessageItem {
 		 *             if created instance fails JSON-SCHEMA validation.
 		 * 
 		 */
-		public ModelArtifactItem build() {
+		public ArtifactModelItem build() {
 			return build(false);
 		}
 
-		private ModelArtifactItem build(boolean trustedBuilder) {
+		private ArtifactModelItem build(boolean trustedBuilder) {
 
-			ModelArtifactItem ret = new ModelArtifactItem(this);
+			ArtifactModelItem ret = new ArtifactModelItem(this);
 
 			if (!trustedBuilder) {
 				List<Problem> problems = ret.validate();

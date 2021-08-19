@@ -56,7 +56,7 @@ public class NamedModel implements ReferenceModel, Serializable {
 
 	private URI modelName;
 	private Set<URI> artifactModels;
-	private SemanticModel graph;
+	private SemanticModel model;
 
 	public NamedModel() {
 	}
@@ -70,8 +70,8 @@ public class NamedModel implements ReferenceModel, Serializable {
 		return artifactModels;
 	}
 
-	public SemanticModel getGraph() {
-		return graph;
+	public SemanticModel getModel() {
+		return model;
 	}
 
 }
