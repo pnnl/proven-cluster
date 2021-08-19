@@ -40,6 +40,8 @@
 package gov.pnnl.proven.cluster.lib.model;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
+import java.util.List;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Dataset;
@@ -77,6 +79,12 @@ public class JenaModel implements SemanticModel {
 	}
 
 	@Override
+	public List<URI> getGraphNames() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public SparqlResult sparqlQuery(SparqlDataset dataset) {
 		// TODO Auto-generated method stub
 		return null;
@@ -90,6 +98,12 @@ public class JenaModel implements SemanticModel {
 
 	@Override
 	public void add(SemanticModel model) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void add(SemanticModel... models) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -42,7 +42,6 @@ package gov.pnnl.proven.cluster.lib.disclosure.item;
 import java.util.List;
 import java.util.Optional;
 
-import javax.json.Json;
 import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
@@ -52,9 +51,7 @@ import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.Problem;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
-import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext.Builder;
 
 /**
  * Immutable class representing the context of an artifact item. The context
@@ -70,7 +67,6 @@ public class ArtifactContext implements Validatable {
 
 	public static final String ID_PROP = "id";
 	public static final String VERSION_PROP = "version";
-	public static final String LATEST_PROP = "latest";
 
 	private String id;
 	private String version;
@@ -81,15 +77,13 @@ public class ArtifactContext implements Validatable {
 
 	@JsonbCreator
 	public static ArtifactContext createArtifactContext(@JsonbProperty(ID_PROP) String id,
-			@JsonbProperty(VERSION_PROP) String version, @JsonbProperty(LATEST_PROP) Boolean latest) {
-		return ArtifactContext.newBuilder().withId(id).withVersion(version).withLatest(latest)
-				.build(true);
+			@JsonbProperty(VERSION_PROP) String version) {
+		return ArtifactContext.newBuilder().withId(id).withVersion(version).build(true);
 	}
 
 	private ArtifactContext(Builder b) {
 		this.id = b.id;
 		this.version = b.version;
-		this.latest = b.latest;
 	}
 
 	@JsonbProperty(ID_PROP)
@@ -102,11 +96,6 @@ public class ArtifactContext implements Validatable {
 		return Optional.ofNullable(version);
 	}
 
-	@JsonbProperty(LATEST_PROP)
-	public Boolean isLatest() {
-		return latest;
-	}
-	
 	public static Builder newBuilder() {
 		return new Builder();
 	}
@@ -115,7 +104,6 @@ public class ArtifactContext implements Validatable {
 
 		private String id;
 		private String version;
-		private Boolean latest;
 
 		private Builder() {
 		}
@@ -130,18 +118,13 @@ public class ArtifactContext implements Validatable {
 			return this;
 		}
 
-		public Builder withLatest(Boolean latest) {
-			this.latest = latest;
-			return this;
-		}
-		
 		/**
 		 * Builds new instance. Instance is validated post construction.
 		 * 
 		 * @return new instance
 		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
+		 * @throws JsonValidatingException if created instance fails JSON-SCHEMA
+		 *                                 validation.
 		 * 
 		 */
 		public ArtifactContext build() {
@@ -194,13 +177,7 @@ public class ArtifactContext implements Validatable {
 					.withType(InstanceType.STRING, InstanceType.NULL)
 					.withDefault(JsonValue.NULL)
 					.build())
-				
-				.withProperty(LATEST_PROP, sbf.createBuilder()
-					.withDescription("If true, indicates this artifact is the latest version.")
-					.withType(InstanceType.BOOLEAN)
-					.withDefault(JsonValue.TRUE)
-					.build())
-												
+																
 				.withRequired(ID_PROP)
 				
 				.build();

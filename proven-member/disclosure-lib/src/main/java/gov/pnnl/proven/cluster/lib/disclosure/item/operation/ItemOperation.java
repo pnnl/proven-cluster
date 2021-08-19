@@ -45,7 +45,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.ModelArtifactItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.ArtifactModelItem;
 
 /**
  * Represents the pre-defined item processing operations. Operations are

@@ -43,8 +43,6 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.Set;
 
-import org.apache.jena.query.Query;
-
 /**
  * Represents a single semantic graph based on a disclosed ModelArtifactItem.
  * 
@@ -60,7 +58,7 @@ public class ArtifactModel implements ReferenceModel, Serializable {
 	private URI modelName;
 	private Set<URI> namedModels;
 	private Set<URI> messageModels;
-	private SemanticModel graph;
+	private SemanticModel model;
 
 	public ArtifactModel() {
 	}
@@ -78,8 +76,8 @@ public class ArtifactModel implements ReferenceModel, Serializable {
 		return messageModels;
 	}
 
-	public SemanticModel getGraph() {
-		return graph;
+	public SemanticModel getModel() {
+		return model;
 	}
 
 }
