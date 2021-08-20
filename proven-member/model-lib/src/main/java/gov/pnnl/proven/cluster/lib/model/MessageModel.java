@@ -54,7 +54,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
  * 
  * @author d3j766
  *
- * @see ModelOperation
+ * @see MessageModelOperation
  * 
  */
 public class MessageModel implements ReferenceModel, Serializable {
@@ -64,7 +64,7 @@ public class MessageModel implements ReferenceModel, Serializable {
 	private URI modelName;
 	private Set<URI> artifactModels;
 	private MessageContext messageContext;
-	private ModelOperation operation;
+	private MessageModelOperation operation;
 	private OperationContext operationContext;
 	private SemanticModel model;
 
@@ -99,7 +99,7 @@ public class MessageModel implements ReferenceModel, Serializable {
 		return messageContext;
 	}
 
-	public ModelOperation getOperation() {
+	public MessageModelOperation getOperation() {
 		return operation;
 	}
 

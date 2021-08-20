@@ -50,7 +50,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
  * 
  * @author d3j766
  * 
- * @see ModelOperation
+ * @see MessageModelOperation
  *
  */
 public interface ReferenceModel  {

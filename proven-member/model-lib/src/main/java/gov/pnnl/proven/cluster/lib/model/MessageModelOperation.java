@@ -53,7 +53,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
  * @author d3j766
  *
  */
-public enum ModelOperation {
+public enum MessageModelOperation {
 
 	/**
 	 * Used to filter/remove disclosed messages from being distributed to the
@@ -82,12 +82,12 @@ public enum ModelOperation {
 	 */
 	PROVENANCE(ItemOperation.PROVENANCE, MessageModel::itemOperation);
 
-	private static Logger log = LoggerFactory.getLogger(ModelOperation.class);
+	private static Logger log = LoggerFactory.getLogger(MessageModelOperation.class);
 
 	private ItemOperation itemOperation;
 	private OperationProcessor modelProcessor;
 
-	ModelOperation(ItemOperation itemOperation, ModelProcessor modelProcessor) {
+	MessageModelOperation(ItemOperation itemOperation, ModelProcessor modelProcessor) {
 		this.itemOperation = itemOperation;
 		this.modelProcessor = modelProcessor;
 	}

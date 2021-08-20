@@ -88,11 +88,11 @@ public interface SemanticModel {
 	 * Performs operation as defined by the operation model on the provided message
 	 * model.
 	 * 
-	 * @param messageModel   data that the operation will be performed on.
-	 * @param operationModel model used to perform the operation.
+	 * @param model   data that the operation will be performed on.
+	 * @param operation model used to perform the operation.
 	 * @return a ResponseItem
 	 */
-	ResponseItem modelOperation(SemanticModel messageModel, MessageModel operationModel);
+	ResponseItem modelOperation(SemanticModel model, MessageModel operation);
 
 	/**
 	 * Adds provided model to the semantic model.
