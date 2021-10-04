@@ -67,15 +67,15 @@ subprojects {
 			}
 		}
 
-		eclipse {
-			classpath { downloadSources=true }
-			wtp {
-				facet {
-					facet name: 'jst.web', version: '3.1'
-					facet name: 'jst.java', version: '1.8'
-				}
-			}
-		}
+//		eclipse {
+//			classpath { downloadSources=true }
+//			wtp {
+//				facet {
+//					facet name: 'jst.web', version: '3.1'
+//					facet name: 'jst.java', version: '1.8'
+//				}
+//			}
+//		}
 
 		war {
 			archiveFileName = project.name - "-module" + "-$version" + ".war"
@@ -125,7 +125,8 @@ subprojects {
 		compileOnly group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
 		compileOnly group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"
 		compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
-		compileOnly group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"		
+		compileOnly group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"	
+		compileOnly group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'	
 		implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 		implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
 		implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
@@ -133,6 +134,8 @@ subprojects {
 		implementation group: 'commons-validator', name: 'commons-validator', version: '1.6'
 		implementation group: 'org.apache.commons', name: 'commons-configuration2', version: '2.6'
         implementation group: 'au.com.bytecode', name: 'opencsv', version: '2.4'
+        
+        
         
 		if (!isMemberProject) {
 			implementation project(':proven-member')
