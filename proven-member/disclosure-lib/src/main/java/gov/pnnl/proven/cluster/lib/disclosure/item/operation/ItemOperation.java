@@ -48,12 +48,12 @@ import org.slf4j.LoggerFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ArtifactModelItem;
 
 /**
- * Represents the pre-defined item processing operations. Operations are
+ * Represents the pre-defined item operation types. Operations are
  * assigned a name and an operation context type. The context provides
  * additional operation specific data, if any, supporting an operations's
  * execution.  
  * 
- * @see OperationContext
+ * @see OperationContext, MessageModelItem
  * 
  * @author d3j766
  *

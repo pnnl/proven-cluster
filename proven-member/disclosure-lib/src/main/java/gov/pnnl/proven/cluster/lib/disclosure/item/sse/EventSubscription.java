@@ -40,11 +40,15 @@
 package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 
 import java.util.List;
+import java.util.UUID;
+
+import javax.json.stream.JsonParsingException;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
 
 /**
  * Represents an SSE subscription.
@@ -56,27 +60,46 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
  */
 public interface EventSubscription extends Validatable {
 
-	static List<Class<? extends EventSubscription>> subscriptionTypes() {
-		return Validatable.getValidatables(EventSubscription.class);
-	}
+    static List<Class<? extends EventSubscription>> subscriptionTypes() {
+	return Validatable.getValidatables(EventSubscription.class);
+    }
 
-	/**
-	 * Represents the type of event being subscribe to.
-	 */
-	EventType getEventType();
+    /**
+     * Represents the type of event being subscribe to.
+     */
+    EventType getEventType();
 
-	/*
-	 * Represents the domain for event data being subscribed to.
-	 */
-	DisclosureDomain getDomain();
+    /*
+     * Represents the domain for event data being subscribed to.
+     */
+    DisclosureDomain getDomain();
 
-	/**
-	 * Determines if a disclosed message is included in the subscription.
-	 * 
-	 * @param disclosureItem
-	 *            the disclosed message
-	 * @return true if it is included in the subscription, false otherwise.
-	 */
-	boolean subscribed(DisclosureItem disclosureItem);
+    /**
+     * Determines if an operation response is included in the subscription.
+     * 
+     * If the provided disclosure item does not contain the correct content (i.e.
+     * not an operation response), then false will be returned.
+     * 
+     * @param responseItem
+     *            the operation's response
+     * 
+     * @return true if response is included in the subscription, false otherwise.
+     */
+    boolean subscribed(DisclosureItem disclosureItem);
 
+    /**
+     * Creates event data for provided session and operation response.
+     * 
+     * @param sessionId
+     *            session identifier
+     * @param responseItem
+     *            the operations's response
+     * 
+     * @throws IllegalArgumentException
+     *             if the provided disclosure item does not contain the correct
+     *             content (i.e. not an operation response)
+     * 
+     * @return event data for the operation response
+     */
+    EventData createEventData(UUID sessionId, DisclosureItem disclosureItem);
 }

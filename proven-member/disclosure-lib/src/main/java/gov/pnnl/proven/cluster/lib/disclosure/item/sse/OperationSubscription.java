@@ -41,6 +41,8 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
@@ -55,9 +57,14 @@ import org.leadpony.justify.api.Problem;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
+import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
+import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseContext;
+import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
+import gov.pnnl.proven.cluster.lib.member.MemberUtils;
 
 /**
  * Represents a SSE subscription for operation events.
@@ -69,13 +76,80 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
  */
 public class OperationSubscription implements EventSubscription {
 
-	public static final String DOMAIN_PROP = "domain";
-	public static final String STATUSES_PROP = "statuses";
-	public static final String OPERATIONS_PROP = "operations";
-	public static final String ITEMS_PROP = "items";
-	public static final String NAMES_PROP = "names";
-	public static final String REQUESTORS_PROP = "requestors";
-	public static final String TAGS_PROP = "tags";
+    public static final String DOMAIN_PROP = "domain";
+    public static final String STATUSES_PROP = "statuses";
+    public static final String OPERATIONS_PROP = "operations";
+    public static final String ITEMS_PROP = "items";
+    public static final String NAMES_PROP = "names";
+    public static final String REQUESTORS_PROP = "requestors";
+    public static final String TAGS_PROP = "tags";
+
+    private DisclosureDomain domain;
+    private List<String> statuses;
+    private List<String> operations;
+    private List<String> items;
+    private List<String> names;
+    private List<String> requestors;
+    private List<String> tags;
+
+    public OperationSubscription() {
+    }
+
+    @JsonbCreator
+    public static OperationSubscription createOperationSubscription(@JsonbProperty(DOMAIN_PROP) DisclosureDomain domain,
+	    @JsonbProperty(STATUSES_PROP) List<String> statuses,
+	    @JsonbProperty(OPERATIONS_PROP) List<String> operations, @JsonbProperty(ITEMS_PROP) List<String> items,
+	    @JsonbProperty(NAMES_PROP) List<String> names, @JsonbProperty(REQUESTORS_PROP) List<String> requestors,
+	    @JsonbProperty(TAGS_PROP) List<String> tags) {
+	return OperationSubscription.newBuilder().withDomain(domain).withStatuses(statuses).withOperations(operations)
+		.withItems(items).withRequestors(requestors).withNames(names).withTags(tags).build(true);
+    }
+
+    private OperationSubscription(Builder b) {
+	this.domain = b.domain;
+	this.statuses = b.statuses;
+	this.operations = b.operations;
+	this.items = b.items;
+	this.requestors = b.requestors;
+	this.names = b.names;
+	this.tags = b.tags;
+    }
+
+    @JsonbProperty(STATUSES_PROP)
+    public List<String> getStatuses() {
+	return statuses;
+    }
+
+    @JsonbProperty(OPERATIONS_PROP)
+    public List<String> getOperations() {
+	return operations;
+    }
+
+    @JsonbProperty(ITEMS_PROP)
+    public List<String> getItems() {
+	return items;
+    }
+
+    @JsonbProperty(NAMES_PROP)
+    public List<String> getNames() {
+	return names;
+    }
+
+    @JsonbProperty(REQUESTORS_PROP)
+    public List<String> getRequestors() {
+	return requestors;
+    }
+
+    @JsonbProperty(TAGS_PROP)
+    public List<String> getTags() {
+	return tags;
+    }
+
+    public static Builder newBuilder() {
+	return new Builder();
+    }
+
+    public static final class Builder {
 
 	private DisclosureDomain domain;
 	private List<String> statuses;
@@ -85,242 +159,228 @@ public class OperationSubscription implements EventSubscription {
 	private List<String> requestors;
 	private List<String> tags;
 
-	public OperationSubscription() {
+	private Builder() {
 	}
 
-	@JsonbCreator
-	public static OperationSubscription createOperationSubscription(@JsonbProperty(DOMAIN_PROP) DisclosureDomain domain,
-			@JsonbProperty(STATUSES_PROP) List<String> statuses,
-			@JsonbProperty(OPERATIONS_PROP) List<String> operations, @JsonbProperty(ITEMS_PROP) List<String> items,
-			@JsonbProperty(NAMES_PROP) List<String> names, @JsonbProperty(REQUESTORS_PROP) List<String> requestors,
-			@JsonbProperty(TAGS_PROP) List<String> tags) {
-		return OperationSubscription.newBuilder().withDomain(domain).withStatuses(statuses).withOperations(operations)
-				.withItems(items).withRequestors(requestors).withNames(names).withTags(tags).build(true);
+	public Builder withDomain(DisclosureDomain domain) {
+	    this.domain = domain;
+	    return this;
 	}
 
-	private OperationSubscription(Builder b) {
-		this.domain = b.domain;
-		this.statuses = b.statuses;
-		this.operations = b.operations;
-		this.items = b.items;
-		this.requestors = b.requestors;
-		this.names = b.names;
-		this.tags = b.tags;
+	public Builder withStatuses(List<String> statuses) {
+	    this.statuses = statuses;
+	    return this;
 	}
 
-	@JsonbProperty(STATUSES_PROP)
-	public List<String> getStatuses() {
-		return statuses;
+	public Builder withOperations(List<String> operations) {
+	    this.operations = operations;
+	    return this;
 	}
 
-	@JsonbProperty(OPERATIONS_PROP)
-	public List<String> getOperations() {
-		return operations;
+	public Builder withItems(List<String> items) {
+	    this.items = items;
+	    return this;
 	}
 
-	@JsonbProperty(ITEMS_PROP)
-	public List<String> getItems() {
-		return items;
+	public Builder withNames(List<String> names) {
+	    this.names = names;
+	    return this;
 	}
 
-	@JsonbProperty(NAMES_PROP)
-	public List<String> getNames() {
-		return names;
+	public Builder withRequestors(List<String> requestors) {
+	    this.requestors = requestors;
+	    return this;
 	}
 
-	@JsonbProperty(REQUESTORS_PROP)
-	public List<String> getRequestors() {
-		return requestors;
+	public Builder withTags(List<String> tags) {
+	    this.tags = tags;
+	    return this;
 	}
 
-	@JsonbProperty(TAGS_PROP)
-	public List<String> getTags() {
-		return tags;
+	/**
+	 * Builds new instance. Instance is validated post construction.
+	 * 
+	 * @return new instance
+	 * 
+	 * @throws JsonValidatingException
+	 *             if created instance fails JSON-SCHEMA validation.
+	 * 
+	 */
+	public OperationSubscription build() {
+	    return build(false);
 	}
 
-	public static Builder newBuilder() {
-		return new Builder();
-	}
+	private OperationSubscription build(boolean trustedBuilder) {
 
-	public static final class Builder {
+	    OperationSubscription ret = new OperationSubscription(this);
 
-		private DisclosureDomain domain;
-		private List<String> statuses;
-		private List<String> operations;
-		private List<String> items;
-		private List<String> names;
-		private List<String> requestors;
-		private List<String> tags;
-
-		private Builder() {
+	    if (!trustedBuilder) {
+		List<Problem> problems = ret.validate();
+		if (!problems.isEmpty()) {
+		    throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
 		}
+	    }
 
-		public Builder withDomain(DisclosureDomain domain) {
-			this.domain = domain;
-			return this;
-		}
+	    return ret;
+	}
+    }
 
-		public Builder withStatuses(List<String> statuses) {
-			this.statuses = statuses;
-			return this;
-		}
+    @Override
+    public EventType getEventType() {
+	return EventType.OPERATION;
+    }
 
-		public Builder withOperations(List<String> operations) {
-			this.operations = operations;
-			return this;
-		}
+    @Override
+    public DisclosureDomain getDomain() {
+	return domain;
+    }
 
-		public Builder withItems(List<String> items) {
-			this.items = items;
-			return this;
-		}
+    @Override
+    public boolean subscribed(DisclosureItem disclosureItem) {
 
-		public Builder withNames(List<String> names) {
-			this.names = names;
-			return this;
-		}
+	boolean ret = false;
 
-		public Builder withRequestors(List<String> requestors) {
-			this.requestors = requestors;
-			return this;
-		}
+	// First verify this disclosure item contains the correct content.
+	if (hasOperationResponse(disclosureItem)) {
 
-		public Builder withTags(List<String> tags) {
-			this.tags = tags;
-			return this;
-		}
+	    // Gather message values for comparisons
+	    ResponseItem ri = (ResponseItem) disclosureItem.getMessageItem();
+	    ResponseContext rc = ri.getResponseContext();
+	    MessageContext mc = rc.getMessageContext();
+	    OperationContext oc = rc.getOperationContext();
+	    DisclosureDomain mDomain = disclosureItem.getDomain();
+	    String mStatusFamily = rc.getStatusCode().getFamily().toString();
+	    String mOperation = oc.getOperation().getOpName();
+	    String mItemName = ri.messageName();
+	    Optional<String> mName = mc.getName();
+	    Optional<String> mRequestor = mc.getRequestor();
+	    List<String> mTags = Arrays.asList(mc.getTags());
 
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public OperationSubscription build() {
-			return build(false);
-		}
-
-		private OperationSubscription build(boolean trustedBuilder) {
-
-			OperationSubscription ret = new OperationSubscription(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
+	    // Compare subcription with message values
+	    if ((getDomain().equals(mDomain)) && (getStatuses().isEmpty() || getStatuses().contains(mStatusFamily))
+		    && (getOperations().isEmpty() || getOperations().contains(mOperation))
+		    && (getItems().isEmpty() || getItems().contains(mItemName))
+		    && (getNames().isEmpty() || (mName.isPresent()) ? getNames().contains(mName.get()) : false)
+		    && (getRequestors().isEmpty() || (mRequestor.isPresent())
+			    ? getRequestors().contains(mRequestor.get())
+			    : false)
+		    && (getTags().isEmpty() || MemberUtils.containsAny(getTags(), mTags))) {
+		ret = true;
+	    }
 	}
 
-	@Override
-	public EventType getEventType() {
-		// TODO Auto-generated method stub
-		return EventType.OPERATION;
+	return ret;
+    }
+
+    @Override
+    public EventData createEventData(UUID sessionId, DisclosureItem disclosureItem) {
+
+	EventData ret;
+	MessageItem mi = disclosureItem.getMessageItem();
+
+	boolean isResponseItem = ResponseItem.class.isAssignableFrom(mi.getClass());
+	if (isResponseItem) {
+	    ret = OperationEvent.newBuilder().withSessionId(sessionId).withSubscription(this)
+		    .withResponse((ResponseItem) mi).build();
+	} else {
+	    throw new IllegalArgumentException("Unable to create event data for an OPERATION event.  "
+		    + ((isResponseItem) ? "" : "Invalid DisclosureItem provided, must contain an operation response"));
 	}
+	return ret;
+    }
 
-	@Override
-	public DisclosureDomain getDomain() {
-		return domain;
-	}
+    private boolean hasOperationResponse(DisclosureItem disclosureItem) {
+	return (getEventType().getMessageContent() == disclosureItem.getContext().getContent());
+    }
 
-	@Override
-	public boolean subscribed(DisclosureItem disclosureItem) {
-		boolean ret = false;
-		return false;
-	}
+    private List<String> subscribedStatusFamilyNames() {
+	return Arrays.asList(Response.Status.Family.SUCCESSFUL.toString(),
+		Response.Status.Family.CLIENT_ERROR.toString(), Response.Status.Family.SERVER_ERROR.toString(),
+		Response.Status.Family.OTHER.toString());
+    }
 
-	@Override
-	public JsonSchema toSchema() {
+    @Override
+    public JsonSchema toSchema() {
 
-		JsonSchema ret;
-		
-		 items = MessageItem.messageNames();
+	JsonSchema ret;
 
-		//@formatter:off
-		ret = sbf.createBuilder()
+	items = MessageItem.messageNames();
 
-			.withId(Validatable.schemaId(this.getClass()))
-			
-			.withSchema(Validatable.schemaDialect())
-			
-			.withTitle("Operation subscription.")
+	//@formatter:off
+	ret = sbf.createBuilder()
 
-			.withDescription("A SSE subscription for operation results.") 
+		.withId(Validatable.schemaId(this.getClass()))
 
-			.withType(InstanceType.OBJECT)
-			
-			.withProperty(DOMAIN_PROP,
-					sbf.createBuilder()
-					.withDescription("Identifies domain value.")
-					.withType(InstanceType.STRING)
-					.withPattern(Validatable.DOMAIN_PATTERN)
-					.build())
-			.withProperty(STATUSES_PROP, sbf.createBuilder()
-					.withType(InstanceType.ARRAY)
-					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
-					.withItems(sbf.createBuilder()
-						.withType(InstanceType.STRING)
-						.withEnum(Validatable.toJsonValues(Arrays.asList(
-							Response.Status.Family.SUCCESSFUL.toString(),
-							Response.Status.Family.CLIENT_ERROR.toString(),
-							Response.Status.Family.SERVER_ERROR.toString(),
-							Response.Status.Family.OTHER.toString())))
-						.withUniqueItems(true)
-						.build())
-					.build())			
-			.withProperty(OPERATIONS_PROP, sbf.createBuilder()
-					.withType(InstanceType.ARRAY)
-					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
-					.withItems(sbf.createBuilder()
-						.withType(InstanceType.STRING)
-						.withEnum(Validatable.toJsonValues(ItemOperation.getOperationNames()))
-						.withUniqueItems(true)
-						.build())
-					.build())			
-			.withProperty(ITEMS_PROP, sbf.createBuilder()
-					.withType(InstanceType.ARRAY)
-					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
-					.withItems(sbf.createBuilder()
-						.withType(InstanceType.STRING)
-						.withEnum(Validatable.toJsonValues(MessageItem.messageNames()))
-						.withUniqueItems(true)
-						.build())
-					.build())
-			.withProperty(NAMES_PROP, sbf.createBuilder()
-					.withType(InstanceType.ARRAY)
-					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
-					.withItems(sbf.createBuilder()
-						.withType(InstanceType.STRING)
-						.build())
-					.build())
-			.withProperty(REQUESTORS_PROP, sbf.createBuilder()
-					.withType(InstanceType.ARRAY)
-					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
-					.withItems(sbf.createBuilder()
-						.withType(InstanceType.STRING)
-						.build())
-					.build())						
-			.withProperty(TAGS_PROP, sbf.createBuilder()
-					.withType(InstanceType.ARRAY)
-					.withDefault(JsonValue.EMPTY_JSON_ARRAY)
-					.withItems(sbf.createBuilder()
-						.withType(InstanceType.STRING)
-						.build())
-					.build())
+		.withSchema(Validatable.schemaDialect())
 
-			.withRequired(DOMAIN_PROP)
-			
-			.build();
-						
+		.withTitle("Operation subscription.")
+
+		.withDescription("A SSE subscription for operation results.") 
+
+		.withType(InstanceType.OBJECT)
+
+		.withProperty(DOMAIN_PROP,
+			sbf.createBuilder()
+			.withDescription("Identifies domain value.")
+			.withType(InstanceType.STRING)
+			.withPattern(Validatable.DOMAIN_PATTERN)
+			.build())
+		.withProperty(STATUSES_PROP, sbf.createBuilder()
+			.withType(InstanceType.ARRAY)
+			.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+			.withItems(sbf.createBuilder()
+				.withType(InstanceType.STRING)
+				.withEnum(Validatable.toJsonValues(subscribedStatusFamilyNames()))
+				.withUniqueItems(true)
+				.build())
+			.build())			
+		.withProperty(OPERATIONS_PROP, sbf.createBuilder()
+			.withType(InstanceType.ARRAY)
+			.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+			.withItems(sbf.createBuilder()
+				.withType(InstanceType.STRING)
+				.withEnum(Validatable.toJsonValues(ItemOperation.getOperationNames()))
+				.withUniqueItems(true)
+				.build())
+			.build())			
+		.withProperty(ITEMS_PROP, sbf.createBuilder()
+			.withType(InstanceType.ARRAY)
+			.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+			.withItems(sbf.createBuilder()
+				.withType(InstanceType.STRING)
+				.withEnum(Validatable.toJsonValues(MessageItem.messageNames()))
+				.withUniqueItems(true)
+				.build())
+			.build())
+		.withProperty(NAMES_PROP, sbf.createBuilder()
+			.withType(InstanceType.ARRAY)
+			.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+			.withItems(sbf.createBuilder()
+				.withType(InstanceType.STRING)
+				.build())
+			.build())
+		.withProperty(REQUESTORS_PROP, sbf.createBuilder()
+			.withType(InstanceType.ARRAY)
+			.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+			.withItems(sbf.createBuilder()
+				.withType(InstanceType.STRING)
+				.build())
+			.build())						
+		.withProperty(TAGS_PROP, sbf.createBuilder()
+			.withType(InstanceType.ARRAY)
+			.withDefault(JsonValue.EMPTY_JSON_ARRAY)
+			.withItems(sbf.createBuilder()
+				.withType(InstanceType.STRING)
+				.build())
+			.build())
+
+		.withRequired(DOMAIN_PROP)
+
+		.build();
+
 		//@formatter:on
 
-		return ret;
-	}
+	return ret;
+    }
 
 }

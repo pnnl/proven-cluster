@@ -53,7 +53,9 @@ import org.slf4j.LoggerFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
 import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventSubscription;
+import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 
 /**
  * Represents an SSE session. SSE Sessions are created by the resource class
@@ -73,148 +75,95 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventSubscription;
  */
 public class SseSession {
 
-	static Logger logger = LoggerFactory.getLogger(SseSession.class);
+    static Logger logger = LoggerFactory.getLogger(SseSession.class);
 
-	private EventStream event;
-	private UUID sessionId;
-	private EventSubscription eventSubscription;
-	private Sse sse;
-	private SseEventSink eventSink;
+    private UUID sessionId;
+    private EventSubscription eventSubscription;
+    private Sse sse;
+    private SseEventSink eventSink;
+    private MessageStreamType eventStream;
 
-	public SseSession(UUID sessionId, EventSubscription eventSubscription, Sse sse, SseEventSink eventSink) {
+    public SseSession(UUID sessionId, EventSubscription eventSubscription, Sse sse, SseEventSink eventSink) {
 
-		this.event = EventStream.getForEvent(eventSubscription.getEventType());
-		this.eventSubscription = eventSubscription;
-		this.sessionId = sessionId;
-		this.sse = sse;
-		this.eventSink = eventSink;
+	this.eventSubscription = eventSubscription;
+	this.sessionId = sessionId;
+	this.sse = sse;
+	this.eventSink = eventSink;
 
-		logger.debug("Created new SSE Session for event type: " + eventSubscription.getEventType());
-		logger.debug("");
+	logger.debug("Created new SSE Session for event type: " + eventSubscription.getEventType());
+	logger.debug("");
+    }
+
+    @Override
+    public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + ((sessionId == null) ? 0 : sessionId.hashCode());
+	return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+	if (this == obj) {
+	    return true;
 	}
-
-	public boolean hasEvent(EventStream eventToCheck) {
-		return event.equals(eventToCheck);
+	if (obj == null) {
+	    return false;
 	}
-
-//	public boolean hasDomain(DisclosureDomain domainToCheck) {
-//		return domain.equals(domainToCheck);
-//	}
-
-//	public boolean hasContent(MessageContent mcToCheck) {
-//
-//		boolean ret = true;
-//
-//		if (!contents.contains(ANY)) {
-//			if (!contents.contains(mcToCheck)) {
-//				ret = false;
-//			}
-//		}
-//
-//		return ret;
-//	}
-
-//	public boolean hasRequestor(Optional<String> requesterToCheck) {
-//
-//		boolean ret = true;
-//		if ((requesterToCheck.isPresent()) && (!requesterToCheck.get().isEmpty())) {
-//			ret = requestor.equals(requesterToCheck.get());
-//		}
-//		return ret;
-//	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((sessionId == null) ? 0 : sessionId.hashCode());
-		return result;
+	if (!(obj instanceof SseSession)) {
+	    return false;
 	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof SseSession)) {
-			return false;
-		}
-		SseSession other = (SseSession) obj;
-		if (sessionId == null) {
-			if (other.sessionId != null) {
-				return false;
-			}
-		} else if (!sessionId.equals(other.sessionId)) {
-			return false;
-		}
-		return true;
+	SseSession other = (SseSession) obj;
+	if (sessionId == null) {
+	    if (other.sessionId != null) {
+		return false;
+	    }
+	} else if (!sessionId.equals(other.sessionId)) {
+	    return false;
 	}
+	return true;
+    }
 
-	public EventStream getEvent() {
-		return event;
-	}
+    public MessageStreamType getEventStream() {
 
-	public void setEvent(EventStream event) {
-		this.event = event;
+	MessageStreamType ret = eventStream;
+	if (null == ret) {
+	    MessageContent mc = eventSubscription.getEventType().getMessageContent();
+	    ret = MessageStreamType.getType(mc);
 	}
+	return eventStream;
+    }
 
-	public UUID getSessionId() {
-		return sessionId;
-	}
+    public UUID getSessionId() {
+	return sessionId;
+    }
 
-	public void setSessionId(UUID sessionId) {
-		this.sessionId = sessionId;
-	}
-	
-	public EventSubscription getEventSubscription() {
-		return eventSubscription;
-	}
+    public void setSessionId(UUID sessionId) {
+	this.sessionId = sessionId;
+    }
 
-	public void setEventSubscription(EventSubscription eventSubscription) {
-		this.eventSubscription = eventSubscription;
-	}
+    public EventSubscription getEventSubscription() {
+	return eventSubscription;
+    }
 
-	public Sse getSse() {
-		return sse;
-	}
+    public void setEventSubscription(EventSubscription eventSubscription) {
+	this.eventSubscription = eventSubscription;
+    }
 
-	public void setSse(Sse sse) {
-		this.sse = sse;
-	}
+    public Sse getSse() {
+	return sse;
+    }
 
-	public SseEventSink getEventSink() {
-		return eventSink;
-	}
+    public void setSse(Sse sse) {
+	this.sse = sse;
+    }
 
-	public void setEventSink(SseEventSink eventSink) {
-		this.eventSink = eventSink;
-	}
+    public SseEventSink getEventSink() {
+	return eventSink;
+    }
 
-//	public DisclosureDomain getDomain() {
-//		return domain;
-//	}
-//
-//	public void setDomain(DisclosureDomain domain) {
-//		this.domain = domain;
-//	}
-//
-//	public List<MessageContent> getContents() {
-//		return contents;
-//	}
-//
-//	public void setContents(List<MessageContent> contents) {
-//		this.contents = contents;
-//	}
-//
-//	public String getRequestor() {
-//		return requestor;
-//	}
-//
-//	public void setRequester(String requester) {
-//		this.requestor = requester;
-//	}
+    public void setEventSink(SseEventSink eventSink) {
+	this.eventSink = eventSink;
+    }
 
 }

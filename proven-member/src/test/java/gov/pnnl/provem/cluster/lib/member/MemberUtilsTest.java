@@ -1,3 +1,5 @@
+package gov.pnnl.provem.cluster.lib.member;
+
 /*******************************************************************************
  * Copyright (c) 2017, Battelle Memorial Institute All rights reserved.
  * Battelle Memorial Institute (hereinafter Battelle) hereby grants permission to any person or entity 
@@ -37,135 +39,65 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.module.member.sse;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventType.OPERATION;
-import static gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType.RESPONSE;
-import static gov.pnnl.proven.cluster.module.member.sse.EventStream.EventLabel.OPERATION_RESPONSE_LABEL;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
-import javax.naming.ConfigurationException;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventType;
-import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
+import gov.pnnl.proven.cluster.lib.member.MemberUtils;
 
-/**
- * Associates the different EventType's with their message stream. Each event
- * type is associated with a single stream type as defined by
- * {@code MessageStreamType}. The event data for the event type is based on
- * entries from its associated stream.
- *
- * @author d3j766
- * 
- * @see EventType, MessageStreamType
- *
- */
-public enum EventStream {
+public class MemberUtilsTest {
 
-	OPERATION_RESPONSE(OPERATION, RESPONSE, OPERATION_RESPONSE_LABEL);
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+    }
 
-	public class EventLabel {
-		public static final String OPERATION_RESPONSE_LABEL = "operation-response-event";
-	}
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+    }
 
-	private EventType eventType;
-	private String label;
-	private MessageStreamType streamType;
+    @Before
+    public void setUp() throws Exception {
+    }
 
-	EventStream(EventType eventType, MessageStreamType streamType, String label) {
-		this.eventType = eventType;
-		this.label = label;
-		this.streamType = streamType;
-	}
+    @After
+    public void tearDown() throws Exception {
+    }
 
-	/**
-	 * Provides the SSE's type.
-	 * 
-	 * @return the type of SSE.
-	 */
-	public EventType getEventType() {
-		return eventType;
-	}
+    @Test
+    public void testSchema_containsAny_passSubset() {
+	List<String> l1 = Arrays.asList("t1", "t2", "t3");
+	List<String> l2 = Arrays.asList("t2");
+	assertThat("ContainsAny subset is true", MemberUtils.containsAny(l1, l2));
+    }
 
-	/**
-	 * Provides the SSE's associated stream type.
-	 * 
-	 * @return name for the SSE event type
-	 */
-	public MessageStreamType getStreamType() {
-		return streamType;
-	}
+    @Test
+    public void testSchema_containsAny_passProperSubset() {
+	List<String> l1 = Arrays.asList("t1", "t2", "t3");
+	List<String> l2 = Arrays.asList("t1", "t2", "t3");
+	assertThat("ContainsAny proper subset is true", MemberUtils.containsAny(l1, l2));
+    }
 
-	/**
-	 * Provides the name of for the SSE event type.
-	 * 
-	 * @return name for the SSE event type
-	 */
-	public String getLabel() {
-		return label;
-	}
+    @Test
+    public void testSchema_containsAny_failEmptySource() {
+	List<String> l1 = Arrays.asList();
+	List<String> l2 = Arrays.asList("t1", "t2", "t3");
+	assertThat("ContainsAny empty source list is false", !MemberUtils.containsAny(l1, l2));
+    }
 
-	/**
-	 * Provides a list of all SSE event types.
-	 */
-	public static List<String> getLabels() {
+    @Test
+    public void testSchema_containsAny_failEmptyTarget() {
+	List<String> l1 = Arrays.asList("t1", "t2", "t3");
+	List<String> l2 = Arrays.asList();
+	assertThat("ContainsAny empty target list is false", !MemberUtils.containsAny(l1, l2));
+    }
 
-		List<String> ret = new ArrayList<>();
-		for (EventStream event : values()) {
-			ret.add(event.getLabel());
-		}
-		return ret;
-	}
-
-	/**
-	 * Retrieves the EventStream for a given event type. There is a single
-	 * EventStream for an event type.
-	 * 
-	 * @param eventType
-	 *            the provided event type.
-	 * @return the associated EventStream.
-	 */
-	public static EventStream getForEvent(EventType eventType) {
-
-		EventStream ret = null;
-
-		for (EventStream es : EventStream.values()) {
-			if (es.getEventType() == eventType) {
-				ret = es;
-				break;
-			}
-		}
-		
-		// Ensure EventStream is configured correctly
-		if (null ==  ret) {
-			throw new IllegalArgumentException("Event type missing in EventStream");
-		}
-		
-		return ret;
-	}
-
-	/**
-	 * Retrieves the EventStream(s) for a given stream. There can be 0 or more
-	 * events associated with a stream.
-	 * 
-	 * @param streamType
-	 *            the provided stream type.
-	 *            
-	 * @return list of EventStream
-	 */
-	public static List<EventStream> getEventsForStream(MessageStreamType streamType) {
-
-		List<EventStream> ret = new ArrayList<>();
-
-		for (EventStream es : EventStream.values()) {
-			if (es.getStreamType() == streamType) {
-				ret.add(es);
-			}
-		}		
-		return ret;
-	}
-
+    
 }

@@ -84,9 +84,11 @@ public enum MessageContentGroup {
 			GroupLabel.MODEL_GROUP, 
 			MessageContent.MODEL),
 	
-	RESPONSE(
-			GroupLabel.RESPONSE_GROUP, 
-			MessageContent.RESPONSE);
+	EVENT(
+			GroupLabel.EVENT_GROUP, 
+			MessageContent.OPERATION_EVENT,
+			MessageContent.REQUEST_EVENT,
+			MessageContent.SERVICE_EVENT);
 
 	private class GroupLabel {
 		private static final String KNOWLEDGE_GROUP = "knowledge";
@@ -95,7 +97,7 @@ public enum MessageContentGroup {
 		private static final String SERVICE_GROUP = "service";
 		private static final String REFERENCE_GROUP = "reference";
 		private static final String MODEL_GROUP = "model";
-		private static final String RESPONSE_GROUP = "response";
+		private static final String EVENT_GROUP = "event";
 	}
 
 	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);

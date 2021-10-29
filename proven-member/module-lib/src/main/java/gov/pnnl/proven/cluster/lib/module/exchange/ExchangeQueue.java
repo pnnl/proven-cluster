@@ -62,7 +62,7 @@ public enum ExchangeQueue {
 
 	Request(StreamLabel.REQUEST_STREAM, MessageContentGroup.REQUEST),
 
-	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.RESPONSE);
+	Response(StreamLabel.RESPONSE_STREAM, MessageContentGroup.EVENT);
 
 	private class StreamLabel {
 		private static final String DISCLOSURE_STREAM = "disclosed";

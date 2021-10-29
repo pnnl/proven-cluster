@@ -58,9 +58,8 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
 
 /**
- * Immutable class representing a Model item message. This message defines a
- * semantic model based on one or more model artifacts used to support exchange
- * operation processing.
+ * Immutable class representing a semantic model supporting message item operation
+ * processing. This model can based on one or more model artifact items.
  * 
  * @author d3j766
  *
@@ -69,133 +68,133 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.operation.OperationContext;
  */
 public class MessageModelItem implements MessageItem {
 
-	public static final String MESSAGE_MODEL_MESSAGE_NAME = "message-model-message";
+    public static final String MESSAGE_MODEL_MESSAGE_NAME = "message-model-message";
 
-	private static final int MIN_ARTIFACTS = 1;
+    private static final int MIN_ARTIFACTS = 1;
 
-	static final String ARTIFACTS_PROP = "artifacts";
-	static final String MESSAGE_CONTEXT_PROP = "messageContext";
-	static final String OPERATION_CONTEXT_PROP = "operationContext";
+    static final String ARTIFACTS_PROP = "artifacts";
+    static final String MESSAGE_CONTEXT_PROP = "messageContext";
+    static final String OPERATION_CONTEXT_PROP = "operationContext";
+
+    private List<ArtifactContext> artifacts;
+    private MessageContext messageContext;
+    private OperationContext operationContext;
+
+    public MessageModelItem() {
+    }
+
+    @JsonbCreator
+    public static MessageModelItem createModelItem(@JsonbProperty(ARTIFACTS_PROP) List<ArtifactContext> artifacts,
+	    @JsonbProperty(MESSAGE_CONTEXT_PROP) MessageContext messageContext,
+	    @JsonbProperty(OPERATION_CONTEXT_PROP) JsonObject operationContext) {
+	return MessageModelItem.newBuilder().withArtifacts(artifacts).withMessageContext(messageContext)
+		.withOperationContext(operationContext).build(true);
+    }
+
+    private MessageModelItem(Builder b) {
+	this.artifacts = b.artifacts;
+	this.messageContext = b.messageContext;
+	this.operationContext = b.operationContext;
+    }
+
+    @JsonbProperty(ARTIFACTS_PROP)
+    public List<ArtifactContext> getArtifacts() {
+	return artifacts;
+    }
+
+    @JsonbProperty(MESSAGE_CONTEXT_PROP)
+    public MessageContext getMessageContext() {
+	return messageContext;
+    }
+
+    @JsonbProperty(OPERATION_CONTEXT_PROP)
+    public OperationContext getOperationContext() {
+	return operationContext;
+    }
+
+    public static Builder newBuilder() {
+	return new Builder();
+    }
+
+    public static final class Builder {
 
 	private List<ArtifactContext> artifacts;
+
 	private MessageContext messageContext;
 	private OperationContext operationContext;
 
-	public MessageModelItem() {
+	private Builder() {
 	}
 
-	@JsonbCreator
-	public static MessageModelItem createModelItem(@JsonbProperty(ARTIFACTS_PROP) List<ArtifactContext> artifacts,
-			@JsonbProperty(MESSAGE_CONTEXT_PROP) MessageContext messageContext,
-			@JsonbProperty(OPERATION_CONTEXT_PROP) JsonObject operationContext) {
-		return MessageModelItem.newBuilder().withArtifacts(artifacts).withMessageContext(messageContext)
-				.withOperationContext(operationContext).build(true);
+	public Builder withArtifacts(List<ArtifactContext> artifacts) {
+	    this.artifacts = artifacts;
+	    return this;
 	}
 
-	private MessageModelItem(Builder b) {
-		this.artifacts = b.artifacts;
-		this.messageContext = b.messageContext;
-		this.operationContext = b.operationContext;
+	public Builder withMessageContext(MessageContext messageContext) {
+	    this.messageContext = messageContext;
+	    return this;
 	}
 
-	@JsonbProperty(ARTIFACTS_PROP)
-	public List<ArtifactContext> getArtifacts() {
-		return artifacts;
+	public Builder withOperationContext(JsonObject json) {
+	    this.operationContext = OperationContext.fromJson(json);
+	    return this;
 	}
 
-	@JsonbProperty(MESSAGE_CONTEXT_PROP)
-	public MessageContext getMessageContext() {
-		return messageContext;
+	public Builder withOperationContext(OperationContext operationContext) {
+	    this.operationContext = operationContext;
+	    return this;
 	}
 
-	@JsonbProperty(OPERATION_CONTEXT_PROP)
-	public OperationContext getOperationContext() {
-		return operationContext;
+	/**
+	 * Builds new instance. Instance is validated post construction.
+	 * 
+	 * @return new instance
+	 * 
+	 * @throws JsonValidatingException
+	 *             if created instance fails JSON-SCHEMA validation.
+	 * 
+	 */
+	public MessageModelItem build() {
+	    return build(false);
 	}
 
-	public static Builder newBuilder() {
-		return new Builder();
-	}
+	private MessageModelItem build(boolean trustedBuilder) {
 
-	public static final class Builder {
+	    MessageModelItem ret = new MessageModelItem(this);
 
-		private List<ArtifactContext> artifacts;
-
-		private MessageContext messageContext;
-		private OperationContext operationContext;
-
-		private Builder() {
+	    if (!trustedBuilder) {
+		List<Problem> problems = ret.validate();
+		if (!problems.isEmpty()) {
+		    throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
 		}
+	    }
 
-		public Builder withArtifacts(List<ArtifactContext> artifacts) {
-			this.artifacts = artifacts;
-			return this;
-		}
+	    return ret;
+	}
+    }
 
-		public Builder withMessageContext(MessageContext messageContext) {
-			this.messageContext = messageContext;
-			return this;
-		}
+    @Override
+    public MessageContent messageContent() {
+	return MessageContent.REFERENCE;
+    }
 
-		public Builder withOperationContext(JsonObject json) {
-			this.operationContext = OperationContext.fromJson(json);
-			return this;
-		}
+    @Override
+    public String messageName() {
+	return MESSAGE_MODEL_MESSAGE_NAME;
+    }
 
-		public Builder withOperationContext(OperationContext operationContext) {
-			this.operationContext = operationContext;
-			return this;
-		}
+    public JsonSchema toSchema() {
 
-		/**
-		 * Builds new instance. Instance is validated post construction.
-		 * 
-		 * @return new instance
-		 * 
-		 * @throws JsonValidatingException
-		 *             if created instance fails JSON-SCHEMA validation.
-		 * 
-		 */
-		public MessageModelItem build() {
-			return build(false);
-		}
+	JsonSchema ret;
 
-		private MessageModelItem build(boolean trustedBuilder) {
-
-			MessageModelItem ret = new MessageModelItem(this);
-
-			if (!trustedBuilder) {
-				List<Problem> problems = ret.validate();
-				if (!problems.isEmpty()) {
-					throw new ValidatableBuildException("Builder failure", new JsonValidatingException(problems));
-				}
-			}
-
-			return ret;
-		}
+	// Create allowed OperationContext schema definitions
+	List<JsonSchema> allowedOps = new ArrayList<>();
+	for (ItemOperation op : ItemOperation.values()) {
+	    allowedOps.add(Validatable.retrieveSchema(op.getOpContext()));
 	}
 
-	@Override
-	public MessageContent messageContent() {
-		return MessageContent.REFERENCE;
-	}
-
-	@Override
-	public String messageName() {
-		return MESSAGE_MODEL_MESSAGE_NAME;
-	}
-
-	public JsonSchema toSchema() {
-
-		JsonSchema ret;
-
-		// Create allowed OperationContext schema definitions
-		List<JsonSchema> allowedOps = new ArrayList<>();
-		for (ItemOperation op : ItemOperation.values()) {
-			allowedOps.add(Validatable.retrieveSchema(op.getOpContext()));
-		}
-
-		//@formatter:off
+	//@formatter:off
 		ret = sbf.createBuilder()
 
 				.withId(Validatable.schemaId(this.getClass()))
@@ -233,6 +232,6 @@ public class MessageModelItem implements MessageItem {
 		
 		//@formatter:on
 
-		return ret;
-	}
+	return ret;
+    }
 }

@@ -3,35 +3,16 @@ package gov.pnnl.proven.cluster.lib.disclosure;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
-import javax.json.stream.JsonGenerator;
 
 import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureResponse;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.KnowledgeMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageProperties;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMeasurement;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenQueryFilter;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenQueryTimeSeries;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenStatement;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.RequestMessage;
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.member.IDSFactory;
 

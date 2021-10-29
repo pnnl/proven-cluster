@@ -52,9 +52,9 @@ task copyDistributionResources(type: Copy) {
 	}
 	
 // TODO Uncomment when messages are completed
-//	into('schema') {
-//		from configurations.schemaDeps
-//	}
+	into('schema') {
+		from configurations.schemaDeps
+	}
 
 }
 

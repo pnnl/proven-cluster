@@ -92,7 +92,7 @@ public class T3Pipeline extends PipelineService implements Serializable {
 
 		// Define source/sink streams
 		MessageStreamProxy sourceMsp = sm.getMessageStreamProxy(domain, MessageStreamType.KNOWLEDGE);
-		MessageStreamProxy sinkMsp = sm.getMessageStreamProxy(domain, MessageStreamType.RESPONSE);
+		MessageStreamProxy sinkMsp = sm.getMessageStreamProxy(domain, MessageStreamType.EVENT);
 
 		// Get T3 Service
 		ContextFactory<T3Service> t3Service = T3Service.t3Service();

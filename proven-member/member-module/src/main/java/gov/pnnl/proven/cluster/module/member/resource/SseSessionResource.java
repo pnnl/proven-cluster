@@ -87,7 +87,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.json.JsonObject;
-import javax.json.stream.JsonParsingException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -135,21 +134,21 @@ public class SseSessionResource {
 	SseSessionManager sm;
 
 	/**
-	 * SSE Subscription. Connects an SSE session with the client requestor.
-	 * Event messages selected for push to client are determined by the posted
+	 * SSE Subscription. Connects an SSE session with the client requestor. Event
+	 * messages selected for push to client are determined by the posted
 	 * EventSubscription.
 	 * 
-	 * @param sse
-	 *            server-side entry point for creating {@link OutboundSseEvent}
-	 *            and {@link SseBroadcaster}. Provided by the application
-	 *            container.
+	 * @param sse                server-side entry point for creating
+	 *                           {@link OutboundSseEvent} and
+	 *                           {@link SseBroadcaster}. Provided by the application
+	 *                           container.
 	 * 
-	 * @param eventSink
-	 *            represents HTTP client connection where event data will be
-	 *            pushed. Provided by the application container.
+	 * @param eventSink          represents HTTP client connection where event data
+	 *                           will be pushed. Provided by the application
+	 *                           container.
 	 * 
-	 * @param postedSubscription
-	 *            defines the subscription being requested by the client.
+	 * @param postedSubscription defines the subscription being requested by the
+	 *                           client.
 	 * 
 	 */
 	@POST
@@ -157,7 +156,7 @@ public class SseSessionResource {
 	@Produces(MediaType.SERVER_SENT_EVENTS)
 	public void getResponseEvents(@Context Sse sse, @Context SseEventSink eventSink,
 			@PathParam("eventType") EventType et, JsonObject postedSubscription) {
-		
+
 		boolean closeConnection = false;
 		try {
 			EventSubscription es = getEventSubscription(postedSubscription, et);
@@ -191,15 +190,14 @@ public class SseSessionResource {
 	}
 
 	/**
-	 * Unsubscribe SSE. Allows for explicit removal of an SSE session per a
-	 * client request. This will close the client connection and remove the SSE
-	 * session from {@code SseSessionManager}'s registry.
+	 * Unsubscribe SSE. Allows for explicit removal of an SSE session per a client
+	 * request. This will close the client connection and remove the SSE session
+	 * from {@code SseSessionManager}'s registry.
 	 * 
 	 * TODO - improve response to account for errors in unsubscribing.
 	 * 
-	 * @param sessionId
-	 *            identifies the session to unsubscribe. This value is pushed to
-	 *            the client at time of subscription creation.
+	 * @param sessionId identifies the session to unsubscribe. This value is pushed
+	 *                  to the client at time of subscription creation.
 	 * 
 	 * @return a response indicating success of session removal.
 	 */

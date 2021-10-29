@@ -76,7 +76,7 @@ public enum MessageStreamType {
 	SERVICE(StreamLabel.SERVICE_STREAM, MessageContentGroup.SERVICE),
 	REFERENCE(StreamLabel.REFERENCE_STREAM, MessageContentGroup.REFERENCE),
 	MODEL(StreamLabel.MODEL_STREAM, MessageContentGroup.MODEL),
-	RESPONSE(StreamLabel.RESPONSE_STREAM, MessageContentGroup.RESPONSE);
+	EVENT(StreamLabel.EVENT_STREAM, MessageContentGroup.EVENT);
 
 	private class StreamLabel {
 		private static final String KNOWLEDGE_STREAM = "knowledge";
@@ -85,7 +85,7 @@ public enum MessageStreamType {
 		private static final String SERVICE_STREAM = "service";
 		private static final String REFERENCE_STREAM = "reference";
 		private static final String MODEL_STREAM = "model";
-		private static final String RESPONSE_STREAM = "response";
+		private static final String EVENT_STREAM = "event";
 	}
 
 	static Logger log = LoggerFactory.getLogger(MessageContentGroup.class);
