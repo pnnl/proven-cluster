@@ -112,6 +112,11 @@ public class MemberUtils {
 	public static final String LS = System.lineSeparator();
 	public static final String FS = System.getProperty("file.separator");
 
+	
+	public static <T> boolean containsAny(List<T> l1, List<T> l2) {
+	    return l1.stream().anyMatch(o1 -> l2.stream().anyMatch(o2 -> o1.equals(o2)));
+	}
+	
 	/** 
 	 * Returns the throwable cause if it exists (i.e. not null) or the throwable name itself.
 	 * 

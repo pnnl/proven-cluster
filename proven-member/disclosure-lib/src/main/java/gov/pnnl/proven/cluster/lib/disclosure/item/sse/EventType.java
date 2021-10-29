@@ -39,30 +39,75 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 
+import java.util.Optional;
+
+import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
+
 /**
- * Represents the SSE type's that can be subscribed to.  
+ * Represents subscription based SSE types. Each event type is associated with a
+ * single message content type.
  * 
  * @author d3j766
  * 
- * @see EventSubscription
+ * @see EventSubscription, EventData
  *
  */
 public enum EventType {
 
-	/**
-	 * Operation's response.
-	 * 
-	 * @see ItemOperation
-	 */
-	OPERATION, 
-	
-	/**
-	 * Request results
-	 */
-	REQUEST,
-	
-	/**
-	 * Service results
-	 */
-	SERVICE;
+    /**
+     * Domain defined message processing operation events. Operation results may be
+     * monitored via an EventSubscription.
+     * 
+     * @see ItemOperation, OperationSubscription
+     */
+    OPERATION(MessageContent.OPERATION_EVENT),
+
+    /**
+     * Request based processing events. For example, queries, replays, and
+     * administrative requests. Request results may be monitored via an
+     * EventSubscription.
+     * 
+     * @see RequestSubscription
+     */
+    REQUEST(MessageContent.REQUEST_EVENT),
+
+    /**
+     * Service based processing events. For example, module and pipeline services.
+     * Service results may be monitored via an EventSubscription.
+     * 
+     * @see ServiceSubscription
+     */
+    SERVICE(MessageContent.SERVICE_EVENT);
+
+    private MessageContent messageContent;
+
+    EventType(MessageContent messageContent) {
+	this.messageContent = messageContent;
+    }
+
+    public MessageContent getMessageContent() {
+	return messageContent;
+    }
+
+    /**
+     * Retrieves the EventType for a given MessageContent, if any.
+     * 
+     * @param messageContent
+     *            the provided message content to search on.
+     * 
+     * @return an optional EventType. Will be empty if there is no pairing with the
+     *         provided message content.
+     */
+    public static Optional<EventType> getEventTypeForMessageContert(MessageContent messageContent) {
+
+	Optional<EventType> ret = Optional.empty();
+
+	for (EventType et : EventType.values()) {
+	    if (et.getMessageContent() == messageContent) {
+		ret = Optional.of(et);
+	    }
+	}
+	return ret;
+    }
+
 }

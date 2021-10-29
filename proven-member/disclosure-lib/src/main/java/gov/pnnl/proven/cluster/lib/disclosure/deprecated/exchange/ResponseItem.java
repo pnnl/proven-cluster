@@ -132,7 +132,7 @@ public class ResponseItem implements BufferedItem, IdentifiedDataSerializable {
 
 	@Override
 	public MessageContent getMessageContent() {
-		return MessageContent.RESPONSE;
+		return MessageContent.OPERATION_EVENT;
 	}
 
 	@Override

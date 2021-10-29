@@ -43,6 +43,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -76,6 +77,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventData;
 import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventSubscription;
+import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventType;
 import gov.pnnl.proven.cluster.lib.disclosure.item.sse.OperationEvent;
 import gov.pnnl.proven.cluster.lib.disclosure.item.sse.OperationSubscription;
 import gov.pnnl.proven.cluster.lib.disclosure.item.sse.SubscriptionEvent;
@@ -106,237 +108,187 @@ import gov.pnnl.proven.cluster.lib.module.stream.message.DistributedMessage;
 @ApplicationScoped
 public class SseSessionManager implements EntryAddedListener<UUID, DistributedMessage> {
 
-	public static final String SSE_EXECUTOR_SERVICE = "concurrent/SSE";
-	public static final int SSE_RECONNECT_DELAY = 4000;
-	public static final int REGISTRATIONS_PER_CLEAN = 25;
+    public static final String SSE_EXECUTOR_SERVICE = "concurrent/SSE";
+    public static final int SSE_RECONNECT_DELAY = 4000;
+    public static final int REGISTRATIONS_PER_CLEAN = 25;
 
-	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
-	ManagedExecutorService mes;
+    @Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
+    ManagedExecutorService mes;
 
-	@Inject
-	HazelcastInstance hzi;
+    @Inject
+    HazelcastInstance hzi;
 
-	@Inject
-	@Manager
-	StreamManager sm;
+    @Inject
+    @Manager
+    StreamManager sm;
 
-	@Inject
-	Logger logger;
+    @Inject
+    Logger logger;
 
-	/**
-	 * There is a single listener per a domain stream. Each listener has a UUID
-	 * which was provided at create time.
-	 */
-	Map<SimpleEntry<DisclosureDomain, MessageStreamType>, UUID> listenerRegistry;
+    /**
+     * There is a single listener per a domain stream. Each listener has a UUID
+     * which was provided at create time.
+     */
+    Map<SimpleEntry<DisclosureDomain, MessageStreamType>, UUID> listenerRegistry;
 
-	/**
-	 * Maps Storing all registered sessions. The first session added for a
-	 * domain stream will cause creation of it's domain stream listener. The
-	 * last session to be removed from a domain stream will cause the removal
-	 * it's domain stream listener. Some data is duplicated between Maps for the
-	 * benefit of retrievals.
-	 */
-	Map<SimpleEntry<DisclosureDomain, MessageStreamType>, Set<SseSession>> sessionRegistry;
-	Map<UUID, SimpleEntry<DisclosureDomain, MessageStreamType>> sessionsById;
+    /**
+     * Maps Storing all registered sessions. The first session added for a domain
+     * stream will cause creation of it's domain stream listener. The last session
+     * to be removed from a domain stream will cause the removal of it's domain
+     * stream listener. Some data is duplicated between Maps for the benefit of
+     * retrievals.
+     */
+    Map<SimpleEntry<DisclosureDomain, MessageStreamType>, Set<SseSession>> sessionRegistry;
+    Map<UUID, SimpleEntry<DisclosureDomain, MessageStreamType>> sessionsById;
 
-	/**
-	 * A shared resource for SSE event identifiers.
-	 */
-	AtomicInteger eventId;
+    /**
+     * A shared resource for SSE event identifiers.
+     */
+    AtomicInteger eventId;
 
-	/**
-	 * A running count of the number of successfully performed registrations.
-	 */
-	int registrationCount = 0;
+    /**
+     * A running count of the number of successfully performed registrations.
+     */
+    int registrationCount = 0;
 
-	@PostConstruct
-	public void initialize() {
-		listenerRegistry = new HashMap<>();
-		sessionRegistry = new HashMap<>();
-		sessionsById = new HashMap<>();
-		eventId = new AtomicInteger(1);
+    @PostConstruct
+    public void initialize() {
+	listenerRegistry = new HashMap<>();
+	sessionRegistry = new HashMap<>();
+	sessionsById = new HashMap<>();
+	eventId = new AtomicInteger(1);
+    }
+
+    @PreDestroy
+    public void destroy() {
+
+	// Remove listeners
+	for (SimpleEntry<DisclosureDomain, MessageStreamType> se : sessionRegistry.keySet()) {
+	    removeListener(se.getKey(), se.getValue());
 	}
 
-	@PreDestroy
-	public void destroy() {
-
-		// Remove listeners
-		for (SimpleEntry<DisclosureDomain, MessageStreamType> se : sessionRegistry.keySet()) {
-			removeListener(se.getKey(), se.getValue());
-		}
-
-		// Close sessions
-		for (Set<SseSession> sessions : sessionRegistry.values()) {
-			for (SseSession session : sessions) {
-				closeSession(session);
-			}
-		}
-
+	// Close sessions
+	for (Set<SseSession> sessions : sessionRegistry.values()) {
+	    for (SseSession session : sessions) {
+		closeSession(session);
+	    }
 	}
 
-	public synchronized void register(SseSession session) {
+    }
 
-		// Clean closed event sinks periodically
-		if ((registrationCount > 0) && (0 == (registrationCount % REGISTRATIONS_PER_CLEAN))) {
-			cleanSessions();
-		}
+    public synchronized void register(SseSession session) {
 
-		// Get subscription event for push
-		// SubscriptionEvent.newBuilder().
-
-		// Determine if it is the first session
-		boolean isFirstSession = isFirstSessionForDomainStream(session);
-
-		// Add session to registry
-		addSession(session);
-
-		// Add listener, if it's first session for the domain stream
-		if (isFirstSession) {
-			addListener(session.getEventSubscription().getDomain(), session.getEvent().getStreamType());
-		}
-
-		registrationCount++;
-		logger.debug("Resistration count :: " + registrationCount);
-		logger.debug("Session registered, session ID :: " + session.getSessionId());
+	// Clean closed event sinks periodically
+	if ((registrationCount > 0) && (0 == (registrationCount % REGISTRATIONS_PER_CLEAN))) {
+	    cleanSessions();
 	}
 
-	public synchronized void deregister(UUID sessionId) {
+	// Determine if it is the first session
+	boolean isFirstSession = isFirstSessionForDomainStream(session);
 
-		// Get the registered session by ID
-		SseSession session = retrieveSession(sessionId);
+	// Add session to registry
+	addSession(session);
 
-		// NOP if session does not exist
-		if (null != session) {
-
-			boolean isLastSession = isLastSessionForDomainStream(session);
-			if (isLastSession) {
-
-				// Turn off the entry listener for domain stream
-				removeListener(session.getEventSubscription().getDomain(), session.getEvent().getStreamType());
-			}
-
-			// Update registry and close session
-			removeSession(sessionId);
-			closeSession(session);
-
-			logger.debug("Session deregistered, session ID :: " + sessionId);
-
-		} else {
-			logger.debug("Session deregistration for session ID :: " + sessionId + " , NOT FOUND");
-		}
-
+	// Add listener, if it's first session for the domain stream
+	if (isFirstSession) {
+	    addListener(session.getEventSubscription().getDomain(), session.getEventStream());
 	}
 
-	/**
-	 * Creates event data for provided session and disclosure item.
-	 * 
-	 * @param session
-	 *            subscribed session, used to create event data
-	 * @param disclosureItem
-	 *            distributed message, used to create event data
-	 * @return event data created from provided session and disclosure item
-	 * @throws IllegalArgumentException
-	 *             if provided session and/or disclosure item do not match the
-	 *             event type provided by the session.
-	 * @throws JsonParsingException
-	 *             if created JSON event data could not be validated against
-	 *             associated JSON-SCHEMA
-	 * @throws UnsupportedOperationException
-	 *             if session's event type is not recognized
-	 */
-	public EventData createEventData(SseSession session, DisclosureItem disclosureItem) {
+	registrationCount++;
+	logger.debug("Resistration count :: " + registrationCount);
+	logger.debug("Session registered, session ID :: " + session.getSessionId());
+    }
 
-		EventData ret;
-		MessageItem mi = disclosureItem.getMessageItem();
-		EventSubscription es = session.getEventSubscription();
+    public synchronized void deregister(UUID sessionId) {
 
-		switch (session.getEvent().getEventType()) {
+	// Get the registered session by ID
+	SseSession session = retrieveSession(sessionId);
 
-		case OPERATION:
+	// NOP if session does not exist
+	if (null != session) {
 
-			boolean isOperationSubscription = OperationSubscription.class.isAssignableFrom(es.getClass());
-			boolean isResponseItem = ResponseItem.class.isAssignableFrom(mi.getClass());
-			if ((isOperationSubscription) && (isResponseItem)) {
-				ret = OperationEvent.newBuilder().withSessionId(session.getSessionId())
-						.withSubscription((OperationSubscription) session.getEventSubscription())
-						.withResponse((ResponseItem) disclosureItem.getMessageItem()).build();
-			} else {
-				throw new IllegalArgumentException("Unable to create event data for an OPERATION event.  "
-						+ ((isOperationSubscription) ? "" : "Invalid session provided ")
-						+ ((isResponseItem) ? "" : "Invalid DisclosureItem provided"));
-			}
-			break;
+	    boolean isLastSession = isLastSessionForDomainStream(session);
+	    if (isLastSession) {
 
-		default:
-			throw new UnsupportedOperationException("Unkown or missing event type for SSE event data creation");
-		}
+		// Turn off the entry listener for domain stream
+		removeListener(session.getEventSubscription().getDomain(), session.getEventStream());
+	    }
 
-		return ret;
+	    // Update registry and close session
+	    removeSession(sessionId);
+	    closeSession(session);
+
+	    logger.debug("Session deregistered, session ID :: " + sessionId);
+
+	} else {
+	    logger.debug("Session deregistration for session ID :: " + sessionId + " , NOT FOUND");
 	}
 
-	/**
-	 * Creates subscription event data.
-	 * 
-	 * @param postedSubscription
-	 *            original posted subscription request
-	 * @param statusCode
-	 *            a response status code used to indicate subscription request
-	 *            status.
-	 * @param statusMessage
-	 *            additional information describing status. This may be null.
-	 *
-	 * @param sessionId
-	 *            the session identifier. This may be null indicating an
-	 *            unsuccessful subscription request.
-	 *            
-	 * @return new subscription event data
-	 * 
-	 * @throws JsonParsingException
-	 *             if created JSON event data could not be validated against
-	 *             associated JSON-SCHEMA
-	 */
-	public EventData createSubscriptionEventData(JsonObject postedSubscription, Response.Status statusCode,
-			UUID sessionId, String statusMessage) {
-		return SubscriptionEvent.newBuilder().withSessionId(sessionId).withPostedSubscription((postedSubscription))
-				.withStatusCode(statusCode).withStatusMessage(statusMessage).build();
-	}
+    }
 
-	/**
-	 * Sends an SSE message for connections with an associated session.
-	 * 
-	 * @param session
-	 *            the session representing a client connection
-	 * @param data
-	 *            data to send
-	 * @param comment
-	 *            comment string associated with event
-	 */
-	public void sendEventData(SseSession session, EventData data, String comment) {
-		sendEventData(session.getSse(), session.getEventSink(), data, comment, session.getSessionId());
-	}
+    /**
+     * Creates subscription event data.
+     * 
+     * @param postedSubscription
+     *            original posted subscription request
+     * @param statusCode
+     *            a response status code used to indicate subscription request
+     *            status.
+     * @param statusMessage
+     *            additional information describing status. This may be null.
+     *
+     * @param sessionId
+     *            the session identifier. This may be null indicating an
+     *            unsuccessful subscription request.
+     * 
+     * @return new subscription event data
+     * 
+     * @throws JsonParsingException
+     *             if created JSON event data could not be validated against
+     *             associated JSON-SCHEMA
+     */
+    public EventData createSubscriptionEventData(JsonObject postedSubscription, Response.Status statusCode,
+	    UUID sessionId, String statusMessage) {
+	return SubscriptionEvent.newBuilder().withSessionId(sessionId).withPostedSubscription((postedSubscription))
+		.withStatusCode(statusCode).withStatusMessage(statusMessage).build();
+    }
 
-	/**
-	 * Sends an SSE message.
-	 * 
-	 * @param sse
-	 *            Sse associated with connection
-	 * @param eventSink
-	 *            SseEventSink associated with connection
-	 * @param data
-	 *            data to send
-	 * @param comment
-	 *            comment string associated with event
-	 * @param sessionId
-	 *            session identifier. This may be null if session was not
-	 *            created due to an unsuccessful subscription request.
-	 */
-	public void sendEventData(Sse sse, SseEventSink eventSink, EventData data, String comment, UUID sessionId) {
+    /**
+     * Sends an SSE message for connections with an associated session.
+     * 
+     * @param session
+     *            the session representing a client connection
+     * @param data
+     *            data to send
+     * @param comment
+     *            comment string associated with event
+     */
+    public void sendEventData(SseSession session, EventData data, String comment) {
+	sendEventData(session.getSse(), session.getEventSink(), data, comment, session.getSessionId());
+    }
 
-		try {
+    /**
+     * Sends an SSE message.
+     * 
+     * @param sse
+     *            Sse associated with connection
+     * @param eventSink
+     *            SseEventSink associated with connection
+     * @param data
+     *            data to send
+     * @param comment
+     *            comment string associated with event
+     * @param sessionId
+     *            session identifier. This may be null if session was not created
+     *            due to an unsuccessful subscription request.
+     */
+    public void sendEventData(Sse sse, SseEventSink eventSink, EventData data, String comment, UUID sessionId) {
 
-			Builder sseBuilder = sse.newEventBuilder();
+	try {
 
-			//@formatter:off
+	    Builder sseBuilder = sse.newEventBuilder();
+
+	    //@formatter:off
 			OutboundSseEvent sseEvent = sseBuilder
 					.name(data.getEventName())
 					.id(String.valueOf(eventId.getAndIncrement()))
@@ -347,206 +299,224 @@ public class SseSessionManager implements EntryAddedListener<UUID, DistributedMe
 					.build();
 			//@formatter:on
 
-			eventSink.send(sseEvent);
+	    eventSink.send(sseEvent);
 
-		} catch (IllegalStateException e) {
-			// Connection has been closed - remove session from registry if
-			// there is one
-			if (null != sessionId) {
-				logger.debug("Stale session encountered - Session ID :: " + sessionId.toString()
-						+ ".  Session will be deregistered");
-				deregister(sessionId);
-			}
-		}
-
+	} catch (IllegalStateException e) {
+	    // Connection has been closed - remove session from registry if
+	    // there is one
+	    if (null != sessionId) {
+		logger.debug("Stale session encountered - Session ID :: " + sessionId.toString()
+			+ ".  Session will be deregistered");
+		deregister(sessionId);
+	    }
 	}
 
-	@Override
-	public void entryAdded(EntryEvent<UUID, DistributedMessage> event) {
+    }
 
-		DisclosureItem di = event.getValue().disclosureItem();
+    @Override
+    public void entryAdded(EntryEvent<UUID, DistributedMessage> event) {
 
-		CompletableFuture.runAsync(() -> {
+	DisclosureItem di = event.getValue().disclosureItem();
 
-			try {
-				MessageContent mc = di.getContext().getContent();
-				MessageStreamType mst = MessageStreamType.getType(mc);
-				DisclosureDomain dd = di.getDomain();
-				SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-				Set<SseSession> sessions = sessionRegistry.get(se);
-				boolean hasSessions = ((null != sessions) && (!sessions.isEmpty()));
-				if (hasSessions) {
-					for (SseSession session : sessions) {
-						if (session.getEventSubscription().subscribed(di)) {
-							EventData eventData = createEventData(session, di);
-							String comment = "sse event: " + eventData.getEventName();
-							sendEventData(session, eventData, comment);
-						}
-					}
-				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				throw ex;
-			}
+	CompletableFuture.runAsync(() -> {
 
-		}, mes).exceptionally(this::entryException);
-	}
-
-	/**
-	 * Callback for entry message processing, if completed exceptionally.
-	 * 
-	 * TODO - how to recover from exception? Include message in the exception
-	 * that is re-thrown and save for retry?
-	 * 
-	 * @param readerException
-	 *            the exception thrown from the entry processor.
-	 */
-	protected Void entryException(Throwable readerException) {
-
-		Void ret = null;
-
-		// Simple log message for now...
-		logger.error("Sending SSE event data for a Proven message has failed.");
-
-		return ret;
-	}
-
-	private SseSession retrieveSession(UUID sessionId) {
-
-		SseSession ret = null;
-		SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = sessionsById.get(sessionId);
-		if (null != domainStream) {
-			for (SseSession s : sessionRegistry.get(domainStream)) {
-				if (s.getSessionId().equals(sessionId)) {
-					ret = s;
-					break;
-				}
-			}
-		}
-		return ret;
-	}
-
-	private void addSession(SseSession session) {
-
-		DisclosureDomain dd = session.getEventSubscription().getDomain();
-		MessageStreamType mst = session.getEvent().getStreamType();
-		UUID sessionId = session.getSessionId();
+	    try {
+		MessageContent mc = di.getContext().getContent();
+		MessageStreamType mst = MessageStreamType.getType(mc);
+		DisclosureDomain dd = di.getDomain();
 		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-
-		// Add to registry
-		sessionsById.put(sessionId, se);
-		if (sessionRegistry.containsKey(se)) {
-			sessionRegistry.get(se).add(session);
-
-		} else {
-			Set<SseSession> sessions = new HashSet<>();
-			sessions.add(session);
-			sessionRegistry.put(se, sessions);
-		}
-		logger.debug("After adding session - Domain stream " + "[" + dd.toString() + "::" + mst.toString()
-				+ "] COUNT :: " + sessionRegistry.get(se).size());
-	}
-
-	private void removeSession(UUID sessionId) {
-
-		SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = sessionsById.get(sessionId);
-		if (null != domainStream) {
-			SseSession sessionToRemove = null;
-			for (SseSession s : sessionRegistry.get(domainStream)) {
-				if (s.getSessionId().equals(sessionId)) {
-					sessionToRemove = s;
-					break;
-				}
+		Optional<EventType> etOpt = EventType.getEventTypeForMessageContert(mc);
+		if (etOpt.isPresent()) {
+		    EventType et = etOpt.get();
+		    Set<SseSession> sessions = retrieveSessionsByEventType(se, et);
+		    for (SseSession session : sessions) {
+			EventSubscription es = session.getEventSubscription();
+			if (es.subscribed(di)) {
+			    EventData eventData = es.createEventData(session.getSessionId(), di);
+			    String comment = "sse event: " + eventData.getEventName();
+			    sendEventData(session, eventData, comment);
 			}
-			if (null != sessionToRemove) {
-				removeSession(sessionToRemove);
-			}
+		    }
 		}
-	}
+	    } catch (Exception ex) {
+		ex.printStackTrace();
+		throw ex;
+	    }
 
-	private void removeSession(SseSession session) {
+	}, mes).exceptionally(this::entryException);
+    }
 
-		if (null != session) {
+    /**
+     * Callback for entry message processing, if completed exceptionally.
+     * 
+     * TODO - how to recover from exception? Include message in the exception that
+     * is re-thrown and save for retry?
+     * 
+     * @param readerException
+     *            the exception thrown from the entry processor.
+     */
+    protected Void entryException(Throwable readerException) {
 
-			SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = new SimpleEntry<>(
-					session.getEventSubscription().getDomain(), session.getEvent().getStreamType());
-			sessionRegistry.get(domainStream).remove(session);
-			sessionsById.remove(session.getSessionId());
+	Void ret = null;
 
-			logger.debug("After removing sesson - Domain stream " + "[" + session.getEventSubscription().getDomain()
-					+ "::" + session.getEvent().getStreamType().toString() + "] COUNT :: "
-					+ sessionRegistry.get(domainStream).size());
+	// Simple log message for now...
+	logger.error("Sending SSE event data for a Proven message has failed.");
+
+	return ret;
+    }
+
+    private Set<SseSession> retrieveSessionsByEventType(SimpleEntry<DisclosureDomain, MessageStreamType> se,
+	    EventType et) {
+
+	Set<SseSession> ret = new HashSet<SseSession>();
+
+	Set<SseSession> sessions = sessionRegistry.get(se);
+	if (null != sessions) {
+	    for (SseSession session : sessions) {
+		if (et == session.getEventSubscription().getEventType()) {
+		    ret.add(session);
 		}
+	    }
 	}
+	return ret;
+    }
 
-	private void closeSession(SseSession session) {
+    private SseSession retrieveSession(UUID sessionId) {
 
-		if (!session.getEventSink().isClosed()) {
-			try {
-				session.getEventSink().close();
-			} catch (Exception e) {
-				logger.info("Closure failed for SSE event sink in session :: " + session.getSessionId());
-			}
+	SseSession ret = null;
+	SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = sessionsById.get(sessionId);
+	if (null != domainStream) {
+	    for (SseSession s : sessionRegistry.get(domainStream)) {
+		if (s.getSessionId().equals(sessionId)) {
+		    ret = s;
+		    break;
 		}
+	    }
 	}
+	return ret;
+    }
 
-	private void cleanSessions() {
+    private void addSession(SseSession session) {
 
-		// For each session if it's event sink is closed then remove it from the
-		// registry.
-		for (Set<SseSession> sessions : sessionRegistry.values()) {
-			for (SseSession session : sessions) {
-				if (session.getEventSink().isClosed()) {
-					removeSession(session);
-				}
-			}
+	DisclosureDomain dd = session.getEventSubscription().getDomain();
+	MessageStreamType mst = session.getEventStream();
+	UUID sessionId = session.getSessionId();
+	SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
+
+	// Add to registry
+	sessionsById.put(sessionId, se);
+	if (sessionRegistry.containsKey(se)) {
+	    sessionRegistry.get(se).add(session);
+
+	} else {
+	    Set<SseSession> sessions = new HashSet<>();
+	    sessions.add(session);
+	    sessionRegistry.put(se, sessions);
+	}
+	logger.debug("After adding session - Domain stream " + "[" + dd.toString() + "::" + mst.toString()
+		+ "] COUNT :: " + sessionRegistry.get(se).size());
+    }
+
+    private void removeSession(UUID sessionId) {
+
+	SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = sessionsById.get(sessionId);
+	if (null != domainStream) {
+	    SseSession sessionToRemove = null;
+	    for (SseSession s : sessionRegistry.get(domainStream)) {
+		if (s.getSessionId().equals(sessionId)) {
+		    sessionToRemove = s;
+		    break;
 		}
-
+	    }
+	    if (null != sessionToRemove) {
+		removeSession(sessionToRemove);
+	    }
 	}
+    }
 
-	private void addListener(DisclosureDomain dd, MessageStreamType mst) {
+    private void removeSession(SseSession session) {
 
-		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-		MessageStreamProxy msp = sm.getMessageStreamProxy(dd, mst);
-		UUID listenerId = UUID.fromString(msp.getMessageStream().getStream().addEntryListener(this, true));
-		listenerRegistry.put(se, listenerId);
+	if (null != session) {
+
+	    SimpleEntry<DisclosureDomain, MessageStreamType> domainStream = new SimpleEntry<>(
+		    session.getEventSubscription().getDomain(), session.getEventStream());
+	    sessionRegistry.get(domainStream).remove(session);
+	    sessionsById.remove(session.getSessionId());
+
+	    logger.debug("After removing sesson - Domain stream " + "[" + session.getEventSubscription().getDomain()
+		    + "::" + session.getEventStream().toString() + "] COUNT :: "
+		    + sessionRegistry.get(domainStream).size());
 	}
+    }
 
-	private void removeListener(DisclosureDomain dd, MessageStreamType mst) {
+    private void closeSession(SseSession session) {
 
-		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-		MessageStreamProxy msp = sm.getMessageStreamProxy(dd, mst);
-		UUID listenerId = listenerRegistry.get(se);
-		if (null != listenerId) {
-			String listenerIdStr = listenerId.toString();
-			msp.getMessageStream().getStream().removeEntryListener(listenerIdStr);
+	if (!session.getEventSink().isClosed()) {
+	    try {
+		session.getEventSink().close();
+	    } catch (Exception e) {
+		logger.info("Closure failed for SSE event sink in session :: " + session.getSessionId());
+	    }
+	}
+    }
+
+    private void cleanSessions() {
+
+	// For each session if it's event sink is closed then remove it from the
+	// registry.
+	for (Set<SseSession> sessions : sessionRegistry.values()) {
+	    for (SseSession session : sessions) {
+		if (session.getEventSink().isClosed()) {
+		    removeSession(session);
 		}
-		listenerRegistry.remove(se);
+	    }
 	}
 
-	private boolean isFirstSessionForDomainStream(SseSession session) {
+    }
 
-		boolean ret = false;
-		DisclosureDomain dd = session.getEventSubscription().getDomain();
-		MessageStreamType mst = session.getEvent().getStreamType();
-		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-		if ((!sessionRegistry.containsKey(se)) || (sessionRegistry.get(se).isEmpty())) {
-			ret = true;
-		}
-		return ret;
+    private void addListener(DisclosureDomain dd, MessageStreamType mst) {
+
+	SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
+	MessageStreamProxy msp = sm.getMessageStreamProxy(dd, mst);
+	UUID listenerId = UUID.fromString(msp.getMessageStream().getStream().addEntryListener(this, true));
+	listenerRegistry.put(se, listenerId);
+    }
+
+    private void removeListener(DisclosureDomain dd, MessageStreamType mst) {
+
+	SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
+	MessageStreamProxy msp = sm.getMessageStreamProxy(dd, mst);
+	UUID listenerId = listenerRegistry.get(se);
+	if (null != listenerId) {
+	    String listenerIdStr = listenerId.toString();
+	    msp.getMessageStream().getStream().removeEntryListener(listenerIdStr);
 	}
+	listenerRegistry.remove(se);
+    }
 
-	private boolean isLastSessionForDomainStream(SseSession session) {
+    private boolean isFirstSessionForDomainStream(SseSession session) {
 
-		boolean ret = false;
-		DisclosureDomain dd = session.getEventSubscription().getDomain();
-		MessageStreamType mst = session.getEvent().getStreamType();
-		SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
-		if ((sessionRegistry.containsKey(se)) && (sessionRegistry.get(se).size() == 1)
-				&& (sessionRegistry.get(se).contains(session))) {
-			ret = true;
-		}
-		return ret;
+	boolean ret = false;
+	DisclosureDomain dd = session.getEventSubscription().getDomain();
+	MessageStreamType mst = session.getEventStream();
+	SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
+	if ((!sessionRegistry.containsKey(se)) || (sessionRegistry.get(se).isEmpty())) {
+	    ret = true;
 	}
+	return ret;
+    }
+
+    private boolean isLastSessionForDomainStream(SseSession session) {
+
+	boolean ret = false;
+	DisclosureDomain dd = session.getEventSubscription().getDomain();
+	MessageStreamType mst = session.getEventStream();
+	SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
+	if ((sessionRegistry.containsKey(se)) && (sessionRegistry.get(se).size() == 1)
+		&& (sessionRegistry.get(se).contains(session))) {
+	    ret = true;
+	}
+	return ret;
+    }
 
 }

@@ -124,7 +124,7 @@ public class T3PipelineResource {
 			MessageStreamProxy sourceMsp = sm.getMessageStreamProxy(dd, MessageStreamType.KNOWLEDGE);
 			
 			// Response sink stream
-			MessageStreamProxy sinkMsp = sm.getMessageStreamProxy(dd, MessageStreamType.RESPONSE);
+			MessageStreamProxy sinkMsp = sm.getMessageStreamProxy(dd, MessageStreamType.EVENT);
 			
 
 			t3p.submit(sourceMsp, sinkMsp);

@@ -57,7 +57,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
  * Immutable class representing an operation's response. This response item
  * provides baseline information to accommodate a standard response.
  * 
- * and can be extended if the operation require it.
+ * And can be extended if the operation require it.
  * 
  * @author d3j766
  *
@@ -135,7 +135,7 @@ public class BaseResponseItem implements ResponseItem {
 
 	@Override
 	public MessageContent messageContent() {
-		return MessageContent.RESPONSE;
+		return MessageContent.OPERATION_EVENT;
 	}
 
 	@Override

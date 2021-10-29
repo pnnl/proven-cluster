@@ -127,4 +127,8 @@ gradle-app.setting
 # End of https://www.gitignore.io/api/java,maven,eclipse,gradle
 /.DS_Store
 
+# Dynamically generated schema file
+*schema.json
+
+
 
