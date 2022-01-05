@@ -40,8 +40,6 @@
 package gov.pnnl.proven.cluster.lib.disclosure;
 
 import java.io.IOException;
-import java.io.Serializable;
-
 import org.apache.commons.validator.routines.DomainValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

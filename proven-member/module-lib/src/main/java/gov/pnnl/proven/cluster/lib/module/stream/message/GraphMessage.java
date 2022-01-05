@@ -41,8 +41,6 @@ package gov.pnnl.proven.cluster.lib.module.stream.message;
 
 import java.io.Serializable;
 import java.io.StringReader;
-import java.net.URI;
-
 import javax.json.Json;
 import javax.json.JsonObject;
 

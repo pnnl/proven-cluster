@@ -70,6 +70,8 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 	protected String cName;
 	protected String cGroupLabel;
 	protected ManagedStatus cStatus;
+	protected boolean cModule;
+	protected boolean cManager;
 	protected Long creationTime;
 	
 	public ComponentEvent() {
@@ -81,6 +83,8 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 		this.cName = c.getName();
 		this.cGroupLabel = c.getGroupLabel();
 		this.cStatus = c.getStatus();
+		this.cModule = c.isModule();
+		this.cManager = c.isManager();
 		this.creationTime = c.getCreationeTime();
 	}
 
@@ -117,6 +121,14 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 	 */
 	public ManagedStatus getcStatus() {
 		return cStatus;
+	}
+	
+	public boolean iscModule() {
+	    return cModule;
+	}
+
+	public boolean iscManager() {
+	    return cManager;
 	}
 
 	@Override

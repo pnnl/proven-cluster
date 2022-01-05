@@ -1,4 +1,3 @@
-
 /*******************************************************************************
  * Copyright (c) 2017, Battelle Memorial Institute All rights reserved.
  * Battelle Memorial Institute (hereinafter Battelle) hereby grants permission to any person or entity 

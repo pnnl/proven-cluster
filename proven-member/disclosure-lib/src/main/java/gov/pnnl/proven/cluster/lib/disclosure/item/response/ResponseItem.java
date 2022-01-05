@@ -41,10 +41,6 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.response;
 
 import java.util.List;
 
-import javax.json.Json;
-
-import org.leadpony.justify.api.JsonSchema;
-
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 

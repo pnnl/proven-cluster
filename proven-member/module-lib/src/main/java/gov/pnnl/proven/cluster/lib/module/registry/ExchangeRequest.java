@@ -45,7 +45,6 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
-import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 
 /**
  * Represents a {@code ProvenModule} that can be used by a ComponentRegistry to
@@ -56,6 +55,7 @@ import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
  * @see ProvenModule, ComponentRegistry
  *
  */
+@Deprecated
 public class ExchangeRequest implements Comparable<ExchangeRequest> {
 
 	private UUID moduleId;

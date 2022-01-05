@@ -12,7 +12,6 @@ import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty;
 import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceOperationResultEntry;
-import gov.pnnl.proven.cluster.lib.module.stream.message.ContextualizedMessage;
 
 /**
  * 

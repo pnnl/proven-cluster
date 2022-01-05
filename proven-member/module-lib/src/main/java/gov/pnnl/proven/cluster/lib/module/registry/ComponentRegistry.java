@@ -56,13 +56,10 @@ import org.slf4j.Logger;
 import com.hazelcast.core.Cluster;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
-import com.hazelcast.core.IQueue;
 import com.hazelcast.core.ISet;
-import com.hazelcast.cp.lock.FencedLock;
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
 import gov.pnnl.proven.cluster.lib.module.exchange.Exchange;
-import gov.pnnl.proven.cluster.lib.module.exchange.ExchangeRequestOriginal;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleEntry;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
@@ -79,250 +76,249 @@ import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 @ApplicationScoped
 public class ComponentRegistry implements Exchange {
 
-	@Inject
-	Logger log;
+    @Inject
+    Logger log;
 
+    /**
+     * Member properties
+     */
+    MemberProperties props = MemberProperties.getInstance();
+
+    @Inject
+    HazelcastInstance hzi;
+
+    @Inject
+    @Module
+    ProvenModule pm;
+
+    /**
+     * IMDG module exchange queue
+     */
+    String moduleExchangeQueueName;
+
+    /**
+     * IMDG member exchange queue
+     */
+    String memberExchangeQueueName;
+
+    /**
+     * IMDG cluster registry name
+     */
+    String clusterRegistryName;
+
+    /**
+     * Cluster listener key. Used to add/remove cluster listener if lead module
+     * status is removed.
+     * 
+     * @see this{@link #leadModule()}
+     */
+    UUID clusterListenerKey = null;
+
+    /**
+     * Used by the scheduled {@link #localCleanup()} method to ensure only one local
+     * cleanup task is running at any given time.
+     */
+    AtomicBoolean localClean = new AtomicBoolean(false);
+
+    /**
+     * (Local) Module Components
+     * 
+     * Local storage of all component entries for this Module.
+     * 
+     */
+    TreeSet<ComponentEntry> moduleComponents = new TreeSet<ComponentEntry>();
+
+    /**
+     * (Local) Module Exchange
+     * 
+     * An unmodifiable view of {@link #moduleComponents} used to support exchange
+     * requests within this module.
+     * 
+     */
+    NavigableSet<ComponentEntry> moduleExchange = Collections.unmodifiableNavigableSet(moduleComponents);
+
+    /**
+     * (IMDG) Module Entries
+     * 
+     * Set of member modules. A ComponentRegistry creates and adds its ModuleEntry
+     * to this Set at startup.
+     */
+    @Deprecated
+    ISet<ModuleEntry> modules;
+
+    /**
+     * (IMDG) Cluster components
+     * 
+     * All cluster component entries.
+     * 
+     */
+    IMap<EntryIdentifier, ComponentEntry> clusterComponents;
+
+    /**
+     * Default constructor
+     */
+    public ComponentRegistry() {
+	System.out.println("Inside ComponentRegistry constructor");
+    }
+
+    @PostConstruct
+    public void initialize() {
+
+	log.debug("Inside MemberComponentRegistry PostConstruct");
+	
 	/**
-	 * Member properties
+	 * Initialize IMDG objects
 	 */
-	MemberProperties props = MemberProperties.getInstance();
+	modules = hzi.getSet(props.getMemberModuleRegistryName());
+	// hzi.getCPSubsystem().getLock("myLock");
+	clusterComponents = hzi.getMap(props.getClusterComponentRegistryName());
+    }
 
-	@Inject
-	HazelcastInstance hzi;
+    /**
+     * The lead module is the oldest module in a member, based on creation time,
+     * with non-shutdown module status.
+     * 
+     * @return true if this is the lead module, false otherwise.
+     */
+    public boolean leadModule() {
 
-	@Inject
-	@Module
-	ProvenModule pm;
+	boolean leader = false;
 
-	/**
-	 * IMDG module exchange queue
-	 */
-	String moduleExchangeQueueName;
+	Iterator<ModuleEntry> meItr = modules.iterator();
 
-	/**
-	 * IMDG member exchange queue
-	 */
-	String memberExchangeQueueName;
-
-	/**
-	 * IMDG cluster registry name
-	 */
-	String clusterRegistryName;
-
-	/**
-	 * Cluster listener key. Used to add/remove cluster listener if lead module
-	 * status is removed.
-	 * 
-	 * @see this{@link #leadModule()}
-	 */
-	UUID clusterListenerKey = null;
-
-	/**
-	 * Used by the scheduled {@link #localCleanup()} method to ensure only one
-	 * local cleanup task is running at any given time.
-	 */
-	AtomicBoolean localClean = new AtomicBoolean(false);
-
-	/**
-	 * (Local) Module Components
-	 * 
-	 * Local storage of all component entries for this Module.
-	 * 
-	 */
-	TreeSet<ComponentEntry> moduleComponents = new TreeSet<ComponentEntry>();
-
-	/**
-	 * (Local) Module Exchange
-	 * 
-	 * An unmodifiable view of {@link #moduleComponents} used to support
-	 * exchange requests within this module.
-	 * 
-	 */
-	NavigableSet<ComponentEntry> moduleExchange = Collections.unmodifiableNavigableSet(moduleComponents);
-
-	/**
-	 * (IMDG) Module Entries
-	 * 
-	 * Set of member modules. A ComponentRegistry creates and adds its
-	 * ModuleEntry to this Set at startup.
-	 */
-	@Deprecated
-	ISet<ModuleEntry> modules;
-
-	/**
-	 * (IMDG) Cluster components
-	 * 
-	 * All cluster component entries.
-	 * 
-	 */
-	IMap<EntryIdentifier, ComponentEntry> clusterComponents;
-
-	/**
-	 * Default constructor
-	 */
-	public ComponentRegistry() {
-		System.out.println("Inside ComponentRegistry constructor");
-	}
-
-	@PostConstruct
-	public void initialize() {
-
-		log.debug("Inside MemberComponentRegistry PostConstruct");
-
-		/**
-		 * Initialize IMDG objects
-		 */
-		modules = hzi.getSet(props.getMemberModuleRegistryName());
-		// hzi.getCPSubsystem().getLock("myLock");
-		clusterComponents = hzi.getMap(props.getClusterComponentRegistryName());
-	}
-
-	/**
-	 * The lead module is the oldest module in a member, based on creation time,
-	 * with non-shutdown module status.
-	 * 
-	 * @return true if this is the lead module, false otherwise.
-	 */
-	public boolean leadModule() {
-
-		boolean leader = false;
-
-		Iterator<ModuleEntry> meItr = modules.iterator();
-
-		while (meItr.hasNext()) {
-			ModuleEntry me = meItr.next();
-			if (me.getModuleStatus() != ModuleStatus.Shutdown) {
-				if (me.getModuleId().equals(pm.getModuleId())) {
-					leader = true;
-				}
-				break;
-			}
+	while (meItr.hasNext()) {
+	    ModuleEntry me = meItr.next();
+	    if (me.getModuleStatus() != ModuleStatus.Shutdown) {
+		if (me.getModuleId().equals(pm.getModuleId())) {
+		    leader = true;
 		}
-
-		if (leader) {
-			if (null == clusterListenerKey) {
-				clusterListenerKey = UUID
-						.fromString(clusterComponents.addEntryListener(new ClusterRegistryListener(), true));
-			}
-		} else {
-			if (null != clusterListenerKey) {
-				clusterComponents.removeEntryListener(clusterListenerKey.toString());
-			}
-		}
-
-		return leader;
+		break;
+	    }
 	}
+
+	if (leader) {
+	    if (null == clusterListenerKey) {
+		clusterListenerKey = UUID
+			.fromString(clusterComponents.addEntryListener(new ClusterRegistryListener(), true));
+	    }
+	} else {
+	    if (null != clusterListenerKey) {
+		clusterComponents.removeEntryListener(clusterListenerKey.toString());
+	    }
+	}
+
+	return leader;
+    }
+
+    /**
+     * The lead member is determined by Hazelcast's {@link Cluster#getMembers()}
+     * call
+     * 
+     * @return true if this module is the lead member, false otherwise
+     */
+    public boolean leadMember() {
+
+	return hzi.getCluster().getMembers().iterator().next().getUuid().equals(pm.getMemberId().toString());
+    }
+
+    /**
+     * The lead cluster module is a lead module that's contained by the lead member.
+     * 
+     * @return true if this module is the lead cluster module, false otherwise.
+     * 
+     * @see this{@link #leadMember()}
+     * 
+     */
+    public boolean leadClusterModule() {
+
+	return (leadMember() && leadModule());
+    }
+
+    /**
+     * Records reported ComponentEntry event made by a ManagedComponent. Following
+     * are the steps performed to record entries at the module, member, and cluster
+     * levels:
+     * 
+     * <ol>
+     * <li>Add time of recording, used for overdue reporting calculations</li>
+     * <li>Adds entry to local module components</li>
+     * <li>Adds entry to IMDG cluster components (IMap storage)</li>
+     * </ol>
+     * 
+     * @param entry
+     *            reported Component entry to record
+     */
+    public void record(ComponentEntry entry) {
+
+	// 1
+	entry.setRecorded(new Date().getTime());
+
+	// 2 (Local)
+	recordModuleComponent(entry);
+
+	// 4 (IMDG)
+	recordClusterComponent(entry);
+    }
+
+    /**
+     * A scheduled cleanup task.
+     * 
+     * Manages local module component entries that are overdue in reporting their
+     * status.
+     * 
+     * If it can be determined that the component no longer exists, its status will
+     * be updated to {@value ManagedStatus#Destroyed}, otherwise its status will be
+     * set to {@value ManagedStatus#Unknown}.
+     * 
+     * Updated entries will be recorded/removed from the cluster registry for
+     * Unknown and Destroyed, respectively.
+     * 
+     */
+    @Schedule(minute = "*/5", hour = "*", persistent = false)
+    public void localCleanup() {
+
+	// Do work only if it's not already running
+	if (!localClean.compareAndSet(false, true)) {
+	    return;
+	}
+	try {
+
+	    // TODO Cleanup work here
+	    log.debug("LOCAL CLEANUP TASK INVOKED");
+
+	} finally {
+	    localClean.set(false);
+	}
+
+    }
+
+    private void recordModuleComponent(ComponentEntry entry) {
 
 	/**
-	 * The lead member is determined by Hazelcast's {@link Cluster#getMembers()}
-	 * call
-	 * 
-	 * @return true if this module is the lead member, false otherwise
+	 * Create new ModuleEntry, if necessary. And add entry to module.
 	 */
-	public boolean leadMember() {
+	synchronized (moduleComponents) {
 
-		return hzi.getCluster().getMembers().iterator().next().getUuid().equals(pm.getMemberId().toString());
+	    if (!moduleComponents.add(entry)) {
+		moduleComponents.remove(entry);
+		moduleComponents.add(entry);
+	    }
 	}
+    }
 
-	/**
-	 * The lead cluster module is a lead module that's contained by the lead
-	 * member.
-	 * 
-	 * @return true if this module is the lead cluster module, false otherwise.
-	 * 
-	 * @see this{@link #leadMember()}
-	 * 
-	 */
-	public boolean leadClusterModule() {
+    private void recordClusterComponent(ComponentEntry entry) {
+	clusterComponents.set(entry.getEntryId(), entry);
+    }
 
-		return (leadMember() && leadModule());
+    private void removeModuleComponent(ComponentEntry entry) {
+
+	synchronized (moduleComponents) {
+	    moduleComponents.remove(entry);
 	}
+    }
 
-	/**
-	 * Records reported ComponentEntry event made by a ManagedComponent.
-	 * Following are the steps performed to record entries at the module,
-	 * member, and cluster levels:
-	 * 
-	 * <ol>
-	 * <li>Add time of recording, used for overdue reporting calculations</li>
-	 * <li>Adds entry to local module components</li>
-	 * <li>Adds entry to IMDG cluster components (IMap storage)</li>
-	 * </ol>
-	 * 
-	 * @param entry
-	 *            reported Component entry to record
-	 */
-	public void record(ComponentEntry entry) {
-
-		// 1
-		entry.setRecorded(new Date().getTime());
-
-		// 2 (Local)
-		recordModuleComponent(entry);
-
-		// 4 (IMDG)
-		recordClusterComponent(entry);
-	}
-
-	/**
-	 * A scheduled cleanup task.
-	 * 
-	 * Manages local module component entries that are overdue in reporting
-	 * their status.
-	 * 
-	 * If it can be determined that the component no longer exists, its status
-	 * will be updated to {@value ManagedStatus#Destroyed}, otherwise its status
-	 * will be set to {@value ManagedStatus#Unknown}.
-	 * 
-	 * Updated entries will be recorded/removed from the cluster registry for
-	 * Unknown and Destroyed, respectively.
-	 * 
-	 */
-	@Schedule(minute = "*/5", hour = "*", persistent = false)
-	public void localCleanup() {
-
-		// Do work only if it's not already running
-		if (!localClean.compareAndSet(false, true)) {
-			return;
-		}
-		try {
-
-			// TODO Cleanup work here
-			log.debug("LOCAL CLEANUP TASK INVOKED");
-
-		} finally {
-			localClean.set(false);
-		}
-
-	}
-
-	private void recordModuleComponent(ComponentEntry entry) {
-
-		/**
-		 * Create new ModuleEntry, if necessary. And add entry to module.
-		 */
-		synchronized (moduleComponents) {
-
-			if (!moduleComponents.add(entry)) {
-				moduleComponents.remove(entry);
-				moduleComponents.add(entry);
-			}
-		}
-	}
-
-	private void recordClusterComponent(ComponentEntry entry) {
-		clusterComponents.set(entry.getEntryId(), entry);
-	}
-
-	private void removeModuleComponent(ComponentEntry entry) {
-
-		synchronized (moduleComponents) {
-			moduleComponents.remove(entry);
-		}
-	}
-
-	private void removeClusterComponent(ComponentEntry entry) {
-		clusterComponents.remove(entry.getEntryId());
-	}
+    private void removeClusterComponent(ComponentEntry entry) {
+	clusterComponents.remove(entry.getEntryId());
+    }
 
 }

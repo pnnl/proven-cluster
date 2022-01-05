@@ -76,8 +76,6 @@ import javax.json.bind.JsonbConfig;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParsingException;
-import javax.ws.rs.Consumes;
-
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonSchemaBuilderFactory;
 import org.leadpony.justify.api.JsonValidatingException;

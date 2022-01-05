@@ -39,14 +39,11 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 

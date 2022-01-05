@@ -41,6 +41,7 @@ package gov.pnnl.proven.cluster.lib.module.module;
 
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -103,7 +104,7 @@ public abstract class ProvenModule extends ModuleComponent {
 	
 	// Time of creation
 	private long moduleCreation;
-
+	
 	public ProvenModule() {
 		super();
 	}

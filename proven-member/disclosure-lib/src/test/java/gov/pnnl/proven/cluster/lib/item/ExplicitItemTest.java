@@ -43,9 +43,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import javax.json.Json;
 import javax.json.JsonPatch;
-import javax.json.bind.adapter.JsonbAdapter;
-import javax.json.bind.serializer.DeserializationContext;
-
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -55,7 +52,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
 import gov.pnnl.proven.cluster.lib.disclosure.item.ExplicitItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.MessageContext;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;

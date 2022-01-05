@@ -227,7 +227,7 @@ public class MaintenanceRegistry {
 	 * @param operator
 	 *            the managed component responsible for performing the
 	 *            maintenance operation.
-	 * @param subtype
+	 * @param clazz
 	 *            the class object used to construct a new instance of the
 	 *            maintenance operation.
 	 * 

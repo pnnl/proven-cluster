@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.json.JsonObject;
-import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
 

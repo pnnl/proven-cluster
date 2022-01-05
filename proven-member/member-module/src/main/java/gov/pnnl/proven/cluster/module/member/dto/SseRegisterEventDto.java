@@ -45,7 +45,6 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.module.member.sse.SseEventData;
 import gov.pnnl.proven.cluster.module.member.sse.SseSession;
 
