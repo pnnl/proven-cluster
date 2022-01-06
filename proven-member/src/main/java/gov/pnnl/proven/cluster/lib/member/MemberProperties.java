@@ -105,7 +105,7 @@ public class MemberProperties {
 	private static final String JET_GROUP_NAME = "proven.jet.group.name";
 
 	/**
-	 * module-lib exchange properties
+	 * Exchange properties
 	 */
 	private static final String EXCHANGE_QUEUE_NAME = "proven.lib.module.exchange.queue.exchange.name";
 	private static final String DISCLOSURE_QUEUE_NAME = "proven.lib.module.exchange.queue.disclosure.name";
@@ -115,16 +115,17 @@ public class MemberProperties {
 	private static final String SERVICE_BUFFER_CAPACITY = "proven.lib.module.exchange.buffer.service.capacity";
 
 	/**
-	 * module-lib stream properties
+	 * Stream properties
 	 */
 	private static final String SEMANTIC_ENGINE = "proven.lib.module.stream.semantic.engine";
 
 	/**
-	 * module-lib properties
+	 * Registry properties
 	 */
 	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max_retries";
 	private static final String MEMBER_MODULE_REGISTRY_NAME = "proven.lib.module.registry.module.member.name";
 	private static final String CLUSTER_COMPONENT_REGISTRY_NAME = "proven.lib.module.registry.component.cluster.name";
+	private static final String MEMBER_EXCHANGE_REPORT_NAME = "proven.lib.module.registry.member_exchange_report.name";
 	private static final String TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS = "proven.lib.module.schedule.task.max_skipped_entry_reports";
 	private static final String PROVEN_DISCLOSURE_MAP_NAME = "proven.lib.module.registry.disclosure.map.name";
 
@@ -288,7 +289,11 @@ public class MemberProperties {
 	public String getClusterComponentRegistryName() {
 		return getPropertyValue(CLUSTER_COMPONENT_REGISTRY_NAME, String.class);
 	}
-
+	
+	public String getMemberExchangeReportName() {
+		return getPropertyValue(MEMBER_EXCHANGE_REPORT_NAME, String.class);
+	}
+	
 	public Integer getTaskScheduleMaxSkippedEntryReports() {
 		return getPropertyValue(TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS, Integer.class);
 	}

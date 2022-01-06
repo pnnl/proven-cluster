@@ -63,7 +63,7 @@
 		<empty-queue-ttl>-1</empty-queue-ttl>
 	</queue>
 
-	<!-- Disclosure queue -->
+	<!-- Disclosure queues -->
 	<queue name="gov.pnnl.proven.component.exchange.${proven.lib.module.exchange.queue.disclosure.name}.*">
 		<max-size>${proven.lib.module.exchange.queue.disclosure.max_size}</max-size>
 		<async-backup-count>1</async-backup-count>
@@ -71,7 +71,7 @@
 		<empty-queue-ttl>-1</empty-queue-ttl>
 	</queue>
 	
-	<!-- Exchange queue -->
+	<!-- Exchange queues -->
 	<queue name="gov.pnnl.proven.component.exchange.${proven.lib.module.exchange.queue.exchange.name}.*">
 		<max-size>${proven.lib.module.exchange.queue.exchange.max_size}</max-size>
 		<async-backup-count>1</async-backup-count>
@@ -79,7 +79,7 @@
 		<empty-queue-ttl>-1</empty-queue-ttl>
 	</queue>
 	
-	<!-- Exchange buffer (Request & Disclosure)-->
+	<!-- Exchange buffers -->
 	<ringbuffer name="gov.pnnl.proven.component.exchange.*">
 		<capacity>1000</capacity>
 		<backup-count>0</backup-count>
@@ -88,7 +88,7 @@
 		<in-memory-format>BINARY</in-memory-format>
 	</ringbuffer>
 
-	<!-- Service buffer -->
+	<!-- Service buffers -->
 	<ringbuffer name="gov.pnnl.proven.component.exchange.ServiceBuffer.*">
 		<capacity>100</capacity>
 		<backup-count>0</backup-count>
@@ -97,7 +97,7 @@
 		<in-memory-format>BINARY</in-memory-format>
 	</ringbuffer>
 
-	<!-- Member registry  -->
+	<!--  Deprecated. Member registry  -->
 	<set name="${proven.lib.module.registry.member.name}.*">
 		<backup-count>0</backup-count>
 		<async-backup-count>0</async-backup-count>
@@ -115,7 +115,14 @@
 		<in-memory-format>OBJECT</in-memory-format>
 		<max-size>0</max-size>
 	</map>
-
+	
+	<!-- Member Exchange Report  -->
+	<replicatedmap name="${proven.lib.module.registry.member_exchange_report.name}">
+	    <in-memory-format>OBJECT</in-memory-format>
+        <async-fillup>true</async-fillup>
+        <statistics-enabled>true</statistics-enabled>
+	</replicatedmap>
+	
 	<serialization>
 		<data-serializable-factories>
 			<data-serializable-factory factory-id="1">

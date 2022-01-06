@@ -44,6 +44,7 @@ proven.lib.moule.stream.graph.engine=JENA
 # registry
 proven.lib.module.registry.component.cluster.name=gov.pnnl.proven.registry.component.cluster
 proven.lib.module.registry.module.member.name=gov.pnnl.proven.registry.module.member
+proven.lib.module.registry.member_exchange_report.name=gov.pnnl.proven.registry.member_exchange_report
 proven.lib.module.registry.disclosure.map.name=PROVEN_DISCLOSURE_MAP
 
 # component
