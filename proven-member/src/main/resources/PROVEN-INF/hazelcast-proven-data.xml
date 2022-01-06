@@ -117,7 +117,7 @@
 	</map>
 	
 	<!-- Member Exchange Report  -->
-	<replicatedmap name="${proven.lib.module.registry.member_exchange_report.name}">
+	<replicatedmap name="${proven.lib.module.registry.member_exchange.name}">
 	    <in-memory-format>OBJECT</in-memory-format>
         <async-fillup>true</async-fillup>
         <statistics-enabled>true</statistics-enabled>

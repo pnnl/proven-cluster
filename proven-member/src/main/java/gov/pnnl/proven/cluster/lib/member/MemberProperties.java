@@ -125,7 +125,7 @@ public class MemberProperties {
 	private static final String MANAGED_COMPONENT_MAX_RETRIES = "proven.lib.module.managed_component.max_retries";
 	private static final String MEMBER_MODULE_REGISTRY_NAME = "proven.lib.module.registry.module.member.name";
 	private static final String CLUSTER_COMPONENT_REGISTRY_NAME = "proven.lib.module.registry.component.cluster.name";
-	private static final String MEMBER_EXCHANGE_REPORT_NAME = "proven.lib.module.registry.member_exchange_report.name";
+	private static final String MEMBER_EXCHANGE_NAME = "proven.lib.module.registry.member_exchange.name";
 	private static final String TASK_SCHEDULE_MAX_SKIPPED_ENTRY_REPORTS = "proven.lib.module.schedule.task.max_skipped_entry_reports";
 	private static final String PROVEN_DISCLOSURE_MAP_NAME = "proven.lib.module.registry.disclosure.map.name";
 
@@ -290,8 +290,8 @@ public class MemberProperties {
 		return getPropertyValue(CLUSTER_COMPONENT_REGISTRY_NAME, String.class);
 	}
 	
-	public String getMemberExchangeReportName() {
-		return getPropertyValue(MEMBER_EXCHANGE_REPORT_NAME, String.class);
+	public String getMemberExchangeName() {
+		return getPropertyValue(MEMBER_EXCHANGE_NAME, String.class);
 	}
 	
 	public Integer getTaskScheduleMaxSkippedEntryReports() {
