@@ -16,8 +16,13 @@ allprojects {
 }
 
 buildscript {
-	repositories { jcenter() }
-	dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0' }
+	repositories { 
+		jcenter()
+		maven {
+      		url "https://plugins.gradle.org/m2/"
+    	}
+	}
+	dependencies { classpath 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2' }
 }
 
 subprojects {
@@ -78,7 +83,8 @@ subprojects {
 //		}
 
 		war {
-			archiveFileName = project.name - "-module" + "-$version" + ".war"
+			//archiveFileName = project.name - "-module" + "-$version" + ".war"
+			archiveFileName = project.name - "-module" + "-$project.version" + ".war"
 			webXml = null
 		}
 
