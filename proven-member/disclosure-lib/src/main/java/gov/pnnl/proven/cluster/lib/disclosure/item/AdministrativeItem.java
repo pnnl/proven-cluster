@@ -39,16 +39,8 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.disclosure.item;
 
-import java.io.IOException;
-
-import javax.json.JsonValue;
-
 import org.leadpony.justify.api.InstanceType;
 import org.leadpony.justify.api.JsonSchema;
-
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 

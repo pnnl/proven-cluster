@@ -39,8 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream.message;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 
 import javax.json.Json;
@@ -48,12 +46,6 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonStructure;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.RDFParser;
-import org.apache.jena.sparql.graph.GraphFactory;
 
 import com.hazelcast.core.HazelcastJsonValue;
 

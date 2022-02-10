@@ -39,15 +39,20 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.module;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.BooleanProp;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.FloatProp;
 
 /**
- * Represents a Java EE Web Module application.
+ * Represents the Proven member-module application.
  * 
  * @see ProvenModule
  * 
@@ -57,11 +62,43 @@ import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
  */
 public abstract class ModuleComponent extends ManagedComponent {
 
-	@Inject
-	Logger log;
+    @Inject
+    Logger log;
 
-	public ModuleComponent() {
-		super(ComponentGroup.Module);
-	}
+    public static class ModuleProp {
+
+	/**
+	 * If true, indicates that the member location selector will be used to discover
+	 * exchange components for transfers.
+	 */
+	public static final BooleanProp MEMBER_LOCATION_SELECTOR_ENABLED = new BooleanProp(
+		"memberLocationSelectorEnabled");
+
+	/**
+	 * TODO - a placeholder. When this property (and/or other properties) is used,
+	 * it will provide a selector value that can be used by a ComponentRegistry to
+	 * determine an ExchangeMember selection supporting a transfer request.
+	 */
+	public static final FloatProp MEMBER_LOCATION_SELECTOR = new FloatProp("memberLocationSelector");
+    }
+
+    @PostConstruct
+    void initModuleComponent() {
+    }
+
+    public ModuleComponent() {
+	super(ComponentGroup.Module);
+    }
+    
+    @Override
+    public EntryProperties entryProperties() {
+	EntryProperties eps = new EntryProperties(super.entryProperties());
+	eps.add(new EntryProperty(ModuleProp.MEMBER_LOCATION_SELECTOR_ENABLED, mp.isMemberLocationSelectorEnabled()));
+	return eps;
+    }
+
+    public ModuleStatus retrieveModuleStatus() {
+	return ModuleStatus.fromManagedStatus(getStatus());
+    }
 
 }

@@ -47,6 +47,7 @@ import javax.enterprise.context.ApplicationScoped;
  * @author d3j766
  *
  */
+@Deprecated
 @ApplicationScoped
 public class RequestRegistry {
 

@@ -57,7 +57,6 @@ import org.leadpony.justify.api.Problem;
 
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
-import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseContext.Builder;
 
 /**
  * Immutable class representing an SSE subscription event data.

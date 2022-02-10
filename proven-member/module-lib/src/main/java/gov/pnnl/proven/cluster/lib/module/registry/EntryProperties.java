@@ -50,6 +50,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.BooleanProp;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.ClassProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.DoubleProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.EntryType;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.FloatProp;
@@ -59,7 +60,7 @@ import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
 import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
- * Simple wrapper around a set of {@code EntryProperty}s. Class provides getters
+ * Simple wrapper around a set of {@code EntryProperty}. Class provides getters
  * to retrieve {@code EntryProperty} elements.
  * 
  * Common entry component property definitions are also provided.
@@ -81,6 +82,10 @@ public final class EntryProperties implements IdentifiedDataSerializable, Serial
 	 */
 	public EntryProperties(EntryProperties props) {
 		entryProperties.addAll(props.getEntryProperties());
+	}
+	
+	public int size() {
+	    return entryProperties.size();
 	}
 
 	public boolean add(EntryProperty prop) {
@@ -145,6 +150,15 @@ public final class EntryProperties implements IdentifiedDataSerializable, Serial
 		return ret;
 	}
 
+	public Class<?> get(ClassProp key) throws ClassNotFoundException {
+		Class<?> ret = null;
+		EntryProperty val = getByNameAndType(key.name, EntryType.Clazz);
+		if (null != val) {
+		    	ret = Class.forName(val.getValue());
+		}
+		return ret;
+	}
+	
 	private EntryProperty getByNameAndType(String name, EntryType type) {
 
 		EntryProperty ret = null;

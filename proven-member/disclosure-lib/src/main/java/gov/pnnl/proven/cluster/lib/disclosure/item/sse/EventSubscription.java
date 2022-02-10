@@ -42,13 +42,10 @@ package gov.pnnl.proven.cluster.lib.disclosure.item.sse;
 import java.util.List;
 import java.util.UUID;
 
-import javax.json.stream.JsonParsingException;
-
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.Validatable;
 import gov.pnnl.proven.cluster.lib.disclosure.item.operation.ItemOperation;
-import gov.pnnl.proven.cluster.lib.disclosure.item.response.ResponseItem;
 
 /**
  * Represents an SSE subscription.

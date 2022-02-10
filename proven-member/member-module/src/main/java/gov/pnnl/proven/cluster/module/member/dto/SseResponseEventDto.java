@@ -47,8 +47,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.core.HazelcastJsonValue;
-
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
 import gov.pnnl.proven.cluster.module.member.sse.SseEventData;
 import gov.pnnl.proven.cluster.module.member.sse.SseSession;

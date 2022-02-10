@@ -39,19 +39,7 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.exchange;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.hazelcast.core.IExecutorService;
-import com.hazelcast.ringbuffer.ReadResultSet;
-import com.hazelcast.ringbuffer.Ringbuffer;
-
-import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Scalable;
-import gov.pnnl.proven.cluster.lib.module.service.module.RequestItem;
 
 /**
  * A managed component supporting the collection and processing of

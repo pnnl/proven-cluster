@@ -39,8 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.stream.message;
 
-import java.net.URI;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -52,7 +50,6 @@ import com.hazelcast.core.HazelcastJsonValue;
 
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.LdContext;
-import gov.pnnl.proven.cluster.lib.model.SemanticModel;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Eager;
 
 /**

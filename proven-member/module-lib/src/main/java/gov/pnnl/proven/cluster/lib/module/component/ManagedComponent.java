@@ -110,6 +110,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperation.O
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.StatusOperationAnnotationLiteral;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
+import gov.pnnl.proven.cluster.lib.module.module.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
@@ -179,8 +180,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	protected String moduleName = ProvenModule.retrieveModuleName();
 	protected ComponentGroup group;
 	protected Long creationeTime = new Date().getTime();
-	protected boolean isModule = false;
-	protected boolean isManager = false;
+	protected boolean module = false;
+	protected boolean manager = false;
 
 	
 	/**
@@ -238,8 +239,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		this.group = group;
 		// Note: WELD specific; proxies are sub classes
 		this.type = (Class<? extends ManagedComponent>) this.getClass().getSuperclass();
-		this.isModule = ProvenModule.class.isAssignableFrom(type);
-		this.isManager = ManagerComponent.class.isAssignableFrom(type);
+		this.module = ModuleComponent.class.isAssignableFrom(type);
+		this.manager = ManagerComponent.class.isAssignableFrom(type);
 		this.entryIdentifier = new EntryIdentifier(id, getName(), group);
 		// Indicates component is being created - status is set to Ready in
 		// PostConstruct callback
@@ -365,6 +366,14 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return creationeTime;
 	}
 
+	public boolean isModule() {
+	    return module;
+	}
+
+	public boolean isManager() {
+	    return manager;
+	}
+
 	public boolean isScalable() {
 		return this.getClass().isAnnotationPresent(Scalable.class);
 	}
@@ -455,19 +464,19 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return creator;
 	}
 
-	public ManagedStatus getModuleStatus() {
-		if (isModule) {
+	public ManagedStatus getModuleManagedStatus() {
+		if (module) {
 			return status;
 		} else {
-			return creator.getModuleStatus();
+			return creator.getModuleManagedStatus();
 		}
 	}
 
-	public ManagedStatus getManagerStatus() {
-		if (isModule || isManager) {
+	public ManagedStatus getManagerManagedStatus() {
+		if (module || manager) {
 			return status;
 		} else {
-			return creator.getManagerStatus();
+			return creator.getManagerManagedStatus();
 		}
 	}
 
@@ -863,8 +872,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		 * Failed status cascades only for Failed Modules or Managers.
 		 */
 		case Fail:
-			boolean failedModule = !ManagedStatus.isRecoverable(creator.getModuleStatus());
-			boolean failedManager = !ManagedStatus.isRecoverable(creator.getManagerStatus());
+			boolean failedModule = !ManagedStatus.isRecoverable(creator.getModuleManagedStatus());
+			boolean failedManager = !ManagedStatus.isRecoverable(creator.getManagerManagedStatus());
 			if (failedModule || failedManager) {
 				if (Failed == status) {
 					ret = operationCandidates(op);
@@ -1182,7 +1191,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 				String ret = getId().toString();
 
 				// If not a manager, then pass it down the tree
-				if (!isManager) {
+				if (!manager) {
 					ret = getManagerId().toString();
 				}
 

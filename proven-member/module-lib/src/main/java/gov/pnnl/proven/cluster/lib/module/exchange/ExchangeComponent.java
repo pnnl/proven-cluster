@@ -48,13 +48,13 @@ import org.slf4j.Logger;
 
 import com.hazelcast.core.IQueue;
 
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.BufferedItem;
-import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
+import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryReporter;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.IntegerProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
 
@@ -70,65 +70,73 @@ import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
  */
 public abstract class ExchangeComponent extends ManagedComponent {
 
-	@Inject
-	Logger log;
+    @Inject
+    Logger log;
 
-	public static class ExchangeProp {
-
-		/**
-		 * Exchange Queue Identifier
-		 */
-		public static final StringProp EQ_IDENTIFIER = new StringProp("eqIdentifier");
-
-		/**
-		 * Exchange Queue percent of maximum capacity that is being used
-		 */
-		public static final IntegerProp EQ_CAPACITY_PERCENT = new IntegerProp("remainingCapacityPercent");		
-
-	}
+    public static class ExchangeProp {
 
 	/**
-	 * Exchange queue identifier
+	 * Exchange Queue Identifier
 	 */
-	EntryIdentifier eqIdentifier;
+	public static final StringProp EQ_IDENTIFIER = new StringProp("eqIdentifier");
 
 	/**
-	 * Component's exchange queue. Component reads items from this queue to
-	 * process. Items are added to this queue via exchange requests performed by
-	 * a ModuleExchange or MemberExchange component.
+	 * Exchange Queue percent of maximum capacity that is being used
 	 */
-	IQueue<ExchangeRequest> exchangeQueue;
+	public static final IntegerProp EQ_CAPACITY_PERCENT = new IntegerProp("remainingCapacityPercent");
 
-	/**
-	 * TODO add reader implementation for exchange queue as well as other
-	 * methods supporting exchange queues.
-	 */
+    }
 
-	@PostConstruct
-	public void initExcahngeComponent() {
-		exchangeQueue = hzi.getQueue(getEQIdentifier().toString());
-	}
+    /**
+     * Exchange queue identifier
+     */
+    EntryIdentifier eqIdentifier;
 
-	public ExchangeComponent() {
-		super(ComponentGroup.Exchange);
-		eqIdentifier = new EntryIdentifier(UUID.randomUUID(), mp.getExchangeQueueName(), getComponentGroup());
-	}
+    /**
+     * Component's exchange queue. Component reads items from this queue to process.
+     * Items are added to this queue via exchange requests performed by a
+     * ModuleExchange or MemberExchange component.
+     */
+    IQueue<ExchangeRequest> exchangeQueue;
 
-	@Override
-	public EntryProperties entryProperties() {
-		EntryProperties eps = new EntryProperties(super.entryProperties());
-		eps.add(new EntryProperty(ExchangeProp.EQ_IDENTIFIER, getEQIdentifier().toString()));
-		eps.add(new EntryProperty(ExchangeProp.EQ_CAPACITY_PERCENT, getEQCapacityPercent()));
-		return eps;
-	}
+    /**
+     * TODO add reader implementation for exchange queue as well as other methods
+     * supporting exchange queues.
+     */
 
-	private EntryIdentifier getEQIdentifier() {
-		return eqIdentifier;
-	}
+    @PostConstruct
+    public void initExcahngeComponent() {
+	exchangeQueue = hzi.getQueue(getEQIdentifier().toString());
+    }
 
-	private int getEQCapacityPercent() {
-		int maxSize = mp.getExchangeQueueMaxSize();
-		int rc = exchangeQueue.remainingCapacity();
-		return (maxSize - rc) / maxSize;
-	}
+    public ExchangeComponent() {
+	super(ComponentGroup.Exchange);
+	eqIdentifier = new EntryIdentifier(UUID.randomUUID(), mp.getExchangeQueueName(), getComponentGroup());
+    }
+
+    /**
+     * @see EntryReporter#entry() 
+     */
+    @Override
+    public ComponentEntry entry() {
+	return new ExchangeEntry(this);
+    }
+
+    @Override
+    public EntryProperties entryProperties() {
+	EntryProperties eps = new EntryProperties(super.entryProperties());
+	eps.add(new EntryProperty(ExchangeProp.EQ_IDENTIFIER, getEQIdentifier().toString()));
+	eps.add(new EntryProperty(ExchangeProp.EQ_CAPACITY_PERCENT, getEQCapacityPercent()));
+	return eps;
+    }
+
+    private EntryIdentifier getEQIdentifier() {
+	return eqIdentifier;
+    }
+
+    private int getEQCapacityPercent() {
+	int maxSize = mp.getExchangeQueueMaxSize();
+	int rc = exchangeQueue.remainingCapacity();
+	return (maxSize - rc) / maxSize;
+    }
 }

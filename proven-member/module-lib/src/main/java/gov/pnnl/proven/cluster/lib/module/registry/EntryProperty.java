@@ -77,7 +77,8 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 		Float,
 		Double,
 		Boolean,
-		String
+		String,
+		Clazz
 	}
 
 	/**
@@ -194,6 +195,18 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 
 	}
 
+	/**
+	 * Class value property definition.
+	 * 
+	 * @author d3j766
+	 *
+	 */
+	public final static class ClassProp extends Prop<Class<?>> {
+		public ClassProp(String name) {
+			this.name = name;
+		}
+	}
+	
 	public EntryProperty() {
 	}
 
@@ -237,6 +250,10 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 		this(prop.getName(), value, null, EntryType.String);
 	}
 
+	public EntryProperty(ClassProp prop, Class<?> value) {
+		this(prop.getName(), value.getName(), null, EntryType.Clazz);
+	}
+	
 	protected EntryProperty(String name, String value, TimeUnit timeUnit, EntryType entryType) {
 		checkHasText(name, "The property name cannot be null or empty!");
 		this.name = name;
@@ -368,5 +385,4 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 		return true;
 	}
 	
-	public static final StringProp EQ_IDENTIFIER = new StringProp("eqIdentifier");
 }

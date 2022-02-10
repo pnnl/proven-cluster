@@ -58,9 +58,9 @@ import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
 
 /**
- * Represents a request for an exchange within the exchange environment. An
- * exchange request provides the target ExchangeComponent with the request
- * information and data to perform its processing.
+ * Represents a request within the exchange environment. An exchange request
+ * provides the target ExchangeComponent with the request information and data
+ * to perform its processing.
  * 
  * @author d3j766
  * 
@@ -69,87 +69,83 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
  */
 public class ExchangeRequest implements IdentifiedDataSerializable {
 
-	static Logger log = LoggerFactory.getLogger(ExchangeRequest.class);
+    static Logger log = LoggerFactory.getLogger(ExchangeRequest.class);
 
-	/**
-	 * Message data
-	 */
-	private Disclosable disclosable;
+    /**
+     * Message data
+     */
+    private Disclosable disclosable;
 
-	/**
-	 * Current operation and state
-	 */
-	OperationState opState;
+    /**
+     * Current operation and state
+     */
+    OperationState opState;
 
-	/**
-	 * Start/Finish times for Disclosable processing.
-	 */
-	Long startTime;
-	Long finishTime;
+    /**
+     * Start/Finish times for Disclosable processing.
+     */
+    Long startTime;
+    Long finishTime;
 
-	/**
-	 * Ordered Set of Operations to be applied to Disclosable
-	 */
-	private SortedSet<Operation> operations = new TreeSet<>();
+    /**
+     * Ordered Set of Operations to be applied to Disclosable
+     */
+    private SortedSet<Operation> operations = new TreeSet<>();
 
-	
-	
-	public ExchangeRequest(DisclosureItem di) {
-		// TODO Remove - here to avoid build problems
-	}
-	
-	public ExchangeRequest(Disclosable disclosable, SortedSet<Operation> operations) {
-		// TODO
-	}
-	
-	public Disclosable getDisclosable() {
-		return disclosable;
-	}
-	
-	
-	/**
-	 * TODO Remove
-	 */
-	OperationState getItemState() {
-		return New;
-	}
+    public ExchangeRequest(DisclosureItem di) {
+	// TODO Remove - here to avoid build problems
+    }
 
-	/**
-	 * TODO Remove
-	 */
-	void setItemState(OperationState bufferedState) {
-	}
+    public ExchangeRequest(Disclosable disclosable, SortedSet<Operation> operations) {
+	// TODO
+    }
 
-	/**
-	 * TODO Remove
-	 */
-	MessageContent getMessageContent() {
-		return EXPLICIT;
-	}
+    public Disclosable getDisclosable() {
+	return disclosable;
+    }
 
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		// TODO Auto-generated method stub
-		
-	}
+    /**
+     * TODO Remove
+     */
+    OperationState getItemState() {
+	return New;
+    }
 
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		// TODO Auto-generated method stub
-		
-	}
+    /**
+     * TODO Remove
+     */
+    void setItemState(OperationState bufferedState) {
+    }
 
-	@Override
-	public int getFactoryId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    /**
+     * TODO Remove
+     */
+    MessageContent getMessageContent() {
+	return EXPLICIT;
+    }
 
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public void writeData(ObjectDataOutput out) throws IOException {
+	// TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public void readData(ObjectDataInput in) throws IOException {
+	// TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public int getFactoryId() {
+	// TODO Auto-generated method stub
+	return 0;
+    }
+
+    @Override
+    public int getId() {
+	// TODO Auto-generated method stub
+	return 0;
+    }
 
 }

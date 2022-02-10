@@ -39,10 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.module.member.sse;
 
-import static gov.pnnl.proven.cluster.lib.disclosure.MessageContent.ANY;
-
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.ws.rs.sse.Sse;
@@ -51,9 +47,7 @@ import javax.ws.rs.sse.SseEventSink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
 import gov.pnnl.proven.cluster.lib.disclosure.item.sse.EventSubscription;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 

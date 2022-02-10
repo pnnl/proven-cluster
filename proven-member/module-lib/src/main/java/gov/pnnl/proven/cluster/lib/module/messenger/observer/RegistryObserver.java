@@ -65,31 +65,41 @@ import gov.pnnl.proven.cluster.lib.module.registry.MaintenanceRegistry;
 @Eager
 public class RegistryObserver {
 
-	@Inject
-	Logger log;
+    @Inject
+    Logger log;
 
-	public RegistryObserver() {
+    public RegistryObserver() {
+    }
+
+    @PostConstruct
+    public void init() {
+    }
+
+    public void componentEntry(@Observes(notifyObserver = Reception.ALWAYS) @ModuleRegistry ComponentEntry event,
+	    ComponentRegistry cr) {
+	log.debug("(Observing) Inside registry component status/reporting operation");
+	
+	/**
+	 * Classes in WAR not found.  Hazelcast bug.
+	 * Should be fixed after upgrading payara and hazelcast along with it.
+	 */
+	//cr.record(event);
+	if ((event.getcName().equals("MemberModule")) || (event.getcName().equals("T3Pipeline"))) {
+	    log.debug("Invalid class...");
+	} else {
+	    cr.record(event);
 	}
+    }
 
-	@PostConstruct
-	public void init() {
+    public void maintenanceEntry(@Observes @ModuleRegistry MaintenanceResultEntry event,
+	    @Eager MaintenanceRegistry mr) {
+
+	log.debug("(Observing) Inside registry maintenance/reporting operation");
+	mr.recordMaintenance(event);
+
+	// If no longer a maintained component, then unregister.
+	if (!ManagedStatus.isRecoverable(event.getResult().getSeverity().getStatus())) {
+	    mr.unregister(event.getcId());
 	}
-
-	public void componentEntry(@Observes(notifyObserver = Reception.ALWAYS) @ModuleRegistry ComponentEntry event,
-			ComponentRegistry cr) {
-		log.debug("(Observing) Inside registry component status/reporting operation");
-		cr.record(event);
-	}
-
-	public void maintenanceEntry(@Observes @ModuleRegistry MaintenanceResultEntry event,
-			@Eager MaintenanceRegistry mr) {
-
-		log.debug("(Observing) Inside registry maintenance/reporting operation");
-		mr.recordMaintenance(event);
-
-		// If no longer a maintained component, then unregister.
-		if (!ManagedStatus.isRecoverable(event.getResult().getSeverity().getStatus())) {
-			mr.unregister(event.getcId());
-		}
-	}
+    }
 }

@@ -43,7 +43,6 @@ import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.List;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;

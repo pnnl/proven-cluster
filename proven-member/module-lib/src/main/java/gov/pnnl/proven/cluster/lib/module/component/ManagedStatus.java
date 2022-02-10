@@ -52,243 +52,256 @@ package gov.pnnl.proven.cluster.lib.module.component;
  */
 public enum ManagedStatus {
 
-	/**
-	 * Transition status, indicating the component is in the process of being
-	 * created.
-	 */
-	Creating(true),
+    /**
+     * Transition status, indicating the component is in the process of being
+     * created.
+     */
+    Creating(true),
 
-	/**
-	 * Indicates the component has successfully been created and is ready to be
-	 * activated for status reporting. In this state the component may perform
-	 * local services, however no reporting will be performed until it has been
-	 * activated making it known to other members of the cluster.
-	 */
-	Ready(false),
+    /**
+     * Indicates the component has successfully been created and is ready to be
+     * activated for status reporting. In this state the component may perform local
+     * services, however no reporting will be performed until it has been activated
+     * making it known to other members of the cluster.
+     */
+    Ready(false),
 
-	/**
-	 * Transition status, indicating the component is in process of being
-	 * activated.
-	 */
-	Activating(true),
+    /**
+     * Transition status, indicating the component is in process of being activated.
+     */
+    Activating(true),
 
-	/**
-	 * Component has been activated and is reporting its status.
-	 */
-	Online(false),
+    /**
+     * Component has been activated and is reporting its status.
+     */
+    Online(false),
 
-	/**
-	 * Transition status, indicating the component has been requested to perform
-	 * maintenance checks and update its status accordingly.
-	 */
-	CheckingStatus(true),
+    /**
+     * Transition status, indicating the component has been requested to perform
+     * maintenance checks and update its status accordingly.
+     */
+    CheckingStatus(true),
 
-	/**
-	 * Component has been deactivated due to a maintenance check operation and
-	 * is considered as offline. Existing tasks will be completed, new
-	 * tasks/data will not be assigned. The component may be reactivated from
-	 * this state by another check operation, and only if the cause for
-	 * deactivation has been repaired by a subsequent maintenance check.
-	 */
-	CheckedOffline(false),
+    /**
+     * Component has been deactivated due to a maintenance check operation and is
+     * considered as offline. Existing tasks will be completed, new tasks/data will
+     * not be assigned. The component may be reactivated from this state by another
+     * check operation, and only if the cause for deactivation has been repaired by
+     * a subsequent maintenance check.
+     */
+    CheckedOffline(false),
 
-	/**
-	 * A failed state, indicating an error condition was encountered while
-	 * {@link #Online}. Reactivation retries may be attempted from this state.
-	 */
-	FailedOnlineRetry(false),
+    /**
+     * A failed state, indicating an error condition was encountered while
+     * {@link #Online}. Reactivation retries may be attempted from this state.
+     */
+    FailedOnlineRetry(false),
 
-	/**
-	 * A failed state, indicating an error condition was encountered with a
-	 * component's TaskSchedule. Maintenance check/repairs may be performed from
-	 * this state. Specifically, a SchedulerCheck operation may be performed.
-	 */
-	FailedSchedulerRetry(false),
+    /**
+     * A failed state, indicating an error condition was encountered with a
+     * component's TaskSchedule. Maintenance check/repairs may be performed from
+     * this state. Specifically, a SchedulerCheck operation may be performed.
+     */
+    FailedSchedulerRetry(false),
 
-	/**
-	 * Transition status, indicating the component has been requested to perform
-	 * scheduler maintenance check and update its status accordingly.
-	 */
-	CheckingScheduler(true),
+    /**
+     * Transition status, indicating the component has been requested to perform
+     * scheduler maintenance check and update its status accordingly.
+     */
+    CheckingScheduler(true),
 
-	/**
-	 * Component can no longer accept new tasks. It will continue to perform its
-	 * existing tasks.
-	 */
-	Busy(false),
+    /**
+     * Component can no longer accept new tasks. It will continue to perform its
+     * existing tasks.
+     */
+    Busy(false),
 
-	/**
-	 * Transition status, indicating the component is in process of being
-	 * deactivated.
-	 */
-	Deactivating(true),
+    /**
+     * Transition status, indicating the component is in process of being
+     * deactivated.
+     */
+    Deactivating(true),
 
-	/**
-	 * Component has been suspended due to a deactivate operation and is
-	 * considered as offline. Existing tasks will be completed, new tasks will
-	 * not be assigned. The component may be reactivated from this state by its
-	 * creator.
-	 */
-	Offline(false),
+    /**
+     * Component has been suspended due to a deactivate operation and is considered
+     * as offline. Existing tasks will be completed, new tasks will not be assigned.
+     * The component may be reactivated from this state by its creator.
+     */
+    Offline(false),
 
-	/**
-	 * Transition status, indicating the component has encountered an error
-	 * condition and is in process of being moved to a failed state.
-	 */
-	Failing(true),
+    /**
+     * Transition status, indicating the component has encountered an error
+     * condition and is in process of being moved to a failed state.
+     */
+    Failing(true),
 
-	/**
-	 * A failed state, indicating component has encountered an error condition
-	 * either during activation attempt. Reactivation retries may be attempted
-	 * from this state.
-	 */
-	FailedActivateRetry(false),
+    /**
+     * A failed state, indicating component has encountered an error condition
+     * either during activation attempt. Reactivation retries may be attempted from
+     * this state.
+     */
+    FailedActivateRetry(false),
 
-	/**
-	 * A failed state, indicating component has encountered an error condition
-	 * during deactivation. Deactivation retries may be attempted from this
-	 * state.
-	 */
-	FailedDeactivateRetry(false),
+    /**
+     * A failed state, indicating component has encountered an error condition
+     * during deactivation. Deactivation retries may be attempted from this state.
+     */
+    FailedDeactivateRetry(false),
 
-	/**
-	 * Indicates component has failed and will no longer accept retry attempts
-	 * and will be removed from service.
-	 */
-	Failed(false),
+    /**
+     * Indicates component has failed and will no longer accept retry attempts and
+     * will be removed from service.
+     */
+    Failed(false),
 
-	/**
-	 * Transition status, indicating the component has failed and/or is being
-	 * shutdown and is being removed from service. Any cleanup activities will
-	 * be done as part of the removal process.
-	 */
-	Removing(true),
+    /**
+     * Transition status, indicating the component has failed and/or is being
+     * shutdown and is being removed from service. Any cleanup activities will be
+     * done as part of the removal process.
+     */
+    Removing(true),
 
-	/**
-	 * Indicates the component has been removed and is considered to be out of
-	 * service. This is the terminal state for a managed component.
-	 */
-	OutOfService(false),
+    /**
+     * Indicates the component has been removed and is considered to be out of
+     * service. This is the terminal state for a managed component.
+     */
+    OutOfService(false),
 
-	/**
-	 * Indicates status of managed component is not known, ensuring the
-	 * component is not selected for tasks where the status must be known.
-	 */
-	Unknown(false),
+    /**
+     * Indicates status of managed component is not known, ensuring the component is
+     * not selected for tasks where the status must be known.
+     */
+    Unknown(false),
 
-	/**
-	 * Indicates the managed component has been destroyed. This status is only
-	 * used by a {@code ComponentRegistry} to mark a component as destroyed,
-	 * allowing other modules to remove the component entry from their
-	 * registries.
-	 */
-	Destroyed(false),
+    /**
+     * Indicates the managed component has been destroyed. This status is only used
+     * by a {@code ComponentRegistry} to mark a component as destroyed, allowing
+     * other modules to remove the component entry from their registries.
+     */
+    Destroyed(false),
 
-	/**
-	 * Indicates any transition status value.
-	 */
-	Transition(true),
+    /**
+     * Indicates any transition status value.
+     */
+    Transition(true),
 
-	/**
-	 * Indicates any non-transition status value.
-	 */
-	NonTransition(false),
+    /**
+     * Indicates any non-transition status value.
+     */
+    NonTransition(false),
 
-	/**
-	 * Indicates any non-transition status, where the component can be recovered
-	 * for service.
-	 */
-	Recoverable(false),
+    /**
+     * Indicates any non-transition status, where the component can be recovered for
+     * service.
+     */
+    Recoverable(false),
 
-	/**
-	 * Indicates any status, where the component can not be recovered for
-	 * service.
-	 */
-	NonRecoverable(false),
+    /**
+     * Indicates any status, where the component can not be recovered for service.
+     */
+    NonRecoverable(false),
 
-	/**
-	 * Indicates any status that is a terminating state.
-	 */
-	Terminal(false),
+    /**
+     * Indicates any status that is a terminating state.
+     */
+    Terminal(false),
 
-	/**
-	 * Indicates any non-transition status that is not a terminating state.
-	 */
-	NonTerminal(false);
+    /**
+     * Indicates any non-transition status that is not a terminating state.
+     */
+    NonTerminal(false);
 
-	private final boolean isTransition;
+    private final boolean isTransition;
 
-	ManagedStatus(boolean isTransition) {
-		this.isTransition = isTransition;
+    ManagedStatus(boolean isTransition) {
+	this.isTransition = isTransition;
+    }
+
+    /**
+     * Returns true if a transition status.
+     */
+    public boolean isTransition() {
+	return isTransition;
+    }
+
+    /**
+     * Returns true if provided status value is an available status, meaning it is
+     * operating normally and is performing its tasks.
+     */
+    public static boolean isAvailable(ManagedStatus status) {
+
+	boolean ret = false;
+
+	final ManagedStatus[] availables = { Online, CheckingStatus, CheckingScheduler };
+
+	for (ManagedStatus available : availables) {
+	    if (available == status) {
+		ret = true;
+		break;
+	    }
+	}
+	return ret;
+    }
+
+    /**
+     * Returns true if provided status value is a {@code #Recoverable} status.
+     */
+    public static boolean isRecoverable(ManagedStatus status) {
+
+	boolean ret = true;
+
+	final ManagedStatus[] nonRecoverable = { Failing, Failed, Removing, OutOfService, NonRecoverable };
+
+	for (ManagedStatus failedStatus : nonRecoverable) {
+	    if (failedStatus == status) {
+		ret = false;
+		break;
+	    }
 	}
 
-	/**
-	 * Returns true if a transition status.
-	 */
-	public boolean isTransition() {
-		return isTransition;
-	}
+	return ret;
+    }
 
-	/**
-	 * Returns true if provided status value is a {@code #Recoverable} status.
-	 */
-	public static boolean isRecoverable(ManagedStatus status) {
+    /**
+     * Returns true if provided status value is a "retry" status value. Meaning, the
+     * status value is a failed state allowing for retry attempt to rectify failure.
+     */
+    public static boolean isRetry(ManagedStatus status) {
 
-		boolean ret = true;
+	boolean ret = false;
 
-		final ManagedStatus[] nonRecoverable = { Failing, Failed, Removing, OutOfService, NonRecoverable };
-
-		for (ManagedStatus failedStatus : nonRecoverable) {
-			if (failedStatus == status) {
-				ret = false;
-				break;
-			}
+	final ManagedStatus[] retries = { FailedOnlineRetry, FailedActivateRetry, FailedSchedulerRetry,
+		FailedDeactivateRetry };
+	if (!status.isTransition()) {
+	    for (ManagedStatus retry : retries) {
+		if (retry == status) {
+		    ret = true;
+		    break;
 		}
-
-		return ret;
+	    }
 	}
 
-	/**
-	 * Returns true if provided status value is a "retry" status value. Meaning,
-	 * the status value is a failed state allowing for retry attempt to rectify
-	 * failure.
-	 */
-	public static boolean isRetry(ManagedStatus status) {
+	return ret;
+    }
 
-		boolean ret = false;
+    /**
+     * Returns true if provided status value is a {@code #Terminal} status.
+     */
+    public static boolean isTerminal(ManagedStatus status) {
 
-		final ManagedStatus[] retries = { FailedOnlineRetry, FailedActivateRetry, FailedSchedulerRetry,
-				FailedDeactivateRetry };
-		if (!status.isTransition()) {
-			for (ManagedStatus retry : retries) {
-				if (retry == status) {
-					ret = true;
-					break;
-				}
-			}
+	boolean ret = false;
+
+	final ManagedStatus[] terminals = { OutOfService, Terminal };
+	if (!status.isTransition()) {
+	    for (ManagedStatus terminal : terminals) {
+		if (terminal == status) {
+		    ret = true;
+		    break;
 		}
-
-		return ret;
+	    }
 	}
 
-	/**
-	 * Returns true if provided status value is a {@code #Terminal} status.
-	 */
-	public static boolean isTerminal(ManagedStatus status) {
-
-		boolean ret = false;
-
-		final ManagedStatus[] terminals = { OutOfService, Terminal };
-		if (!status.isTransition()) {
-			for (ManagedStatus terminal : terminals) {
-				if (terminal == status) {
-					ret = true;
-					break;
-				}
-			}
-		}
-
-		return ret;
-	}
+	return ret;
+    }
 
 }

@@ -63,7 +63,6 @@ import javax.json.stream.JsonGenerator;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.topbraid.shacl.validation.ValidationUtil;
 
 public class TesetRegex {
 

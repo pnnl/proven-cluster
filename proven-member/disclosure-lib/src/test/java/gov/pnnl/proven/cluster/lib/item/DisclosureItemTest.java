@@ -46,7 +46,6 @@ import java.util.UUID;
 
 import javax.json.JsonValue;
 
-import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -57,8 +56,6 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.pnnl.proven.cluster.lib.disclosure.DomainProvider;
-import gov.pnnl.proven.cluster.lib.disclosure.MessageContent;
 import gov.pnnl.proven.cluster.lib.disclosure.exception.ValidatableBuildException;
 import gov.pnnl.proven.cluster.lib.disclosure.item.AdministrativeItem;
 import gov.pnnl.proven.cluster.lib.disclosure.item.DisclosureItem;
