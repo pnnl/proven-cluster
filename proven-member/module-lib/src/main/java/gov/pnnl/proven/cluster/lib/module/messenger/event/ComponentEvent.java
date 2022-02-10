@@ -66,6 +66,7 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 	private static final Logger log  = LoggerFactory.getLogger(ComponentEvent.class);
 	
 	protected UUID cId;
+	//protected Class<? extends ManagedComponent> cType;
 	protected Class<?> cType;
 	protected String cName;
 	protected String cGroupLabel;
@@ -131,10 +132,12 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 	    return cManager;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		this.cId = UUID.fromString(in.readUTF());
 		try {
+			//this.cType = (Class<? extends ManagedComponent>) Class.forName(in.readUTF());
 			this.cType = Class.forName(in.readUTF());
 		} catch (ClassNotFoundException e) {
 			throw new IOException("Unable to read ComponentEvent's class type", e);

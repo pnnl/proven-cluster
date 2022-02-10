@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.12.xsd" xmlns="http://www.hazelcast.com/schema/config" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<hazelcast
+	xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.12.xsd"
+	xmlns="http://www.hazelcast.com/schema/config"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 
 	<management-center enabled="true">http://localhost:9080/mancenter
@@ -10,16 +13,17 @@
 		<property name="hazelcast.logging.type">slf4j</property>
 	</properties>
 
- 	<group> 		
- 	<name>${proven.hazelcast.group.name}</name>
-<!--  	<password>${proven.hazelcast.group.password}</password> --> 
- 	</group>
+	<group>
+		<name>${proven.hazelcast.group.name}</name>
+		<!-- <password>${proven.hazelcast.group.password}</password> -->
+	</group>
 
-<!--      <group name="${proven.hazelcast.group.name}" password="${proven.hazelcast.group.password}"/> -->   
+	<!-- <group name="${proven.hazelcast.group.name}" password="${proven.hazelcast.group.password}"/> -->
 
 	<network>
 
-		<port auto-increment="true" port-count="10">${proven.hazelcast.member.port}</port>
+		<port auto-increment="true" port-count="10">${proven.hazelcast.member.port}
+		</port>
 
 		<outbound-ports>
 			<!-- Allowed port range when connecting to other nodes. 0 or * means use 
@@ -28,18 +32,18 @@
 		</outbound-ports>
 
 		<join>
-			<multicast enabled="false"/>
+			<multicast enabled="false" />
 			<tcp-ip enabled="true">
 				<members>${proven.hazelcast.members}</members>
 			</tcp-ip>
-			<aws enabled="false"/>
+			<aws enabled="false" />
 		</join>
 	</network>
 
 	<!-- PER_MEMBER by default (i.e. random selection) -->
-	<partition-group enabled="false"/>
+	<partition-group enabled="false" />
 
-	<!-- Domain message stream configuration  -->
+	<!-- Domain message stream configuration -->
 	<map name="*.message">
 		<time-to-live-seconds>0</time-to-live-seconds>
 		<max-size policy="USED_HEAP_PERCENTAGE">60</max-size>
@@ -47,15 +51,15 @@
 		<async-backup-count>1</async-backup-count>
 		<backup-count>0</backup-count>
 	</map>
-	
-	<!--  Event journal configuration for domain message streams  -->
+
+	<!-- Event journal configuration for domain message streams -->
 	<event-journal enabled="true">
 		<mapName>*.message</mapName>
 		<capacity>10000</capacity>
 		<time-to-live-seconds>0</time-to-live-seconds>
 	</event-journal>
-	
-	<!-- Deprecated.  Remove after refactor of DisclosureEntries -->
+
+	<!-- Deprecated. Remove after refactor of DisclosureEntries -->
 	<queue name="gov.pnnl.proven.external.disclosure">
 		<max-size>10000</max-size>
 		<async-backup-count>1</async-backup-count>
@@ -64,21 +68,25 @@
 	</queue>
 
 	<!-- Disclosure queues -->
-	<queue name="gov.pnnl.proven.component.exchange.${proven.lib.module.exchange.queue.disclosure.name}.*">
-		<max-size>${proven.lib.module.exchange.queue.disclosure.max_size}</max-size>
+	<queue
+		name="gov.pnnl.proven.component.exchange.${proven.lib.module.exchange.queue.disclosure.name}.*">
+		<max-size>${proven.lib.module.exchange.queue.disclosure.max_size}
+		</max-size>
 		<async-backup-count>1</async-backup-count>
 		<backup-count>0</backup-count>
 		<empty-queue-ttl>-1</empty-queue-ttl>
 	</queue>
-	
+
 	<!-- Exchange queues -->
-	<queue name="gov.pnnl.proven.component.exchange.${proven.lib.module.exchange.queue.exchange.name}.*">
-		<max-size>${proven.lib.module.exchange.queue.exchange.max_size}</max-size>
+	<queue
+		name="gov.pnnl.proven.component.exchange.${proven.lib.module.exchange.queue.exchange.name}.*">
+		<max-size>${proven.lib.module.exchange.queue.exchange.max_size}
+		</max-size>
 		<async-backup-count>1</async-backup-count>
 		<backup-count>0</backup-count>
 		<empty-queue-ttl>-1</empty-queue-ttl>
 	</queue>
-	
+
 	<!-- Exchange buffers -->
 	<ringbuffer name="gov.pnnl.proven.component.exchange.*">
 		<capacity>1000</capacity>
@@ -89,7 +97,8 @@
 	</ringbuffer>
 
 	<!-- Service buffers -->
-	<ringbuffer name="gov.pnnl.proven.component.exchange.ServiceBuffer.*">
+	<ringbuffer
+		name="gov.pnnl.proven.component.exchange.ServiceBuffer.*">
 		<capacity>100</capacity>
 		<backup-count>0</backup-count>
 		<async-backup-count>1</async-backup-count>
@@ -97,61 +106,66 @@
 		<in-memory-format>BINARY</in-memory-format>
 	</ringbuffer>
 
-	<!--  Deprecated. Member registry  -->
-	<set name="${proven.lib.module.registry.member.name}.*">
-		<backup-count>0</backup-count>
-		<async-backup-count>0</async-backup-count>
-		<max-size>0</max-size>
-		<item-listeners>
-			<item-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry</item-listener>
-		</item-listeners>
-	</set>
-
-	<!-- Cluster registry  -->
-	<map name="${proven.lib.module.registry.cluster.name}">
+	<!-- Cluster component registry -->
+	<map name="${proven.lib.module.registry.component.cluster.name}">
 		<backup-count>1</backup-count>
 		<async-backup-count>0</async-backup-count>
 		<time-to-live-seconds>0</time-to-live-seconds>
 		<in-memory-format>OBJECT</in-memory-format>
 		<max-size>0</max-size>
 	</map>
-	
-	<!-- Member Exchange Report  -->
-	<replicatedmap name="${proven.lib.module.registry.member_exchange.name}">
-	    <in-memory-format>OBJECT</in-memory-format>
-        <async-fillup>true</async-fillup>
-        <statistics-enabled>true</statistics-enabled>
+
+	<!-- Member Exchange -->
+	<replicatedmap
+		name="${proven.lib.module.registry.member_exchange.name}">
+		<in-memory-format>OBJECT</in-memory-format>
+		<async-fillup>true</async-fillup>
+		<statistics-enabled>true</statistics-enabled>
 	</replicatedmap>
-	
+
+	<!-- Member Location -->
+	<replicatedmap
+		name="${proven.lib.module.registry.member_location.name}">
+		<in-memory-format>OBJECT</in-memory-format>
+		<async-fillup>true</async-fillup>
+		<statistics-enabled>true</statistics-enabled>
+		<entry-listeners>
+			<entry-listener include-value="true">gov.pnnl.proven.cluster.lib.module.registry.MemberLocationListener</entry-listener>
+		</entry-listeners>
+	</replicatedmap>
+
 	<serialization>
 		<data-serializable-factories>
 			<data-serializable-factory factory-id="1">
-				 gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory
+				gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory
 			</data-serializable-factory>
 			<data-serializable-factory factory-id="2">
-			    gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory
-			</data-serializable-factory>		
+				gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory
+			</data-serializable-factory>
 			<data-serializable-factory factory-id="3">
 				gov.pnnl.proven.cluster.lib.pipeline.PipelineIDSFactory
-			</data-serializable-factory>	
+			</data-serializable-factory>
 		</data-serializable-factories>
-<!-- 		<serializers> -->
-<!-- 	        <global-serializer override-java-serialization="true"> -->
-<!-- 	            info.jerrinot.subzero.Serializer -->
-<!-- 	        </global-serializer>  -->
-<!--         </serializers> -->
+
+		<!-- <serializers> -->
+		<!-- <global-serializer override-java-serialization="true"> -->
+		<!-- info.jerrinot.subzero.Serializer -->
+		<!-- </global-serializer> -->
+		<!-- </serializers> -->
+
 	</serialization>
-	
-<!-- 	<cp-subsystem> -->
-<!--         <cp-member-count>3</cp-member-count> -->
-<!--         <group-size>3</group-size> -->
-<!--         <session-time-to-live-seconds>300</session-time-to-live-seconds> -->
-<!--         <session-heartbeat-interval-seconds>5</session-heartbeat-interval-seconds> -->
-<!--         <missing-cp-member-auto-removal-seconds>14400</missing-cp-member-auto-removal-seconds> -->
-<!--         <fail-on-indeterminate-operation-state>false</fail-on-indeterminate-operation-state> -->
-<!--         <persistence-enabled>true</persistence-enabled> -->
-<!--         <base-dir>/custom-cp-dir</base-dir> -->
-<!--     </cp-subsystem> -->
+
+
+	<!-- <cp-subsystem> -->
+	<!-- <cp-member-count>3</cp-member-count> -->
+	<!-- <group-size>3</group-size> -->
+	<!-- <session-time-to-live-seconds>300</session-time-to-live-seconds> -->
+	<!-- <session-heartbeat-interval-seconds>5</session-heartbeat-interval-seconds> -->
+	<!-- <missing-cp-member-auto-removal-seconds>14400</missing-cp-member-auto-removal-seconds> -->
+	<!-- <fail-on-indeterminate-operation-state>false</fail-on-indeterminate-operation-state> -->
+	<!-- <persistence-enabled>true</persistence-enabled> -->
+	<!-- <base-dir>/custom-cp-dir</base-dir> -->
+	<!-- </cp-subsystem> -->
 
 	<!-- ##################################################################################### -->
 
@@ -215,7 +229,8 @@
 			com.hazelcast.map.merge.HigherHitsMapMergePolicy ; entry with the higher 
 			hits wins. com.hazelcast.map.merge.LatestUpdateMapMergePolicy ; entry with 
 			the latest update wins. -->
-		<merge-policy>com.hazelcast.map.merge.PutIfAbsentMapMergePolicy</merge-policy>
+		<merge-policy>com.hazelcast.map.merge.PutIfAbsentMapMergePolicy
+		</merge-policy>
 
 		<!-- Control caching of de-serialized values. Caching makes query evaluation 
 			faster, but it cost memory. Possible Values: NEVER: Never cache deserialized 
@@ -286,8 +301,8 @@
 		<in-memory-format>BINARY</in-memory-format>
 	</ringbuffer>
 
-	<services enable-defaults="true"/>
+	<services enable-defaults="true" />
 
-	<lite-member enabled="false"/>
+	<lite-member enabled="false" />
 
 </hazelcast>

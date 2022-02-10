@@ -464,19 +464,19 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		return creator;
 	}
 
-	public ManagedStatus getModuleStatus() {
+	public ManagedStatus getModuleManagedStatus() {
 		if (module) {
 			return status;
 		} else {
-			return creator.getModuleStatus();
+			return creator.getModuleManagedStatus();
 		}
 	}
 
-	public ManagedStatus getManagerStatus() {
+	public ManagedStatus getManagerManagedStatus() {
 		if (module || manager) {
 			return status;
 		} else {
-			return creator.getManagerStatus();
+			return creator.getManagerManagedStatus();
 		}
 	}
 
@@ -872,8 +872,8 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 		 * Failed status cascades only for Failed Modules or Managers.
 		 */
 		case Fail:
-			boolean failedModule = !ManagedStatus.isRecoverable(creator.getModuleStatus());
-			boolean failedManager = !ManagedStatus.isRecoverable(creator.getManagerStatus());
+			boolean failedModule = !ManagedStatus.isRecoverable(creator.getModuleManagedStatus());
+			boolean failedManager = !ManagedStatus.isRecoverable(creator.getManagerManagedStatus());
 			if (failedModule || failedManager) {
 				if (Failed == status) {
 					ret = operationCandidates(op);
