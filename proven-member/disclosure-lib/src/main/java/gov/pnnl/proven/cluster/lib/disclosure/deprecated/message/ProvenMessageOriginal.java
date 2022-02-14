@@ -211,14 +211,14 @@ public class ProvenMessageOriginal implements IdentifiedDataSerializable, Serial
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 
-		this.messageId = UUID.fromString(in.readUTF());
-		this.message = in.readUTF();
-		this.messageContent = MessageContent.valueOf(in.readUTF());
-		this.name = in.readUTF();
-		this.domain = in.readUTF();
+		this.messageId = UUID.fromString(in.readString());
+		this.message = in.readString();
+		this.messageContent = MessageContent.valueOf(in.readString());
+		this.name = in.readString();
+		this.domain = in.readString();
 		this.isTransient = in.readBoolean();
 		this.isStatic = in.readBoolean();
-		this.source = in.readUTF();
+		this.source = in.readString();
 		this.keywords = in.readObject();
 		this.messageProperties = in.readObject();
 		this.measurements = in.readObject();
@@ -229,14 +229,14 @@ public class ProvenMessageOriginal implements IdentifiedDataSerializable, Serial
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 
-		out.writeUTF(this.messageId.toString());
-		out.writeUTF(this.message);
-		out.writeUTF(this.messageContent.toString());
-		out.writeUTF(this.name);
-		out.writeUTF(this.domain);
+		out.writeString(this.messageId.toString());
+		out.writeString(this.message);
+		out.writeString(this.messageContent.toString());
+		out.writeString(this.name);
+		out.writeString(this.domain);
 		out.writeBoolean(this.isTransient);
 		out.writeBoolean(this.isStatic);
-		out.writeUTF(this.source);
+		out.writeString(this.source);
 		out.writeObject(this.keywords);
 		out.writeObject(this.messageProperties);
 		out.writeObject(this.measurements);
@@ -250,7 +250,7 @@ public class ProvenMessageOriginal implements IdentifiedDataSerializable, Serial
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.PROVEN_MESSAGE_ORIGINAL_TYPE;
 		return 0;
 	}

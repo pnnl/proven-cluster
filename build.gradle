@@ -28,11 +28,10 @@ buildscript {
 subprojects {
 	
 	ext.javaEEVersion = "8.0"
-	ext.jetVersion = "3.2.2"
-	ext.jetHazelcastVersion = "3.12.6"
-	ext.payaraVersion = "5.2020.7"
-	ext.payaraHazelcastVersion = "3.12.6"
-	ext.payaraJerseyVersion = "2.30"
+	ext.payaraVersion = "5.2021.10"
+	ext.hazelcastVersion = "5.0.2"
+	ext.payaraJerseyVersion = "2.34"
+	ext.jenaVersion = "4.4.0"
 	ext.influxDbLibVersion = "2.8"
 	ext.swaggerVersion = "2.0.8"
 	ext.jaxbApiVersion = "2.3.1"
@@ -130,9 +129,10 @@ subprojects {
 		compileOnly group: 'javax', name: 'javaee-web-api', version: "${javaEEVersion}"
 		compileOnly group: 'javax', name: 'javaee-api', version: "${javaEEVersion}"
 		compileOnly group: 'fish.payara.api', name: 'payara-api', version: "${payaraVersion}"
-		compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}"
+		compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${hazelcastVersion}"
 		compileOnly group: 'fish.payara.extras', name: 'payara-micro', version: "${payaraVersion}"	
 		compileOnly group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'	
+		//implementation group: 'com.hazelcast.jet', name: 'hazelcast-jet', version: "${jetVersion}"
 		implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 		implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.17.1'
 		implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'

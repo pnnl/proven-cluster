@@ -37,66 +37,35 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.pipeline.response;
+/**
+ * 
+ */
+package gov.pnnl.proven.cluster.lib.module.module.annotation;
 
-import java.io.IOException;
-import java.util.Optional;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import javax.ws.rs.core.Response;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.ResponseItem;
-import gov.pnnl.proven.cluster.lib.pipeline.PipelineIDSFactory;
+import javax.inject.Qualifier;
 
 /**
- * Summary response information for a T3 storage request. This is included in a
- * {@code ResponseMessage} as it's message content.
+ * Hazelcast instance member qualifier for production by the IMDGInstanceFactory. 
  * 
  * @author d3j766
  *
  */
-public class T3Response extends ResponseItem {
-
-	private long count;
-
-	public T3Response() {
-	}
-
-	public T3Response(Response.Status status, Optional<String> message, long count) {
-		super(status, message);
-		this.count = count;
-	}
-
-	public long getCount() {
-		return count;
-	}
-
-	public void setCount(long count) {
-		this.count = count;
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeLong(count);
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.count = in.readLong();
-	}
-
-	@Override
-	public int getFactoryId() {
-		return PipelineIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getClassId() {
-		return PipelineIDSFactory.T3_RESPONSE_TYPE;
-	}
+@Documented
+@Qualifier
+@Inherited
+@Retention(RUNTIME)
+@Target({ PARAMETER, TYPE, FIELD, METHOD })
+public @interface HazelcastMember {
 
 }

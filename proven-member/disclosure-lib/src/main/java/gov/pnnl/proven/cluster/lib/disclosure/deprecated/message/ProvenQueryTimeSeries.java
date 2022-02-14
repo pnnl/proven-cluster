@@ -102,8 +102,8 @@ public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serial
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		
-		this.measurementName = in.readUTF();
-		String provenMessageStr = in.readUTF();
+		this.measurementName = in.readString();
+		String provenMessageStr = in.readString();
 		this.provenMessage = ((provenMessageStr.isEmpty()) ? null : URI.create(provenMessageStr));
 		this.filters = in.readObject();
 	}
@@ -111,9 +111,9 @@ public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serial
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		
-		out.writeUTF(this.measurementName);
+		out.writeString(this.measurementName);
 		String provenMessageStr = ((null == this.provenMessage) ? ("") : this.provenMessage.toString());
-		out.writeUTF(provenMessageStr);
+		out.writeString(provenMessageStr);
 		out.writeObject(this.filters);
 	}
 	
@@ -125,7 +125,7 @@ public class ProvenQueryTimeSeries implements IdentifiedDataSerializable, Serial
 	
 	
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.PROVEN_QUERY_TIME_SERIES_TYPE;
 		return 0;
 	}

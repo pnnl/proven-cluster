@@ -85,21 +85,21 @@ public class DisclosureResponse extends ResponseMessage implements IdentifiedDat
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
-		this.requestId = in.readUTF();
+		this.requestId = in.readString();
 		this.status = in.readObject();
 		this.code = in.readInt();
-		this.reason = in.readUTF();
-		this.response = in.readUTF();
+		this.reason = in.readString();
+		this.response = in.readString();
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
-		out.writeUTF(this.requestId);
+		out.writeString(this.requestId);
 		out.writeObject(this.status);
 		out.writeInt(this.code);
-		out.writeUTF(this.reason);
-		out.writeUTF(this.response);
+		out.writeString(this.reason);
+		out.writeString(this.response);
 	}
 
 	@Override

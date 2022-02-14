@@ -39,18 +39,28 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.module.member.pipeline;
 
+import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
+import static gov.pnnl.proven.cluster.lib.module.service.pipeline.PipelineServiceType.Domain;
+
+import java.io.Serializable;
+import java.util.AbstractMap;
+import java.util.Calendar;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.cluster.Address;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JobConfig;
-import com.hazelcast.jet.pipeline.ContextFactory;
-import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
-import static gov.pnnl.proven.cluster.lib.module.service.pipeline.PipelineServiceType.*;
-
 import com.hazelcast.jet.pipeline.Pipeline;
+import com.hazelcast.jet.pipeline.ServiceFactory;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
-import com.hazelcast.nio.Address;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
@@ -63,16 +73,6 @@ import gov.pnnl.proven.cluster.lib.module.service.pipeline.PipelineService;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.pipeline.service.T3Service;
-
-import java.io.Serializable;
-import java.util.AbstractMap;
-import java.util.Calendar;
-import java.util.Map;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @PipelineServiceProvider(pipelineType = Domain, resources = { MessageStreamProxy.class,
 		DisclosureDomain.class }, isTest = true, activateOnStartup = true)
@@ -95,29 +95,31 @@ public class T3Pipeline extends PipelineService implements Serializable {
 		MessageStreamProxy sinkMsp = sm.getMessageStreamProxy(domain, MessageStreamType.EVENT);
 
 		// Get T3 Service
-		ContextFactory<T3Service> t3Service = T3Service.t3Service();
+		ServiceFactory<T3Service, Void> t3Service = T3Service.t3Service();
 
 		// T3 Storage Pipeline
 		// For each Knowledge message, if non-measurement content, store in T3.
 		// TODO - Give measurements their own stream and message content group
 		Pipeline p = Pipeline.create();
-		p.drawFrom(Sources.<String, KnowledgeMessage>remoteMapJournal(sourceMsp.getStreamName(), imdgClientConfig,
+		p.readFrom(Sources.<String, KnowledgeMessage>remoteMapJournal(sourceMsp.getStreamName(), imdgClientConfig,
 				START_FROM_OLDEST)).withoutTimestamps()
 
 				// STORE IN T3 - only if non-measurement
-				.mapUsingContext(t3Service, (t3s, km) -> {
+				.mapUsingService(t3Service, (t3s, km) -> {
 
 					Map.Entry<String, ResponseMessage> ret = null;
 					ProvenMessage sourceMessage = km.getValue();
 					if (sourceMessage.getMessageContent() != MessageContent.MEASUREMENT) {
-						ResponseMessage response = t3s.add(sourceMessage);
+						//ResponseMessage response = t3s.add(sourceMessage);
+					    // TODO convert service to HZ 4.x
+					    ResponseMessage response = new ResponseMessage();
 						ret = new AbstractMap.SimpleEntry<String, ResponseMessage>(response.getMessageKey(), response);
 					}
 					return ret;
 				})
 
 				// Drain
-				.drainTo(Sinks.<String, ResponseMessage>remoteMap(sinkMsp.getStreamName(), imdgClientConfig));
+				.writeTo(Sinks.<String, ResponseMessage>remoteMap(sinkMsp.getStreamName(), imdgClientConfig));
 
 		return p;
 	}
@@ -138,41 +140,43 @@ public class T3Pipeline extends PipelineService implements Serializable {
 		// Jet client config
 		ClientConfig jetConfig = new ClientConfig();
 		jetConfig.getNetworkConfig().addAddress("127.0.0.1:4701", "127.0.0.1:4702", "127.0.0.1:4703");
-		jetConfig.getGroupConfig().setName("jet");
+		jetConfig.setClusterName("jet");
 
 		// Remote HZ config
 		Address address = hzi.getCluster().getLocalMember().getAddress();
 		String addressStr = address.getHost() + ":" + address.getPort();
 		ClientConfig hzClientConfig = new ClientConfig();
 		hzClientConfig.getNetworkConfig().addAddress(addressStr);
-		hzClientConfig.setGroupConfig(hzi.getConfig().getGroupConfig());
+		hzClientConfig.setClusterName(hzi.getConfig().getClusterName());
 		hzClientConfig.getSerializationConfig().addDataSerializableFactoryClass(DisclosureIDSFactory.FACTORY_ID,
 				DisclosureIDSFactory.class);
 
 		// Get T3 Service
-		ContextFactory<T3Service> t3Service = T3Service.t3Service();
+		ServiceFactory<T3Service, Void> t3Service = T3Service.t3Service();
 
 		// T3 Storage Pipeline
 		// For each Knowledge message, if non-measurement content, store in T3.
 		// TODO - Give measurements their own stream and message content group
 		Pipeline p = Pipeline.create();
-		p.drawFrom(Sources.<String, KnowledgeMessage>remoteMapJournal(sourceMsp.getStreamName(), hzClientConfig,
+		p.readFrom(Sources.<String, KnowledgeMessage>remoteMapJournal(sourceMsp.getStreamName(), hzClientConfig,
 				START_FROM_OLDEST)).withoutTimestamps()
 
 				// STORE IN T3 - only if non-measurement
-				.mapUsingContext(t3Service, (t3s, km) -> {
+				.mapUsingService(t3Service, (t3s, km) -> {
 
 					Map.Entry<String, ResponseMessage> ret = null;
 					ProvenMessage sourceMessage = km.getValue();
 					if (sourceMessage.getMessageContent() != MessageContent.MEASUREMENT) {
-						ResponseMessage response = t3s.add(sourceMessage);
+						//ResponseMessage response = t3s.add(sourceMessage);
+					    // TODO fis for HZ 4.x
+					    	ResponseMessage response = new ResponseMessage();
 						ret = new AbstractMap.SimpleEntry<String, ResponseMessage>(response.getMessageKey(), response);
 					}
 					return ret;
 				})
 
 				// Drain
-				.drainTo(Sinks.<String, ResponseMessage>remoteMap(sinkMsp.getStreamName(), hzClientConfig));
+				.writeTo(Sinks.<String, ResponseMessage>remoteMap(sinkMsp.getStreamName(), hzClientConfig));
 
 		// Start Jet, populate the input list
 		JetInstance jet = Jet.newJetClient(jetConfig);

@@ -95,7 +95,7 @@ public class MessageContentRoutingResponse extends ResponseItem {
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return PipelineIDSFactory.MCR_RESPONSE_TYPE;
 	}
 

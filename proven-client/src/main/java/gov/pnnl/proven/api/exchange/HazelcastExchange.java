@@ -83,15 +83,14 @@ package gov.pnnl.proven.api.exchange;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-
+import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IQueue;
-import com.hazelcast.core.ReplicatedMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 
 import gov.pnnl.proven.api.producer.ProvenResponse;
 import gov.pnnl.proven.api.producer.SessionInfo;
@@ -110,73 +109,73 @@ import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOr
  *
  */
 class HazelcastExchange implements Exchange {
-	private final Logger log = LoggerFactory.getLogger(HazelcastExchange.class);
+    private final Logger log = LoggerFactory.getLogger(HazelcastExchange.class);
 
-	HazelcastInstance client;
-	ReplicatedMap<String, Boolean> registry;
-	DisclosureRegister disclosureRegister = new DisclosureRegister();
+    HazelcastInstance client;
+    ReplicatedMap<String, Boolean> registry;
+    DisclosureRegister disclosureRegister = new DisclosureRegister();
 
-	HazelcastClusterInfo hazelcastClusterInfo;
+    HazelcastClusterInfo hazelcastClusterInfo;
 
-	public HazelcastExchange(HazelcastClusterInfo hazelcastClusterInfo) {
-		this.hazelcastClusterInfo = hazelcastClusterInfo;
-		client = hazelcastClusterInfo.getClient();
-		registry = client.getReplicatedMap(disclosureRegister.getDisclosureRegistryName());
+    public HazelcastExchange(HazelcastClusterInfo hazelcastClusterInfo) {
+	this.hazelcastClusterInfo = hazelcastClusterInfo;
+	client = hazelcastClusterInfo.getClient();
+	registry = client.getReplicatedMap(disclosureRegister.getDisclosureRegistryName());
 
-	}
+    }
 
-	@Override
-	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, ProvenMessageOriginal message,
-			SessionInfo sessionInfo, String requestId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, ProvenMessageOriginal message,
+	    SessionInfo sessionInfo, String requestId) {
+	// TODO Auto-generated method stub
+	return null;
+    }
 
-	@Override
-	public boolean addProvenData(ExchangeInfo exchangeInfo, List<ProvenMessage> messages) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean addProvenData(ExchangeInfo exchangeInfo, List<ProvenMessage> messages) {
+	// TODO Auto-generated method stub
+	return false;
+    }
 
-	@Override
-	public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, String message, SessionInfo sessionInfo,
-			String measurementName, String instanceId) throws Exception {
+    @Override
+    public ProvenResponse addProvenData(ExchangeInfo exchangeInfo, String message, SessionInfo sessionInfo,
+	    String measurementName, String instanceId) throws Exception {
 
-		if (registry.isEmpty()) {
-			log.error("Disclosure Registry is Empty!");
-		
-		} else {
+	if (registry.isEmpty()) {
+	    log.error("Disclosure Registry is Empty!");
 
-			// Get Registry items
-			Set<Entry<String, Boolean>> registrySet = registry.entrySet();
-			log.debug("Registry Size:" + registry.size());
+	} else {
 
-			IQueue<Object> queueStream;
-			List<Entry<String, Boolean>> availableQueues = new ArrayList<Entry<String, Boolean>>();
-			for (Entry<String, Boolean> registryItem : registrySet) {
-				log.debug(registryItem.getKey() + ":");
-				log.debug(" " + registryItem.getValue());
-				// create a list with the available queues by checking the boolean value of the
-				// item
-				if (registryItem.getValue()) {
-					availableQueues.add(registryItem);
+	    // Get Registry items
+	    Set<Entry<String, Boolean>> registrySet = registry.entrySet();
+	    log.debug("Registry Size:" + registry.size());
 
-				}
-			}
+	    IQueue<Object> queueStream;
+	    List<Entry<String, Boolean>> availableQueues = new ArrayList<Entry<String, Boolean>>();
+	    for (Entry<String, Boolean> registryItem : registrySet) {
+		log.debug(registryItem.getKey() + ":");
+		log.debug(" " + registryItem.getValue());
+		// create a list with the available queues by checking the boolean value of the
+		// item
+		if (registryItem.getValue()) {
+		    availableQueues.add(registryItem);
 
-			if (availableQueues.isEmpty()) {
-				log.error("No queues available to disclose messages");
-			} else {
-				Entry<String, Boolean> availableQueue = availableQueues.get(hazelcastClusterInfo.roundRobinState);
-				queueStream = client.getQueue(availableQueue.getKey());
-				queueStream.put(message);
-				if (hazelcastClusterInfo.roundRobinState != availableQueues.size() - 1)
-					hazelcastClusterInfo.roundRobinState++;
-				else
-					hazelcastClusterInfo.roundRobinState = 0;
-			}
 		}
-		return null;
+	    }
+
+	    if (availableQueues.isEmpty()) {
+		log.error("No queues available to disclose messages");
+	    } else {
+		Entry<String, Boolean> availableQueue = availableQueues.get(hazelcastClusterInfo.roundRobinState);
+		queueStream = client.getQueue(availableQueue.getKey());
+		queueStream.put(message);
+		if (hazelcastClusterInfo.roundRobinState != availableQueues.size() - 1)
+		    hazelcastClusterInfo.roundRobinState++;
+		else
+		    hazelcastClusterInfo.roundRobinState = 0;
+	    }
 	}
+	return null;
+    }
 
 }

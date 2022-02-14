@@ -37,66 +37,50 @@
  * PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the 
  * UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
  ******************************************************************************/
-package gov.pnnl.proven.cluster.lib.pipeline.response;
+package gov.pnnl.proven.cluster.lib.module.module;
 
-import java.io.IOException;
-import java.util.Optional;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Inject;
 
-import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
 
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 
-import gov.pnnl.proven.cluster.lib.disclosure.deprecated.exchange.ResponseItem;
-import gov.pnnl.proven.cluster.lib.pipeline.PipelineIDSFactory;
+import gov.pnnl.proven.cluster.lib.module.module.annotation.HazelcastMember;
 
 /**
- * Summary response information for a T3 storage request. This is included in a
- * {@code ResponseMessage} as it's message content.
+ * Manages the production of a Hazelcast platform member instance.
  * 
  * @author d3j766
  *
  */
-public class T3Response extends ResponseItem {
+@ApplicationScoped
+public class IMDGMemberFactory {
 
-	private long count;
+    @Inject
+    Logger log;
 
-	public T3Response() {
-	}
+    /**
+     * Instance to share
+     */
+    private HazelcastInstance hzi;
 
-	public T3Response(Response.Status status, Optional<String> message, long count) {
-		super(status, message);
-		this.count = count;
-	}
+    @PostConstruct
+    public void initialize() {
+	log.debug("Post construct inside IMDG instance factory");
+    }
 
-	public long getCount() {
-		return count;
-	}
+    public IMDGMemberFactory() {
+	this.hzi = Hazelcast.newHazelcastInstance();
+    }
 
-	public void setCount(long count) {
-		this.count = count;
-	}
-
-	@Override
-	public void writeData(ObjectDataOutput out) throws IOException {
-		super.writeData(out);
-		out.writeLong(count);
-	}
-
-	@Override
-	public void readData(ObjectDataInput in) throws IOException {
-		super.readData(in);
-		this.count = in.readLong();
-	}
-
-	@Override
-	public int getFactoryId() {
-		return PipelineIDSFactory.FACTORY_ID;
-	}
-
-	@Override
-	public int getClassId() {
-		return PipelineIDSFactory.T3_RESPONSE_TYPE;
-	}
-
+    @Produces
+    @HazelcastMember
+    public HazelcastInstance HazelcastInstanceProducer(InjectionPoint ip) {
+	return hzi;
+    }
 }

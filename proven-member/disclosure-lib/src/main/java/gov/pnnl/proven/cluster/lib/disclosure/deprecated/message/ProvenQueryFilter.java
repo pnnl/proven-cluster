@@ -89,15 +89,15 @@ public class ProvenQueryFilter implements IdentifiedDataSerializable, Serializab
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 
-		this.field = in.readUTF();
-		this.value = in.readUTF();
+		this.field = in.readString();
+		this.value = in.readString();
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 
-		out.writeUTF(this.field);
-		out.writeUTF(this.value);
+		out.writeString(this.field);
+		out.writeString(this.value);
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public class ProvenQueryFilter implements IdentifiedDataSerializable, Serializab
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.PROVEN_QUERY_FILTER_TYPE;
 		return 0;
 	}

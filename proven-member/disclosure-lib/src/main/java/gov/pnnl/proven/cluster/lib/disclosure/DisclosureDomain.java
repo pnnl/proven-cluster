@@ -143,12 +143,12 @@ public class DisclosureDomain implements IdentifiedDataSerializable {
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.domain = in.readUTF();
+		this.domain = in.readString();
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(this.domain);
+		out.writeString(this.domain);
 	}
 
 	@Override
@@ -157,7 +157,7 @@ public class DisclosureDomain implements IdentifiedDataSerializable {
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return DisclosureIDSFactory.DISCLOSURE_DOMAIN_TYPE;
 	}
 

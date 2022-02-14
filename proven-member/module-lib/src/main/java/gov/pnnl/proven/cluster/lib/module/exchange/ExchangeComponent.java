@@ -46,7 +46,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import com.hazelcast.core.IQueue;
+import com.hazelcast.collection.IQueue;
 
 import gov.pnnl.proven.cluster.lib.module.component.ComponentGroup;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedComponent;
@@ -54,9 +54,9 @@ import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperties;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty;
-import gov.pnnl.proven.cluster.lib.module.registry.EntryReporter;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.IntegerProp;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryProperty.StringProp;
+import gov.pnnl.proven.cluster.lib.module.registry.EntryReporter;
 
 /**
  * Represents an exchange component. These components are responsible for

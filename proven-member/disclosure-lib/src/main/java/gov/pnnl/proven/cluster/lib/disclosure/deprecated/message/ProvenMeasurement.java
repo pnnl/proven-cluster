@@ -123,12 +123,12 @@ public class ProvenMeasurement implements IdentifiedDataSerializable, Serializab
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 
-		this.measurementName = in.readUTF();
-		String timestampStr = in.readUTF();
+		this.measurementName = in.readString();
+		String timestampStr = in.readString();
 		this.timestamp = ((timestampStr.isEmpty()) ? null : Long.valueOf(timestampStr));
-		String provenMessageStr = in.readUTF();
+		String provenMessageStr = in.readString();
 		this.provenMessage = ((provenMessageStr.isEmpty()) ? null : URI.create(provenMessageStr));
-		String provenMessageMeasurementStr = in.readUTF();
+		String provenMessageMeasurementStr = in.readString();
 		this.provenMessageMeasurement = ((provenMessageMeasurementStr.isEmpty()) ? null
 				: URI.create(provenMessageMeasurementStr));
 		int count = in.readInt();
@@ -142,10 +142,10 @@ public class ProvenMeasurement implements IdentifiedDataSerializable, Serializab
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 
-		out.writeUTF(this.measurementName);
-		out.writeUTF((null == this.timestamp) ? ("") : this.timestamp.toString());
-		out.writeUTF((null == this.provenMessage) ? ("") : this.provenMessage.toString());
-		out.writeUTF((null == this.provenMessageMeasurement) ? ("") : this.provenMessageMeasurement.toString());
+		out.writeString(this.measurementName);
+		out.writeString((null == this.timestamp) ? ("") : this.timestamp.toString());
+		out.writeString((null == this.provenMessage) ? ("") : this.provenMessage.toString());
+		out.writeString((null == this.provenMessageMeasurement) ? ("") : this.provenMessageMeasurement.toString());
 		out.writeInt(((null == metrics) ? 0 : metrics.size()));
 		for (ProvenMetric metric : metrics) {
 //			metric.writeData(out);
@@ -158,7 +158,7 @@ public class ProvenMeasurement implements IdentifiedDataSerializable, Serializab
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.PROVEN_MEASUREMENT_TYPE;
 		return 0;
 	}

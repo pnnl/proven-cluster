@@ -190,10 +190,10 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		this.created = in.readLong();
-		this.messageId = UUID.fromString(in.readUTF());
+		this.messageId = UUID.fromString(in.readString());
 		boolean nullSourceMessageId = in.readBoolean();
 		if (!nullSourceMessageId) {
-			this.sourceMessageId = UUID.fromString(in.readUTF());
+			this.sourceMessageId = UUID.fromString(in.readString());
 		}
 		this.disclosureItem.readData(in);
 	}
@@ -201,11 +201,11 @@ public abstract class ProvenMessage implements IdentifiedDataSerializable, Seria
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeLong(this.created);
-		out.writeUTF(this.messageId.toString());
+		out.writeString(this.messageId.toString());
 		boolean nullSourceMessageId = (null == this.sourceMessageId);
 		out.writeBoolean(nullSourceMessageId);
 		if (!nullSourceMessageId) {
-			out.writeUTF(this.messageId.toString());
+			out.writeString(this.messageId.toString());
 		}
 		this.disclosureItem.writeData(out);
 	}

@@ -155,7 +155,7 @@ public class MaintenanceOperationResultEntry extends ComponentEvent {
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return ModuleIDSFactory.MAINTENENACE_OPERATION_RESULT_ENTRY_TYPE;
 	}
 

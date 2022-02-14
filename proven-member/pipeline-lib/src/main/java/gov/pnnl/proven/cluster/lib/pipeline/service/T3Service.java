@@ -47,6 +47,7 @@ import java.util.Optional;
 import javax.ws.rs.core.Response;
 
 import org.apache.jena.rdf.model.Model;
+import org.eclipse.jetty.jndi.ContextFactory;
 import org.openrdf.model.URI;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.repository.RepositoryException;
@@ -56,7 +57,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bigdata.rdf.sail.webapp.client.RemoteRepository;
 import com.bigdata.rdf.sail.webapp.client.RemoteRepositoryManager;
-import com.hazelcast.jet.pipeline.ContextFactory;
+import com.hazelcast.jet.pipeline.ServiceFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.MessageUtils;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
@@ -84,11 +85,10 @@ public class T3Service {
 	 * 
 	 * @return {@link ContextFactory}
 	 */
-	public static ContextFactory<T3Service> t3Service() {
+	public static ServiceFactory<T3Service, Void> t3Service() {
 		MemberProperties props = MemberProperties.getInstance();
 		String serviceUrl = props.getHybridT3ServiceUrl();
-		return ContextFactory.withCreateFn(x -> T3Service.newT3Service(serviceUrl)).toNonCooperative()
-				.withLocalSharing();
+		return ServiceFactory.withCreateContextFn(x -> T3Service.newT3Service(serviceUrl)).toNonCooperative();
 	}
 
 	/**

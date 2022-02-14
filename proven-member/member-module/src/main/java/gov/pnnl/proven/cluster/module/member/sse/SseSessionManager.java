@@ -80,6 +80,7 @@ import gov.pnnl.proven.cluster.lib.disclosure.item.sse.SubscriptionEvent;
 import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
+import gov.pnnl.proven.cluster.lib.module.module.annotation.HazelcastMember;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamProxy;
 import gov.pnnl.proven.cluster.lib.module.stream.MessageStreamType;
 import gov.pnnl.proven.cluster.lib.module.stream.message.DistributedMessage;
@@ -112,6 +113,7 @@ public class SseSessionManager implements EntryAddedListener<UUID, DistributedMe
     ManagedExecutorService mes;
 
     @Inject
+    @HazelcastMember
     HazelcastInstance hzi;
 
     @Inject
@@ -474,7 +476,7 @@ public class SseSessionManager implements EntryAddedListener<UUID, DistributedMe
 
 	SimpleEntry<DisclosureDomain, MessageStreamType> se = new SimpleEntry<>(dd, mst);
 	MessageStreamProxy msp = sm.getMessageStreamProxy(dd, mst);
-	UUID listenerId = UUID.fromString(msp.getMessageStream().getStream().addEntryListener(this, true));
+	UUID listenerId = msp.getMessageStream().getStream().addEntryListener(this, true);
 	listenerRegistry.put(se, listenerId);
     }
 
@@ -484,8 +486,7 @@ public class SseSessionManager implements EntryAddedListener<UUID, DistributedMe
 	MessageStreamProxy msp = sm.getMessageStreamProxy(dd, mst);
 	UUID listenerId = listenerRegistry.get(se);
 	if (null != listenerId) {
-	    String listenerIdStr = listenerId.toString();
-	    msp.getMessageStream().getStream().removeEntryListener(listenerIdStr);
+	    msp.getMessageStream().getStream().removeEntryListener(listenerId);
 	}
 	listenerRegistry.remove(se);
     }

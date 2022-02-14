@@ -98,7 +98,7 @@ public class Operation implements IdentifiedDataSerializable, Comparator<Operati
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

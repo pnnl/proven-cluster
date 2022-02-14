@@ -84,9 +84,9 @@ public class ServiceManager extends ManagerComponent {
 	@SuppressWarnings("serial")
 	public boolean activate() {
 		// Create all pre-existing pipeline and module services
-		CreationRequest<PipelineService> cr = new CreationRequest<>(PipelineService.class);
-		cr.getQualifiers().add(new PipelineServiceProviderAnnotationLiteral() {});
-		createAsync(cr);	
+//		CreationRequest<PipelineService> cr = new CreationRequest<>(PipelineService.class);
+//		cr.getQualifiers().add(new PipelineServiceProviderAnnotationLiteral() {});
+//		createAsync(cr);	
 		return true;
 	}
 

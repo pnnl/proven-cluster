@@ -229,8 +229,8 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 		this.properties.readData(in);
 
 		this.componentCreation = in.readLong();
-		this.moduleStatus = ModuleStatus.valueOf(in.readUTF());
-		this.moduleName = in.readUTF();
+		this.moduleStatus = ModuleStatus.valueOf(in.readString());
+		this.moduleName = in.readString();
 		this.moduleCreation = in.readLong();
 		this.overdueMillis = in.readLong();
 		this.recorded = in.readLong();
@@ -245,8 +245,8 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 		this.location.writeData(out);
 		this.properties.writeData(out);
 		out.writeLong(this.componentCreation);
-		out.writeUTF(this.moduleStatus.toString());
-		out.writeUTF(this.moduleName);
+		out.writeString(this.moduleStatus.toString());
+		out.writeString(this.moduleName);
 		out.writeLong(this.moduleCreation);
 		out.writeLong(this.overdueMillis);
 		out.writeLong(this.recorded);
@@ -259,7 +259,7 @@ public class ComponentEntry extends ComponentEvent implements Comparable<Compone
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return ModuleIDSFactory.COMPONENT_ENTRY_TYPE;
 	}
 

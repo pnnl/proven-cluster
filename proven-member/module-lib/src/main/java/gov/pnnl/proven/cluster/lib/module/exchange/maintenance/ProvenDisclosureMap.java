@@ -48,7 +48,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ReplicatedMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 
 import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.module.component.ManagedStatus;
@@ -56,6 +56,7 @@ import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.Mainte
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationResult;
 import gov.pnnl.proven.cluster.lib.module.component.maintenance.operation.MaintenanceOperationSeverity;
 import gov.pnnl.proven.cluster.lib.module.exchange.DisclosureQueue;
+import gov.pnnl.proven.cluster.lib.module.module.annotation.HazelcastMember;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
 
 /**
@@ -71,6 +72,7 @@ public class ProvenDisclosureMap extends MaintenanceOperation {
 	Logger log;
 
 	@Inject
+	@HazelcastMember
 	HazelcastInstance hzi;
 
 	@Inject

@@ -137,7 +137,7 @@ public class ResponseMessage extends ProvenMessage {
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.RESPONSE_MESSAGE_TYPE;
 		return 0;
 	}
@@ -145,15 +145,15 @@ public class ResponseMessage extends ProvenMessage {
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
-		this.status = Response.Status.valueOf(in.readUTF());
-		this.sourceContentType = MessageContent.valueOf(in.readUTF());
+		this.status = Response.Status.valueOf(in.readString());
+		this.sourceContentType = MessageContent.valueOf(in.readString());
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
-		out.writeUTF(status.name());
-		out.writeUTF(sourceContentType.name());
+		out.writeString(status.name());
+		out.writeString(sourceContentType.name());
 	}
 
 }

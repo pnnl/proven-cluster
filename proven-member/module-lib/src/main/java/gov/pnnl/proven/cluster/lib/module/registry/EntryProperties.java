@@ -203,7 +203,7 @@ public final class EntryProperties implements IdentifiedDataSerializable, Serial
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return ModuleIDSFactory.ENTRY_PROPERTIES_TYPE;
 	}
 

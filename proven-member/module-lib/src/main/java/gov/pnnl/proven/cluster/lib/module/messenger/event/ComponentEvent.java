@@ -132,29 +132,28 @@ public abstract class ComponentEvent extends MessageEvent implements IdentifiedD
 	    return cManager;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.cId = UUID.fromString(in.readUTF());
+		this.cId = UUID.fromString(in.readString());
 		try {
-			//this.cType = (Class<? extends ManagedComponent>) Class.forName(in.readUTF());
-			this.cType = Class.forName(in.readUTF());
+			//this.cType = (Class<? extends ManagedComponent>) Class.forName(in.readString());
+			this.cType = Class.forName(in.readString());
 		} catch (ClassNotFoundException e) {
 			throw new IOException("Unable to read ComponentEvent's class type", e);
 		}
-		this.cName = in.readUTF();
-		this.cGroupLabel = in.readUTF();
-		this.cStatus = ManagedStatus.valueOf(in.readUTF());
+		this.cName = in.readString();
+		this.cGroupLabel = in.readString();
+		this.cStatus = ManagedStatus.valueOf(in.readString());
 		this.creationTime = in.readLong();
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(cId.toString());
-		out.writeUTF(cType.getName());
-		out.writeUTF(cName);
-		out.writeUTF(cGroupLabel);
-		out.writeUTF(cStatus.toString());
+		out.writeString(cId.toString());
+		out.writeString(cType.getName());
+		out.writeString(cName);
+		out.writeString(cGroupLabel);
+		out.writeString(cStatus.toString());
 		out.writeLong(creationTime);
 	}
 

@@ -124,17 +124,17 @@ public class EntryIdentifier extends DisclosureDomain
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
-		this.componentId = UUID.fromString(in.readUTF());
-		this.componentName = in.readUTF();
-		this.groupLabel = in.readUTF();
+		this.componentId = UUID.fromString(in.readString());
+		this.componentName = in.readString();
+		this.groupLabel = in.readString();
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
-		out.writeUTF(this.componentId.toString());
-		out.writeUTF(this.componentName);
-		out.writeUTF(this.groupLabel);
+		out.writeString(this.componentId.toString());
+		out.writeString(this.componentName);
+		out.writeString(this.groupLabel);
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class EntryIdentifier extends DisclosureDomain
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return ModuleIDSFactory.ENTRY_IDENTIFIER_TYPE;
 	}
 

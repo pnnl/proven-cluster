@@ -95,7 +95,7 @@ public class TsResponse extends ResponseItem {
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return PipelineIDSFactory.TS_RESPONSE_TYPE;
 	}
 

@@ -41,7 +41,6 @@ package gov.pnnl.proven.cluster.lib.module.module;
 
 import static gov.pnnl.proven.cluster.lib.module.component.ManagedComponent.ComponentLock.CREATED_LOCK;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -59,11 +58,14 @@ import javax.naming.NamingException;
 
 import org.slf4j.Logger;
 
+import com.hazelcast.core.HazelcastInstance;
+
 import fish.payara.micro.PayaraMicroRuntime;
 import gov.pnnl.proven.cluster.lib.module.component.CreationRequest;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.ActiveManagers;
 import gov.pnnl.proven.cluster.lib.module.manager.ManagerComponent;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
+import gov.pnnl.proven.cluster.lib.module.module.annotation.HazelcastMember;
 import gov.pnnl.proven.cluster.lib.module.module.exception.ProducesInactiveManagerException;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentRegistry;
@@ -90,8 +92,9 @@ public abstract class ProvenModule extends ModuleComponent {
     Logger log;
 
     @Inject
-    protected PayaraMicroRuntime pmr;
-
+    @HazelcastMember
+    HazelcastInstance hzi;
+    
     @Inject
     ComponentRegistry cr;
 
@@ -112,7 +115,7 @@ public abstract class ProvenModule extends ModuleComponent {
 
     @PostConstruct
     public void init() {
-	UUID memberId = UUID.fromString(pmr.getLocalDescriptor().getMemberUUID());
+	UUID memberId = hzi.getCluster().getLocalMember().getUuid();
 	UUID moduleId, managerId, creatorId;
 	moduleId = managerId = creatorId = this.id;
 	entryLocation(new EntryLocation(memberId, moduleId, managerId, creatorId));
@@ -196,7 +199,6 @@ public abstract class ProvenModule extends ModuleComponent {
      * Create module's active managers.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-
     @Override
     public boolean activate() {
 
@@ -245,7 +247,7 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	return ret;
     }
-
+    
     /**
      * TODO
      * 
@@ -282,5 +284,5 @@ public abstract class ProvenModule extends ModuleComponent {
 	    // TODO Implement for alternative selections
 	    return 0;
 	}
-    }
+    }    
 }
