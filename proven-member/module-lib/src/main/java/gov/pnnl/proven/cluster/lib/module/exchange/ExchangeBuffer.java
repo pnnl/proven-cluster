@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -57,7 +58,6 @@ import javax.enterprise.concurrent.ManagedExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.core.ICompletableFuture;
 import com.hazelcast.ringbuffer.OverflowPolicy;
 import com.hazelcast.ringbuffer.ReadResultSet;
 import com.hazelcast.ringbuffer.Ringbuffer;
@@ -76,384 +76,385 @@ import gov.pnnl.proven.cluster.lib.module.manager.ExchangeManager;
  */
 public abstract class ExchangeBuffer extends ExchangeComponent {
 
-	static Logger log = LoggerFactory.getLogger(ExchangeBuffer.class);
+    static Logger log = LoggerFactory.getLogger(ExchangeBuffer.class);
 
-	/**
-	 * Items are read/written to buffer in batches. These values represent the
-	 * minimum and maximum batches for a read or write operation. TODO - make
-	 * configurable
-	 */
-	public static final Integer BATCH_MIN = 25;
-	public static final Integer BATCH_MAX = 50;
+    /**
+     * Items are read/written to buffer in batches. These values represent the
+     * minimum and maximum batches for a read or write operation. TODO - make
+     * configurable
+     */
+    public static final Integer BATCH_MIN = 25;
+    public static final Integer BATCH_MAX = 50;
 
-	public Integer getMinBatchSize(OperationState state) {
-		return minMaxBatchSizeByState.get(state).getKey();
+    public Integer getMinBatchSize(OperationState state) {
+	return minMaxBatchSizeByState.get(state).getKey();
+    }
+
+    public Integer getMaxBatchSize(OperationState state) {
+	return minMaxBatchSizeByState.get(state).getValue();
+    }
+
+    protected OperationState[] supportedItemStates;
+    protected Map<OperationState, Long> lastReadItemByState;
+    protected OperationState headState = null;
+    protected Map<OperationState, CompletableFuture<Void>> bufferReaders;
+    protected Map<OperationState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
+    protected Ringbuffer<ExchangeRequest> buffer;
+
+    @Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
+    ManagedExecutorService mes;
+
+    /**
+     * Created a new exchange buffer. The exchange is configured to support the list
+     * of provided states.
+     * 
+     * @param states
+     */
+    public ExchangeBuffer(OperationState[] states) {
+	super();
+	supportedItemStates = states;
+	bufferReaders = new HashMap<OperationState, CompletableFuture<Void>>();
+	lastReadItemByState = new HashMap<OperationState, Long>();
+	minMaxBatchSizeByState = new HashMap<OperationState, SimpleEntry<Integer, Integer>>();
+	for (OperationState state : states) {
+	    lastReadItemByState.put(state, -1L);
+	    AbstractMap.SimpleEntry<Integer, Integer> entry = new AbstractMap.SimpleEntry<>(BATCH_MIN, BATCH_MAX);
+	    minMaxBatchSizeByState.put(state, entry);
+	}
+    }
+
+    protected abstract void itemProcessor(ReadResultSet<ExchangeRequest> item);
+
+    protected void startReaders() {
+	for (OperationState state : supportedItemStates) {
+	    log.debug("Starting exchange buffer (" + this.getClass().getSimpleName() + ") reader for state : " + state);
+	    startReader(state, false);
+	}
+    }
+
+    private synchronized void startReader(OperationState state, boolean replaceReader) {
+
+	synchronized (bufferReaders) {
+
+	    CompletableFuture<Void> cf = bufferReaders.get(state);
+	    boolean hasReader = ((null != cf) && (!cf.isDone()));
+
+	    // Remove existing reader if replace reader is requested
+	    if (hasReader && replaceReader) {
+		cf.cancel(true);
+		hasReader = false;
+	    }
+
+	    // Add new reader if one doesn't exist
+	    if (!hasReader) {
+		cf = CompletableFuture.runAsync(() -> {
+		    runReader(state);
+		}, mes).exceptionally(this::readerException);
+		bufferReaders.put(state, cf);
+	    }
+	}
+    }
+
+    protected void runReader(OperationState state) {
+
+	while (true) {
+
+	    log.debug("--");
+	    log.debug(moduleName + ":: BUFFER TAIL SEQUENCE: " + buffer.tailSequence());
+	    log.debug("--");
+
+	    log.debug(moduleName + ":: Item processor for :: " + state);
+
+	    ReadResultSet<ExchangeRequest> bufferedItems = readItem(state);
+
+	    // TODO - item processor is now on it's own thread, and any
+	    // transfers should be taken care of in this thread.
+	    CompletableFuture.runAsync(() -> {
+		itemProcessor(bufferedItems);
+	    }, mes).exceptionally(this::itemProcessorException);
+
+	    log.debug("Item processor invoved for :: " + state);
+
 	}
 
-	public Integer getMaxBatchSize(OperationState state) {
-		return minMaxBatchSizeByState.get(state).getValue();
+    }
+
+    /**
+     * Callback for buffer reader that has ended exceptionally.
+     * 
+     * @param readerException
+     *            the exception thrown from the reader.
+     */
+    protected Void readerException(Throwable readerException) {
+
+	Void ret = null;
+
+	boolean isInterrupted = (readerException instanceof BufferReaderInterruptedException);
+	boolean isCancelled = (readerException instanceof CancellationException);
+
+	// Interrupted exception - indicates the reader has failed due to thread
+	// interruption, attempts to restart should be made.
+	if (isInterrupted) {
+	    log.info("Exchange buffer reader was interrupted.");
+	    BufferReaderInterruptedException bre = (BufferReaderInterruptedException) readerException;
+	    startReader(bre.getState(), true);
 	}
 
-	protected OperationState[] supportedItemStates;
-	protected Map<OperationState, Long> lastReadItemByState;
-	protected OperationState headState = null;
-	protected Map<OperationState, CompletableFuture<Void>> bufferReaders;
-	protected Map<OperationState, SimpleEntry<Integer, Integer>> minMaxBatchSizeByState;
-	protected Ringbuffer<ExchangeRequest> buffer;
+	// Cancelled exception - indicates the reader has been cancelled. This
+	// is a controlled event, attempts to restart the reader should not be
+	// made.
+	else if (isCancelled) {
+	    log.info("Exchange buffer reader was cancelled.");
+	}
 
-	@Resource(lookup = ExchangeManager.EXCHANGE_EXECUTOR_SERVICE)
-	ManagedExecutorService mes;
+	// Other exceptions
+	else {
+	    // TODO Call failure() to record the internal failure event and set
+	    // status to either failedOnelineRetry or failed depending on
+	    // severity -> If unchecked or error then failed, else
+	    // failedOnlineRetry.
+	    log.error("Exchange buffer reader was completed exceptionally :: " + readerException.getMessage());
+	    readerException.printStackTrace();
+	}
 
-	/**
-	 * Created a new exchange buffer. The exchange is configured to support the
-	 * list of provided states.
-	 * 
-	 * @param states
-	 */
-	public ExchangeBuffer(OperationState[] states) {
-		super();
-		supportedItemStates = states;
-		bufferReaders = new HashMap<OperationState, CompletableFuture<Void>>();
-		lastReadItemByState = new HashMap<OperationState, Long>();
-		minMaxBatchSizeByState = new HashMap<OperationState, SimpleEntry<Integer, Integer>>();
-		for (OperationState state : states) {
-			lastReadItemByState.put(state, -1L);
-			AbstractMap.SimpleEntry<Integer, Integer> entry = new AbstractMap.SimpleEntry<>(BATCH_MIN, BATCH_MAX);
-			minMaxBatchSizeByState.put(state, entry);
+	return ret;
+    }
+
+    /**
+     * Callback for item processor that has ended exceptionally.
+     * 
+     * @param processorException
+     *            the exception thrown from the reader.
+     */
+    protected Void itemProcessorException(Throwable processorException) {
+
+	Void ret = null;
+	log.error("ITEM PROCESSOR FAILED");
+	processorException.printStackTrace();
+
+	return ret;
+    }
+
+    public void cancelReaders() {
+
+	synchronized (bufferReaders) {
+
+	    for (OperationState state : supportedItemStates) {
+		CompletableFuture<Void> cf = bufferReaders.get(state);
+		boolean hasReader = ((null != cf) && (!cf.isDone()));
+		if (hasReader) {
+		    cf.cancel(true);
 		}
+	    }
 	}
+    }
 
-	protected abstract void itemProcessor(ReadResultSet<ExchangeRequest> item);
+    /**
+     * Indicates if the exchange buffer has the free space to accept addition of new
+     * buffered items.
+     * 
+     * TODO this should be used by a MO check that will set status to BUSY if free
+     * space is low.
+     * 
+     * @return true if new buffer items may be added, false otherwise.
+     */
+    public boolean hasFreeSpace(OperationState state) {
+	return freeSpaceCount(state) > minMaxBatchSizeByState.get(state).getValue();
+    }
 
-	protected void startReaders() {
-		for (OperationState state : supportedItemStates) {
-			log.debug("Starting exchange buffer (" + this.getClass().getSimpleName() + ") reader for state : " + state);
-			startReader(state, false);
-		}
-	}
+    /**
+     * Returns the count of already processed buffered items representing the
+     * buffer's free space.
+     * 
+     * @return count of processed buffer items.
+     */
+    protected synchronized long freeSpaceCount(OperationState state) {
+	log.debug("Calculating ringbuffer free space");
 
-	private synchronized void startReader(OperationState state, boolean replaceReader) {
+	Long h = buffer.headSequence();
+	Long t = buffer.tailSequence();
+	Long c = buffer.capacity();
+	Long cSeq = h + c - 1;
+	Long r = lastReadItemByState.get(state);
+	Long freeSpace = ((r - h) + 1) + (cSeq - t);
 
-		synchronized (bufferReaders) {
+	log.debug("\th: " + h);
+	log.debug("\tt: " + t);
+	log.debug("\tc: " + c);
+	log.debug("\tcSeq: " + cSeq);
+	log.debug("\tr: " + r);
+	log.debug("\tfreeSpace: " + freeSpace);
 
-			CompletableFuture<Void> cf = bufferReaders.get(state);
-			boolean hasReader = ((null != cf) && (!cf.isDone()));
+	return freeSpace;
+    }
 
-			// Remove existing reader if replace reader is requested
-			if (hasReader && replaceReader) {
-				cf.cancel(true);
-				hasReader = false;
-			}
+    private long getUnprocessedItemCount() {
 
-			// Add new reader if one doesn't exist
-			if (!hasReader) {
-				cf = CompletableFuture.runAsync(() -> {
-					runReader(state);
-				}, mes).exceptionally(this::readerException);
-				bufferReaders.put(state, cf);
-			}
-		}
-	}
+	// This is a point in time view and may not be exact, depending on
+	// buffer activity during call.
 
-	protected void runReader(OperationState state) {
+	Long ret;
+	boolean validReaders = allReadersActive();
+	Long c = buffer.capacity();
+	Long h = buffer.headSequence();
+	Long t = buffer.tailSequence();
+	Long r = Collections.min(lastReadItemByState.values());
 
-		while (true) {
-
-			log.debug("--");
-			log.debug(moduleName + ":: BUFFER TAIL SEQUENCE: " + buffer.tailSequence());
-			log.debug("--");
-
-			log.debug(moduleName + ":: Item processor for :: " + state);
-
-			ReadResultSet<ExchangeRequest> bufferedItems = readItem(state);
-
-			// TODO - item processor is now on it's own thread, and any
-			// transfers should be taken care of in this thread.
-			CompletableFuture.runAsync(() -> {
-				itemProcessor(bufferedItems);
-			}, mes).exceptionally(this::itemProcessorException);
-
-			log.debug("Item processor invoved for :: " + state);
-
-		}
-
-	}
-
-	/**
-	 * Callback for buffer reader that has ended exceptionally.
-	 * 
-	 * @param readerException
-	 *            the exception thrown from the reader.
-	 */
-	protected Void readerException(Throwable readerException) {
-
-		Void ret = null;
-
-		boolean isInterrupted = (readerException instanceof BufferReaderInterruptedException);
-		boolean isCancelled = (readerException instanceof CancellationException);
-
-		// Interrupted exception - indicates the reader has failed due to thread
-		// interruption, attempts to restart should be made.
-		if (isInterrupted) {
-			log.info("Exchange buffer reader was interrupted.");
-			BufferReaderInterruptedException bre = (BufferReaderInterruptedException) readerException;
-			startReader(bre.getState(), true);
-		}
-
-		// Cancelled exception - indicates the reader has been cancelled. This
-		// is a controlled event, attempts to restart the reader should not be
-		// made.
-		else if (isCancelled) {
-			log.info("Exchange buffer reader was cancelled.");
-		}
-
-		// Other exceptions
-		else {
-			// TODO Call failure() to record the internal failure event and set
-			// status to either failedOnelineRetry or failed depending on
-			// severity -> If unchecked or error then failed, else
-			// failedOnlineRetry.
-			log.error("Exchange buffer reader was completed exceptionally :: " + readerException.getMessage());
-			readerException.printStackTrace();
-		}
-
-		return ret;
-	}
-
-	/**
-	 * Callback for item processor that has ended exceptionally.
-	 * 
-	 * @param processorException
-	 *            the exception thrown from the reader.
-	 */
-	protected Void itemProcessorException(Throwable processorException) {
-
-		Void ret = null;
-		log.error("ITEM PROCESSOR FAILED");
-		processorException.printStackTrace();
-
-		return ret;
-	}
-
-	public void cancelReaders() {
-
-		synchronized (bufferReaders) {
-
-			for (OperationState state : supportedItemStates) {
-				CompletableFuture<Void> cf = bufferReaders.get(state);
-				boolean hasReader = ((null != cf) && (!cf.isDone()));
-				if (hasReader) {
-					cf.cancel(true);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Indicates if the exchange buffer has the free space to accept addition of
-	 * new buffered items.
-	 * 
-	 * TODO this should be used by a MO check that will set status to BUSY if
-	 * free space is low.
-	 * 
-	 * @return true if new buffer items may be added, false otherwise.
-	 */
-	public boolean hasFreeSpace(OperationState state) {
-		return freeSpaceCount(state) > minMaxBatchSizeByState.get(state).getValue();
-	}
-
-	/**
-	 * Returns the count of already processed buffered items representing the
-	 * buffer's free space.
-	 * 
-	 * @return count of processed buffer items.
-	 */
-	protected synchronized long freeSpaceCount(OperationState state) {
-		log.debug("Calculating ringbuffer free space");
-
-		Long h = buffer.headSequence();
-		Long t = buffer.tailSequence();
-		Long c = buffer.capacity();
-		Long cSeq = h + c - 1;
-		Long r = lastReadItemByState.get(state);
-		Long freeSpace = ((r - h) + 1) + (cSeq - t);
-
-		log.debug("\th: " + h);
-		log.debug("\tt: " + t);
-		log.debug("\tc: " + c);
-		log.debug("\tcSeq: " + cSeq);
-		log.debug("\tr: " + r);
-		log.debug("\tfreeSpace: " + freeSpace);
-
-		return freeSpace;
-	}
-
-	private long getUnprocessedItemCount() {
-
-		// This is a point in time view and may not be exact, depending on
-		// buffer activity during call.
-
-		Long ret;
-		boolean validReaders = allReadersActive();
-		Long c = buffer.capacity();
-		Long h = buffer.headSequence();
-		Long t = buffer.tailSequence();
-		Long r = Collections.min(lastReadItemByState.values());
-
-		// All readers must be active to determine capacity correctly. If one or
-		// more readers are not active then it's assumed max capacity has been
-		// reached.
-		if (!validReaders) {
-			ret = c;
+	// All readers must be active to determine capacity correctly. If one or
+	// more readers are not active then it's assumed max capacity has been
+	// reached.
+	if (!validReaders) {
+	    ret = c;
+	} else {
+	    if (r == -1L) {
+		if (t == -1L) {
+		    ret = 0L;
 		} else {
-			if (r == -1L) {
-				if (t == -1L) {
-					ret = 0L;
-				} else {
-					ret = t - h;
-				}
-			} else {
-				ret = t - r;
-			}
+		    ret = t - h;
 		}
-
-		return ret;
+	    } else {
+		ret = t - r;
+	    }
 	}
 
-	private boolean allReadersActive() {
+	return ret;
+    }
 
-		boolean ret = true;
+    private boolean allReadersActive() {
 
-		for (CompletableFuture<Void> cf : bufferReaders.values()) {
-			if ((null == cf) || (cf.isDone())) {
-				ret = false;
-				break;
-			}
-		}
+	boolean ret = true;
 
-		return ret;
+	for (CompletableFuture<Void> cf : bufferReaders.values()) {
+	    if ((null == cf) || (cf.isDone())) {
+		ret = false;
+		break;
+	    }
 	}
+
+	return ret;
+    }
+
+    /**
+     * Provides R value (last read sequence number) for New buffer items.
+     * 
+     * @return the current R value
+     * 
+     */
+    public long getLastReadItemForExchange() {
+	return lastReadItemByState.get(OperationState.New);
+    }
+
+    /**
+     * Adds items to the exchange buffer.
+     * 
+     * @param items
+     *            the items to add
+     * 
+     * @return true if the items were added. False is returned if there was not
+     *         enough free space in the buffer to support the new items.
+     */
+    public boolean addItems(Collection<DisclosureItem> diItems, OperationState state) {
 
 	/**
-	 * Provides R value (last read sequence number) for New buffer items.
-	 * 
-	 * @return the current R value
-	 * 
+	 * TODO Replace with ExchangeQueue
 	 */
-	public long getLastReadItemForExchange() {
-		return lastReadItemByState.get(OperationState.New);
-	}
+	Collection<ExchangeRequest> items = diItems.stream().map(i -> new ExchangeRequest(i))
+		.collect(Collectors.toList());
 
-	/**
-	 * Adds items to the exchange buffer.
-	 * 
-	 * @param items
-	 *            the items to add
-	 * 
-	 * @return true if the items were added. False is returned if there was not
-	 *         enough free space in the buffer to support the new items.
-	 */
-	public boolean addItems(Collection<DisclosureItem> diItems, OperationState state) {
+	// Assume write succeeds. Either all items are added or no items
+	// are added.
+	boolean ret = true;
 
-		/**
-		 * TODO Replace with ExchangeQueue
-		 */
-		Collection<ExchangeRequest> items = diItems.stream().map(i -> new ExchangeRequest(i))
-				.collect(Collectors.toList());
+	Runtime rt = Runtime.getRuntime();
+	log.debug("ADDING ITEMS TO DISCLOSURE BUFFER- COUNT :: " + items.size());
 
+	if ((null != items) && (!items.isEmpty())) {
 
-		// Assume write succeeds. Either all items are added or no items
-		// are added.
-		boolean ret = true;
-
-		Runtime rt = Runtime.getRuntime();
-		log.debug("ADDING ITEMS TO DISCLOSURE BUFFER- COUNT :: " + items.size());
-
-		if ((null != items) && (!items.isEmpty())) {
-
-			log.debug("B####################################B");
-			Long fsp = freeSpaceCount(state);
-			log.debug("FREE SPACE COUNT :: " + fsp);
-			if (items.size() <= fsp) {
-
-				try {
-
-					buffer.addAllAsync(items, OverflowPolicy.OVERWRITE).get();
-
-				} catch (InterruptedException | ExecutionException e) {
-					if (e instanceof InterruptedException) {
-						Thread.currentThread().interrupt();
-					}
-					ret = false;
-					e.printStackTrace();
-				}
-
-			} else {
-				log.error("ITEMS COUND NOT BE ADDED NOT ENOUGH FREE SPACE");
-				ret = false;
-			}
-			freeSpaceCount(state);
-			log.debug("E####################################E");
-
-		}
-		log.debug("FREE MEMORY AFTER ADD ITEMS :: " + rt.freeMemory());
-		return ret;
-	}
-
-	/**
-	 * Reads the next unprocessed item from the exchange buffer that has the
-	 * specified {@code BufferedItemState}.
-	 * 
-	 * @param {@code BufferedItemState} of the next item to read.
-	 * @return the items read. This method will block if there are no
-	 *         unprocessed items for the state provided.
-	 * @throws BufferReaderInterruptedException
-	 *             if the thread was interrupted during the read operation.
-	 */
-	protected ReadResultSet<ExchangeRequest> readItem(OperationState state) throws BufferReaderInterruptedException {
-
-		log.debug("READ STREAM ITEMS BEGIN :: " + Calendar.getInstance().getTime().toString());
-
-		long t = buffer.tailSequence();
-		long r = lastReadItemByState.get(state);
-		int startSeq = (int) r + 1;
-		int minBatch = getMinBatchSize(state);
-		int maxBatch = getMaxBatchSize(state);
-		int u = (int) (t - r);
-		int minCount = (u <= 0) ? (1) : (Math.min(u, minBatch));
-		int maxCount = maxBatch;
-		ReadResultSet<ExchangeRequest> rs;
-
-		log.debug(moduleName + " :: BATCH READ STARTING FOR STATE :: " + state);
-		log.debug("start sequence :: " + startSeq);
-		log.debug("min count :: " + minCount);
-		log.debug("max count :: " + maxCount);
+	    log.debug("B####################################B");
+	    Long fsp = freeSpaceCount(state);
+	    log.debug("FREE SPACE COUNT :: " + fsp);
+	    if (items.size() <= fsp) {
 
 		try {
 
-			// Batch read
-			ICompletableFuture<ReadResultSet<ExchangeRequest>> icf = buffer.readManyAsync(startSeq, minCount, maxCount,
-					(bi) -> {
-						return (bi.getItemState().equals(state));
-					});
-			rs = icf.get();
-			log.debug("NUMBER OF ITEMS READ FROM DISCLOSURE BUFFER :: " + rs.size());
-			log.debug("BATCH READ COMPLETED FOR STATE :: " + state);
+		    buffer.addAllAsync(items, OverflowPolicy.OVERWRITE).toCompletableFuture().get();
 
 		} catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-			if (e instanceof InterruptedException) {
-				Thread.currentThread().interrupt();
-			}
-			throw new BufferReaderInterruptedException(
-					"Disclosure buffer reader interrupted for state :: " + state.toString(), state, e);
+		    if (e instanceof InterruptedException) {
+			Thread.currentThread().interrupt();
+		    }
+		    ret = false;
+		    e.printStackTrace();
 		}
 
-		long rc = rs.readCount();
-		lastReadItemByState.put(state, r + rc);
+	    } else {
+		log.error("ITEMS COUND NOT BE ADDED NOT ENOUGH FREE SPACE");
+		ret = false;
+	    }
+	    freeSpaceCount(state);
+	    log.debug("E####################################E");
 
-		log.debug("READ STREAM ITEMS END :: " + Calendar.getInstance().getTime().toString());
-		return rs;
 	}
+	log.debug("FREE MEMORY AFTER ADD ITEMS :: " + rt.freeMemory());
+	return ret;
+    }
+
+    /**
+     * Reads the next unprocessed item from the exchange buffer that has the
+     * specified {@code BufferedItemState}.
+     * 
+     * @param {@code BufferedItemState} of the next item to read.
+     * 
+     * @return the items read. This method will block if there are no unprocessed
+     *         items for the state provided.
+     * 
+     * @throws BufferReaderInterruptedException
+     *             if the thread was interrupted during the read operation.
+     */
+    protected ReadResultSet<ExchangeRequest> readItem(OperationState state) throws BufferReaderInterruptedException {
+
+	log.debug("READ STREAM ITEMS BEGIN :: " + Calendar.getInstance().getTime().toString());
+
+	long t = buffer.tailSequence();
+	long r = lastReadItemByState.get(state);
+	int startSeq = (int) r + 1;
+	int minBatch = getMinBatchSize(state);
+	int maxBatch = getMaxBatchSize(state);
+	int u = (int) (t - r);
+	int minCount = (u <= 0) ? (1) : (Math.min(u, minBatch));
+	int maxCount = maxBatch;
+	ReadResultSet<ExchangeRequest> rs;
+
+	log.debug(moduleName + " :: BATCH READ STARTING FOR STATE :: " + state);
+	log.debug("start sequence :: " + startSeq);
+	log.debug("min count :: " + minCount);
+	log.debug("max count :: " + maxCount);
+
+	try {
+
+	    // Batch read
+	    CompletionStage<ReadResultSet<ExchangeRequest>> icf = buffer.readManyAsync(startSeq, minCount, maxCount,
+		    (bi) -> {
+			return (bi.getItemState().equals(state));
+		    });
+	    rs = icf.toCompletableFuture().get();
+	    log.debug("NUMBER OF ITEMS READ FROM DISCLOSURE BUFFER :: " + rs.size());
+	    log.debug("BATCH READ COMPLETED FOR STATE :: " + state);
+
+	} catch (InterruptedException | ExecutionException e) {
+	    e.printStackTrace();
+	    if (e instanceof InterruptedException) {
+		Thread.currentThread().interrupt();
+	    }
+	    throw new BufferReaderInterruptedException(
+		    "Disclosure buffer reader interrupted for state :: " + state.toString(), state, e);
+	}
+
+	long rc = rs.readCount();
+	lastReadItemByState.put(state, r + rc);
+
+	log.debug("READ STREAM ITEMS END :: " + Calendar.getInstance().getTime().toString());
+	return rs;
+    }
 
 }

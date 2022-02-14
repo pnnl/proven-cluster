@@ -48,13 +48,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.Configuration;
 import gov.pnnl.proven.cluster.lib.module.component.annotation.CreatedBy;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
+import gov.pnnl.proven.cluster.lib.module.module.annotation.HazelcastMember;
 
 /**
  * A cluster level managed Proven component representing an IMDG proven message
@@ -72,6 +73,7 @@ public class MessageStream extends StreamComponent {
 	static Logger log = LoggerFactory.getLogger(MessageStream.class);
 
 	@Inject
+	@HazelcastMember
 	protected HazelcastInstance hzi;
 
 	private String streamName;

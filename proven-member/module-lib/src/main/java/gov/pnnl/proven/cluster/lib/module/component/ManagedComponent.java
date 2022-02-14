@@ -112,6 +112,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.event.StatusOperationEvent;
 import gov.pnnl.proven.cluster.lib.module.messenger.observer.ManagedObserver;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleComponent;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
+import gov.pnnl.proven.cluster.lib.module.module.annotation.HazelcastMember;
 import gov.pnnl.proven.cluster.lib.module.registry.ComponentEntry;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryIdentifier;
 import gov.pnnl.proven.cluster.lib.module.registry.EntryLocation;
@@ -145,6 +146,7 @@ public abstract class ManagedComponent implements ManagedStatusOperation, Schedu
 	}
 
 	@Inject
+	@HazelcastMember
 	protected HazelcastInstance hzi;
 
 	@Inject

@@ -94,19 +94,19 @@ public class ProvenMetric implements IdentifiedDataSerializable, Serializable {
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 
-		this.label = in.readUTF();
-		this.value = in.readUTF();
+		this.label = in.readString();
+		this.value = in.readString();
 		this.isMetadata = in.readBoolean();
-		this.valueType = MetricFragmentIdentifier.MetricValueType.valueOf(in.readUTF());
+		this.valueType = MetricFragmentIdentifier.MetricValueType.valueOf(in.readString());
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 
-		out.writeUTF(this.label);
-		out.writeUTF(this.value);
+		out.writeString(this.label);
+		out.writeString(this.value);
 		out.writeBoolean(this.isMetadata);
-		out.writeUTF(this.valueType.toString());
+		out.writeString(this.valueType.toString());
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class ProvenMetric implements IdentifiedDataSerializable, Serializable {
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.PROVEN_METRIC_TYPE;
 		return 0;
 	}

@@ -78,7 +78,7 @@ public class StatusOperationEvent extends ComponentEvent {
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return ModuleIDSFactory.STATUS_OPERATION_EVENT_TYPE;
 	}
 	

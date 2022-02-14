@@ -1,5 +1,5 @@
 
 dependencies {
-  	 compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${payaraHazelcastVersion}" 
+  	 compileOnly group: 'com.hazelcast', name: 'hazelcast', version: "${hazelcastVersion}" 
  	 implementation group: 'org.influxdb', name: 'influxdb-java', version: "${influxDbLibVersion}" 
  }

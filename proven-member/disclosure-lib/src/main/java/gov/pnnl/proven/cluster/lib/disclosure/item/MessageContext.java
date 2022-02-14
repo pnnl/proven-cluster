@@ -208,20 +208,20 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
     @Override
     public void writeData(ObjectDataOutput out) throws IOException {
-	out.writeUTF(getContent().toString());
+	out.writeString(getContent().toString());
 	out.writeObject(item);
-	writeNullable(requestor, out, ww((v, o) -> out.writeUTF(v)));
-	writeNullable(name, out, ww((v, o) -> out.writeUTF(v)));
+	writeNullable(requestor, out, ww((v, o) -> out.writeString(v)));
+	writeNullable(name, out, ww((v, o) -> out.writeString(v)));
 	writeNullable(getTags(), out, ww((v, o) -> out.writeUTFArray(v)));
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void readData(ObjectDataInput in) throws IOException {
-	this.content = MessageContent.getMessageContent(in.readUTF());
+	this.content = MessageContent.getMessageContent(in.readString());
 	this.item = (Class<? extends MessageItem>) in.readObject();
-	this.requestor = readNullable(in, rw((i) -> i.readUTF()));
-	this.name = readNullable(in, rw((i) -> i.readUTF()));
+	this.requestor = readNullable(in, rw((i) -> i.readString()));
+	this.name = readNullable(in, rw((i) -> i.readString()));
 	this.tags = readNullable(in, rw((i) -> i.readUTFArray()));
     }
 
@@ -233,7 +233,7 @@ public class MessageContext implements Validatable, IdentifiedDataSerializable {
 
     @JsonbTransient
     @Override
-    public int getId() {
+    public int getClassId() {
 	// TODO Auto-generated method stub
 	return DisclosureIDSFactory.MESSAGE_CONTEXT_TYPE;
     }

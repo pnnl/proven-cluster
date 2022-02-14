@@ -13,9 +13,9 @@ import javax.json.JsonReader;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.config.GroupConfig;
+import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.DisclosureMessage;
@@ -40,9 +40,9 @@ public class TestHZKm {
 		// Connect client
 		ClientConfig config = new ClientConfig();
 		config.getSerializationConfig().addDataSerializableFactoryClass(DisclosureIDSFactory.FACTORY_ID, DisclosureIDSFactory.class);
-		GroupConfig groupConfig = new GroupConfig();
-		groupConfig.setName("proven");
-		config.setGroupConfig(groupConfig);
+		Config groupConfig = new Config();
+		groupConfig.setClusterName("proven");
+		//config.setGroupConfig(groupConfig);
 		config.getNetworkConfig().addAddress("127.0.0.1:5701");
 		HazelcastInstance hzClient = HazelcastClient.newHazelcastClient(config);
 		IMap<String, KnowledgeMessage> messages = hzClient.getMap("gov.pnnl.tmbr.knowledge");

@@ -111,7 +111,7 @@ public class MessageProperties implements IdentifiedDataSerializable, Serializab
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.MESSAGE_PROPERTIES_TYPE;
 		return 0;
 	}

@@ -87,21 +87,21 @@ public class ProvenStatement implements IdentifiedDataSerializable, Serializable
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 
-		String subjectStr = in.readUTF();
+		String subjectStr = in.readString();
 		this.subject = ((subjectStr.isEmpty()) ? null : URI.create(subjectStr));
-		String predicateStr = in.readUTF();
+		String predicateStr = in.readString();
 		this.predicate = ((predicateStr.isEmpty()) ? null : URI.create(predicateStr));
-		this.object = in.readUTF();
-		this.objectValueType = ObjectValueType.valueOf(in.readUTF());
+		this.object = in.readString();
+		this.objectValueType = ObjectValueType.valueOf(in.readString());
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
 
-		out.writeUTF(this.subject.toString());
-		out.writeUTF(this.predicate.toString());
-		out.writeUTF(this.object);
-		out.writeUTF(this.objectValueType.toString());
+		out.writeString(this.subject.toString());
+		out.writeString(this.predicate.toString());
+		out.writeString(this.object);
+		out.writeString(this.objectValueType.toString());
 	}
 
 	@Override
@@ -110,7 +110,7 @@ public class ProvenStatement implements IdentifiedDataSerializable, Serializable
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.PROVEN_STATEMENT_TYPE;
 		return 0;
 	}

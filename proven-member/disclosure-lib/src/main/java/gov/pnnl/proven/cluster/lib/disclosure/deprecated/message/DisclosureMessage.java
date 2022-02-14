@@ -130,7 +130,7 @@ public class DisclosureMessage extends ProvenMessage implements IdentifiedDataSe
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.DISCLOSURE_MESSAGE_TYPE;
 		return 0;
 	}

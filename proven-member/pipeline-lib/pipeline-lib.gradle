@@ -1,6 +1,6 @@
  
 dependencies { 	      
-	compileOnly group: 'com.hazelcast.jet', name: 'hazelcast-jet-core', version: "${jetVersion}"
+	//compileOnly group: 'com.hazelcast.jet', name: 'hazelcast-jet', version: "${jetVersion}"
 	compileOnly group: 'com.blazegraph', name: 'bigdata-core', version: '2.1.4'	    
 	implementation group: 'org.topbraid', name: 'shacl', version: '1.1.0'
     implementation group: 'org.influxdb', name: 'influxdb-java', version: '2.8'

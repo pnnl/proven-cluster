@@ -25,7 +25,7 @@ proven.hazelcast.group.password=proven
 # hazelcast jet
 proven.jet.instance.network.addresses=127.0.0.1:4701,127.0.0.1:4701 
 proven.jet.instance.test.port=0
-proven.jet.group.name=jet
+proven.jet.cluster.name=jet
 
 ##
 # module-lib

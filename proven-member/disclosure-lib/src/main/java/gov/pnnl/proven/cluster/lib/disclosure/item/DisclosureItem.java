@@ -372,12 +372,12 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(getMessageId().toString());
-		writeNullable(getSourceMessageId().toString(), out, ww((v, o) -> out.writeUTF(v)));
+		out.writeString(getMessageId().toString());
+		writeNullable(getSourceMessageId().toString(), out, ww((v, o) -> out.writeString(v)));
 		getDomain().writeData(out);
 		out.writeLong(getSystemSentTime());
 		writeNullable(applicationSentTime, out, ww((v, o) -> out.writeLong(v)));
-		writeNullable(authToken, out, ww((v, o) -> out.writeUTF(v)));
+		writeNullable(authToken, out, ww((v, o) -> out.writeString(v)));
 		this.context.writeData(out);
 		out.writeByteArray(jsonValueOut(getMessage()));
 		writeNullable(messageSchema, out, ww((v, o) -> out.writeByteArray(jsonValueOut(messageSchema))));
@@ -387,13 +387,13 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.messageId = UUID.fromString(in.readUTF());
-		this.sourceMessageId = readNullable(in, rw((i) -> UUID.fromString(in.readUTF())));
+		this.messageId = UUID.fromString(in.readString());
+		this.sourceMessageId = readNullable(in, rw((i) -> UUID.fromString(in.readString())));
 		this.domain = new DisclosureDomain();
 		this.domain.readData(in);
 		this.systemSentTime = in.readLong();
 		this.applicationSentTime = readNullable(in, rw((i) -> i.readLong()));
-		this.authToken = readNullable(in, rw((i) -> i.readUTF()));
+		this.authToken = readNullable(in, rw((i) -> i.readString()));
 		this.context = new MessageContext();
 		this.context.readData(in);
 		this.message = (JsonStructure) jsonValueIn(in.readByteArray());
@@ -410,7 +410,7 @@ public class DisclosureItem implements Validatable, IdentifiedDataSerializable {
 
 	@JsonbTransient
 	@Override
-	public int getId() {
+	public int getClassId() {
 		// TODO Auto-generated method stub
 		return DisclosureIDSFactory.MESSAGE_CONTEXT_TYPE;
 	}

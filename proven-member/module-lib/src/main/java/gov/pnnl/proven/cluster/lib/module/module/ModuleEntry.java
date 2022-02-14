@@ -160,7 +160,7 @@ public class ModuleEntry implements Comparable<ModuleEntry>, IdentifiedDataSeria
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

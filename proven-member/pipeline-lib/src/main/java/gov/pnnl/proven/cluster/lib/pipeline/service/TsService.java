@@ -48,13 +48,15 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.jetty.jndi.ContextFactory;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.jet.pipeline.ContextFactory;
+import com.hazelcast.jet.pipeline.ServiceFactory;
 
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
@@ -85,9 +87,9 @@ public class TsService {
 	 * 
 	 * @return {@link ContextFactory}
 	 */
-	public static ContextFactory<TsService> tsService() {
+	public static ServiceFactory<TsService, Void> tsService() {
 
-		return ContextFactory.withCreateFn(x -> TsService.newTsService()).toNonCooperative().withLocalSharing();
+		return ServiceFactory.withCreateContextFn(x -> TsService.newTsService()).toNonCooperative();
 
 	}
 

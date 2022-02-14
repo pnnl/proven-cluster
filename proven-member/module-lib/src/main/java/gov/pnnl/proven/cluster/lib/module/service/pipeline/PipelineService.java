@@ -52,13 +52,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.cluster.Address;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.Pipeline;
-import com.hazelcast.nio.Address;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureDomain;
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
@@ -68,6 +68,7 @@ import gov.pnnl.proven.cluster.lib.module.component.annotation.Managed;
 import gov.pnnl.proven.cluster.lib.module.manager.StreamManager;
 import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Manager;
 import gov.pnnl.proven.cluster.lib.module.messenger.event.JobEvent;
+import gov.pnnl.proven.cluster.lib.module.module.annotation.HazelcastMember;
 import gov.pnnl.proven.cluster.lib.module.service.ServiceComponent;
 import gov.pnnl.proven.cluster.lib.module.service.annotation.PipelineServiceProvider;
 
@@ -89,6 +90,7 @@ public abstract class PipelineService extends ServiceComponent {
 	public static final String PS_EXECUTOR_SERVICE = "concurrent/PipelineService";
 
 	@Inject
+	@HazelcastMember
 	protected HazelcastInstance hzi;
 
 	@Inject
@@ -246,7 +248,7 @@ public abstract class PipelineService extends ServiceComponent {
 		String addressStr = address.getHost() + ":" + address.getPort();
 		ClientConfig hzClientConfig = new ClientConfig();
 		hzClientConfig.getNetworkConfig().addAddress(addressStr);
-		hzClientConfig.setGroupConfig(hzi.getConfig().getGroupConfig());
+		hzClientConfig.setClusterName(hzi.getConfig().getClusterName());
 		hzClientConfig.getSerializationConfig().addDataSerializableFactoryClass(DisclosureIDSFactory.FACTORY_ID,
 				DisclosureIDSFactory.class);
 		return hzClientConfig;
@@ -265,17 +267,19 @@ public abstract class PipelineService extends ServiceComponent {
 
 				// Create internal configuration for Jet server node instance
 				internalConfig = new JetConfig();
-				internalConfig.getHazelcastConfig().getNetworkConfig().setPort(mp.getJetInstanceTestPort());
-				internalConfig.getHazelcastConfig().getSerializationConfig().addDataSerializableFactoryClass(
-						DisclosureIDSFactory.FACTORY_ID, DisclosureIDSFactory.class);
-				internalConfig.getHazelcastConfig().getGroupConfig().setName(mp.getJetGroupName());
+//				internalConfig.getHazelcastConfig().getNetworkConfig().setPort(mp.getJetInstanceTestPort());
+//				internalConfig.getHazelcastConfig().getSerializationConfig().addDataSerializableFactoryClass(
+//						DisclosureIDSFactory.FACTORY_ID, DisclosureIDSFactory.class);
+//				//internalConfig.getHazelcastConfig().getGroupConfig().setName(mp.getJetGroupName());
+//				internalConfig.getHazelcastConfig().setClusterName(mp.getJetGroupName());
 
 				// Create job configuration for internal Jet. Retrieve any
 				// pipeline jars from installation.
 				File pipelineDeps = mp.getPipelineServiceLibsDir();
 				for (String jarFile : pipelineDeps.list()) {
 					if (jarFile.endsWith(".jar")) {
-						jobConfig.addJar(new File(jarFile));
+					    String jarPath = pipelineDeps.getPath() + File.separator + jarFile;
+					    jobConfig.addJar(new File(jarPath));
 					}
 				}
 
@@ -290,7 +294,7 @@ public abstract class PipelineService extends ServiceComponent {
 				// Jet client config
 				externalConfig = new ClientConfig();
 				externalConfig.getNetworkConfig().setAddresses(mp.getHazelcastMembers());
-				externalConfig.getGroupConfig().setName(mp.getJetGroupName());
+				externalConfig.setClusterName(mp.getJetGroupName());
 
 				// Create Jet instance and job configuration for external jet
 				// compute cluster cluster

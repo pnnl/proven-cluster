@@ -64,7 +64,7 @@ import org.slf4j.Logger;
 
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.nio.ObjectDataInput;
@@ -80,6 +80,7 @@ import gov.pnnl.proven.cluster.lib.module.messenger.annotation.Module;
 import gov.pnnl.proven.cluster.lib.module.module.ModuleStatus;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule;
 import gov.pnnl.proven.cluster.lib.module.module.ProvenModule.LocationSelector;
+import gov.pnnl.proven.cluster.lib.module.module.annotation.HazelcastMember;
 import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
 
 /**
@@ -107,6 +108,7 @@ public class ComponentRegistry implements Exchange {
     MemberProperties props = MemberProperties.getInstance();
 
     @Inject
+    @HazelcastMember
     HazelcastInstance hzi;
 
     @Inject
@@ -736,8 +738,8 @@ public class ComponentRegistry implements Exchange {
 	    public void readData(ObjectDataInput in) throws IOException {
 		int numEntries = in.readInt();
 		for (int i = 0; i < numEntries; i++) {
-		    String key = in.readUTF();
-		    String val = in.readUTF();
+		    String key = in.readString();
+		    String val = in.readString();
 		    exchangeQueues.add(new SimpleEntry<String, String>(key, val));
 		}
 		this.lastUpdated = in.readLong();
@@ -749,8 +751,8 @@ public class ComponentRegistry implements Exchange {
 		Iterator<SimpleEntry<String, String>> itr = exchangeQueues.iterator();
 		while (itr.hasNext()) {
 		    SimpleEntry<String, String> se = itr.next();
-		    out.writeUTF(se.getKey());
-		    out.writeUTF(se.getValue());
+		    out.writeString(se.getKey());
+		    out.writeString(se.getValue());
 		}
 		out.writeLong(lastUpdated);
 	    }
@@ -761,7 +763,7 @@ public class ComponentRegistry implements Exchange {
 	    }
 
 	    @Override
-	    public int getId() {
+	    public int getClassId() {
 		return ModuleIDSFactory.MEMBER_EXCHANGE_TYPE;
 	    }
 	}
@@ -820,15 +822,15 @@ public class ComponentRegistry implements Exchange {
 	    @Override
 	    public void writeData(ObjectDataOutput out) throws IOException {
 		out.writeLong(created);
-		out.writeUTF(memberId.toString());
-		out.writeUTF(status.toString());
+		out.writeString(memberId.toString());
+		out.writeString(status.toString());
 	    }
 
 	    @Override
 	    public void readData(ObjectDataInput in) throws IOException {
 		this.created = in.readLong();
-		this.memberId = UUID.fromString(in.readUTF());
-		this.status = ModuleStatus.valueOf(in.readUTF());
+		this.memberId = UUID.fromString(in.readString());
+		this.status = ModuleStatus.valueOf(in.readString());
 	    }
 
 	    @Override
@@ -837,7 +839,7 @@ public class ComponentRegistry implements Exchange {
 	    }
 
 	    @Override
-	    public int getId() {
+	    public int getClassId() {
 		return ModuleIDSFactory.MEMBER_LOCATION_TYPE;
 	    }
 	}

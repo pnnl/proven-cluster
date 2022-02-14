@@ -155,7 +155,7 @@ public class ResponseItem implements BufferedItem, IdentifiedDataSerializable {
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(this.bufferedState.toString());
+		out.writeString(this.bufferedState.toString());
 		if (disclosureItem.isPresent()) {
 			out.writeBoolean(true);
 			disclosureItem.get().writeData(out);
@@ -164,13 +164,13 @@ public class ResponseItem implements BufferedItem, IdentifiedDataSerializable {
 		}
 		out.writeInt(status.getStatusCode());
 		out.writeInt(getStatusCode());
-		out.writeUTF(getStatusReason());
-		out.writeUTF(getMessage());
+		out.writeString(getStatusReason());
+		out.writeString(getMessage());
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.bufferedState = DisclosureItemState.valueOf(in.readUTF());
+		this.bufferedState = DisclosureItemState.valueOf(in.readString());
 		boolean hasDisclosureItem = in.readBoolean();
 		if (hasDisclosureItem) {
 			DisclosureItem di = new DisclosureItem();
@@ -179,8 +179,8 @@ public class ResponseItem implements BufferedItem, IdentifiedDataSerializable {
 		}
 		this.status = Status.fromStatusCode(in.readInt());
 		this.statusCode = in.readInt();
-		this.statusReason = in.readUTF();
-		this.message = in.readUTF();
+		this.statusReason = in.readString();
+		this.message = in.readString();
 	}
 
 	@Override
@@ -189,7 +189,7 @@ public class ResponseItem implements BufferedItem, IdentifiedDataSerializable {
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		//return DisclosureIDSFactory.RESPONSE_ITEM_TYPE;
 		return 0;
 	}

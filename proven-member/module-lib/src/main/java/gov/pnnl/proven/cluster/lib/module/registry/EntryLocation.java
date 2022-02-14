@@ -141,7 +141,7 @@ public class EntryLocation implements IdentifiedDataSerializable, Serializable, 
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return ModuleIDSFactory.ENTRY_LOCATION_TYPE;
 	}
 

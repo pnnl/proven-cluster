@@ -39,7 +39,6 @@
  ******************************************************************************/
 package gov.pnnl.proven.cluster.lib.module.registry;
 
-import static com.hazelcast.util.Preconditions.checkHasText;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
@@ -47,9 +46,10 @@ import java.util.concurrent.TimeUnit;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-import com.hazelcast.util.Preconditions;
 
 import gov.pnnl.proven.cluster.lib.module.util.ModuleIDSFactory;
+
+import com.hazelcast.internal.util.Preconditions;
 
 /**
  * Represents a {@code ComponentEntry} property. These properties augment a
@@ -143,6 +143,7 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 	 *
 	 */
 	public final static class FloatProp extends Prop<Float> {
+	    
 		public FloatProp(String name) {
 			this(name, null);
 		}
@@ -255,7 +256,7 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 	}
 	
 	protected EntryProperty(String name, String value, TimeUnit timeUnit, EntryType entryType) {
-		checkHasText(name, "The property name cannot be null or empty!");
+		Preconditions.checkHasText(name, "The property name cannot be null or empty!");
 		this.name = name;
 		Preconditions.checkNotNull(value, "The property value cannot be null");
 		this.value = value;
@@ -321,19 +322,19 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
-		this.name = in.readUTF();
-		this.value = in.readUTF();
-		String timeUnitStr = in.readUTF();
+		this.name = in.readString();
+		this.value = in.readString();
+		String timeUnitStr = in.readString();
 		this.timeUnit = ((timeUnitStr.isEmpty()) ? null : TimeUnit.valueOf(timeUnitStr));
-		this.entryType = EntryType.valueOf(in.readUTF());
+		this.entryType = EntryType.valueOf(in.readString());
 	}
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
-		out.writeUTF(this.name);
-		out.writeUTF(this.value);
-		out.writeUTF((null == this.timeUnit) ? ("") : this.timeUnit.toString());
-		out.writeUTF(entryType.toString());
+		out.writeString(this.name);
+		out.writeString(this.value);
+		out.writeString((null == this.timeUnit) ? ("") : this.timeUnit.toString());
+		out.writeString(entryType.toString());
 	}
 
 	@Override
@@ -342,7 +343,7 @@ public class EntryProperty implements IdentifiedDataSerializable, Serializable, 
 	}
 
 	@Override
-	public int getId() {
+	public int getClassId() {
 		return ModuleIDSFactory.ENTRY_PROPERTY_TYPE;
 	}
 

@@ -102,7 +102,7 @@ public class MemberProperties {
      */
     private static final String JET_INSTANCE_NETWORK_ADDRESSES = "proven.jet.instance.network.addresses";
     private static final String JET_INSTANCE_TEST_PORT = "proven.jet.instance.test.port";
-    private static final String JET_GROUP_NAME = "proven.jet.group.name";
+    private static final String JET_CLUSTER_NAME = "proven.jet.cluster.name";
 
     /**
      * Exchange properties
@@ -248,7 +248,7 @@ public class MemberProperties {
     }
 
     public String getJetGroupName() {
-	return getPropertyValue(JET_GROUP_NAME, String.class);
+	return getPropertyValue(JET_CLUSTER_NAME, String.class);
     }
 
     //////////////////////////////////////////////////////

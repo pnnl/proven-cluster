@@ -55,21 +55,25 @@ import javax.json.JsonValue.ValueType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.jetty.jndi.ContextFactory;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.config.GroupConfig;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MemberGroupConfig;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.jet.pipeline.ContextFactory;
+import com.hazelcast.jet.pipeline.ServiceFactory;
+import com.hazelcast.map.IMap;
 
 import gov.pnnl.proven.cluster.lib.disclosure.DisclosureIDSFactory;
 import gov.pnnl.proven.cluster.lib.disclosure.MessageContentGroup;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.KnowledgeMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessage;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ResponseMessage;
+import gov.pnnl.proven.cluster.lib.member.MemberProperties;
 import gov.pnnl.proven.cluster.lib.pipeline.response.MessageContentRoutingResponse;
 
 /**
@@ -78,6 +82,7 @@ import gov.pnnl.proven.cluster.lib.pipeline.response.MessageContentRoutingRespon
  * @author d3j766
  *
  */
+@Deprecated
 public class MessageContentRoutingService {
 
 	@SuppressWarnings("unused")
@@ -89,11 +94,10 @@ public class MessageContentRoutingService {
 	 * 
 	 * @return {@link ContextFactory}
 	 */
-	public static ContextFactory<MessageContentRoutingService> mcrService() {
-
-		return ContextFactory.withCreateFn(x -> MessageContentRoutingService.newMessageContentRoutingService())
-				.toNonCooperative().withLocalSharing();
-
+	public static ServiceFactory<MessageContentRoutingService, Void> messageContentRoutingService() {
+		MemberProperties props = MemberProperties.getInstance();
+		String serviceUrl = props.getHybridT3ServiceUrl();
+		return ServiceFactory.withCreateContextFn(x -> MessageContentRoutingService.newMessageContentRoutingService()).toNonCooperative();
 	}
 
 	/**
@@ -152,7 +156,6 @@ public class MessageContentRoutingService {
 
 	private JsonArrayBuilder processDifferenceArray(String direction, String simulationId, JsonArray differenceArray,
 			JsonArrayBuilder values) {
-		@SuppressWarnings("unchecked")
 		Iterator<JsonValue> diterator = differenceArray.iterator();
 		JsonArrayBuilder record = Json.createArrayBuilder();
 		JsonObjectBuilder valueObject = Json.createObjectBuilder();
@@ -320,7 +323,6 @@ public class MessageContentRoutingService {
 		}
 
 		JsonObject object = (JsonObject) inputObject.get("message");
-		@SuppressWarnings("unchecked")
 		Set<String> keys = object.keySet();
 		Iterator<String> it = keys.iterator();
 
@@ -423,7 +425,6 @@ public class MessageContentRoutingService {
 	// Detect the type of measurement contained in disclosure message
 	//
 
-	@SuppressWarnings("unchecked")
 	public String detectObjectType(Object messageObject) {
 		String objectType = "";
 		if (messageObject instanceof JsonObject) {
@@ -468,9 +469,9 @@ public class MessageContentRoutingService {
 		config.getSerializationConfig().addDataSerializableFactoryClass(DisclosureIDSFactory.FACTORY_ID,
 				DisclosureIDSFactory.class);
 		config.setProperty("hazelcast.client.statistics.enabled", "true");
-		GroupConfig groupConfig = new GroupConfig();
-		groupConfig.setName("proven");
-		config.setGroupConfig(groupConfig);
+		Config groupConfig = new Config();
+		groupConfig.setClusterName("proven");
+		//config.setGroupConfig(groupConfig);
 		config.getNetworkConfig().addAddress("127.0.0.1:5701");
 		HazelcastInstance client = HazelcastClient.newHazelcastClient(config);
 		IMap<String, ProvenMessage> provenMessages = client.getMap("gov.pnnl.proven.common.knowledge.message");

@@ -385,7 +385,6 @@ public class GridAppsdMsgConvertor implements Serializable {
 
 
 		JsonObject object = (JsonObject) inputObject.get("message");
-		@SuppressWarnings("unchecked")
 		Set<String> keys = object.keySet();
 		Iterator<String> it = keys.iterator();
 

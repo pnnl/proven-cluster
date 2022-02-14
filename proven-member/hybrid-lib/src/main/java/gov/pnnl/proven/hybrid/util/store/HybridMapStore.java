@@ -58,7 +58,7 @@ import org.influxdb.dto.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.core.MapStore;
+import com.hazelcast.map.MapStore;
 
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMeasurement;
 import gov.pnnl.proven.cluster.lib.disclosure.deprecated.message.ProvenMessageOriginal;
