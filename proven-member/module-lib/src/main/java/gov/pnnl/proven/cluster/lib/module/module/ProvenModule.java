@@ -58,6 +58,7 @@ import javax.naming.NamingException;
 
 import org.slf4j.Logger;
 
+import com.hazelcast.cluster.Member;
 import com.hazelcast.core.HazelcastInstance;
 
 import fish.payara.micro.PayaraMicroRuntime;
@@ -94,7 +95,7 @@ public abstract class ProvenModule extends ModuleComponent {
     @Inject
     @HazelcastMember
     HazelcastInstance hzi;
-    
+
     @Inject
     ComponentRegistry cr;
 
@@ -247,7 +248,17 @@ public abstract class ProvenModule extends ModuleComponent {
 
 	return ret;
     }
-    
+
+    /**
+     * Returns the oldest Member in the cluster, representing the oldest
+     * member-module.
+     * 
+     * @return the oldest Member in cluster
+     */
+    public Member leadClusterModule() {
+	return hzi.getCluster().getMembers().iterator().next();
+    }
+
     /**
      * TODO
      * 
@@ -284,5 +295,5 @@ public abstract class ProvenModule extends ModuleComponent {
 	    // TODO Implement for alternative selections
 	    return 0;
 	}
-    }    
+    }
 }
