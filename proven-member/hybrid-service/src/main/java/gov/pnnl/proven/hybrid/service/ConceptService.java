@@ -106,6 +106,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -889,7 +890,135 @@ public class ConceptService {
 		return ret;
 
 	}
+	
+	public Map<String,Boolean> initSelectKeyMap(List<String> keys) {
+		Map<String,Boolean> keyMap = new HashMap();
+        for (String key : keys) {
+        	keyMap.put(key, false);
+        }
+		return keyMap;
+		
+	}
+	
+	
+	public Boolean isKey(List<Object> keyList, String selectKey) {
+		Boolean ret = false;
 
+			for (Object foundKey : keyList ) {
+				String foundKeyStr = foundKey.toString();
+				if (selectKey.equalsIgnoreCase(foundKeyStr) ) {
+					ret = true;
+				}
+			}
+
+		
+		return ret;
+		
+	}
+
+	public Map<String,Boolean> buildSelectKeyMap(String queryStr, Map<String, Boolean> selectKeys) {
+		Map<String, Boolean> ret = selectKeys;
+
+		if (useIdb) {
+			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
+			String dbName = idbDB;
+			// Query query = new Query("select time_idle from cpu limit 10",
+			// dbName);
+			Query query = new Query(queryStr, dbName);
+			//
+			// Unless TimeUnit parameter is used in query, Epoch time will not
+			// be returned.
+			//
+			QueryResult qr = influxDB.query(query, TimeUnit.SECONDS);
+			if (!qr.hasError()) {
+				List<Result> lr = qr.getResults(); 
+				for (Result l : lr) {
+					List<Series> sl = l.getSeries();
+					for (Series s : sl) {
+						List<List<Object>> so = s.getValues();
+						for (List<Object> lo : so) {
+						    for (Map.Entry<String, Boolean> entry : selectKeys.entrySet()) {
+						        if (isKey(lo, entry.getKey())) {
+						        	entry.setValue(true);
+						    }
+							
+//							for (Object ov : lo ) {
+//								String ovs = ov.toString();
+//								if (key.equalsIgnoreCase(ovs) ) {
+//									ret = true;
+//								}
+							}
+
+						}
+					}
+
+				}
+			}
+		}
+		ret = selectKeys;
+		return ret;
+	}
+	
+	public String checkInfluxKeys(String measurement, List<String> selectKeys ) {
+
+        String fields = " field ";
+        String keyS = " keys ";
+        String from = " from ";
+        String tags = "tag";
+        String query_prefix = "show " ;
+        String responseString = "";
+        Map <String,Boolean> selectKeyStatus = initSelectKeyMap(selectKeys);
+        
+        String queryString = query_prefix + fields + keyS + from + measurement;
+        selectKeyStatus = buildSelectKeyMap(queryString, selectKeyStatus);
+        queryString = query_prefix + tags + keyS + from + measurement;
+        selectKeyStatus = buildSelectKeyMap(queryString, selectKeyStatus);        
+        
+//		if (useIdb) {
+//			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
+//			String dbName = idbDB;
+//			// Query query = new Query("select time_idle from cpu limit 10",
+//			// dbName);
+//			Query query = new Query(queryFieldString, dbName);
+//			//
+//			// Unless TimeUnit parameter is used in query, Epoch time will not
+//			// be returned.
+//			//
+//			QueryResult qr = influxDB.query(query, TimeUnit.SECONDS);
+//			if (qr.hasError()) {
+//				responseString = qr.getError().toString();
+//			} else {
+//				List<Result> lr = qr.getResults(); 
+//			    for (Result l : lr) {
+//			    	List<Series> sl = l.getSeries();
+//			    	for (Series s : sl) {
+//			    	  List<List<Object>> so = s.getValues();
+//			    	  for (List<Object> lo : so) {
+//			    		  for (Object ov : lo ) {
+//			    			  String ovs = ov.toString();
+//			    			  if (keyname.equalsIgnoreCase(ovs) ) {
+//			    				  ret = true;
+//			    			  }
+//			    		  }
+//			    		  
+//			    	  }
+//			    	}
+//			          
+//			    }
+//			}
+//		}
+        for (Map.Entry<String, Boolean> entry : selectKeyStatus.entrySet()) {
+            if (entry.getValue() == false) {
+            	if (responseString.length() == 0) {
+            		responseString = "The following key(s) are not found in measurement " + measurement + ":\n";
+            	}
+            	responseString = responseString + entry.getKey();
+            }
+        }
+		return responseString;
+
+	}
+	
 	//
 	// Utility used to pad an epoch number string with zeros
 	//
@@ -1074,8 +1203,274 @@ public class ConceptService {
 		ProvenMessageResponse pmr = influxQuery(query, false, true, true);
 		return pmr;
 	}
+
 	
-	public ProvenMessageResponse influxQuery(ProvenMessage query, boolean returnCsvFlag, boolean returnQueryStatement, boolean pingQuery) throws InvalidProvenMessageException {
+	
+	public String formatComplexFilterCriteria (String measurement, JSONArray filterArray) {
+
+		    String ge = " >= ";
+		    String gt = " > ";
+		    String and = " and ";
+		    String eq = " == ";
+		    String lt = " < ";
+		    String le = " <= ";
+			String filterstatement = "";
+			String space = " ";
+			String quote = "'";
+			String key = "";
+			String filterFragment = "";
+			String operator = "";
+			Object operatorValue = new Object();
+			JSONObject filterJsonObject;
+			List<String> filterList = new ArrayList();
+			for (int index = 0; filterArray.size() < 1; index ++) {
+				Object filterObject = filterArray.get(index);
+				if (filterObject instanceof JSONObject) {
+					filterJsonObject = (JSONObject) filterObject;
+					Set keys = filterJsonObject.keySet();
+					Iterator iter = keys.iterator();
+					while (iter.hasNext()) {
+						if (key.equalsIgnoreCase("key")) {
+							key = (String) iter.next();
+						} else if (key.equalsIgnoreCase("eq")) {
+							operator = eq;
+							operatorValue = (Object) filterJsonObject.get("eq");
+						} else if (key.equalsIgnoreCase("ge")) {
+							operator = ge;
+							operatorValue = (Object) filterJsonObject.get("ge");
+
+						} else if (key.equalsIgnoreCase("gt")) {
+							operator = gt;
+							operatorValue = (Object) filterJsonObject.get("gt");
+
+						} else if (key.equalsIgnoreCase("lt")) {
+							operator = lt;
+							operatorValue = (Object) filterJsonObject.get("lt");
+
+						} else if (key.equalsIgnoreCase("le")) {
+							operator = le;
+							operatorValue = (Object) filterJsonObject.get("le");
+						}
+					}
+				}
+				if (operatorValue.getClass() == Integer.class) {
+					filterFragment = key + operator + ((Integer) operatorValue).toString();
+					
+				} else if (operatorValue.getClass() == Float.class) {
+					filterFragment = key + operator + ((Float) operatorValue).toString();
+					
+				} else if (operatorValue.getClass() == Double.class) {
+					filterFragment = key + operator + ((Double) operatorValue).toString();
+				} else if (operatorValue.getClass() == Long.class ) {
+					filterFragment = key + operator + ((Long) operatorValue).toString();
+					
+				} else if (operatorValue.getClass() == String.class) {
+					filterFragment = key + operator + "\""+ (String) operatorValue + "\"";					
+				}
+				
+				filterList.add(filterFragment);
+				
+				
+			}
+			int size = filterList.size();
+			if (size == 0) {
+				return filterstatement;
+			} else if (size == 1) {
+				filterstatement = filterList.get(0);
+				return filterstatement;
+			} else {
+			
+            for (int index = 0; index < filterList.size()  ; index++) {
+               if (index == 0) {
+   				filterstatement = filterList.get(0);            	   
+               } else {
+           		filterstatement = filterstatement + and + filterList.get(index);
+               }
+            	
+            }
+            }
+
+		return filterstatement;
+	}
+	public ProvenMessageResponse getComplexQuery(String queryJson, String measurement, boolean returnCsvFlag, boolean returnQueryStatement, boolean pingQuery) throws InvalidProvenMessageException {
+
+		ProvenMessageResponse ret = null;
+		String ge = " >= ";
+		String gt = " > ";
+		String and = " and ";
+		String eq = " == ";
+		String lt = " < ";
+		String le = " <= ";
+		String comma = " , ";
+		String from = " from ";
+		String select = " select ";
+		String selectCriteriaStr = "";
+
+
+		JSONParser parser = new JSONParser();
+
+		Object filterObject = null;
+		List<String> selectCriteria = new ArrayList(); 
+
+		try {
+			filterObject = parser.parse(queryJson);
+
+		} catch (org.json.simple.parser.ParseException e) {
+			// TODO Auto-generated catch block
+			ret = new ProvenMessageResponse();
+			ret.setStatus(Status.BAD_REQUEST);
+			ret.setReason("Invalid or missing message content type.  Could not parse JSON message.");
+			ret.setCode(Status.BAD_REQUEST.getStatusCode());
+			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			e.printStackTrace();
+			return ret;
+		}    
+
+
+		if (filterObject instanceof JSONObject) {
+
+			JSONObject fObject = (JSONObject) filterObject;
+			JSONArray  filterArray = (JSONArray) fObject.get("queryFilter");
+			JSONArray  selectCriteriaArray = (JSONArray) fObject.get("selectCriteria");
+
+			for (int sindex = 0; sindex < selectCriteriaArray.size(); sindex++) {
+				Object keyObject = selectCriteria.get(sindex);
+				selectCriteria.add((String) keyObject);
+			}
+
+			String responseCheck = checkInfluxKeys(measurement, selectCriteria );
+			if (responseCheck.length() != 0) {
+
+				ret = new ProvenMessageResponse();
+				ret.setStatus(Status.BAD_REQUEST);
+				ret.setReason("Keys not currently in database.    " + responseCheck);
+				ret.setCode(Status.BAD_REQUEST.getStatusCode());
+				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+				return ret;
+
+			} else {
+
+				int size = selectCriteria.size();
+				if (size == 0) {
+
+					selectCriteriaStr = "*";
+				} else if (size == 1) {
+
+					selectCriteriaStr = selectCriteria.get(0);
+				} else {
+
+					for (int index = 0; index < size; index++) {
+
+						if (index == 0) {
+							selectCriteriaStr = selectCriteria.get(0);
+						} else {
+							selectCriteriaStr = selectCriteriaStr + " , " + (String)selectCriteria.get(index);
+
+						}
+
+					}
+
+
+
+				}
+
+
+
+			}
+			String filterStr = formatComplexFilterCriteria(measurement, filterArray);
+			String queryStatement = selectCriteriaStr + from + measurement + filterStr;
+
+
+
+			String response = "";
+			String reason = "";
+
+			if (useIdb) {
+				InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
+				String dbName = idbDB;
+				influxDB.setRetentionPolicy(idbRP);
+
+				Query influxQuery = null;
+				if (pingQuery) {
+					queryStatement = queryStatement + " LIMIT 1";
+					influxQuery = new Query(queryStatement, dbName);
+				} else
+					influxQuery = new Query(queryStatement, dbName);
+				//
+				// Unless TimeUnit parameter is used in query, Epoch time will not
+				// be returned.
+				//
+				System.out.println(influxQuery);
+
+				QueryResult qr = null;
+				try {
+
+					qr = influxDB.query(influxQuery, TimeUnit.SECONDS);
+
+				} catch (OutOfMemoryError e) {
+					ret = new ProvenMessageResponse();
+					ret.setReason("Out of memory");
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Query results are to large to return.  Out of memory\" } ");
+
+				}
+
+				if (qr.hasError()) {
+					ret = new ProvenMessageResponse();
+					ret.setReason("Invalid or missing content.");
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" } " + qr.getError());
+
+				} else {
+					ret = new ProvenMessageResponse();
+					ret.setReason("Success");
+					ret.setStatus(Status.OK);
+					ret.setCode(Status.OK.getStatusCode());
+					ret.setResponse("Query Statement=" + queryStatement + "\n" + ret.getResponse() );
+					try { 
+
+						if (returnCsvFlag) {
+							ret.setResponse(convertResults2Csv2(qr));
+						} else {
+							ret.setResponse(convertResults2Json(qr));					
+						}
+
+					} catch (OutOfMemoryError e) {
+						ret = new ProvenMessageResponse();
+						ret.setReason("Out of memory");
+						ret.setStatus(Status.BAD_REQUEST);
+						ret.setCode(Status.BAD_REQUEST.getStatusCode());
+						ret.setResponse("{ \"ERROR\": \"Query results successfully returned but were to large to postprocess.  Out of memory\" } ");
+
+					}
+
+
+
+
+				}
+			} else {
+
+				ret = new ProvenMessageResponse();
+				ret.setReason("Time-series database unavailable or database adapter is disabled.");
+				ret.setStatus(Status.SERVICE_UNAVAILABLE);
+				ret.setCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+				ret.setResponse("{ \"INFO\": \"idb server disabled in Proven configuration\" }");
+			}
+			if (returnQueryStatement) {
+				ret.setResponse("Query Statement=" + queryStatement + "\n" + ret.getResponse() );
+
+			}
+			// ret.setReason(reason);
+			// ret.setResponse(response);
+		}
+		return ret;
+
+
+	}
+	
+	public ProvenMessageResponse deprecated_influxComplexQuery(ProvenMessage query, boolean returnCsvFlag, boolean returnQueryStatement, boolean pingQuery) throws InvalidProvenMessageException {
 		ProvenMessageResponse ret = null;
 		String space = " ";
 		String eq = "=";
@@ -2119,6 +2514,138 @@ public class ConceptService {
 		//        System.out.println (csvMeasurements);
 		return csvMeasurements;
 
+	}
+
+	public ProvenMessageResponse influxQuery(ProvenMessage query, boolean returnCsvFlag, boolean returnQueryStatement, boolean pingQuery) throws InvalidProvenMessageException {
+		ProvenMessageResponse ret = null;
+		String space = " ";
+		String eq = "=";
+		String quote = "'";
+		String doublequote = "\"";
+	
+		String queryStatement = "select * from ";
+	
+		ProvenQueryTimeSeries tsquery = query.getTsQuery();
+		if (tsquery == null) {
+			throw new InvalidProvenMessageException();
+		}
+		queryStatement = queryStatement + space + doublequote + tsquery.getMeasurementName() + doublequote;
+		queryStatement = queryStatement + space;
+	
+		List<ProvenQueryFilter> filters = tsquery.getFilters();
+	
+		String filter_statement = "";
+		if (filters != null) {
+			Map<String,Integer> filterFieldCounter = countFilterFields(filters);
+			List <String> assembledFilterStatements = assembleFilterStatements(filters, filterFieldCounter);
+			queryStatement = queryStatement + space + "where" + space;
+			boolean flag = true;
+			int index = 0;
+			while (index < assembledFilterStatements.size()) {
+				//
+				// Set up filter
+				//
+	
+	
+				if (index == 0) {
+					queryStatement = queryStatement + space + assembledFilterStatements.get(index) + space;
+					flag = false;
+	
+				} else {
+	
+					// If not a time filter, treat it as a field.
+					//
+					queryStatement = queryStatement + space + "and" + space + assembledFilterStatements.get(index) + space;
+	
+				}
+				index = index + 1;
+			}
+		}
+	
+		String response = "";
+		String reason = "";
+	
+		if (useIdb) {
+			InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
+			String dbName = idbDB;
+			influxDB.setRetentionPolicy(idbRP);
+	
+	        Query influxQuery = null;
+	        if (pingQuery) {
+	        	queryStatement = queryStatement + " LIMIT 1";
+			    influxQuery = new Query(queryStatement, dbName);
+	        } else
+			     influxQuery = new Query(queryStatement, dbName);
+			//
+			// Unless TimeUnit parameter is used in query, Epoch time will not
+			// be returned.
+			//
+			System.out.println(influxQuery);
+	
+			QueryResult qr = null;
+			try {
+	
+				qr = influxDB.query(influxQuery, TimeUnit.SECONDS);
+	
+			} catch (OutOfMemoryError e) {
+				ret = new ProvenMessageResponse();
+				ret.setReason("Out of memory");
+				ret.setStatus(Status.BAD_REQUEST);
+				ret.setCode(Status.BAD_REQUEST.getStatusCode());
+				ret.setResponse("{ \"ERROR\": \"Query results are to large to return.  Out of memory\" } ");
+	
+			}
+	
+			if (qr.hasError()) {
+				ret = new ProvenMessageResponse();
+				ret.setReason("Invalid or missing content.");
+				ret.setStatus(Status.BAD_REQUEST);
+				ret.setCode(Status.BAD_REQUEST.getStatusCode());
+				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" } " + qr.getError());
+	
+			} else {
+				ret = new ProvenMessageResponse();
+				ret.setReason("Success");
+				ret.setStatus(Status.OK);
+				ret.setCode(Status.OK.getStatusCode());
+				ret.setResponse("Query Statement=" + queryStatement + "\n" + ret.getResponse() );
+				try { 
+	
+					if (returnCsvFlag) {
+						ret.setResponse(convertResults2Csv2(qr));
+					} else {
+						ret.setResponse(convertResults2Json(qr));					
+					}
+	
+				} catch (OutOfMemoryError e) {
+					ret = new ProvenMessageResponse();
+					ret.setReason("Out of memory");
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Query results successfully returned but were to large to postprocess.  Out of memory\" } ");
+	
+				}
+	
+	
+	
+	
+			}
+		} else {
+	
+			ret = new ProvenMessageResponse();
+			ret.setReason("Time-series database unavailable or database adapter is disabled.");
+			ret.setStatus(Status.SERVICE_UNAVAILABLE);
+			ret.setCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+			ret.setResponse("{ \"INFO\": \"idb server disabled in Proven configuration\" }");
+		}
+		if (returnQueryStatement) {
+			ret.setResponse("Query Statement=" + queryStatement + "\n" + ret.getResponse() );
+	
+		}
+		// ret.setReason(reason);
+		// ret.setResponse(response);
+		return ret;
+	
 	}
 
 }
