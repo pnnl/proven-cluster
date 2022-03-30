@@ -856,6 +856,38 @@ public class RepositoryResource {
 		return response;
 	}
 
+	
+	@POST
+	@Path("showkeys")
+	@Consumes(TEXT_PLAIN)
+	@Produces(TEXT_PLAIN)
+	// @formatter:off
+	@ApiOperation(value = "Query influxDB time-series store using InfluxQL", hidden = false, notes = "If enabled, provided query will be submited to InfluxDB time-series store.  "
+			+ "Format of query results are in JSON, described here  "
+			+ "<a href='https://docs.influxdata.com/influxdb/v1.2/guides/querying_data/'> InfluxQL Results Format </a>.  "
+			+ "InfluxQL query laguage is described here  "
+			+ "<a href='https://docs.influxdata.com/influxdb/v1.2/query_language/spec/'> InfluxQL Language Reference </a>.  ")
+	// @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfull
+	// operation")})
+	// @formatter:on
+	public Response showKeys(String queryString) {
+		Response response = null;
+		List<String> selectKeys = new ArrayList();
+	    String[] arrOfStr = queryString.split(",", 2);
+	    if (arrOfStr.length == 2) {
+	    	selectKeys.add(arrOfStr[1]);
+	    	selectKeys.add("fake");
+	    	cs.checkInfluxKeys(arrOfStr[0], selectKeys);
+	    	
+	    } else {
+		String ret = cs.influxQuery(queryString);
+		response = Response.ok(ret).build();
+		return response;
+	    }
+		return response;
+	}
+	
+	
 	@POST
 	@Path("influxql")
 	@Consumes(TEXT_PLAIN)
@@ -875,6 +907,7 @@ public class RepositoryResource {
 		response = Response.ok(ret).build();
 		return response;
 	}
+	
 
 	@POST
 	@Path(R_PROVEN_MESSAGE)
@@ -889,6 +922,9 @@ public class RepositoryResource {
 			@ApiResponse(code = 500, message = "Internal server error.") })
 	// @formatter:on
 
+	
+	
+	
 	public ProvenMessageResponse addProvenMessage(ProvenMessage pm) {
 
 		ProvenMessageResponse pmr = null;
@@ -1106,19 +1142,20 @@ public class RepositoryResource {
 		return pmr;
 	}		
 	@POST
-	@Path("addBulkTimeSeries")
+	@Path("getAdvancedTsQuery")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	// @formatter:off
-	@ApiOperation(value = "Adds a bulk simulation message", notes = "Provided provenance mesage must be valid \"FNCS Bridge Simulation JSON\" object")
+	@ApiOperation(value = "Performs advanced query", notes = "Provided provenance mesage must be valid complex query object")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
 			@ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),
 			@ApiResponse(code = 403, message = "Invalid or missing message content", response = ProvenMessageResponse.class),
 			@ApiResponse(code = 500, message = "Internal server error.") })
 	// @formatter:on
-	public ProvenMessageResponse addBulkTimeSeries(String pm, @QueryParam("measurementName") String measurementName,
-			@QueryParam("instanceId") String instanceId,  @QueryParam("simulationId") String simulationId, @QueryParam("realTime") Long realTime) {
+	
+
+	public ProvenMessageResponse getAdvancedTsQuery(String pm, @QueryParam("measurementName") String measurementName) {
 
 		ProvenMessageResponse pmr = null;
 		try {
@@ -1130,7 +1167,7 @@ public class RepositoryResource {
 			}
 			
 
-			pmr = cs.influxWriteMeasurements(pm, measurementName, instanceId, simulationId, realTime);
+			pmr = cs.getAdvancedQuery(pm, false, false, false);
 
 			// Invalid message content
 			if (null == pmr) {
@@ -1156,6 +1193,60 @@ public class RepositoryResource {
 			e.printStackTrace();
 		}
 
+		return pmr;
+	}
+
+	@POST
+	@Path("addBulkTimeSeries")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	// @formatter:off
+	@ApiOperation(value = "Adds a bulk simulation message", notes = "Provided provenance mesage must be valid \"FNCS Bridge Simulation JSON\" object")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successful operation.", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 201, message = "Created.", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 403, message = "Invalid or missing message content", response = ProvenMessageResponse.class),
+			@ApiResponse(code = 500, message = "Internal server error.") })
+	// @formatter:on
+	public ProvenMessageResponse addBulkTimeSeries(String pm, @QueryParam("measurementName") String measurementName,
+			@QueryParam("instanceId") String instanceId,  @QueryParam("simulationId") String simulationId, @QueryParam("realTime") Long realTime) {
+	
+		ProvenMessageResponse pmr = null;
+		try {
+			cs.begin();
+	
+			// Measurement name is required
+			if (null == measurementName) {
+				throw new Exception("Measurement Name is missing.");
+			}
+			
+	
+			pmr = cs.influxWriteMeasurements(pm, measurementName, instanceId, simulationId, realTime);
+	
+			// Invalid message content
+			if (null == pmr) {
+				pmr = new ProvenMessageResponse();
+				pmr.setStatus(Status.BAD_REQUEST);
+				pmr.setReason("Invalid or missing message content type.");
+				pmr.setCode(Status.BAD_REQUEST.getStatusCode());
+				pmr.setResponse("{ \"ERROR\": \"The time-series message type or structure is not recognized and couldn't be converted by Proven into an Influx Database request\" }");
+				cs.rollback();
+	
+			} else {
+	
+				cs.commit();
+			}
+	
+		} catch (Exception e) {
+			cs.rollback();
+			pmr = new ProvenMessageResponse();
+			pmr.setStatus(Status.INTERNAL_SERVER_ERROR);
+			pmr.setReason(e.getMessage());
+			pmr.setCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+			pmr.setResponse("{ \"ERROR\": \"Something went wrong on the server side, either the Influx database or is not accessible to the client.\" }");
+			e.printStackTrace();
+		}
+	
 		return pmr;
 	}
 

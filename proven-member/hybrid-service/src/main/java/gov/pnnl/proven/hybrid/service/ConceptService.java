@@ -1206,12 +1206,23 @@ public class ConceptService {
 
 	
 	
-	public String formatComplexFilterCriteria (String measurement, JSONArray filterArray) {
+	public String formatAdvancedFilterCriteria (String measurement, JSONArray filterArray) {
 
+		
+		    if (filterArray == null) {
+		    	
+		    	return "";
+		    }
+		    
+		    if (filterArray.size() == 0) {
+		    	return "";		    	
+		    	
+		    }
+		    
 		    String ge = " >= ";
 		    String gt = " > ";
 		    String and = " and ";
-		    String eq = " == ";
+		    String eq = " = ";
 		    String lt = " < ";
 		    String le = " <= ";
 			String filterstatement = "";
@@ -1223,31 +1234,36 @@ public class ConceptService {
 			Object operatorValue = new Object();
 			JSONObject filterJsonObject;
 			List<String> filterList = new ArrayList();
-			for (int index = 0; filterArray.size() < 1; index ++) {
+			for (int index = 0; index < filterArray.size() ; index ++) {
 				Object filterObject = filterArray.get(index);
 				if (filterObject instanceof JSONObject) {
 					filterJsonObject = (JSONObject) filterObject;
 					Set keys = filterJsonObject.keySet();
+					String keyStr = "";
 					Iterator iter = keys.iterator();
 					while (iter.hasNext()) {
-						if (key.equalsIgnoreCase("key")) {
-							key = (String) iter.next();
-						} else if (key.equalsIgnoreCase("eq")) {
+						keyStr = (String) iter.next();
+						if (keyStr.equalsIgnoreCase("key")) {
+                            key = filterJsonObject.get(keyStr).toString();
+                            if (key.equalsIgnoreCase("timestamp")) {
+                            	key = "time";
+                            }
+						} else if (keyStr.equalsIgnoreCase("eq")) {
 							operator = eq;
 							operatorValue = (Object) filterJsonObject.get("eq");
-						} else if (key.equalsIgnoreCase("ge")) {
+						} else if (keyStr.equalsIgnoreCase("ge")) {
 							operator = ge;
 							operatorValue = (Object) filterJsonObject.get("ge");
 
-						} else if (key.equalsIgnoreCase("gt")) {
+						} else if (keyStr.equalsIgnoreCase("gt")) {
 							operator = gt;
 							operatorValue = (Object) filterJsonObject.get("gt");
 
-						} else if (key.equalsIgnoreCase("lt")) {
+						} else if (keyStr.equalsIgnoreCase("lt")) {
 							operator = lt;
 							operatorValue = (Object) filterJsonObject.get("lt");
 
-						} else if (key.equalsIgnoreCase("le")) {
+						} else if (keyStr.equalsIgnoreCase("le")) {
 							operator = le;
 							operatorValue = (Object) filterJsonObject.get("le");
 						}
@@ -1265,7 +1281,7 @@ public class ConceptService {
 					filterFragment = key + operator + ((Long) operatorValue).toString();
 					
 				} else if (operatorValue.getClass() == String.class) {
-					filterFragment = key + operator + "\""+ (String) operatorValue + "\"";					
+					filterFragment = key + operator + quote + (String) operatorValue + quote;					
 				}
 				
 				filterList.add(filterFragment);
@@ -1292,7 +1308,7 @@ public class ConceptService {
 
 		return filterstatement;
 	}
-	public ProvenMessageResponse getComplexQuery(String queryJson, String measurement, boolean returnCsvFlag, boolean returnQueryStatement, boolean pingQuery) throws InvalidProvenMessageException {
+	public ProvenMessageResponse getAdvancedQuery(String queryJson, boolean returnCsvFlag, boolean returnQueryStatement, boolean pingQuery) throws InvalidProvenMessageException {
 
 		ProvenMessageResponse ret = null;
 		String ge = " >= ";
@@ -1305,12 +1321,16 @@ public class ConceptService {
 		String from = " from ";
 		String select = " select ";
 		String selectCriteriaStr = "";
+		String lastStr = " ORDER BY time DESC LIMIT ";
+		String firstStr = " LIMIT ";
+		Integer last = -1;
+		Integer first = -1;
 
 
 		JSONParser parser = new JSONParser();
 
 		Object filterObject = null;
-		List<String> selectCriteria = new ArrayList(); 
+		List<String> selectCriteriaList = new ArrayList(); 
 
 		try {
 			filterObject = parser.parse(queryJson);
@@ -1326,45 +1346,108 @@ public class ConceptService {
 			return ret;
 		}    
 
-
+        String measurement = "";
 		if (filterObject instanceof JSONObject) {
 
 			JSONObject fObject = (JSONObject) filterObject;
 			JSONArray  filterArray = (JSONArray) fObject.get("queryFilter");
 			JSONArray  selectCriteriaArray = (JSONArray) fObject.get("selectCriteria");
-
-			for (int sindex = 0; sindex < selectCriteriaArray.size(); sindex++) {
-				Object keyObject = selectCriteria.get(sindex);
-				selectCriteria.add((String) keyObject);
+			JSONObject selectorFunctionObject = (JSONObject) fObject.get("selectorFunction");
+            
+			measurement = fObject.get("queryMeasurement").toString();
+			
+			if (measurement.length() == 0) {
+				ret = new ProvenMessageResponse();
+				ret.setReason("Invalid or missing content.");
+				ret.setStatus(Status.BAD_REQUEST);
+				ret.setCode(Status.BAD_REQUEST.getStatusCode());
+				ret.setResponse("{ \"ERROR\": \"No measurement supplied for query.\" } ");
+				return ret;
 			}
 
-			String responseCheck = checkInfluxKeys(measurement, selectCriteria );
-			if (responseCheck.length() != 0) {
-
-				ret = new ProvenMessageResponse();
-				ret.setStatus(Status.BAD_REQUEST);
-				ret.setReason("Keys not currently in database.    " + responseCheck);
-				ret.setCode(Status.BAD_REQUEST.getStatusCode());
-				ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
-				return ret;
+			if (selectCriteriaArray == null) {
+				selectCriteriaStr = "*";
 
 			} else {
 
-				int size = selectCriteria.size();
-				if (size == 0) {
+				for (int sindex = 0; sindex < selectCriteriaArray.size(); sindex++) {
+					Object keyObject = selectCriteriaArray.get(sindex);
+					String keyStr = (String) keyObject;
+					if (!(keyStr.equalsIgnoreCase("time") || keyStr.equalsIgnoreCase("timestamp"))) {
+						selectCriteriaList.add((String) keyObject);
+					}
 
+				} 
+
+				String responseCheck = checkInfluxKeys(measurement, selectCriteriaList );
+
+				if (responseCheck.length() != 0) {
+
+					ret = new ProvenMessageResponse();
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setReason("One or more user supplied select keys not currently in database.    " + responseCheck);
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+					return ret;
+
+				}
+
+				
+				
+				String selectorFunction = "";
+				String selectorKey = "" ;
+				if (selectorFunctionObject != null) {
+					
+					selectorFunction = selectorFunctionObject.get("function").toString();
+					selectorKey = selectorFunctionObject.get("key").toString(); 
+					
+					
+				}
+
+
+			    int size = selectCriteriaList.size();
+				if (size == 0) {
 					selectCriteriaStr = "*";
 				} else if (size == 1) {
 
-					selectCriteriaStr = selectCriteria.get(0);
+					selectCriteriaStr = "time," + selectCriteriaList.get(0);
 				} else {
 
 					for (int index = 0; index < size; index++) {
 
 						if (index == 0) {
-							selectCriteriaStr = selectCriteria.get(0);
+							
+							
+							if (selectorFunction.length()== 0 || selectorKey.length() == 0) {
+							
+							    selectCriteriaStr = "time," + selectCriteriaList.get(0);
+							} else {
+								String tstKey = (String)selectCriteriaList.get(0);
+								
+								if (tstKey.equalsIgnoreCase(selectorKey)) {
+									 selectCriteriaStr = "time , " + selectorFunction + "(" + tstKey + ")";
+								} else {
+								    selectCriteriaStr = "time, "  + (String)selectCriteriaList.get(0);
+									
+								}
+								
+							}
+							
+							
 						} else {
-							selectCriteriaStr = selectCriteriaStr + " , " + (String)selectCriteria.get(index);
+							if (selectorFunction.length()== 0 || selectorKey.length() == 0) {
+							
+							    selectCriteriaStr = selectCriteriaStr + " , " + (String)selectCriteriaList.get(index);
+							} else {
+								String tstKey = (String)selectCriteriaList.get(index);
+								
+								if (tstKey.equalsIgnoreCase(selectorKey)) {
+									 selectCriteriaStr = selectCriteriaStr + " , " + selectorFunction + "(" + tstKey + ")";
+								} else {
+								    selectCriteriaStr = selectCriteriaStr + " , " + (String)selectCriteriaList.get(index);
+									
+								}
+							}
 
 						}
 
@@ -1375,15 +1458,22 @@ public class ConceptService {
 				}
 
 
+			} 
 
+
+
+			String filterStr = formatAdvancedFilterCriteria(measurement, filterArray);
+			String queryStatement = "";
+			queryStatement = "select " + selectCriteriaStr + from + measurement;
+			if (filterStr.length() != 0) {
+				queryStatement = queryStatement +  " where " + filterStr;
 			}
-			String filterStr = formatComplexFilterCriteria(measurement, filterArray);
-			String queryStatement = selectCriteriaStr + from + measurement + filterStr;
 
-
-
-			String response = "";
-			String reason = "";
+			if (first > 0 && last <= 0 ) {
+				queryStatement = queryStatement + firstStr + first.toString();
+			} else if (first <= 0 && last > 0 ) {
+				queryStatement = queryStatement + lastStr + last.toString();
+			}
 
 			if (useIdb) {
 				InfluxDB influxDB = InfluxDBFactory.connect(idbUrl, idbUsername, idbPassword);
@@ -1712,8 +1802,26 @@ public class ConceptService {
 		String objectType = "";
 		if (messageObject instanceof JSONObject) {
 
+			
+	
+			
 			JSONObject mObject = (JSONObject) messageObject;
-			JSONObject object = (JSONObject) (mObject.get("message"));
+			
+		    Object object = mObject.get("metadata");
+		    
+		    if (object != null) {
+
+		    	if (object instanceof JSONObject ) {
+
+					objectType = "X";
+					return objectType;
+
+		    	}
+		    }
+			
+
+				
+			object = (JSONObject) (mObject.get("message"));
 			if (object != null) {
 				objectType = "O";
 
@@ -2139,6 +2247,201 @@ public class ConceptService {
 
 	}
 	
+	private boolean isTag(List<String> tags, String keyname) {
+		boolean ret = false;
+		for (int index = 0; index < tags.size(); index++) {
+		   if (tags.get(index).equalsIgnoreCase(keyname)) {
+			   ret = true;
+		   }
+		}
+		return ret;
+	}
+	
+	
+	private Point.Builder writeDataTypeKeyPoint(Point.Builder builder, List<String> tags, JSONObject record, String record_key, String prefix) {
+		
+		if (prefix == null) {
+			prefix = new String();
+		}
+		if (prefix.length() > 0) {
+			prefix = prefix + "_";
+		}
+		if (record.get(record_key) instanceof String) {
+			builder.addField(prefix + record_key, (String) record.get(record_key));
+			if (isTag(tags,record_key)) {
+				builder.tag(record_key, (String) record.get(record_key));
+
+			}
+		} else if (record.get(record_key) instanceof Integer) {
+			builder.addField(prefix +  record_key, Integer.valueOf((Integer) record.get(record_key)));
+			if (isTag(tags,record_key)) {
+				Integer tmp = Integer.valueOf((Integer) record.get(record_key));
+				builder.tag(record_key + "_tag", tmp.toString());
+
+			}
+		} else if (record.get(record_key) instanceof Long) {
+			builder.addField(prefix + record_key, Long.valueOf((Long) record.get(record_key)));	
+			if (isTag(tags,record_key)) {
+				Long tmp = Long.valueOf((Long) record.get(record_key));
+				builder.tag(record_key + "_tag", tmp.toString());
+
+			}
+		} else if (record.get(record_key) instanceof Float) {
+			builder.addField( prefix + record_key, Float.valueOf(record.get(record_key).toString()));
+			if (isTag(tags,record_key)) {
+				Float tmp = Float.valueOf((Float) record.get(record_key));
+				builder.tag(record_key + "_tag", tmp.toString());
+			}
+		} else if (record.get(record_key) instanceof Double) {
+			builder.addField(prefix + record_key, Double.valueOf(record.get(record_key).toString()));
+			if (isTag(tags,record_key)) {
+				Double tmp = Double.valueOf((Double) record.get(record_key));
+				builder.tag(record_key + "_tag", tmp.toString());
+
+			}
+
+		}
+		return builder;
+		
+	}
+	
+	private ProvenMessageResponse influxWriteDataType(JSONObject datatypeObject, InfluxDB influxDB,
+			String measurementName) {
+
+		ProvenMessageResponse ret = null;
+		Long timestamp = (long) -1;
+
+		
+
+
+		if (datatypeObject.get("timestamp") instanceof Long) {
+			timestamp = (Long) datatypeObject.get("timestamp");					
+		} else if (datatypeObject.get("timestamp") instanceof String) {
+			if (((String)datatypeObject.get("timestamp")).matches("-?\\d+(.\\d+)?")) {
+				timestamp = Long.parseLong((String)datatypeObject.get("timestamp"));
+			}
+
+		} 
+
+		if (timestamp == -1) {
+			ret = new ProvenMessageResponse();
+			ret.setStatus(Status.BAD_REQUEST);
+			ret.setReason("Invalid or missing message content type.  Invalid (non-numeric epoch value) or missing measurement timestamp.");
+			ret.setCode(Status.BAD_REQUEST.getStatusCode());
+			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
+			return ret;
+		}
+
+
+		JSONArray messageContentArray = (JSONArray) datatypeObject.get("message");
+
+		for (int index = 0; index < messageContentArray.size() ; index ++) {
+
+			@SuppressWarnings("unchecked")
+			JSONObject record = (JSONObject) messageContentArray.get(index);
+			JSONArray  tagArray = (JSONArray) datatypeObject.get("tags");
+			int size = tagArray.size();
+			Iterator<String> tag_it = tagArray.iterator();
+			List<String> tags = new ArrayList<String>();
+			while (tag_it.hasNext()) {
+				tags.add((String)tag_it.next());
+			}
+
+			Set recordset = record.keySet();
+			Iterator record_it = recordset.iterator();
+			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
+			
+			JSONObject metadataObject =  (JSONObject) datatypeObject.get("metadata");
+			
+			Set metadataSet = metadataObject.keySet();		
+			Iterator meta_it = metadataSet.iterator();
+			while (meta_it.hasNext()) {
+				String key = (String) meta_it.next();
+				String value = (String) metadataObject.get(key).toString();
+				builder.tag(key,value);
+			}
+		
+			while (record_it.hasNext()) {
+				String record_key = (String) record_it.next();
+				
+				if (record.get(record_key) instanceof String || record.get(record_key) instanceof Integer || 
+						record.get(record_key) instanceof Long || record.get(record_key) instanceof Float ||
+						record.get(record_key) instanceof Double) {
+					    builder = writeDataTypeKeyPoint(builder, tags, record, record_key, null);
+					
+				} else if (record.get(record_key) instanceof JSONObject) {
+					String prefix = record_key;
+					JSONObject nestedrecord = (JSONObject) record.get(record_key);
+					Set nestedrecordset = nestedrecord.keySet();
+					Iterator nestedrecord_it = nestedrecordset.iterator();
+					
+					while (nestedrecord_it.hasNext()) {
+						String nestedrecord_key = (String) nestedrecord_it.next();
+					    builder = writeDataTypeKeyPoint(builder, tags, nestedrecord, nestedrecord_key, prefix);
+						
+					}
+					
+				}
+				
+				
+//				if (record.get(record_key) instanceof String) {
+//					builder.addField(record_key, (String) record.get(record_key));
+//					if (isTag(tags,record_key)) {
+//						builder.tag(record_key, (String) record.get(record_key));
+//
+//					}
+//				} else if (record.get(record_key) instanceof Integer) {
+//					builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
+//					if (isTag(tags,record_key)) {
+//						Integer tmp = Integer.valueOf((Integer) record.get(record_key));
+//						builder.tag(record_key + "_tag", tmp.toString());
+//
+//					}
+//				} else if (record.get(record_key) instanceof Long) {
+//					builder.addField(record_key, Long.valueOf((Long) record.get(record_key)));	
+//					if (isTag(tags,record_key)) {
+//						Long tmp = Long.valueOf((Long) record.get(record_key));
+//						builder.tag(record_key + "_tag", tmp.toString());
+//
+//					}
+//				} else if (record.get(record_key) instanceof Float) {
+//					builder.addField( record_key, Float.valueOf(record.get(record_key).toString()));
+//					if (isTag(tags,record_key)) {
+//						Float tmp = Float.valueOf((Float) record.get(record_key));
+//						builder.tag(record_key + "_tag", tmp.toString());
+//					}
+//				} else if (record.get(record_key) instanceof Double) {
+//					builder.addField(record_key, Double.valueOf(record.get(record_key).toString()));
+//					if (isTag(tags,record_key)) {
+//						Double tmp = Double.valueOf((Double) record.get(record_key));
+//						builder.tag(record_key + "_tag", tmp.toString());
+//
+//					}
+//
+//				}
+				try {
+					influxDB.write(idbDB, idbRP, builder.build());
+					ret = new ProvenMessageResponse();
+					ret.setReason("success");
+					ret.setStatus(Status.CREATED);
+					ret.setCode(Status.CREATED.getStatusCode());
+					ret.setResponse("{ \"INFO\": \"Time-series measurements successfully created.\" }");
+				} catch (Exception e) {
+					ret =  new ProvenMessageResponse();
+					ret.setReason("error");
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Error interpreting measurement, possibly malformed JSON or no fields in measurement, output not recorded.\" }");
+					return ret;
+
+				}
+
+			}
+		}
+		return ret;
+	}
+
+
 
 	private ProvenMessageResponse influxWriteAlarms(JSONArray messageObject, InfluxDB influxDB,
 			String measurementName, String instanceId, String simulationId, Long currentTime) {
@@ -2286,6 +2589,9 @@ public class ConceptService {
 			ret = influxWriteSimulationInput((JSONObject)messageObject, influxDB, measurementName, instanceId, realTime);
 		} else if (objectType.equalsIgnoreCase("A")) {
 			ret = influxWriteAlarms((JSONArray)messageObject, influxDB, measurementName, instanceId, simulationId, realTime);			
+		} else if (objectType.equalsIgnoreCase("X")) {
+			ret = influxWriteDataType((JSONObject)messageObject, influxDB, measurementName);
+			
 		} else {
 			ret = new ProvenMessageResponse();
 			ret.setStatus(Status.BAD_REQUEST);
