@@ -1162,9 +1162,9 @@ public class RepositoryResource {
 			cs.begin();
 
 			// Measurement name is required
-			if (null == measurementName) {
-				throw new Exception("Measurement Name is missing.");
-			}
+//			if (null == measurementName) {
+//				throw new Exception("Measurement Name is missing.");
+//			}
 			
 
 			pmr = cs.getAdvancedQuery(pm, false, false, false);

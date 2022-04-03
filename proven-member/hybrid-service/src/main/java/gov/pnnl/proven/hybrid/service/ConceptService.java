@@ -1323,8 +1323,8 @@ public class ConceptService {
 		String selectCriteriaStr = "";
 		String lastStr = " ORDER BY time DESC LIMIT ";
 		String firstStr = " LIMIT ";
-		Integer last = -1;
-		Integer first = -1;
+		Long last = (long) -1;
+		Long first = (long) -1;
 
 
 		JSONParser parser = new JSONParser();
@@ -1355,7 +1355,47 @@ public class ConceptService {
 			JSONObject selectorFunctionObject = (JSONObject) fObject.get("selectorFunction");
             
 			measurement = fObject.get("queryMeasurement").toString();
+            
+			Object firstObject = fObject.get("first");
+			Object lastObject = fObject.get("last");
 			
+		     if (firstObject != null && lastObject != null) {
+					ret = new ProvenMessageResponse();
+					ret.setReason("Invalid or missing content.");
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Queries cannot contain both <first> AND <last> qualifiers\" } ");
+					return ret;		    	 
+		    	 
+		     }
+		     
+		    if (firstObject instanceof Long) {
+		    	first = (Long)firstObject;
+		    	if (first <= 0) {
+					ret = new ProvenMessageResponse();
+					ret.setReason("Invalid or missing content.");
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Queries must contain <first> qualifiers greater than 0 \" } ");
+					return ret;	
+		    	} 
+		    	
+		    }
+		    
+		    if (lastObject instanceof Long) {
+		    	last = (Long)lastObject;
+		    	if (last <= 0) {
+					ret = new ProvenMessageResponse();
+					ret.setReason("Invalid or missing content.");
+					ret.setStatus(Status.BAD_REQUEST);
+					ret.setCode(Status.BAD_REQUEST.getStatusCode());
+					ret.setResponse("{ \"ERROR\": \"Queries must contain <last> qualifiers greater than 0 \" } ");
+					return ret;	
+		    	}
+		    }
+		    
+		    
+		    
 			if (measurement.length() == 0) {
 				ret = new ProvenMessageResponse();
 				ret.setReason("Invalid or missing content.");
@@ -1364,6 +1404,8 @@ public class ConceptService {
 				ret.setResponse("{ \"ERROR\": \"No measurement supplied for query.\" } ");
 				return ret;
 			}
+			
+			
 
 			if (selectCriteriaArray == null) {
 				selectCriteriaStr = "*";
@@ -1802,24 +1844,17 @@ public class ConceptService {
 		String objectType = "";
 		if (messageObject instanceof JSONObject) {
 
-			
-	
-			
 			JSONObject mObject = (JSONObject) messageObject;
 			
-		    Object object = mObject.get("metadata");
+		    Object object = mObject.get("datatype");
 		    
 		    if (object != null) {
-
-		    	if (object instanceof JSONObject ) {
 
 					objectType = "X";
 					return objectType;
 
-		    	}
 		    }
-			
-
+	
 				
 			object = (JSONObject) (mObject.get("message"));
 			if (object != null) {
@@ -2258,7 +2293,7 @@ public class ConceptService {
 	}
 	
 	
-	private Point.Builder writeDataTypeKeyPoint(Point.Builder builder, List<String> tags, JSONObject record, String record_key, String prefix) {
+	private Point.Builder writeDataTypeKeyPoint(Point.Builder builder, List<String> tags, Object val, String record_key, String prefix) {
 		
 		if (prefix == null) {
 			prefix = new String();
@@ -2266,36 +2301,37 @@ public class ConceptService {
 		if (prefix.length() > 0) {
 			prefix = prefix + "_";
 		}
-		if (record.get(record_key) instanceof String) {
-			builder.addField(prefix + record_key, (String) record.get(record_key));
+		if (val instanceof String) {
 			if (isTag(tags,record_key)) {
-				builder.tag(record_key, (String) record.get(record_key));
+				builder.tag(record_key, (String) val);
 
+			} else {
+				builder.addField(prefix + record_key, (String) val);
 			}
-		} else if (record.get(record_key) instanceof Integer) {
-			builder.addField(prefix +  record_key, Integer.valueOf((Integer) record.get(record_key)));
+		} else if (val instanceof Integer) {
+			builder.addField(prefix +  record_key, Integer.valueOf((Integer) val));
 			if (isTag(tags,record_key)) {
-				Integer tmp = Integer.valueOf((Integer) record.get(record_key));
+				Integer tmp = Integer.valueOf((Integer) val);
 				builder.tag(record_key + "_tag", tmp.toString());
 
 			}
-		} else if (record.get(record_key) instanceof Long) {
-			builder.addField(prefix + record_key, Long.valueOf((Long) record.get(record_key)));	
+		} else if (val instanceof Long) {
+			builder.addField(prefix + record_key, Long.valueOf((Long) val));	
 			if (isTag(tags,record_key)) {
-				Long tmp = Long.valueOf((Long) record.get(record_key));
+				Long tmp = Long.valueOf((Long) val);
 				builder.tag(record_key + "_tag", tmp.toString());
 
 			}
-		} else if (record.get(record_key) instanceof Float) {
-			builder.addField( prefix + record_key, Float.valueOf(record.get(record_key).toString()));
+		} else if (val instanceof Float) {
+			builder.addField( prefix + record_key, Float.valueOf(val.toString()));
 			if (isTag(tags,record_key)) {
-				Float tmp = Float.valueOf((Float) record.get(record_key));
+				Float tmp = Float.valueOf((Float) val);
 				builder.tag(record_key + "_tag", tmp.toString());
 			}
-		} else if (record.get(record_key) instanceof Double) {
-			builder.addField(prefix + record_key, Double.valueOf(record.get(record_key).toString()));
+		} else if (val instanceof Double) {
+			builder.addField(prefix + record_key, Double.valueOf(val.toString()));
 			if (isTag(tags,record_key)) {
-				Double tmp = Double.valueOf((Double) record.get(record_key));
+				Double tmp = Double.valueOf((Double) val);
 				builder.tag(record_key + "_tag", tmp.toString());
 
 			}
@@ -2311,14 +2347,42 @@ public class ConceptService {
 		ProvenMessageResponse ret = null;
 		Long timestamp = (long) -1;
 
+		Set outerMsgKeys = datatypeObject.keySet();
 		
+		Iterator outerMsgKeys_it = outerMsgKeys.iterator();
+		
+		
+//		Set metadataSet = metadataObject.keySet();		
+//		Iterator meta_it = metadataSet.iterator();
+//		while (meta_it.hasNext()) {
+//			String key = (String) meta_it.next();
+//			String value = (String) metadataObject.get(key).toString();
+//			builder.tag(key,value);
+//		}
+		
+		Map<String,Object> outerObjects = new HashMap<String,Object>();
+		
+        while (outerMsgKeys_it.hasNext()) {
+        	String key = outerMsgKeys_it.next().toString();
+        	Object tstObject = datatypeObject.get(key) ;
+        		
+        	if (datatypeObject.get(key) instanceof String   ||
+        	    datatypeObject.get(key) instanceof Integer  ||
+                datatypeObject.get(key) instanceof Long     ||
+                datatypeObject.get(key) instanceof Double   ||
+        	    datatypeObject.get(key) instanceof Float) {
+        		outerObjects.put(key, tstObject);
+        		
+        	}
+        	
+        	
+        }
 
-
-		if (datatypeObject.get("timestamp") instanceof Long) {
-			timestamp = (Long) datatypeObject.get("timestamp");					
-		} else if (datatypeObject.get("timestamp") instanceof String) {
-			if (((String)datatypeObject.get("timestamp")).matches("-?\\d+(.\\d+)?")) {
-				timestamp = Long.parseLong((String)datatypeObject.get("timestamp"));
+		if (outerObjects.get("timestamp") instanceof Long) {
+			timestamp = (Long) outerObjects.get("timestamp");					
+		} else if (outerObjects.get("timestamp") instanceof String) {
+			if (((String)outerObjects.get("timestamp")).matches("-?\\d+(.\\d+)?")) {
+				timestamp = Long.parseLong((String)outerObjects.get("timestamp"));
 			}
 
 		} 
@@ -2331,6 +2395,7 @@ public class ConceptService {
 			ret.setResponse("{ \"ERROR\": \"Bad request made to time-series database.\" }");
 			return ret;
 		}
+
 
 
 		JSONArray messageContentArray = (JSONArray) datatypeObject.get("message");
@@ -2351,14 +2416,30 @@ public class ConceptService {
 			Iterator record_it = recordset.iterator();
 			Point.Builder builder = Point.measurement(measurementName).time(timestamp, TimeUnit.SECONDS);
 			
-			JSONObject metadataObject =  (JSONObject) datatypeObject.get("metadata");
+			//JSONObject metadataObject =  (JSONObject) datatypeObject.get("metadata");
 			
-			Set metadataSet = metadataObject.keySet();		
-			Iterator meta_it = metadataSet.iterator();
-			while (meta_it.hasNext()) {
-				String key = (String) meta_it.next();
-				String value = (String) metadataObject.get(key).toString();
-				builder.tag(key,value);
+//			if (metadataObject != null) {
+//			Set metadataSet = metadataObject.keySet();		
+//			Iterator meta_it = metadataSet.iterator();
+//			while (meta_it.hasNext()) {
+//				String key = (String) meta_it.next();
+//				String value = (String) metadataObject.get(key).toString();
+//				builder.tag(key,value);
+//			}
+//			}
+			
+			Set outerObjectKeys = outerObjects.keySet();
+			Iterator outerObjectKey_it = outerObjectKeys.iterator();
+			while (outerObjectKey_it.hasNext()) {
+				String key = (String) outerObjectKey_it.next();
+				if (!(key.equalsIgnoreCase("timestamp")) && !(key.equalsIgnoreCase("datatype"))) {
+			       builder = writeDataTypeKeyPoint(builder, tags, outerObjects.get(key), key, null);
+				}
+				if (key.equalsIgnoreCase("datatype")) {
+					String value = outerObjects.get(key).toString();
+					builder.tag(key,value);
+					
+				}
 			}
 		
 			while (record_it.hasNext()) {
@@ -2367,58 +2448,22 @@ public class ConceptService {
 				if (record.get(record_key) instanceof String || record.get(record_key) instanceof Integer || 
 						record.get(record_key) instanceof Long || record.get(record_key) instanceof Float ||
 						record.get(record_key) instanceof Double) {
-					    builder = writeDataTypeKeyPoint(builder, tags, record, record_key, null);
+					    builder = writeDataTypeKeyPoint(builder, tags, record.get(record_key), record_key, null);
 					
-				} else if (record.get(record_key) instanceof JSONObject) {
-					String prefix = record_key;
-					JSONObject nestedrecord = (JSONObject) record.get(record_key);
-					Set nestedrecordset = nestedrecord.keySet();
-					Iterator nestedrecord_it = nestedrecordset.iterator();
-					
-					while (nestedrecord_it.hasNext()) {
-						String nestedrecord_key = (String) nestedrecord_it.next();
-					    builder = writeDataTypeKeyPoint(builder, tags, nestedrecord, nestedrecord_key, prefix);
-						
-					}
+//				} else if (record.get(record_key) instanceof JSONObject) {
+//					String prefix = record_key;
+//					JSONObject nestedrecord = (JSONObject) record.get(record_key);
+//					Set nestedrecordset = nestedrecord.keySet();
+//					Iterator nestedrecord_it = nestedrecordset.iterator();
+//					
+//					while (nestedrecord_it.hasNext()) {
+//						String nestedrecord_key = (String) nestedrecord_it.next();
+//					    builder = writeDataTypeKeyPoint(builder, tags, nestedrecord.get(nestedrecord_key), nestedrecord_key, prefix);
+//						
+//					}
 					
 				}
 				
-				
-//				if (record.get(record_key) instanceof String) {
-//					builder.addField(record_key, (String) record.get(record_key));
-//					if (isTag(tags,record_key)) {
-//						builder.tag(record_key, (String) record.get(record_key));
-//
-//					}
-//				} else if (record.get(record_key) instanceof Integer) {
-//					builder.addField( record_key, Integer.valueOf((Integer) record.get(record_key)));
-//					if (isTag(tags,record_key)) {
-//						Integer tmp = Integer.valueOf((Integer) record.get(record_key));
-//						builder.tag(record_key + "_tag", tmp.toString());
-//
-//					}
-//				} else if (record.get(record_key) instanceof Long) {
-//					builder.addField(record_key, Long.valueOf((Long) record.get(record_key)));	
-//					if (isTag(tags,record_key)) {
-//						Long tmp = Long.valueOf((Long) record.get(record_key));
-//						builder.tag(record_key + "_tag", tmp.toString());
-//
-//					}
-//				} else if (record.get(record_key) instanceof Float) {
-//					builder.addField( record_key, Float.valueOf(record.get(record_key).toString()));
-//					if (isTag(tags,record_key)) {
-//						Float tmp = Float.valueOf((Float) record.get(record_key));
-//						builder.tag(record_key + "_tag", tmp.toString());
-//					}
-//				} else if (record.get(record_key) instanceof Double) {
-//					builder.addField(record_key, Double.valueOf(record.get(record_key).toString()));
-//					if (isTag(tags,record_key)) {
-//						Double tmp = Double.valueOf((Double) record.get(record_key));
-//						builder.tag(record_key + "_tag", tmp.toString());
-//
-//					}
-//
-//				}
 				try {
 					influxDB.write(idbDB, idbRP, builder.build());
 					ret = new ProvenMessageResponse();
